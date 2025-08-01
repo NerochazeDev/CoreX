@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import { WalletBalance } from "@/components/wallet-balance";
+import { BitcoinChart } from "@/components/bitcoin-chart";
 import { BitcoinPrice } from "@/components/bitcoin-price";
 import { BitcoinSync } from "@/components/bitcoin-sync";
 import { BottomNavigation } from "@/components/bottom-navigation";
@@ -141,18 +141,9 @@ export default function Home() {
       <div className="px-4 py-6">
         <div className="plus500-professional p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-plus500">Portfolio Balance</h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRefreshBalance}
-              disabled={isRefreshing}
-              className="plus500-btn h-8 w-8 p-0 rounded-lg"
-            >
-              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </Button>
+            <h3 className="text-lg font-bold text-plus500">Bitcoin Live Chart</h3>
           </div>
-          <WalletBalance />
+          <BitcoinChart />
         </div>
       </div>
 

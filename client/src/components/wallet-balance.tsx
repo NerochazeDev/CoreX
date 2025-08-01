@@ -16,7 +16,10 @@ export function WalletBalance() {
 
   if (!user) return null;
 
-  const currentPriceData = bitcoinPrice ? (currency === 'USD' ? bitcoinPrice.usd : bitcoinPrice.gbp) : null;
+  const currentPriceData = bitcoinPrice ? (
+    currency === 'EUR' ? bitcoinPrice.eur : 
+    currency === 'USD' ? bitcoinPrice.usd : bitcoinPrice.gbp
+  ) : null;
   const fiatValue = currentPriceData ? calculateCurrencyValue(user.balance, currentPriceData.price) : 0;
 
   const handleRefreshBalance = async () => {
