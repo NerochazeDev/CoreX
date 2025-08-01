@@ -52,15 +52,23 @@ export default function Login() {
       
       <Card className="w-full max-w-md plus500-professional shadow-xl">
         <CardHeader className="text-center pb-8">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-lg bg-plus500-blue flex items-center justify-center shadow-md">
-            <span className="text-2xl font-bold text-white">500</span>
-            <span className="text-lg font-bold text-white">+</span>
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center">
+                <span className="font-black tracking-tight text-plus500-blue text-3xl">Plus</span>
+                <div className="w-8 h-8 bg-plus500-blue rounded-sm flex items-center justify-center mx-1">
+                  <span className="text-white font-black text-xl leading-none">+</span>
+                </div>
+                <span className="font-black tracking-tight text-plus500-blue text-3xl">500</span>
+              </div>
+              <span className="font-bold text-plus500-blue bg-plus500-blue/10 px-3 py-1 rounded-md text-lg ml-2">VIP</span>
+            </div>
           </div>
           <CardTitle className="text-3xl font-bold text-plus500-blue mb-2">
-            Welcome to Plus500
+            Welcome Back
           </CardTitle>
           <CardDescription className="text-lg text-gray-600">
-            VIP Investors - Premium Trading Platform
+            Sign in to your Plus500 VIP account
           </CardDescription>
           
           {/* Security indicators */}

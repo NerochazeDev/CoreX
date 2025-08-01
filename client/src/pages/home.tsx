@@ -111,14 +111,17 @@ export default function Home() {
       {/* Header - Plus500 Style */}
       <header className="bg-plus500-blue text-white px-6 py-4 flex justify-between items-center shadow-plus500">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-md">
-            <span className="text-plus500-blue text-sm font-bold">500</span>
-            <span className="text-plus500-blue text-xs font-bold">+</span>
+          <div className="flex items-center gap-1">
+            <div className="text-white font-black text-2xl tracking-tight flex items-center">
+              <span>Plus</span>
+              <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center mx-1">
+                <span className="text-plus500-blue font-black text-lg leading-none">+</span>
+              </div>
+              <span>500</span>
+            </div>
+            <span className="text-white font-bold text-lg ml-2 bg-white/20 px-2 py-1 rounded-md text-sm">VIP</span>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">
-              Plus500 VIP
-            </h1>
+          <div className="ml-2">
             <p className="text-sm text-plus500-light-blue font-medium">{user.email}</p>
           </div>
         </div>

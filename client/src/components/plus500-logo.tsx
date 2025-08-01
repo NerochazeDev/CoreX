@@ -8,13 +8,6 @@ interface Plus500LogoProps {
 
 export function Plus500Logo({ className, showText = true, size = "md" }: Plus500LogoProps) {
   const sizeClasses = {
-    sm: "h-6 w-6",
-    md: "h-8 w-8", 
-    lg: "h-12 w-12",
-    xl: "h-16 w-16"
-  };
-
-  const textSizeClasses = {
     sm: "text-lg",
     md: "text-xl",
     lg: "text-3xl", 
@@ -22,20 +15,21 @@ export function Plus500Logo({ className, showText = true, size = "md" }: Plus500
   };
 
   return (
-    <div className={cn("flex items-center space-x-2", className)}>
-      <div className={cn(
-        "rounded-lg bg-plus500-blue flex items-center justify-center font-bold text-white shadow-md",
-        sizeClasses[size]
-      )}>
-        <span className="text-white font-bold text-sm">500</span>
-        <span className="text-white text-xs">+</span>
+    <div className={cn("flex items-center gap-2", className)}>
+      <div className="flex items-center">
+        <span className={cn("font-black tracking-tight text-plus500-blue", sizeClasses[size])}>
+          Plus
+        </span>
+        <div className="w-6 h-6 bg-plus500-blue rounded-sm flex items-center justify-center mx-1">
+          <span className="text-white font-black text-lg leading-none">+</span>
+        </div>
+        <span className={cn("font-black tracking-tight text-plus500-blue", sizeClasses[size])}>
+          500
+        </span>
       </div>
       {showText && (
-        <span className={cn(
-          "font-bold text-plus500-blue",
-          textSizeClasses[size]
-        )} style={{fontFamily: 'Plus500 Sans, -apple-system, BlinkMacSystemFont, sans-serif'}}>
-          Plus500
+        <span className="font-bold text-plus500-blue bg-plus500-blue/10 px-2 py-1 rounded-md text-sm">
+          VIP
         </span>
       )}
     </div>
