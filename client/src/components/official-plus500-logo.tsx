@@ -36,7 +36,7 @@ export function OfficialPlus500Logo({
     <div className={cn("flex items-center gap-3", className)}>
       {/* Authentic Plus500 Logo - Exact replica of official design */}
       <div className={cn(
-        "relative rounded-lg font-extrabold tracking-wider uppercase leading-none text-center",
+        "relative rounded-lg font-extrabold tracking-wider leading-none text-center",
         containerSize[size],
         bgColor,
         textColor,
@@ -46,22 +46,22 @@ export function OfficialPlus500Logo({
         fontFamily: '"Arial Black", "Helvetica Bold", "Futura Bold", system-ui, sans-serif',
         letterSpacing: '0.05em'
       }}>
-        {/* Plus symbol positioned above the 's' in PLUS - Authentic positioning */}
+        {/* Plus symbol positioned above the 's' in Plus - Authentic positioning */}
         <div className={cn(
           "absolute font-extrabold",
           plusSize[size]
         )}
         style={{
           top: '-0.3em',
-          left: '2.4ch', // Position over the 's' in PLUS using character units
+          left: '2.4ch', // Position over the 's' in Plus using character units
           fontFamily: 'inherit'
         }}>
           +
         </div>
         
-        {/* PLUS500 text - Single line as per authentic design */}
+        {/* Plus500 text - Single line as per authentic design */}
         <div className="font-extrabold relative z-10">
-          PLUS500
+          Plus500
         </div>
       </div>
       
