@@ -105,31 +105,28 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-sm mx-auto bg-background min-h-screen relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-background opacity-50"></div>
-      <div className="absolute top-0 right-0 w-64 h-64 bg-plus500-blue opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-plus500-light-blue opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
+    <div className="max-w-sm mx-auto bg-white min-h-screen relative">
+      {/* Clean white background like authentic Plus500 */}
 
-      {/* Header */}
-      <header className="relative px-6 py-4 flex justify-between items-center backdrop-blur-sm">
+      {/* Header - Plus500 Style */}
+      <header className="bg-plus500-blue text-white px-6 py-4 flex justify-between items-center shadow-plus500">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl plus500-gradient flex items-center justify-center glow-plus500 shadow-lg">
-            <span className="text-white text-sm font-bold">500</span>
-            <span className="text-white text-xs font-bold">+</span>
+          <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-md">
+            <span className="text-plus500-blue text-sm font-bold">500</span>
+            <span className="text-plus500-blue text-xs font-bold">+</span>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground bg-gradient-to-r from-plus500-blue to-plus500-light-blue bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold text-white">
               Plus500 VIP
             </h1>
-            <p className="text-sm text-muted-foreground font-medium">{user.email}</p>
+            <p className="text-sm text-plus500-light-blue font-medium">{user.email}</p>
           </div>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-2xl relative glass-card hover:glow-plus500 transition-all duration-300" 
+            className="rounded-lg bg-white/20 hover:bg-white/30 transition-all duration-300" 
             onClick={() => setLocation('/notifications')}
           >
             <Bell className="w-5 h-5" />
@@ -142,7 +139,7 @@ export default function Home() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-2xl glass-card hover:glow-plus500 transition-all duration-300" 
+            className="rounded-lg bg-white/20 hover:bg-white/30 transition-all duration-300" 
             onClick={() => setLocation('/profile')}
           >
             <User className="w-5 h-5" />
@@ -150,10 +147,10 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Wallet Balance */}
-      <div className="relative px-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-foreground">Wallet Balance</h3>
+      {/* Wallet Balance - Plus500 Style */}
+      <div className="px-4 py-6 bg-gray-50">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-plus500-dark-blue">Wallet Balance</h3>
             <Button
               variant="ghost"
               size="icon"
@@ -175,37 +172,37 @@ export default function Home() {
         <BitcoinSync />
       </div>
 
-      {/* Quick Actions */}
-      <div className="relative px-4 mb-6">
-        <h3 className="text-base font-semibold mb-3 text-foreground">Quick Actions</h3>
+      {/* Quick Actions - Plus500 Style */}
+      <div className="px-4 mb-6">
+        <h3 className="text-lg font-semibold mb-4 text-plus500-dark-blue">Quick Actions</h3>
         <div className="grid grid-cols-2 gap-3">
           <Button 
-            className="neo-card rounded-2xl p-4 text-center hover:glow-ruby transition-all duration-300 transform hover:scale-105 flex flex-col items-center gap-2 h-auto group"
+            className="bg-white border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-all duration-300 flex flex-col items-center gap-2 h-auto group"
             onClick={() => setLocation('/withdraw')}
           >
-            <div className="w-10 h-10 rounded-xl bg-ruby bg-opacity-20 flex items-center justify-center group-hover:bg-opacity-30 transition-all">
-              <ArrowUpRight className="w-5 h-5 text-ruby" />
+            <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-all">
+              <ArrowUpRight className="w-5 h-5 text-red-600" />
             </div>
-            <span className="text-sm font-medium text-foreground">Withdraw</span>
-            <span className="text-xs text-muted-foreground">Send Bitcoin</span>
+            <span className="text-sm font-medium text-plus500-dark-blue">Withdraw</span>
+            <span className="text-xs text-gray-500">Send Bitcoin</span>
           </Button>
           <Button 
-            className="neo-card rounded-2xl p-4 text-center hover:glow-emerald transition-all duration-300 transform hover:scale-105 flex flex-col items-center gap-2 h-auto group"
+            className="bg-white border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-all duration-300 flex flex-col items-center gap-2 h-auto group"
             onClick={() => setLocation('/deposit')}
           >
-            <div className="w-10 h-10 rounded-xl bg-emerald bg-opacity-20 flex items-center justify-center group-hover:bg-opacity-30 transition-all">
-              <ArrowDownLeft className="w-5 h-5 text-emerald" />
+            <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-all">
+              <ArrowDownLeft className="w-5 h-5 text-green-600" />
             </div>
-            <span className="text-sm font-medium text-foreground">Deposit</span>
-            <span className="text-xs text-muted-foreground">Receive Bitcoin</span>
+            <span className="text-sm font-medium text-plus500-dark-blue">Deposit</span>
+            <span className="text-xs text-gray-500">Receive Bitcoin</span>
           </Button>
         </div>
       </div>
 
-      {/* Current Investment Plan */}
-      <div className="relative px-4 mb-6">
-        <h3 className="text-base font-semibold mb-3 text-foreground">Investment Plan</h3>
-        <Card className="neo-card rounded-2xl p-4 hover:glow-bitcoin transition-all duration-300">
+      {/* Current Investment Plan - Plus500 Style */}
+      <div className="px-4 mb-6">
+        <h3 className="text-lg font-semibold mb-4 text-plus500-dark-blue">Investment Plan</h3>
+        <Card className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -218,10 +215,10 @@ export default function Home() {
                 }`} />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-base text-foreground truncate">
+                <h4 className="font-bold text-base text-plus500-dark-blue truncate">
                   {currentPlan ? currentPlan.name : "Free Plan"}
                 </h4>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   {currentPlan 
                     ? `${(parseFloat(currentPlan.dailyReturnRate) * 100).toFixed(2)}% daily return`
                     : "3.67% every 10 minutes"
@@ -239,7 +236,7 @@ export default function Home() {
           </div>
           {!currentPlan && (
             <Button 
-              className="w-full gradient-primary text-black font-medium rounded-xl hover:scale-105 transition-all duration-300"
+              className="w-full bg-plus500-blue text-white font-medium rounded-lg hover:bg-plus500-royal transition-all duration-300"
               onClick={() => setLocation('/investment')}
             >
               Upgrade Plan

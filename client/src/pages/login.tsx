@@ -47,34 +47,31 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-background opacity-50"></div>
-      <div className="absolute top-20 right-20 w-96 h-96 bg-plus500-blue opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-20 left-20 w-64 h-64 bg-plus500-light-blue opacity-5 rounded-full blur-3xl animate-float"></div>
+    <div className="min-h-screen bg-white flex items-center justify-center p-6">
+      {/* Clean white background like authentic Plus500 */}
       
-      <Card className="w-full max-w-md relative z-10 neo-card border-0 shadow-2xl">
+      <Card className="w-full max-w-md bg-white border border-gray-200 shadow-lg rounded-lg">
         <CardHeader className="text-center pb-8">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-3xl plus500-gradient flex items-center justify-center glow-plus500">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-lg bg-plus500-blue flex items-center justify-center shadow-md">
             <span className="text-2xl font-bold text-white">500</span>
             <span className="text-lg font-bold text-white">+</span>
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-plus500-blue to-plus500-light-blue bg-clip-text text-transparent mb-2">
+          <CardTitle className="text-3xl font-bold text-plus500-blue mb-2">
             Welcome to Plus500
           </CardTitle>
-          <CardDescription className="text-lg text-muted-foreground">
+          <CardDescription className="text-lg text-gray-600">
             VIP Investors - Premium Trading Platform
           </CardDescription>
           
           {/* Security indicators */}
           <div className="flex items-center justify-center gap-4 mt-4">
-            <div className="flex items-center gap-2 glass-card px-3 py-1 rounded-xl">
-              <Shield className="w-4 h-4 text-emerald" />
-              <span className="text-xs text-emerald font-medium">Bank-Level Security</span>
+            <div className="flex items-center gap-2 bg-green-50 px-3 py-1 rounded-lg border border-green-200">
+              <Shield className="w-4 h-4 text-green-600" />
+              <span className="text-xs text-green-700 font-medium">Bank-Level Security</span>
             </div>
-            <div className="flex items-center gap-2 glass-card px-3 py-1 rounded-xl">
+            <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
               <Lock className="w-4 h-4 text-plus500-blue" />
-              <span className="text-xs text-sapphire font-medium">256-bit SSL</span>
+              <span className="text-xs text-plus500-blue font-medium">256-bit SSL</span>
             </div>
           </div>
         </CardHeader>
@@ -82,9 +79,9 @@ export default function Login() {
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">Email Address</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-plus500-dark-blue">Email Address</Label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
                   id="email"
                   type="email"

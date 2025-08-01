@@ -143,12 +143,10 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-2 sm:p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-plus500-blue/5 via-transparent to-plus500-light-blue/5"></div>
-      <div className="absolute top-10 right-10 w-32 h-32 bg-plus500-blue opacity-10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-10 left-10 w-24 h-24 bg-plus500-light-blue opacity-10 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-white flex items-center justify-center p-2 sm:p-4">
+      {/* Clean white background like authentic Plus500 */}
 
-      <Card className="w-full max-w-2xl neo-card relative z-10 mx-2 sm:mx-4">
+      <Card className="w-full max-w-2xl bg-white border border-gray-200 shadow-lg rounded-lg mx-2 sm:mx-4">
         <CardHeader className="text-center space-y-4">
           <div className="w-20 h-20 mx-auto rounded-3xl plus500-gradient flex items-center justify-center glow-plus500 shadow-2xl">
             <span className="text-2xl font-bold text-white">500</span>

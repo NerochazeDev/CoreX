@@ -19,7 +19,7 @@ export function BottomNavigation() {
 
   return (
     <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm">
-      <div className="glass-card backdrop-blur-xl border-t border-border rounded-t-3xl mx-4 mb-4">
+      <div className="bg-white border-t border-gray-200 rounded-t-2xl mx-4 mb-4 shadow-lg">
         <div className="flex justify-around py-4 px-2">
           {navItems.map((item) => {
             const isActive = location === item.path;

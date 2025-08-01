@@ -3,71 +3,64 @@
 @tailwind utilities;
 
 :root {
-  --background: 224 71% 4%; /* Deep royal blue */
-  --foreground: 0 0% 98%;
-  --muted: 224 71% 8%;
-  --muted-foreground: 215 16% 65%;
-  --popover: 224 71% 6%;
-  --popover-foreground: 0 0% 98%;
-  --card: 224 71% 6%;
-  --card-foreground: 0 0% 98%;
-  --border: 224 71% 12%;
-  --input: 224 71% 12%;
-  --primary: 221 83% 53%; /* Plus500 Royal Blue */
-  --primary-foreground: 0 0% 98%;
-  --secondary: 224 71% 8%;
-  --secondary-foreground: 0 0% 98%;
-  --accent: 200 98% 39%; /* Plus500 Light Blue */
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 50%;
-  --destructive-foreground: 0 0% 98%;
-  --ring: 221 83% 53%;
+  --background: 0 0% 100%; /* Pure white background */
+  --foreground: 224 71% 4%; /* Dark blue text */
+  --muted: 220 14% 96%; /* Light gray */
+  --muted-foreground: 220 9% 46%; /* Medium gray text */
+  --popover: 0 0% 100%; /* White popover */
+  --popover-foreground: 224 71% 4%; /* Dark blue text */
+  --card: 0 0% 100%; /* White cards */
+  --card-foreground: 224 71% 4%; /* Dark blue text */
+  --border: 220 13% 91%; /* Light border */
+  --input: 220 13% 91%; /* Light input background */
+  --primary: 221 83% 53%; /* Plus500 Royal Blue #1E40AF */
+  --primary-foreground: 0 0% 98%; /* White text on blue */
+  --secondary: 220 14% 96%; /* Light gray secondary */
+  --secondary-foreground: 220 9% 15%; /* Dark text */
+  --accent: 200 98% 39%; /* Plus500 Light Blue #0EA5E9 */
+  --accent-foreground: 0 0% 98%; /* White text on light blue */
+  --destructive: 0 84% 60%; /* Red */
+  --destructive-foreground: 0 0% 98%; /* White text on red */
+  --ring: 221 83% 53%; /* Blue ring */
   --radius: 0.75rem;
-  --plus500-blue: 221 83% 53%; /* #3B82F6 - Primary Plus500 Blue */
+  --plus500-blue: 221 83% 53%; /* #1E40AF - Primary Plus500 Blue */
   --plus500-light-blue: 200 98% 39%; /* #0EA5E9 - Light blue accent */
-  --plus500-dark-blue: 224 71% 4%; /* Very dark blue background */
+  --plus500-dark-blue: 224 71% 4%; /* Very dark blue for text */
   --plus500-royal: 230 100% 32%; /* #0052CC - Deep royal blue */
   --emerald: 158 64% 52%; /* #10B981 */
   --ruby: 0 84% 60%; /* #EF4444 */
   --gold: 51 100% 50%; /* #FFD700 */
-  --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(200 98% 39%) 50%, hsl(230 100% 32%) 100%);
-  --gradient-secondary: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(224 71% 8%) 100%);
-  --gradient-accent: linear-gradient(135deg, hsl(200 98% 39%) 0%, hsl(221 83% 53%) 100%);
+  --gradient-primary: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%);
+  --gradient-secondary: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --gradient-accent: linear-gradient(135deg, #0ea5e9 0%, #1e40af 100%);
   --gradient-plus500: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-plus500: 0 10px 25px -5px rgba(59, 130, 246, 0.25), 0 4px 10px -2px rgba(59, 130, 246, 0.1);
+  --shadow-plus500: 0 4px 14px 0 rgba(30, 64, 175, 0.15);
 }
 
-.light {
-  --background: 0 0% 100%;
-  --foreground: 224 71% 4%;
-  --muted: 220 14% 96%;
-  --muted-foreground: 220 9% 46%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 224 71% 4%;
-  --card: 0 0% 100%;
-  --card-foreground: 224 71% 4%;
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
+.dark {
+  --background: 224 71% 4%; /* Dark blue background */
+  --foreground: 0 0% 98%; /* White text */
+  --muted: 224 71% 8%; /* Dark gray */
+  --muted-foreground: 215 16% 65%; /* Light gray text */
+  --popover: 224 71% 6%; /* Dark blue popover */
+  --popover-foreground: 0 0% 98%; /* White text */
+  --card: 224 71% 6%; /* Dark blue cards */
+  --card-foreground: 0 0% 98%; /* White text */
+  --border: 224 71% 12%; /* Dark border */
+  --input: 224 71% 12%; /* Dark input background */
   --primary: 221 83% 53%; /* Plus500 Royal Blue */
-  --primary-foreground: 0 0% 98%;
-  --secondary: 220 14% 96%;
-  --secondary-foreground: 220 9% 15%;
+  --primary-foreground: 0 0% 98%; /* White text on blue */
+  --secondary: 224 71% 8%; /* Dark gray secondary */
+  --secondary-foreground: 0 0% 98%; /* White text */
   --accent: 200 98% 39%; /* Plus500 Light Blue */
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 221 83% 53%;
-  --plus500-blue: 221 83% 53%;
-  --plus500-light-blue: 200 98% 39%;
-  --plus500-dark-blue: 224 71% 4%;
-  --plus500-royal: 230 100% 32%;
-  --emerald: 158 64% 52%;
-  --ruby: 0 84% 60%;
-  --gold: 51 100% 50%;
+  --accent-foreground: 0 0% 98%; /* White text */
+  --destructive: 0 62.8% 50%; /* Red */
+  --destructive-foreground: 0 0% 98%; /* White text */
+  --ring: 221 83% 53%; /* Blue ring */
 }
 
 @layer base {

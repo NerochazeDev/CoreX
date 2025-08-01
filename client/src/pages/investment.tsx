@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useCurrency } from "@/hooks/use-currency";
-import { formatBitcoinAmount } from "@/lib/bitcoin";
+// Remove unused import
 import { TrendingUp, Target, Clock, Award, ArrowLeft, BarChart3, PieChart, Calendar, DollarSign, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -57,8 +57,8 @@ export default function Investment() {
 
   const activeInvestments = investments?.filter(inv => inv.isActive === true) || [];
   const completedInvestments = investments?.filter(inv => inv.isActive === false) || [];
-  const pendingInvestments = transactions?.filter(tx => tx.type === 'investment' && tx.status === 'pending') || [];
-  const rejectedInvestments = transactions?.filter(tx => tx.type === 'investment' && tx.status === 'rejected') || [];
+  const pendingInvestments = transactions?.filter ? transactions.filter(tx => tx.type === 'investment' && tx.status === 'pending') : [];
+  const rejectedInvestments = transactions?.filter ? transactions.filter(tx => tx.type === 'investment' && tx.status === 'rejected') : [];
 
   // Calculate portfolio statistics
   const totalInvested = investments?.reduce((sum, inv) => sum + parseFloat(inv.amount), 0) || 0;
