@@ -345,7 +345,7 @@ async function fetchBitcoinPrice() {
   try {
     // Use multiple sources for reliability
     const sources = [
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,gbp,eur&include_24hr_change=true',
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,gbp&include_24hr_change=true',
       'https://api.coindesk.com/v1/bpi/currentprice.json'
     ];
 
@@ -356,19 +356,12 @@ async function fetchBitcoinPrice() {
         const data = await response.json();
         return {
           usd: {
-            price: Math.round(data.bitcoin.usd * 100) / 100,
+            price: Math.round(data.bitcoin.usd * 100) / 100, // Round to 2 decimal places
             change24h: Math.round(data.bitcoin.usd_24h_change * 100) / 100,
-            changePercent: Math.round(data.bitcoin.usd_24h_change * 100) / 100,
           },
           gbp: {
             price: Math.round(data.bitcoin.gbp * 100) / 100,
             change24h: Math.round((data.bitcoin.gbp_24h_change || data.bitcoin.usd_24h_change) * 100) / 100,
-            changePercent: Math.round((data.bitcoin.gbp_24h_change || data.bitcoin.usd_24h_change) * 100) / 100,
-          },
-          eur: {
-            price: Math.round(data.bitcoin.eur * 100) / 100,
-            change24h: Math.round((data.bitcoin.eur_24h_change || data.bitcoin.usd_24h_change) * 100) / 100,
-            changePercent: Math.round((data.bitcoin.eur_24h_change || data.bitcoin.usd_24h_change) * 100) / 100,
           }
         };
       }
@@ -384,27 +377,19 @@ async function fetchBitcoinPrice() {
     return {
       usd: {
         price: usdPrice,
-        change24h: 0,
-        changePercent: 0,
+        change24h: 0, // CoinDesk doesn't provide 24h change
       },
       gbp: {
-        price: Math.round(usdPrice * 0.79 * 100) / 100,
+        price: Math.round(usdPrice * 0.79 * 100) / 100, // Approximate GBP conversion
         change24h: 0,
-        changePercent: 0,
-      },
-      eur: {
-        price: Math.round(usdPrice * 0.85 * 100) / 100,
-        change24h: 0,
-        changePercent: 0,
       }
     };
   } catch (error) {
     console.error('All Bitcoin price APIs failed:', error);
     // Return last known good price or reasonable fallback
     return { 
-      usd: { price: 105000, change24h: 0, changePercent: 0 },
-      gbp: { price: 83000, change24h: 0, changePercent: 0 },
-      eur: { price: 95000, change24h: 0, changePercent: 0 }
+      usd: { price: 105000, change24h: 0 },
+      gbp: { price: 83000, change24h: 0 }
     };
   }
 }
@@ -1379,15 +1364,6 @@ Your investment journey starts here!`,
 
       // Set session userId for authentication
       req.session.userId = user.id;
-      
-      // Force session save to ensure persistence
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-      
       console.log('Login successful - Setting session userId:', user.id);
       console.log('Login successful - Session ID:', req.sessionID);
 

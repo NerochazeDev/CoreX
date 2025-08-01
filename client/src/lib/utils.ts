@@ -26,17 +26,8 @@ export function formatGBP(amount: number): string {
   }).format(amount);
 }
 
-export function formatEUR(amount: number): string {
-  return new Intl.NumberFormat('nl-NL', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
-
-export function formatCurrency(amount: number, currency: 'USD' | 'GBP' | 'EUR'): string {
-  return currency === 'USD' ? formatUSD(amount) : 
-         currency === 'EUR' ? formatEUR(amount) : formatGBP(amount);
+export function formatCurrency(amount: number, currency: 'USD' | 'GBP'): string {
+  return currency === 'USD' ? formatUSD(amount) : formatGBP(amount);
 }
 
 export function calculateUSDValue(btcAmount: string | number, btcPrice: number): number {
