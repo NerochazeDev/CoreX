@@ -28,47 +28,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check for stored user data
     const storedUser = localStorage.getItem('plus500_user');
-    console.log('AuthProvider initializing, stored user:', storedUser ? 'found' : 'not found');
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
-        console.log('Restoring user from localStorage:', userData.email);
         setUser(userData);
         
-        // Only validate session if user has been inactive for more than 5 minutes
+        // Only validate session if user has been inactive for more than 30 minutes
         const lastActivity = localStorage.getItem('plus500_last_activity');
         const now = Date.now();
-        const fiveMinutes = 5 * 60 * 1000;
+        const thirtyMinutes = 30 * 60 * 1000;
         
-        if (!lastActivity || (now - parseInt(lastActivity)) > fiveMinutes) {
-          // Verify the user session is still valid
-          fetch(`/api/user/${userData.id}`)
-            .then(response => {
-              if (!response.ok) {
-                throw new Error('Session expired');
-              }
-              return response.json();
-            })
-            .then(refreshedUser => {
-              setUser(refreshedUser);
-              localStorage.setItem('plus500_user', JSON.stringify(refreshedUser));
-              localStorage.setItem('plus500_last_activity', now.toString());
-            })
-            .catch(error => {
-              console.error('Session validation failed:', error);
-              // Only clear session if it's a 401/403 error, not network errors
-              if (error.message === 'Session expired') {
-                localStorage.removeItem('plus500_user');
-                localStorage.removeItem('plus500_last_activity');
-                setUser(null);
-              }
-            });
-        } else {
+        if (lastActivity && (now - parseInt(lastActivity)) < thirtyMinutes) {
           // Session is recent, just update last activity
           localStorage.setItem('plus500_last_activity', now.toString());
         }
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
         localStorage.removeItem('plus500_user');
         localStorage.removeItem('plus500_last_activity');
       }
