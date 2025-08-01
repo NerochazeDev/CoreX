@@ -32,10 +32,10 @@
   --plus500-secondary: 210 100% 34%; /* Darker blue variant */
   --plus500-gold: 45 93% 47%; /* #E6A817 - Plus500 Gold */
   --plus500-light: 210 40% 96%; /* Very light background */
-  --plus500-dark: 210 40% 8%; /* Professional dark */
-  --plus500-success: 142 71% 45%; /* Professional green */
-  --plus500-warning: 25 95% 53%; /* Professional orange */
-  --plus500-danger: 0 84% 60%; /* Professional red */
+  --plus500-dark: 210 40% 15%; /* Professional dark with better contrast */
+  --plus500-success: 142 71% 35%; /* Professional green with better contrast */
+  --plus500-warning: 25 95% 45%; /* Professional orange with better contrast */
+  --plus500-danger: 0 84% 50%; /* Professional red with better contrast */
   
   /* VIP Gradients */
   --gradient-primary: linear-gradient(135deg, #003AE0 0%, #0052FF 100%);
@@ -220,11 +220,27 @@
 
   /* VIP Status Colors */
   .text-vip-gold {
+    color: hsl(var(--plus500-gold));
+    font-weight: 700;
+  }
+  
+  .text-vip-gold-gradient {
     background: var(--gradient-gold);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: 700;
+  }
+  
+  /* Improved text contrast */
+  .text-contrast {
+    color: hsl(var(--foreground));
+    font-weight: 500;
+  }
+  
+  .text-contrast-muted {
+    color: hsl(var(--muted-foreground));
+    font-weight: 400;
   }
 
   /* Plus500 VIP Backgrounds */

@@ -59,7 +59,7 @@ export default function Login() {
                 </div>
                 <span className="font-bold tracking-tight text-plus500 text-3xl">500</span>
               </div>
-              <span className="text-vip-gold font-bold bg-plus500-gold/10 px-3 py-1 rounded-full text-lg ml-2 border border-plus500-gold/20">VIP</span>
+              <span className="text-plus500-gold font-bold bg-plus500-gold/10 px-3 py-1 rounded-full text-lg ml-2 border border-plus500-gold/20">VIP</span>
             </div>
           </div>
           <CardTitle className="text-3xl font-bold text-plus500 mb-2">

@@ -117,7 +117,7 @@ export default function Home() {
               </div>
               <span className="text-white font-bold text-xl tracking-tight">500</span>
             </div>
-            <span className="text-vip-gold font-bold text-sm bg-white/10 px-2 py-1 rounded-full border border-white/20">VIP</span>
+            <span className="text-plus500-gold font-bold text-sm bg-white/10 px-2 py-1 rounded-full border border-white/20">VIP</span>
           </div>
           <div className="flex items-center gap-3">
             <button 

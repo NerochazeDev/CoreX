@@ -143,21 +143,27 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4" style={{background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'}}>
-      {/* Professional gradient background like authentic Plus500 */}
-
+    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4 bg-background">
       <Card className="w-full max-w-2xl plus500-professional shadow-xl mx-2 sm:mx-4">
         <CardHeader className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto rounded-3xl plus500-gradient flex items-center justify-center glow-plus500 shadow-2xl">
-            <span className="text-2xl font-bold text-white">500</span>
-            <span className="text-lg font-bold text-white">+</span>
+          <div className="flex justify-center mb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center">
+                <span className="font-bold tracking-tight text-plus500 text-3xl">Plus</span>
+                <div className="w-8 h-8 bg-plus500 rounded-sm flex items-center justify-center mx-1">
+                  <span className="text-white font-bold text-xl leading-none">+</span>
+                </div>
+                <span className="font-bold tracking-tight text-plus500 text-3xl">500</span>
+              </div>
+              <span className="text-plus500-gold font-bold bg-plus500-gold/10 px-3 py-1 rounded-full text-lg ml-2 border border-plus500-gold/20">VIP</span>
+            </div>
           </div>
           <div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-plus500-blue to-plus500-light-blue bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-bold text-plus500">
               Join Plus500 VIP
             </CardTitle>
-            <CardDescription className="text-lg mt-2">
-              Create your premium trading account
+            <CardDescription className="text-lg mt-2 text-muted-foreground">
+              Create your premium investment account
             </CardDescription>
           </div>
           <div className="flex justify-center gap-2">
@@ -176,7 +182,7 @@ export default function Register() {
             {/* Personal Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-plus500-blue" />
+                <UserCheck className="w-5 h-5 text-plus500" />
                 Personal Information
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

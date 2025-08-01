@@ -4,9 +4,15 @@ interface Plus500LogoProps {
   className?: string;
   showText?: boolean;
   size?: "sm" | "md" | "lg" | "xl";
+  variant?: "light" | "dark" | "white";
 }
 
-export function Plus500Logo({ className, showText = true, size = "md" }: Plus500LogoProps) {
+export function Plus500Logo({ 
+  className, 
+  showText = true, 
+  size = "md", 
+  variant = "light" 
+}: Plus500LogoProps) {
   const sizeClasses = {
     sm: "text-lg",
     md: "text-xl",
@@ -21,21 +27,25 @@ export function Plus500Logo({ className, showText = true, size = "md" }: Plus500
     xl: "w-10 h-10"
   };
 
+  const textColor = variant === 'white' ? 'text-white' : 'text-plus500';
+  const bgColor = variant === 'white' ? 'bg-white' : 'bg-plus500';
+  const iconTextColor = variant === 'white' ? 'text-plus500' : 'text-white';
+
   return (
     <div className={cn("flex items-center gap-3", className)}>
       <div className="flex items-center">
-        <span className={cn("font-bold tracking-tight text-plus500", sizeClasses[size])}>
+        <span className={cn("font-bold tracking-tight", sizeClasses[size], textColor)}>
           Plus
         </span>
-        <div className={cn("bg-plus500 rounded-sm flex items-center justify-center mx-1", iconSize[size])}>
-          <span className="text-white font-bold text-lg leading-none">+</span>
+        <div className={cn("rounded-sm flex items-center justify-center mx-1", iconSize[size], bgColor)}>
+          <span className={cn("font-bold text-lg leading-none", iconTextColor)}>+</span>
         </div>
-        <span className={cn("font-bold tracking-tight text-plus500", sizeClasses[size])}>
+        <span className={cn("font-bold tracking-tight", sizeClasses[size], textColor)}>
           500
         </span>
       </div>
       {showText && (
-        <span className="text-vip-gold font-bold px-3 py-1 rounded-full text-sm bg-plus500-gold/10 border border-plus500-gold/20">
+        <span className="text-plus500-gold font-bold px-3 py-1 rounded-full text-sm bg-plus500-gold/10 border border-plus500-gold/20">
           VIP
         </span>
       )}

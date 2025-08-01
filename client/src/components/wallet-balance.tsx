@@ -45,25 +45,25 @@ export function WalletBalance() {
       <Card className="plus500-professional p-6 relative overflow-hidden shadow-lg">
         {/* Security indicators */}
         <div className="absolute top-3 right-3 flex gap-1.5">
-          <div className="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center border border-green-200">
-            <Shield className="w-3 h-3 text-green-600" />
+          <div className="w-6 h-6 rounded-lg bg-plus500-success/10 flex items-center justify-center border border-plus500-success/20">
+            <Shield className="w-3 h-3 text-plus500-success" />
           </div>
-          <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center border border-blue-200 animate-pulse">
-            <Zap className="w-3 h-3 text-plus500-blue" />
+          <div className="w-6 h-6 rounded-lg bg-plus500/10 flex items-center justify-center border border-plus500/20 animate-pulse">
+            <Zap className="w-3 h-3 text-plus500" />
           </div>
         </div>
 
         <div className="relative z-10 space-y-4">
           {/* Header */}
           <div>
-            <p className="text-gray-600 text-xs font-medium mb-2">Total Portfolio Balance</p>
+            <p className="text-muted-foreground text-xs font-medium mb-2">Total Portfolio Balance</p>
             <div className="flex items-center gap-2 mb-3">
               {isBalanceVisible ? (
-                <h2 className="text-2xl sm:text-3xl font-bold text-plus500-blue tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold text-plus500 tracking-tight">
                   {formatBitcoin(user.balance)} BTC
                 </h2>
               ) : (
-                <h2 className="text-2xl sm:text-3xl font-bold text-plus500-blue tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold text-plus500 tracking-tight">
                   ••••••••
                 </h2>
               )}
@@ -71,44 +71,44 @@ export function WalletBalance() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all"
+                  className="w-7 h-7 rounded-lg bg-muted hover:bg-muted/80 transition-all"
                   onClick={() => setIsBalanceVisible(!isBalanceVisible)}
                 >
                   {isBalanceVisible ? (
-                    <EyeOff className="w-3.5 h-3.5 text-gray-600" />
+                    <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
                   ) : (
-                    <Eye className="w-3.5 h-3.5 text-gray-600" />
+                    <Eye className="w-3.5 h-3.5 text-muted-foreground" />
                   )}
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all"
+                  className="w-7 h-7 rounded-lg bg-muted hover:bg-muted/80 transition-all"
                   onClick={handleRefreshBalance}
                   disabled={isRefreshing}
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${isRefreshing ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
             </div>
 
             {isBalanceVisible && (
-              <p className="text-gray-600 text-lg font-semibold">
+              <p className="text-plus500-success text-lg font-semibold">
                 ≈ {formatCurrency(fiatValue, currency)}
               </p>
             )}
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-black border-opacity-20">
+          <div className="flex items-center justify-between pt-3 border-t border-border">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald animate-pulse"></div>
-              <p className="text-black text-opacity-70 text-xs font-medium">
+              <div className="w-2 h-2 rounded-full bg-plus500-success animate-pulse"></div>
+              <p className="text-muted-foreground text-xs font-medium">
                 Secure Vault Protected
               </p>
             </div>
             <div className="text-right">
-              <p className="text-black text-opacity-70 text-xs">Live</p>
+              <p className="text-muted-foreground text-xs">Live</p>
             </div>
           </div>
         </div>
