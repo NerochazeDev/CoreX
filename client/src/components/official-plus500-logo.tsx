@@ -46,22 +46,23 @@ export function OfficialPlus500Logo({
         fontFamily: '"Arial Black", "Helvetica Bold", "Futura Bold", system-ui, sans-serif',
         letterSpacing: '0.05em'
       }}>
-        {/* Plus symbol positioned above the 's' in Plus - Authentic positioning */}
-        <div className={cn(
-          "absolute font-extrabold",
-          plusSize[size]
-        )}
-        style={{
-          top: '-0.3em',
-          left: '2.4ch', // Position over the 's' in Plus using character units
-          fontFamily: 'inherit'
-        }}>
-          +
-        </div>
-        
-        {/* Plus500 text - Single line as per authentic design */}
+        {/* Plus500 text with positioned + symbol */}
         <div className="font-extrabold relative z-10">
-          Plus500
+          <span className="relative">
+            Plu<span className="relative">
+              s<span className={cn(
+                "absolute font-extrabold",
+                plusSize[size]
+              )}
+              style={{
+                top: '-0.8em',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                lineHeight: '1',
+                fontFamily: 'inherit'
+              }}>+</span>
+            </span>500
+          </span>
         </div>
       </div>
       
