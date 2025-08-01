@@ -26,8 +26,12 @@ export function formatGBP(amount: number): string {
   }).format(amount);
 }
 
-export function formatCurrency(amount: number, currency: 'USD' | 'GBP'): string {
-  return currency === 'USD' ? formatUSD(amount) : formatGBP(amount);
+export function formatCurrency(amount: number, currency: 'USD' | 'GBP' | 'EUR'): string {
+  const locale = currency === 'EUR' ? 'de-DE' : currency === 'GBP' ? 'en-GB' : 'en-US';
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(amount);
 }
 
 export function calculateUSDValue(btcAmount: string | number, btcPrice: number): number {

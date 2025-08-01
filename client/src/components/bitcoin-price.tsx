@@ -49,7 +49,7 @@ export function BitcoinPrice() {
     );
   }
 
-  const currentPriceData = currency === 'USD' ? bitcoinPrice.usd : bitcoinPrice.gbp;
+  const currentPriceData = currency === 'USD' ? bitcoinPrice.usd : currency === 'GBP' ? bitcoinPrice.gbp : bitcoinPrice.eur;
   const isPositive = currentPriceData.change24h >= 0;
 
   return (

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-type Currency = 'USD' | 'GBP';
+type Currency = 'USD' | 'GBP' | 'EUR';
 
 interface CurrencyContextType {
   currency: Currency;
@@ -11,14 +11,18 @@ interface CurrencyContextType {
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrencyState] = useState<Currency>('USD');
+  const [currency, setCurrency] = useState<Currency>('EUR');
 
   const toggleCurrency = () => {
-    setCurrencyState(prev => prev === 'USD' ? 'GBP' : 'USD');
+    setCurrency(current => {
+      if (current === 'EUR') return 'USD';
+      if (current === 'USD') return 'GBP';
+      return 'EUR';
+    });
   };
 
   const setCurrency = (newCurrency: Currency) => {
-    setCurrencyState(newCurrency);
+    setCurrency(newCurrency);
   };
 
   return (
