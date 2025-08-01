@@ -49,14 +49,15 @@ export function OfficialPlus500Logo({
         borderRadius: '12px', // Enhanced curved corners
         textRendering: 'optimizeLegibility'
       }}>
-        {/* Plus500 text with positioned + symbol - Extra bold Orbitron */}
+        {/* Plus500 text with positioned + symbol - Clean bold Orbitron */}
         <div className="font-black relative z-10" style={{ 
           fontFamily: '"Orbitron", monospace',
-          fontWeight: '900',
-          textShadow: '0 0 2px currentColor, 0 0 4px currentColor',
-          WebkitTextStroke: '0.5px currentColor'
+          fontWeight: '900'
         }}>
-          <span className="relative" style={{ fontVariantNumeric: 'lining-nums' }}>
+          <span className="relative" style={{ 
+            fontVariantNumeric: 'tabular-nums',
+            fontFeatureSettings: '"zero" 0' // Disable slashed zero
+          }}>
             Plu<span className="relative">
               s<span className={cn(
                 "absolute font-black",
@@ -68,11 +69,9 @@ export function OfficialPlus500Logo({
                 transform: 'translateX(-50%)',
                 lineHeight: '1',
                 fontFamily: '"Orbitron", monospace',
-                fontWeight: '900',
-                textShadow: '0 0 2px currentColor, 0 0 4px currentColor',
-                WebkitTextStroke: '0.5px currentColor'
+                fontWeight: '900'
               }}>+</span>
-            </span>5<span style={{ fontVariantNumeric: 'lining-nums' }}>00</span>
+            </span>500
           </span>
         </div>
       </div>
