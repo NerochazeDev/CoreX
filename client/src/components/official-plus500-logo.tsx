@@ -14,10 +14,10 @@ export function OfficialPlus500Logo({
   variant = "light" 
 }: OfficialPlus500LogoProps) {
   const containerSize = {
-    sm: "px-5 py-2 text-sm min-w-[120px]",
-    md: "px-6 py-3 text-base min-w-[140px]",
-    lg: "px-8 py-4 text-lg min-w-[160px]", 
-    xl: "px-10 py-5 text-xl min-w-[200px]"
+    sm: "px-6 py-3 text-sm min-w-[140px]",
+    md: "px-8 py-4 text-base min-w-[160px]",
+    lg: "px-10 py-5 text-lg min-w-[190px]", 
+    xl: "px-12 py-6 text-xl min-w-[230px]"
   };
 
   const plusSize = {
@@ -44,21 +44,22 @@ export function OfficialPlus500Logo({
       )}
       style={{ 
         fontFamily: '"Orbitron", "Eurostile", "Bank Gothic", "Microgramma", monospace, sans-serif',
-        letterSpacing: '0.1em',
+        letterSpacing: '0.12em',
         fontWeight: '900',
         borderRadius: '12px',
         textRendering: 'optimizeLegibility',
         minHeight: 'fit-content'
       } as React.CSSProperties}>
-        {/* Plus500 text with positioned + symbol - Well-spaced characters */}
+        {/* Plus500 text with positioned + symbol - More spaced, same boldness */}
         <div className="font-black relative z-10" style={{ 
           fontFamily: '"Orbitron", monospace, sans-serif',
           fontWeight: '900',
           fontFeatureSettings: 'normal',
           WebkitTextStroke: '1px currentColor',
           filter: 'contrast(1.2) brightness(1.02)',
-          letterSpacing: '0.06em',
-          lineHeight: '1.1'
+          letterSpacing: '0.08em',
+          lineHeight: '1.2',
+          wordSpacing: '0.05em'
         } as React.CSSProperties}>
           <span className="relative">
             Plu<span className="relative">
