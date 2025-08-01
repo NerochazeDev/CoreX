@@ -167,7 +167,9 @@ export default function Home() {
       </div>
 
       {/* Bitcoin Price */}
-      <BitcoinPrice />
+      <div className="px-4 mb-6">
+        <BitcoinPrice />
+      </div>
 
       {/* Bitcoin Sync */}
       <div className="px-4 mb-6">

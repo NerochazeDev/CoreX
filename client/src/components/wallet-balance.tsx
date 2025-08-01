@@ -41,33 +41,29 @@ export function WalletBalance() {
   };
 
   return (
-    <div className="px-4 mb-6">
-      <Card className="gradient-primary rounded-2xl p-6 relative overflow-hidden border-0 shadow-xl">
-        {/* Background decorative elements */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-8 rounded-full -translate-y-16 translate-x-16"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-5 rounded-full translate-y-12 -translate-x-12"></div>
-
+    <div>
+      <Card className="plus500-professional p-6 relative overflow-hidden shadow-lg">
         {/* Security indicators */}
         <div className="absolute top-3 right-3 flex gap-1.5">
-          <div className="w-6 h-6 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-            <Shield className="w-3 h-3 text-white" />
+          <div className="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center border border-green-200">
+            <Shield className="w-3 h-3 text-green-600" />
           </div>
-          <div className="w-6 h-6 rounded-full bg-white bg-opacity-20 flex items-center justify-center animate-pulse">
-            <Zap className="w-3 h-3 text-white" />
+          <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center border border-blue-200 animate-pulse">
+            <Zap className="w-3 h-3 text-plus500-blue" />
           </div>
         </div>
 
         <div className="relative z-10 space-y-4">
           {/* Header */}
           <div>
-            <p className="text-black text-opacity-70 text-xs font-medium mb-2">Total Portfolio Balance</p>
+            <p className="text-gray-600 text-xs font-medium mb-2">Total Portfolio Balance</p>
             <div className="flex items-center gap-2 mb-3">
               {isBalanceVisible ? (
-                <h2 className="text-2xl sm:text-3xl font-bold text-black tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold text-plus500-blue tracking-tight">
                   {formatBitcoin(user.balance)} BTC
                 </h2>
               ) : (
-                <h2 className="text-2xl sm:text-3xl font-bold text-black tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold text-plus500-blue tracking-tight">
                   ••••••••
                 </h2>
               )}
@@ -75,29 +71,29 @@ export function WalletBalance() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7 rounded-lg bg-black bg-opacity-10 hover:bg-opacity-20 transition-all"
+                  className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all"
                   onClick={() => setIsBalanceVisible(!isBalanceVisible)}
                 >
                   {isBalanceVisible ? (
-                    <EyeOff className="w-3.5 h-3.5 text-black" />
+                    <EyeOff className="w-3.5 h-3.5 text-gray-600" />
                   ) : (
-                    <Eye className="w-3.5 h-3.5 text-black" />
+                    <Eye className="w-3.5 h-3.5 text-gray-600" />
                   )}
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-7 h-7 rounded-lg bg-black bg-opacity-10 hover:bg-opacity-20 transition-all"
+                  className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all"
                   onClick={handleRefreshBalance}
                   disabled={isRefreshing}
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 text-black ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
             </div>
 
             {isBalanceVisible && (
-              <p className="text-black text-opacity-70 text-lg font-semibold">
+              <p className="text-gray-600 text-lg font-semibold">
                 ≈ {formatCurrency(fiatValue, currency)}
               </p>
             )}

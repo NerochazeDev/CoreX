@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-// Production starter for CoreX Bitcoin Investment Platform
+// Production starter for Plus500 VIP Bitcoin Investment Platform
 const { existsSync } = require('fs');
 const path = require('path');
 
 const distPath = path.join(__dirname, 'dist', 'index.js');
 
-console.log('Starting CoreX Bitcoin Investment Platform...');
+console.log('Starting Plus500 VIP Bitcoin Investment Platform...');
 console.log('Environment:', process.env.NODE_ENV || 'production');
 console.log('Port:', process.env.PORT || 5000);
 

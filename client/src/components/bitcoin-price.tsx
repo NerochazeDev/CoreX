@@ -13,8 +13,8 @@ export function BitcoinPrice() {
 
   if (isLoading) {
     return (
-      <div className="px-6 mb-8">
-        <Card className="neo-card rounded-2xl p-6">
+      <div className="mb-4">
+        <Card className="plus500-professional p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Skeleton className="w-12 h-12 rounded-xl" />
@@ -39,8 +39,8 @@ export function BitcoinPrice() {
 
   if (!bitcoinPrice) {
     return (
-      <div className="px-6 mb-8">
-        <Card className="neo-card rounded-2xl p-6">
+      <div className="mb-4">
+        <Card className="plus500-professional p-6">
           <div className="text-center text-muted-foreground">
             Failed to load Bitcoin price data
           </div>
@@ -53,18 +53,18 @@ export function BitcoinPrice() {
   const isPositive = currentPriceData.change24h >= 0;
 
   return (
-    <div className="px-6 mb-8">
-      <Card className={`neo-card rounded-2xl p-6 transition-all duration-300 ${isPositive ? 'hover:glow-emerald' : 'hover:glow-ruby'}`}>
+    <div className="mb-4">
+      <Card className="plus500-professional p-6 transition-all duration-300 hover:shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 gradient-primary rounded-2xl flex items-center justify-center animate-pulse-slow">
-              <span className="text-lg font-bold text-black">₿</span>
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center border border-orange-200">
+              <span className="text-lg font-bold text-orange-600">₿</span>
             </div>
             <div>
-              <h3 className="font-bold text-lg text-foreground">Bitcoin</h3>
+              <h3 className="font-bold text-lg text-plus500-blue">Bitcoin Price</h3>
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm">BTC</span>
-                <Badge variant="secondary" className="text-xs px-2 py-0">
+                <span className="text-gray-500 text-sm">BTC</span>
+                <Badge variant="secondary" className="text-xs px-2 py-0 bg-green-100 text-green-700">
                   Live
                 </Badge>
               </div>
@@ -75,16 +75,9 @@ export function BitcoinPrice() {
               variant="outline"
               size="sm"
               onClick={toggleCurrency}
-              className="h-8 px-3 text-sm border-bitcoin text-bitcoin hover:bg-bitcoin hover:text-black transition-all duration-300 rounded-xl"
+              className="h-8 px-3 text-sm border-plus500-blue text-plus500-blue hover:bg-plus500-blue hover:text-white transition-all duration-300 rounded-lg"
             >
               {currency}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-8 h-8 rounded-xl hover:bg-muted"
-            >
-              <RefreshCw className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -92,7 +85,7 @@ export function BitcoinPrice() {
         <div className="space-y-4">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-3xl font-bold text-foreground mb-1">
+              <p className="text-3xl font-bold text-plus500-blue mb-1">
                 {formatCurrency(currentPriceData.price, currency)}
               </p>
               <div className={`flex items-center gap-2 ${isPositive ? 'text-emerald' : 'text-ruby'}`}>

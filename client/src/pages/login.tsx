@@ -145,7 +145,7 @@ export default function Login() {
           <div className="text-center space-y-4">
             <div className="flex items-center gap-4">
               <div className="flex-1 h-px bg-border"></div>
-              <span className="text-sm text-muted-foreground">New to CoreX?</span>
+              <span className="text-sm text-muted-foreground">New to Plus500 VIP?</span>
               <div className="flex-1 h-px bg-border"></div>
             </div>
             

@@ -48,7 +48,7 @@ export function LoginRedirect({
         <CardContent className="space-y-6">
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">
-              You need to be signed in to access this feature. Please log in to your CoreX account to continue.
+              You need to be signed in to access this feature. Please log in to your Plus500 VIP account to continue.
             </p>
             
             <Link href={redirectPath}>
@@ -57,7 +57,7 @@ export function LoginRedirect({
               >
                 <div className="flex items-center gap-2">
                   <LogIn className="w-5 h-5" />
-                  <span>Sign In to CoreX</span>
+                  <span>Sign In to Plus500 VIP</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Button>
@@ -65,7 +65,7 @@ export function LoginRedirect({
             
             <div className="flex items-center gap-4 mt-6">
               <div className="flex-1 h-px bg-border"></div>
-              <span className="text-sm text-muted-foreground">New to CoreX?</span>
+              <span className="text-sm text-muted-foreground">New to Plus500 VIP?</span>
               <div className="flex-1 h-px bg-border"></div>
             </div>
             
