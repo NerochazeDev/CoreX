@@ -14,43 +14,53 @@ export function OfficialPlus500Logo({
   variant = "light" 
 }: OfficialPlus500LogoProps) {
   const containerSize = {
-    sm: "px-3 py-2 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg", 
-    xl: "px-8 py-4 text-xl"
+    sm: "px-4 py-2 text-sm min-w-[100px]",
+    md: "px-5 py-2.5 text-base min-w-[120px]",
+    lg: "px-6 py-3 text-lg min-w-[140px]", 
+    xl: "px-8 py-4 text-xl min-w-[160px]"
   };
 
   const plusSize = {
-    sm: "text-xs",
-    md: "text-sm",
-    lg: "text-base",
-    xl: "text-lg"
+    sm: "text-sm",
+    md: "text-base",
+    lg: "text-lg",
+    xl: "text-xl"
   };
 
-  // Authentic Plus500 colors
-  const bgColor = variant === 'white' ? 'bg-white' : 'bg-[#003399]'; // Royal blue
+  // Authentic Plus500 colors - Royal Blue #003399
+  const bgColor = variant === 'white' ? 'bg-white' : 'bg-[#003399]';
   const textColor = variant === 'white' ? 'text-[#003399]' : 'text-white';
-  const borderColor = variant === 'white' ? 'border-[#003399]' : 'border-transparent';
+  const borderColor = variant === 'white' ? 'border-[#003399] border-2' : 'border-transparent';
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      {/* Authentic Plus500 Logo - Royal Blue Background */}
+      {/* Authentic Plus500 Logo - Exact replica of official design */}
       <div className={cn(
-        "relative rounded-lg font-bold tracking-wide uppercase leading-tight border-2",
+        "relative rounded-lg font-extrabold tracking-wider uppercase leading-none text-center",
         containerSize[size],
         bgColor,
         textColor,
         borderColor
-      )}>
-        {/* Plus symbol positioned above the 's' in Plus */}
+      )}
+      style={{ 
+        fontFamily: '"Arial Black", "Helvetica Bold", "Futura Bold", system-ui, sans-serif',
+        letterSpacing: '0.05em'
+      }}>
+        {/* Plus symbol positioned above the 's' in PLUS - Authentic positioning */}
         <div className={cn(
-          "absolute -top-1 left-[2.2em] font-bold",
+          "absolute font-extrabold",
           plusSize[size]
-        )}>
+        )}
+        style={{
+          top: '-0.3em',
+          left: '2.4ch', // Position over the 's' in PLUS using character units
+          fontFamily: 'inherit'
+        }}>
           +
         </div>
-        {/* Plus500 text */}
-        <div className="font-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        
+        {/* PLUS500 text - Single line as per authentic design */}
+        <div className="font-extrabold relative z-10">
           PLUS500
         </div>
       </div>
