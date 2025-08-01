@@ -43,13 +43,14 @@ export function OfficialPlus500Logo({
         borderColor
       )}
       style={{ 
-        fontFamily: '"Arial Black", "Helvetica Bold", "Futura Bold", system-ui, sans-serif',
-        letterSpacing: '0.05em',
+        fontFamily: '"Orbitron", "Eurostile", "Bank Gothic", "Microgramma", monospace, sans-serif',
+        letterSpacing: '0.08em',
         fontWeight: '900',
         borderRadius: '12px' // Enhanced curved corners
       }}>
-        {/* Plus500 text with positioned + symbol - Extra bold and thick */}
+        {/* Plus500 text with positioned + symbol - Orbitron tech font */}
         <div className="font-black relative z-10" style={{ 
+          fontFamily: '"Orbitron", monospace',
           fontWeight: '900',
           textShadow: '0 0 1px currentColor'
         }}>
@@ -64,7 +65,7 @@ export function OfficialPlus500Logo({
                 left: '50%',
                 transform: 'translateX(-50%)',
                 lineHeight: '1',
-                fontFamily: 'inherit',
+                fontFamily: '"Orbitron", monospace',
                 fontWeight: '900',
                 textShadow: '0 0 1px currentColor'
               }}>+</span>
