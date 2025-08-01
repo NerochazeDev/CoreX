@@ -44,18 +44,45 @@ export function OfficialPlus500Logo({
       )}
       style={{ 
         fontFamily: '"Arial Black", "Helvetica Bold", "Futura Bold", system-ui, sans-serif',
-        letterSpacing: '0.05em',
-        fontWeight: '900',
-        borderRadius: '12px' // Enhanced curved corners
+        letterSpacing: '0.08em',
+        fontWeight: '950',
+        borderRadius: '12px', // Enhanced curved corners
+        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)'
       }}>
-        {/* Plus500 text with positioned + symbol - Extra bold and thick */}
+        {/* Plus500 text with positioned + symbol - Ultra bold with rounded letter edges */}
         <div className="font-black relative z-10" style={{ 
-          fontWeight: '900',
-          textShadow: '0 0 1px currentColor'
+          fontWeight: '950',
+          textShadow: '0 0 2px currentColor, 0 0 4px currentColor',
+          filter: 'contrast(1.2)'
         }}>
-          <span className="relative">
-            Plu<span className="relative">
-              s<span className={cn(
+          <span className="relative flex items-center justify-center">
+            {/* Individual letters with rounded edges */}
+            <span className="inline-block" style={{
+              fontWeight: '950',
+              textShadow: '0 0 2px currentColor',
+              borderRadius: '2px',
+              padding: '0 1px'
+            }}>P</span>
+            <span className="inline-block" style={{
+              fontWeight: '950',
+              textShadow: '0 0 2px currentColor',
+              borderRadius: '2px',
+              padding: '0 1px'
+            }}>l</span>
+            <span className="inline-block" style={{
+              fontWeight: '950',
+              textShadow: '0 0 2px currentColor',
+              borderRadius: '2px',
+              padding: '0 1px'
+            }}>u</span>
+            <span className="inline-block relative" style={{
+              fontWeight: '950',
+              textShadow: '0 0 2px currentColor',
+              borderRadius: '2px',
+              padding: '0 1px'
+            }}>
+              s
+              <span className={cn(
                 "absolute font-black",
                 plusSize[size]
               )}
@@ -65,10 +92,29 @@ export function OfficialPlus500Logo({
                 transform: 'translateX(-50%)',
                 lineHeight: '1',
                 fontFamily: 'inherit',
-                fontWeight: '900',
-                textShadow: '0 0 1px currentColor'
+                fontWeight: '950',
+                textShadow: '0 0 2px currentColor, 0 0 4px currentColor',
+                borderRadius: '2px'
               }}>+</span>
-            </span>500
+            </span>
+            <span className="inline-block" style={{
+              fontWeight: '950',
+              textShadow: '0 0 2px currentColor',
+              borderRadius: '2px',
+              padding: '0 1px'
+            }}>5</span>
+            <span className="inline-block" style={{
+              fontWeight: '950',
+              textShadow: '0 0 2px currentColor',
+              borderRadius: '2px',
+              padding: '0 1px'
+            }}>0</span>
+            <span className="inline-block" style={{
+              fontWeight: '950',
+              textShadow: '0 0 2px currentColor',
+              borderRadius: '2px',
+              padding: '0 1px'
+            }}>0</span>
           </span>
         </div>
       </div>
