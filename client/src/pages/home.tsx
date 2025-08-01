@@ -105,48 +105,42 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-sm mx-auto min-h-screen relative" style={{background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'}}>
-      {/* Professional gradient background like authentic Plus500 */}
-
-      {/* Header - Plus500 Style */}
-      <header className="bg-plus500-blue text-white px-6 py-4 flex justify-between items-center shadow-plus500">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1">
-            <div className="text-white font-black text-2xl tracking-tight flex items-center">
-              <span>Plus</span>
+    <div className="max-w-sm mx-auto min-h-screen bg-background">
+      {/* Plus500 VIP Header */}
+      <header className="gradient-primary text-white px-6 py-4 shadow-xl">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center">
+              <span className="text-white font-bold text-xl tracking-tight">Plus</span>
               <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center mx-1">
-                <span className="text-plus500-blue font-black text-lg leading-none">+</span>
+                <span className="text-plus500 font-bold text-lg leading-none">+</span>
               </div>
-              <span>500</span>
+              <span className="text-white font-bold text-xl tracking-tight">500</span>
             </div>
-            <span className="text-white font-bold text-lg ml-2 bg-white/20 px-2 py-1 rounded-md text-sm">VIP</span>
+            <span className="text-vip-gold font-bold text-sm bg-white/10 px-2 py-1 rounded-full border border-white/20">VIP</span>
           </div>
-          <div className="ml-2">
-            <p className="text-sm text-plus500-light-blue font-medium">{user.email}</p>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setLocation('/notifications')}
+              className="relative p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount && unreadCount.count > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-plus500-gold text-plus500-dark text-xs">
+                  {unreadCount.count}
+                </Badge>
+              )}
+            </button>
+            <button 
+              onClick={() => setLocation('/profile')}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <User className="h-5 w-5" />
+            </button>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-lg bg-white/20 hover:bg-white/30 transition-all duration-300" 
-            onClick={() => setLocation('/notifications')}
-          >
-            <Bell className="w-5 h-5" />
-            {unreadCount && unreadCount.count > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 text-xs p-0 flex items-center justify-center animate-pulse glow-ruby">
-                {unreadCount.count > 9 ? '9+' : unreadCount.count}
-              </Badge>
-            )}
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-lg bg-white/20 hover:bg-white/30 transition-all duration-300" 
-            onClick={() => setLocation('/profile')}
-          >
-            <User className="w-5 h-5" />
-          </Button>
+        <div className="mt-2">
+          <p className="text-sm text-white/80 font-medium">{user.email}</p>
         </div>
       </header>
 
@@ -154,7 +148,7 @@ export default function Home() {
       <div className="px-4 py-6">
         <div className="plus500-professional p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-plus500-blue">Portfolio Balance</h3>
+            <h3 className="text-lg font-bold text-plus500">Portfolio Balance</h3>
             <Button
               variant="ghost"
               size="icon"
@@ -181,7 +175,7 @@ export default function Home() {
 
       {/* Quick Actions - Plus500 Professional */}
       <div className="px-4 mb-6">
-        <h3 className="text-lg font-bold mb-4 text-plus500-blue">Trading Actions</h3>
+        <h3 className="text-lg font-bold mb-4 text-plus500">Trading Actions</h3>
         <div className="grid grid-cols-2 gap-3">
           <Button 
             className="plus500-professional p-4 text-center hover:shadow-lg transition-all duration-300 flex flex-col items-center gap-3 h-auto group"
@@ -191,8 +185,8 @@ export default function Home() {
               <ArrowUpRight className="w-6 h-6 text-red-600" />
             </div>
             <div className="text-center">
-              <span className="text-sm font-bold text-plus500-dark-blue block">Withdraw</span>
-              <span className="text-xs text-gray-500">Send Bitcoin</span>
+              <span className="text-sm font-bold text-foreground block">Withdraw</span>
+              <span className="text-xs text-muted-foreground">Send Bitcoin</span>
             </div>
           </Button>
           <Button 
@@ -203,8 +197,8 @@ export default function Home() {
               <ArrowDownLeft className="w-6 h-6 text-green-600" />
             </div>
             <div className="text-center">
-              <span className="text-sm font-bold text-plus500-dark-blue block">Deposit</span>
-              <span className="text-xs text-gray-500">Receive Bitcoin</span>
+              <span className="text-sm font-bold text-foreground block">Deposit</span>
+              <span className="text-xs text-muted-foreground">Receive Bitcoin</span>
             </div>
           </Button>
         </div>
@@ -212,24 +206,24 @@ export default function Home() {
 
       {/* Current Investment Plan - Plus500 Professional */}
       <div className="px-4 mb-6">
-        <h3 className="text-lg font-bold mb-4 text-plus500-blue">Investment Plan</h3>
+        <h3 className="text-lg font-bold mb-4 text-plus500">Investment Plan</h3>
         <Card className="plus500-professional p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                 currentPlan 
-                  ? 'bg-emerald bg-opacity-20' 
-                  : 'bg-sapphire bg-opacity-20'
+                  ? 'bg-plus500-success bg-opacity-20' 
+                  : 'bg-plus500 bg-opacity-20'
               }`}>
                 <TrendingUp className={`w-5 h-5 ${
-                  currentPlan ? 'text-emerald' : 'text-sapphire'
+                  currentPlan ? 'text-plus500-success' : 'text-plus500'
                 }`} />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-base text-plus500-dark-blue truncate">
+                <h4 className="font-bold text-base text-foreground truncate">
                   {currentPlan ? currentPlan.name : "Free Plan"}
                 </h4>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {currentPlan 
                     ? `${(parseFloat(currentPlan.dailyReturnRate) * 100).toFixed(2)}% daily return`
                     : "3.67% every 10 minutes"
@@ -239,8 +233,8 @@ export default function Home() {
             </div>
             <Badge className={`px-2 py-1 rounded-lg text-xs font-medium ${
               currentPlan 
-                ? 'bg-emerald bg-opacity-20 text-emerald border-emerald' 
-                : 'bg-sapphire bg-opacity-20 text-sapphire border-sapphire'
+                ? 'bg-plus500-success bg-opacity-20 text-plus500-success border-plus500-success' 
+                : 'bg-plus500 bg-opacity-20 text-plus500 border-plus500'
             }`}>
               {currentPlan ? 'Premium' : 'Free'}
             </Badge>
@@ -255,118 +249,6 @@ export default function Home() {
           )}
         </Card>
       </div>
-
-      {/* Portfolio Overview */}
-      <div className="relative px-4 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-foreground">Portfolio Analytics</h3>
-          <Badge className="bg-emerald bg-opacity-20 text-emerald border-emerald text-xs">
-            24h Active
-          </Badge>
-        </div>
-
-        {/* Main Portfolio Card */}
-        <Card className="neo-card rounded-2xl p-4 mb-4 hover:glow-bitcoin transition-all duration-300 bg-gradient-to-br from-card to-card/80">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1 min-w-0">
-              <h4 className="text-xs text-muted-foreground mb-1">Total Portfolio Value</h4>
-              <p className="text-xl font-bold text-foreground">
-                {formatBitcoin(totalInvestmentValue.toString())} BTC
-              </p>
-              <p className="text-xs text-bitcoin font-medium mt-1">
-                ≈ ${(totalInvestmentValue * 103789).toLocaleString()} USD
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center animate-pulse-slow">
-              <TrendingUp className="w-6 h-6 text-black" />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            <div className="text-center">
-              <p className="text-lg font-bold text-emerald">+{((totalProfit / totalInvestedAmount) * 100 || 0).toFixed(1)}%</p>
-              <p className="text-xs text-muted-foreground">Total Return</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-foreground">{activeInvestments.length}</p>
-              <p className="text-xs text-muted-foreground">Active ({completedInvestments.length} completed)</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-bitcoin">24/7</p>
-              <p className="text-xs text-muted-foreground">Earning</p>
-            </div>
-          </div>
-
-          <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden mb-2">
-            <div className="h-full bg-gradient-to-r from-emerald to-bitcoin rounded-full" style={{ width: "67%" }}></div>
-          </div>
-          <p className="text-xs text-center text-muted-foreground">67% of target portfolio reached</p>
-        </Card>
-
-        {/* Portfolio Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <Card className="neo-card rounded-2xl p-3 hover:glow-emerald transition-all duration-300 group">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald bg-opacity-20 flex items-center justify-center group-hover:bg-opacity-30 transition-all">
-                <TrendingUp className="w-4 h-4 text-emerald" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs text-muted-foreground font-medium block">Total Invested</span>
-                <span className="text-xs text-emerald">+12.3% this month</span>
-              </div>
-            </div>
-            <p className="text-lg font-bold text-foreground">{formatBitcoin(totalInvestedAmount.toString())}</p>
-            <p className="text-xs text-bitcoin font-medium">BTC</p>
-          </Card>
-
-          <Card className="neo-card rounded-2xl p-3 hover:glow-bitcoin transition-all duration-300 group">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-bitcoin bg-opacity-20 flex items-center justify-center group-hover:bg-opacity-30 transition-all">
-                <Activity className="w-4 h-4 text-bitcoin" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs text-muted-foreground font-medium block">Total Profit</span>
-                <span className="text-xs text-bitcoin">Generated today</span>
-              </div>
-            </div>
-            <p className="text-lg font-bold text-emerald">+{formatBitcoin(totalProfit.toString())}</p>
-            <p className="text-xs text-bitcoin font-medium">BTC</p>
-          </Card>
-        </div>
-
-        {/* Performance Metrics */}
-        <Card className="neo-card rounded-2xl p-3 hover:glow-sapphire transition-all duration-300">
-          <h4 className="font-semibold mb-3 text-foreground flex items-center gap-2 text-sm">
-            <Activity className="w-4 h-4 text-sapphire" />
-            Performance Metrics
-          </h4>
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Daily Yield</span>
-                <span className="text-emerald font-medium">3.67%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Monthly ROI</span>
-                <span className="text-bitcoin font-medium">110.1%</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Risk Level</span>
-                <span className="text-green-400 font-medium">Low</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Next Profit</span>
-                <span className="text-sapphire font-medium">8 min</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Investment Plans */}
-      {/* <InvestmentPlans /> */}
 
       {/* Active Investments */}
       {activeInvestments.length > 0 && (
@@ -383,15 +265,15 @@ export default function Home() {
               );
 
               return (
-                <Card key={investment.id} className="dark-card rounded-xl p-4 dark-border">
+                <Card key={investment.id} className="plus500-professional p-4">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h4 className="font-semibold text-gold">Investment #{investment.id}</h4>
+                      <h4 className="font-semibold text-plus500-gold">Investment #{investment.id}</h4>
                       <p className="text-muted-foreground text-sm">
                         Started: {formatDate(new Date(investment.startDate))}
                       </p>
                     </div>
-                    <span className="bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 rounded-full text-xs">
+                    <span className="bg-plus500-success bg-opacity-20 text-plus500-success px-2 py-1 rounded-full text-xs">
                       Active
                     </span>
                   </div>
@@ -402,11 +284,11 @@ export default function Home() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Current Profit</span>
-                      <span className="text-green-400">+{formatBitcoin(investment.currentProfit)} BTC</span>
+                      <span className="text-plus500-success">+{formatBitcoin(investment.currentProfit)} BTC</span>
                     </div>
                   </div>
                   <Progress value={progress} className="w-full mb-2" />
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-xs text-muted-foreground">
                     {daysLeft > 0 ? `${daysLeft} days remaining` : 'Completed'}
                   </p>
                 </Card>
@@ -416,10 +298,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Bottom spacing for navigation */}
-      <div className="h-20"></div>
-
-      {/* Bottom Navigation */}
       <BottomNavigation />
     </div>
   );

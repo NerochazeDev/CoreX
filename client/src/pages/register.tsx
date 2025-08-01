@@ -59,11 +59,11 @@ export default function Register() {
   };
 
   const getPasswordStrengthColor = () => {
-    if (passwordStrength <= 1) return "bg-red-500";
-    if (passwordStrength <= 2) return "bg-yellow-500";
-    if (passwordStrength <= 3) return "bg-blue-500";
-    if (passwordStrength <= 4) return "bg-green-500";
-    return "bg-emerald-500";
+    if (passwordStrength <= 1) return "bg-plus500-danger";
+    if (passwordStrength <= 2) return "bg-plus500-warning";
+    if (passwordStrength <= 3) return "bg-plus500";
+    if (passwordStrength <= 4) return "bg-plus500-success";
+    return "bg-plus500-success";
   };
 
   const getPasswordStrengthText = () => {

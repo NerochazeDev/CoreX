@@ -57,14 +57,14 @@ export function BitcoinPrice() {
       <Card className="plus500-professional p-6 transition-all duration-300 hover:shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center border border-orange-200">
-              <span className="text-lg font-bold text-orange-600">₿</span>
+            <div className="w-12 h-12 bg-plus500-gold/10 rounded-lg flex items-center justify-center border border-plus500-gold/20">
+              <span className="text-lg font-bold text-plus500-gold">₿</span>
             </div>
             <div>
-              <h3 className="font-bold text-lg text-plus500-blue">Bitcoin Price</h3>
+              <h3 className="font-bold text-lg text-plus500">Bitcoin Price</h3>
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-sm">BTC</span>
-                <Badge variant="secondary" className="text-xs px-2 py-0 bg-green-100 text-green-700">
+                <span className="text-muted-foreground text-sm">BTC/USD</span>
+                <Badge className="text-xs px-2 py-0 bg-plus500-success/10 text-plus500-success border-plus500-success/20">
                   Live
                 </Badge>
               </div>
@@ -75,7 +75,7 @@ export function BitcoinPrice() {
               variant="outline"
               size="sm"
               onClick={toggleCurrency}
-              className="h-8 px-3 text-sm border-plus500-blue text-plus500-blue hover:bg-plus500-blue hover:text-white transition-all duration-300 rounded-lg"
+              className="h-8 px-3 text-sm border-plus500 text-plus500 hover:bg-plus500 hover:text-white transition-all duration-300 rounded-lg"
             >
               {currency}
             </Button>
@@ -85,10 +85,10 @@ export function BitcoinPrice() {
         <div className="space-y-4">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-3xl font-bold text-plus500-blue mb-1">
+              <p className="text-3xl font-bold text-plus500 mb-1">
                 {formatCurrency(currentPriceData.price, currency)}
               </p>
-              <div className={`flex items-center gap-2 ${isPositive ? 'text-emerald' : 'text-ruby'}`}>
+              <div className={`flex items-center gap-2 ${isPositive ? 'text-plus500-success' : 'text-plus500-danger'}`}>
                 {isPositive ? (
                   <TrendingUp className="w-5 h-5" />
                 ) : (
@@ -101,8 +101,8 @@ export function BitcoinPrice() {
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <div className={`w-20 h-12 rounded-xl flex items-center justify-center ${isPositive ? 'bg-emerald bg-opacity-20' : 'bg-ruby bg-opacity-20'}`}>
-                <BarChart3 className={`w-6 h-6 ${isPositive ? 'text-emerald' : 'text-ruby'}`} />
+              <div className={`w-20 h-12 rounded-xl flex items-center justify-center ${isPositive ? 'bg-plus500-success/10' : 'bg-plus500-danger/10'}`}>
+                <BarChart3 className={`w-6 h-6 ${isPositive ? 'text-plus500-success' : 'text-plus500-danger'}`} />
               </div>
             </div>
           </div>
@@ -110,7 +110,7 @@ export function BitcoinPrice() {
           <div className="pt-4 border-t border-border">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">24h Change</span>
-              <span className={`font-medium ${isPositive ? 'text-emerald' : 'text-ruby'}`}>
+              <span className={`font-medium ${isPositive ? 'text-plus500-success' : 'text-plus500-danger'}`}>
                 {isPositive ? '+' : ''}{formatCurrency(currentPriceData.price * currentPriceData.change24h / 100, currency)}
               </span>
             </div>

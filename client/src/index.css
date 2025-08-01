@@ -3,64 +3,77 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%; /* Pure white background */
-  --foreground: 224 71% 4%; /* Dark blue text */
-  --muted: 220 14% 96%; /* Light gray */
-  --muted-foreground: 220 9% 46%; /* Medium gray text */
-  --popover: 0 0% 100%; /* White popover */
-  --popover-foreground: 224 71% 4%; /* Dark blue text */
-  --card: 0 0% 100%; /* White cards */
-  --card-foreground: 224 71% 4%; /* Dark blue text */
-  --border: 220 13% 91%; /* Light border */
-  --input: 220 13% 91%; /* Light input background */
-  --primary: 221 83% 53%; /* Plus500 Royal Blue #1E40AF */
-  --primary-foreground: 0 0% 98%; /* White text on blue */
-  --secondary: 220 14% 96%; /* Light gray secondary */
-  --secondary-foreground: 220 9% 15%; /* Dark text */
-  --accent: 200 98% 39%; /* Plus500 Light Blue #0EA5E9 */
-  --accent-foreground: 0 0% 98%; /* White text on light blue */
-  --destructive: 0 84% 60%; /* Red */
-  --destructive-foreground: 0 0% 98%; /* White text on red */
-  --ring: 221 83% 53%; /* Blue ring */
-  --radius: 0.75rem;
-  --plus500-blue: 221 83% 53%; /* #1E40AF - Primary Plus500 Blue */
-  --plus500-light-blue: 200 98% 39%; /* #0EA5E9 - Light blue accent */
-  --plus500-dark-blue: 224 71% 4%; /* Very dark blue for text */
-  --plus500-royal: 230 100% 32%; /* #0052CC - Deep royal blue */
-  --emerald: 158 64% 52%; /* #10B981 */
-  --ruby: 0 84% 60%; /* #EF4444 */
-  --gold: 51 100% 50%; /* #FFD700 */
-  --gradient-primary: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%);
-  --gradient-secondary: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  --gradient-accent: linear-gradient(135deg, #0ea5e9 0%, #1e40af 100%);
-  --gradient-plus500: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%);
+  /* Plus500 Authentic Color Palette */
+  --background: 210 20% 98%; /* Professional light gray background */
+  --foreground: 210 40% 8%; /* Professional dark text */
+  --muted: 210 40% 94%; /* Subtle light gray */
+  --muted-foreground: 210 10% 40%; /* Muted text */
+  --popover: 0 0% 100%; /* Clean white popover */
+  --popover-foreground: 210 40% 8%; /* Dark text */
+  --card: 0 0% 100%; /* Clean white cards */
+  --card-foreground: 210 40% 8%; /* Dark text */
+  --border: 210 20% 92%; /* Subtle border */
+  --input: 210 20% 98%; /* Light input background */
+  
+  /* Plus500 Brand Colors - Authentic */
+  --primary: 210 100% 44%; /* Plus500 Blue #003AE0 */
+  --primary-foreground: 0 0% 100%; /* Pure white text */
+  --secondary: 210 40% 94%; /* Light secondary */
+  --secondary-foreground: 210 40% 10%; /* Dark text */
+  --accent: 45 93% 47%; /* Plus500 Gold #E6A817 */
+  --accent-foreground: 210 40% 8%; /* Dark text on gold */
+  --destructive: 0 84% 60%; /* Professional red */
+  --destructive-foreground: 0 0% 98%; /* White text */
+  --ring: 210 100% 44%; /* Plus500 Blue ring */
+  --radius: 0.5rem;
+  
+  /* Plus500 VIP Extended Palette */
+  --plus500-primary: 210 100% 44%; /* #003AE0 - Main Plus500 Blue */
+  --plus500-secondary: 210 100% 34%; /* Darker blue variant */
+  --plus500-gold: 45 93% 47%; /* #E6A817 - Plus500 Gold */
+  --plus500-light: 210 40% 96%; /* Very light background */
+  --plus500-dark: 210 40% 8%; /* Professional dark */
+  --plus500-success: 142 71% 45%; /* Professional green */
+  --plus500-warning: 25 95% 53%; /* Professional orange */
+  --plus500-danger: 0 84% 60%; /* Professional red */
+  
+  /* VIP Gradients */
+  --gradient-primary: linear-gradient(135deg, #003AE0 0%, #0052FF 100%);
+  --gradient-gold: linear-gradient(135deg, #E6A817 0%, #FFD700 100%);
+  --gradient-vip: linear-gradient(135deg, #003AE0 0%, #E6A817 100%);
+  --gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  
+  /* Professional Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-plus500: 0 4px 14px 0 rgba(30, 64, 175, 0.15);
+  --shadow-plus500: 0 8px 32px 0 rgba(0, 58, 224, 0.12);
+  --shadow-vip: 0 8px 32px 0 rgba(230, 168, 23, 0.15);
 }
 
 .dark {
-  --background: 224 71% 4%; /* Dark blue background */
-  --foreground: 0 0% 98%; /* White text */
-  --muted: 224 71% 8%; /* Dark gray */
-  --muted-foreground: 215 16% 65%; /* Light gray text */
-  --popover: 224 71% 6%; /* Dark blue popover */
+  /* Plus500 Professional Dark Theme */
+  --background: 210 40% 3%; /* Professional dark background */
+  --foreground: 0 0% 98%; /* Clean white text */
+  --muted: 210 40% 8%; /* Dark muted */
+  --muted-foreground: 210 15% 65%; /* Muted text */
+  --popover: 210 40% 4%; /* Dark popover */
   --popover-foreground: 0 0% 98%; /* White text */
-  --card: 224 71% 6%; /* Dark blue cards */
+  --card: 210 40% 4%; /* Dark cards */
   --card-foreground: 0 0% 98%; /* White text */
-  --border: 224 71% 12%; /* Dark border */
-  --input: 224 71% 12%; /* Dark input background */
-  --primary: 221 83% 53%; /* Plus500 Royal Blue */
-  --primary-foreground: 0 0% 98%; /* White text on blue */
-  --secondary: 224 71% 8%; /* Dark gray secondary */
+  --border: 210 40% 12%; /* Subtle dark border */
+  --input: 210 40% 8%; /* Dark input */
+  
+  --primary: 210 100% 60%; /* Brighter blue for dark theme */
+  --primary-foreground: 210 40% 3%; /* Dark text on bright blue */
+  --secondary: 210 40% 8%; /* Dark secondary */
   --secondary-foreground: 0 0% 98%; /* White text */
-  --accent: 200 98% 39%; /* Plus500 Light Blue */
-  --accent-foreground: 0 0% 98%; /* White text */
-  --destructive: 0 62.8% 50%; /* Red */
+  --accent: 45 93% 55%; /* Brighter gold for dark theme */
+  --accent-foreground: 210 40% 3%; /* Dark text on gold */
+  --destructive: 0 84% 60%; /* Professional red */
   --destructive-foreground: 0 0% 98%; /* White text */
-  --ring: 221 83% 53%; /* Blue ring */
+  --ring: 210 100% 60%; /* Blue ring */
 }
 
 @layer base {
@@ -70,56 +83,92 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Plus500 Sans', 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, hsl(var(--plus500-light)) 0%, hsl(var(--background)) 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  
+  .dark body {
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(210 40% 2%) 100%);
   }
 }
 
 @layer utilities {
+  /* Plus500 VIP Gradients */
   .gradient-primary {
     background: var(--gradient-primary);
   }
   
-  .gradient-secondary {
-    background: var(--gradient-secondary);
+  .gradient-gold {
+    background: var(--gradient-gold);
   }
   
-  .gradient-accent {
-    background: var(--gradient-accent);
+  .gradient-vip {
+    background: var(--gradient-vip);
   }
   
-  .plus500-gradient {
-    background: var(--gradient-plus500);
+  .gradient-dark {
+    background: var(--gradient-dark);
   }
   
+  /* Plus500 Professional Cards */
   .plus500-card {
-    background: linear-gradient(135deg, hsl(var(--plus500-blue)) 0%, hsl(var(--plus500-royal)) 100%);
-    border-radius: 12px;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) + 2px);
     box-shadow: var(--shadow-plus500);
+    backdrop-filter: blur(8px);
+  }
+
+  .plus500-vip-card {
+    background: var(--gradient-vip);
+    border-radius: calc(var(--radius) + 4px);
+    box-shadow: var(--shadow-vip);
+    color: white;
   }
 
   .plus500-professional {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s ease;
   }
 
+  .plus500-professional:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+  }
+
+  /* Plus500 Buttons */
   .plus500-btn {
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    background: var(--gradient-primary);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius);
     color: white;
     font-weight: 600;
     font-size: 14px;
     padding: 12px 24px;
     transition: all 0.2s ease;
+    box-shadow: var(--shadow-md);
   }
 
   .plus500-btn:hover {
-    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    background: hsl(var(--plus500-secondary));
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+    box-shadow: var(--shadow-plus500);
+  }
+
+  .plus500-btn-gold {
+    background: var(--gradient-gold);
+    color: hsl(var(--plus500-dark));
+    font-weight: 700;
+  }
+
+  .plus500-btn-gold:hover {
+    background: hsl(var(--plus500-gold));
+    box-shadow: var(--shadow-vip);
   }
   
   .glass-card {
@@ -148,64 +197,72 @@
     box-shadow: 0 0 20px rgba(239, 68, 68, 0.3), 0 0 40px rgba(239, 68, 68, 0.2);
   }
   
+  /* Plus500 VIP Text Colors */
   .text-plus500 {
-    color: hsl(var(--plus500-blue));
+    color: hsl(var(--plus500-primary));
   }
   
-  .text-plus500-light {
-    color: hsl(var(--plus500-light-blue));
+  .text-plus500-gold {
+    color: hsl(var(--plus500-gold));
   }
   
-  .text-bitcoin-light {
-    color: hsl(var(--bitcoin-light));
+  .text-plus500-success {
+    color: hsl(var(--plus500-success));
+  }
+  
+  .text-plus500-danger {
+    color: hsl(var(--plus500-danger));
+  }
+  
+  .text-plus500-warning {
+    color: hsl(var(--plus500-warning));
   }
 
-  .text-gold {
-    color: hsl(var(--gold));
-  }
-  
-  .text-emerald {
-    color: hsl(var(--emerald));
-  }
-  
-  .text-ruby {
-    color: hsl(var(--ruby));
-  }
-  
-  .text-sapphire {
-    color: hsl(var(--sapphire));
+  /* VIP Status Colors */
+  .text-vip-gold {
+    background: var(--gradient-gold);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
   }
 
-  .bg-bitcoin {
-    background-color: hsl(var(--bitcoin));
+  /* Plus500 VIP Backgrounds */
+  .bg-plus500 {
+    background-color: hsl(var(--plus500-primary));
   }
 
-  .bg-gold {
-    background-color: hsl(var(--gold));
+  .bg-plus500-gold {
+    background-color: hsl(var(--plus500-gold));
   }
   
-  .bg-emerald {
-    background-color: hsl(var(--emerald));
+  .bg-plus500-success {
+    background-color: hsl(var(--plus500-success));
   }
   
-  .bg-ruby {
-    background-color: hsl(var(--ruby));
+  .bg-plus500-danger {
+    background-color: hsl(var(--plus500-danger));
   }
   
-  .bg-sapphire {
-    background-color: hsl(var(--sapphire));
+  .bg-plus500-light {
+    background-color: hsl(var(--plus500-light));
   }
 
-  .border-bitcoin {
-    border-color: hsl(var(--bitcoin));
+  /* Plus500 VIP Borders */
+  .border-plus500 {
+    border-color: hsl(var(--plus500-primary));
   }
   
-  .border-emerald {
-    border-color: hsl(var(--emerald));
+  .border-plus500-gold {
+    border-color: hsl(var(--plus500-gold));
   }
   
-  .border-ruby {
-    border-color: hsl(var(--ruby));
+  .border-plus500-success {
+    border-color: hsl(var(--plus500-success));
+  }
+  
+  .border-plus500-danger {
+    border-color: hsl(var(--plus500-danger));
   }
   
   .animate-pulse-slow {
