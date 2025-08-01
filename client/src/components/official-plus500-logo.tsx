@@ -14,10 +14,10 @@ export function OfficialPlus500Logo({
   variant = "light" 
 }: OfficialPlus500LogoProps) {
   const containerSize = {
-    sm: "px-6 py-4 text-sm min-w-[120px]",
-    md: "px-8 py-5 text-base min-w-[150px]",
-    lg: "px-10 py-6 text-lg min-w-[180px]", 
-    xl: "px-12 py-7 text-xl min-w-[220px]"
+    sm: "px-6 py-3 text-sm min-w-[120px] h-12",
+    md: "px-8 py-4 text-base min-w-[150px] h-14",
+    lg: "px-10 py-5 text-lg min-w-[180px] h-16", 
+    xl: "px-12 py-6 text-xl min-w-[220px] h-20"
   };
 
   const plusSize = {
@@ -36,7 +36,7 @@ export function OfficialPlus500Logo({
     <div className={cn("flex items-center gap-3", className)}>
       {/* Authentic Plus500 Logo - Exact replica of official design */}
       <div className={cn(
-        "relative rounded-xl font-black tracking-wider leading-none text-center",
+        "relative rounded-xl font-black tracking-wider leading-tight text-center flex items-center justify-center",
         containerSize[size],
         bgColor,
         textColor,
