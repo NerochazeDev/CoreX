@@ -14,10 +14,10 @@ export function OfficialPlus500Logo({
   variant = "light" 
 }: OfficialPlus500LogoProps) {
   const containerSize = {
-    sm: "px-5 py-3 text-sm min-w-[100px]",
-    md: "px-6 py-3.5 text-base min-w-[120px]",
-    lg: "px-7 py-4 text-lg min-w-[140px]", 
-    xl: "px-9 py-5 text-xl min-w-[160px]"
+    sm: "px-6 py-4 text-sm min-w-[120px]",
+    md: "px-8 py-5 text-base min-w-[150px]",
+    lg: "px-10 py-6 text-lg min-w-[180px]", 
+    xl: "px-12 py-7 text-xl min-w-[220px]"
   };
 
   const plusSize = {
@@ -44,20 +44,20 @@ export function OfficialPlus500Logo({
       )}
       style={{ 
         fontFamily: '"Orbitron", "Eurostile", "Bank Gothic", "Microgramma", monospace, sans-serif',
-        letterSpacing: '0.1em',
+        letterSpacing: '0.15em',
         fontWeight: '900',
-        borderRadius: '12px', // Enhanced curved corners
+        borderRadius: '12px',
         textRendering: 'optimizeLegibility'
-      }}>
-        {/* Plus500 text with positioned + symbol - Extra bold 4x bolder */}
+      } as React.CSSProperties}>
+        {/* Plus500 text with positioned + symbol - More visible and spacious */}
         <div className="font-black relative z-10" style={{ 
           fontFamily: '"Orbitron", monospace, sans-serif',
           fontWeight: '900',
-          fontFeatureSettings: 'normal', // Reset any font features that might add strokes
-          WebkitTextStroke: '2px currentColor',
-          textStroke: '2px currentColor',
-          filter: 'contrast(1.5) brightness(1.1)'
-        }}>
+          fontFeatureSettings: 'normal',
+          WebkitTextStroke: '1.5px currentColor',
+          filter: 'contrast(1.3) brightness(1.05)',
+          letterSpacing: '0.08em'
+        } as React.CSSProperties}>
           <span className="relative">
             Plu<span className="relative">
               s<span className={cn(
@@ -71,10 +71,9 @@ export function OfficialPlus500Logo({
                 lineHeight: '1',
                 fontFamily: '"Orbitron", monospace, sans-serif',
                 fontWeight: '900',
-                WebkitTextStroke: '2px currentColor',
-                textStroke: '2px currentColor',
-                filter: 'contrast(1.5) brightness(1.1)'
-              }}>+</span>
+                WebkitTextStroke: '1.5px currentColor',
+                filter: 'contrast(1.3) brightness(1.05)'
+              } as React.CSSProperties}>+</span>
             </span>500
           </span>
         </div>
