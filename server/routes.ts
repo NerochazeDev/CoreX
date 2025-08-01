@@ -951,8 +951,7 @@ You will receive a notification once your deposit is confirmed and added to your
               await storage.createInvestment({
                 userId: transaction.userId,
                 planId: transaction.planId,
-                amount: transaction.amount,
-                endDate
+                amount: transaction.amount
               });
             }
           } else {
