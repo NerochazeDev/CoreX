@@ -6,7 +6,7 @@ const path = require('path');
 // Set environment
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-console.log('Starting CoreX Bitcoin Investment Platform...');
+console.log('Starting Plus500 VIP Bitcoin Investment Platform...');
 console.log('Environment:', process.env.NODE_ENV);
 console.log('Port:', process.env.PORT || 5000);
 
@@ -34,7 +34,7 @@ const port = process.env.PORT || 5000;
 const server = createServer(app);
 
 server.listen(port, '0.0.0.0', () => {
-  console.log(`CoreX server running on port ${port}`);
+  console.log(`Plus500 VIP server running on port ${port}`);
   console.log(`Environment: ${process.env.NODE_ENV}`);
 });
 

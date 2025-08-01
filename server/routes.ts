@@ -187,7 +187,7 @@ Stay committed to your financial goals!`
 • Consistent accumulation builds lasting wealth
 • Professional management reduces emotional decisions
 
-🌟 CoreX delivers institutional-grade investment strategies directly to your portfolio. Your systematic approach is paying dividends!`
+🌟 Plus500 VIP delivers institutional-grade investment strategies directly to your portfolio. Your systematic approach is paying dividends!`
       },
       {
         title: "📊 Financial Freedom Progress",
@@ -198,7 +198,7 @@ Stay committed to your financial goals!`
 • Professional management active ✓
 • Long-term strategy in place ✓
 
-💪 Keep Growing: Every successful investor started with a single decision to begin. Your commitment to CoreX investment plans positions you for long-term financial success.`
+💪 Keep Growing: Every successful investor started with a single decision to begin. Your commitment to Plus500 VIP investment plans positions you for long-term financial success.`
       },
       {
         title: "⭐ Investment Community Update", 
@@ -209,7 +209,7 @@ Stay committed to your financial goals!`
 • Consistent daily returns being generated
 • Professional portfolio management active
 
-🎯 Pro Insight: The cryptocurrency market rewards disciplined, long-term investors. Your CoreX investment strategy is designed for sustainable wealth building.
+🎯 Pro Insight: The cryptocurrency market rewards disciplined, long-term investors. Your Plus500 VIP investment strategy is designed for sustainable wealth building.
 
 Excellence in investment requires patience and professional guidance!`
       },

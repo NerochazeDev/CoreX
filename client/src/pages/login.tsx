@@ -47,10 +47,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-6">
-      {/* Clean white background like authentic Plus500 */}
+    <div className="min-h-screen flex items-center justify-center p-6" style={{background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'}}>
+      {/* Professional gradient background like authentic Plus500 */}
       
-      <Card className="w-full max-w-md bg-white border border-gray-200 shadow-lg rounded-lg">
+      <Card className="w-full max-w-md plus500-professional shadow-xl">
         <CardHeader className="text-center pb-8">
           <div className="w-20 h-20 mx-auto mb-6 rounded-lg bg-plus500-blue flex items-center justify-center shadow-md">
             <span className="text-2xl font-bold text-white">500</span>
@@ -125,7 +125,7 @@ export default function Login() {
             
             <Button 
               type="submit" 
-              className="w-full h-12 gradient-primary text-black font-semibold rounded-xl hover:scale-105 transition-all duration-300 shadow-lg group"
+              className="w-full plus500-btn h-12 font-semibold"
               disabled={isLoading}
             >
               {isLoading ? (

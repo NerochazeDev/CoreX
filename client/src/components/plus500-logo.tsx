@@ -24,7 +24,7 @@ export function Plus500Logo({ className, showText = true, size = "md" }: Plus500
   return (
     <div className={cn("flex items-center space-x-2", className)}>
       <div className={cn(
-        "rounded-lg plus500-gradient flex items-center justify-center font-bold text-white shadow-lg",
+        "rounded-lg bg-plus500-blue flex items-center justify-center font-bold text-white shadow-md",
         sizeClasses[size]
       )}>
         <span className="text-white font-bold text-sm">500</span>
@@ -32,9 +32,9 @@ export function Plus500Logo({ className, showText = true, size = "md" }: Plus500
       </div>
       {showText && (
         <span className={cn(
-          "font-bold text-plus500",
+          "font-bold text-plus500-blue",
           textSizeClasses[size]
-        )}>
+        )} style={{fontFamily: 'Plus500 Sans, -apple-system, BlinkMacSystemFont, sans-serif'}}>
           Plus500
         </span>
       )}

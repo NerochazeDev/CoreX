@@ -143,10 +143,10 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-2 sm:p-4">
-      {/* Clean white background like authentic Plus500 */}
+    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4" style={{background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'}}>
+      {/* Professional gradient background like authentic Plus500 */}
 
-      <Card className="w-full max-w-2xl bg-white border border-gray-200 shadow-lg rounded-lg mx-2 sm:mx-4">
+      <Card className="w-full max-w-2xl plus500-professional shadow-xl mx-2 sm:mx-4">
         <CardHeader className="text-center space-y-4">
           <div className="w-20 h-20 mx-auto rounded-3xl plus500-gradient flex items-center justify-center glow-plus500 shadow-2xl">
             <span className="text-2xl font-bold text-white">500</span>
@@ -369,7 +369,7 @@ export default function Register() {
 
             <Button 
               type="submit" 
-              className="w-full h-14 text-lg gradient-primary text-black font-bold rounded-xl hover:scale-105 transition-all duration-300 shadow-lg"
+              className="w-full plus500-btn h-14 text-lg font-bold"
               disabled={isLoading || !acceptTerms || !captchaToken}
             >
               {isLoading ? (

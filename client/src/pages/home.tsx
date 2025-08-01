@@ -105,8 +105,8 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-sm mx-auto bg-white min-h-screen relative">
-      {/* Clean white background like authentic Plus500 */}
+    <div className="max-w-sm mx-auto min-h-screen relative" style={{background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'}}>
+      {/* Professional gradient background like authentic Plus500 */}
 
       {/* Header - Plus500 Style */}
       <header className="bg-plus500-blue text-white px-6 py-4 flex justify-between items-center shadow-plus500">
@@ -147,21 +147,23 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Wallet Balance - Plus500 Style */}
-      <div className="px-4 py-6 bg-gray-50">
+      {/* Wallet Balance - Plus500 Professional Style */}
+      <div className="px-4 py-6">
+        <div className="plus500-professional p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-plus500-dark-blue">Wallet Balance</h3>
+            <h3 className="text-lg font-bold text-plus500-blue">Portfolio Balance</h3>
             <Button
               variant="ghost"
               size="icon"
               onClick={handleRefreshBalance}
               disabled={isRefreshing}
-              className="rounded-2xl relative glass-card hover:glow-bitcoin transition-all duration-300 h-8 w-8"
+              className="plus500-btn h-8 w-8 p-0 rounded-lg"
             >
               <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
           </div>
           <WalletBalance />
+        </div>
       </div>
 
       {/* Bitcoin Price */}
@@ -172,37 +174,41 @@ export default function Home() {
         <BitcoinSync />
       </div>
 
-      {/* Quick Actions - Plus500 Style */}
+      {/* Quick Actions - Plus500 Professional */}
       <div className="px-4 mb-6">
-        <h3 className="text-lg font-semibold mb-4 text-plus500-dark-blue">Quick Actions</h3>
+        <h3 className="text-lg font-bold mb-4 text-plus500-blue">Trading Actions</h3>
         <div className="grid grid-cols-2 gap-3">
           <Button 
-            className="bg-white border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-all duration-300 flex flex-col items-center gap-2 h-auto group"
+            className="plus500-professional p-4 text-center hover:shadow-lg transition-all duration-300 flex flex-col items-center gap-3 h-auto group"
             onClick={() => setLocation('/withdraw')}
           >
-            <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-all">
-              <ArrowUpRight className="w-5 h-5 text-red-600" />
+            <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-all border border-red-200">
+              <ArrowUpRight className="w-6 h-6 text-red-600" />
             </div>
-            <span className="text-sm font-medium text-plus500-dark-blue">Withdraw</span>
-            <span className="text-xs text-gray-500">Send Bitcoin</span>
+            <div className="text-center">
+              <span className="text-sm font-bold text-plus500-dark-blue block">Withdraw</span>
+              <span className="text-xs text-gray-500">Send Bitcoin</span>
+            </div>
           </Button>
           <Button 
-            className="bg-white border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-all duration-300 flex flex-col items-center gap-2 h-auto group"
+            className="plus500-professional p-4 text-center hover:shadow-lg transition-all duration-300 flex flex-col items-center gap-3 h-auto group"
             onClick={() => setLocation('/deposit')}
           >
-            <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-all">
-              <ArrowDownLeft className="w-5 h-5 text-green-600" />
+            <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-all border border-green-200">
+              <ArrowDownLeft className="w-6 h-6 text-green-600" />
             </div>
-            <span className="text-sm font-medium text-plus500-dark-blue">Deposit</span>
-            <span className="text-xs text-gray-500">Receive Bitcoin</span>
+            <div className="text-center">
+              <span className="text-sm font-bold text-plus500-dark-blue block">Deposit</span>
+              <span className="text-xs text-gray-500">Receive Bitcoin</span>
+            </div>
           </Button>
         </div>
       </div>
 
-      {/* Current Investment Plan - Plus500 Style */}
+      {/* Current Investment Plan - Plus500 Professional */}
       <div className="px-4 mb-6">
-        <h3 className="text-lg font-semibold mb-4 text-plus500-dark-blue">Investment Plan</h3>
-        <Card className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300">
+        <h3 className="text-lg font-bold mb-4 text-plus500-blue">Investment Plan</h3>
+        <Card className="plus500-professional p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -236,10 +242,10 @@ export default function Home() {
           </div>
           {!currentPlan && (
             <Button 
-              className="w-full bg-plus500-blue text-white font-medium rounded-lg hover:bg-plus500-royal transition-all duration-300"
+              className="w-full plus500-btn mt-4"
               onClick={() => setLocation('/investment')}
             >
-              Upgrade Plan
+              Upgrade to VIP Plan
             </Button>
           )}
         </Card>

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== CoreX Production Build Script ==="
+echo "=== Plus500 VIP Production Build Script ==="
 
 # Install dependencies
 echo "Installing dependencies..."

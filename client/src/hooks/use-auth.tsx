@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check for stored user data
-    const storedUser = localStorage.getItem('corex_user');
+    const storedUser = localStorage.getItem('plus500_user');
     console.log('AuthProvider initializing, stored user:', storedUser ? 'found' : 'not found');
     if (storedUser) {
       try {
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
         
         // Only validate session if user has been inactive for more than 5 minutes
-        const lastActivity = localStorage.getItem('corex_last_activity');
+        const lastActivity = localStorage.getItem('plus500_last_activity');
         const now = Date.now();
         const fiveMinutes = 5 * 60 * 1000;
         
@@ -51,26 +51,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             })
             .then(refreshedUser => {
               setUser(refreshedUser);
-              localStorage.setItem('corex_user', JSON.stringify(refreshedUser));
-              localStorage.setItem('corex_last_activity', now.toString());
+              localStorage.setItem('plus500_user', JSON.stringify(refreshedUser));
+              localStorage.setItem('plus500_last_activity', now.toString());
             })
             .catch(error => {
               console.error('Session validation failed:', error);
               // Only clear session if it's a 401/403 error, not network errors
               if (error.message === 'Session expired') {
-                localStorage.removeItem('corex_user');
-                localStorage.removeItem('corex_last_activity');
+                localStorage.removeItem('plus500_user');
+                localStorage.removeItem('plus500_last_activity');
                 setUser(null);
               }
             });
         } else {
           // Session is recent, just update last activity
-          localStorage.setItem('corex_last_activity', now.toString());
+          localStorage.setItem('plus500_last_activity', now.toString());
         }
       } catch (error) {
         console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('corex_user');
-        localStorage.removeItem('corex_last_activity');
+        localStorage.removeItem('plus500_user');
+        localStorage.removeItem('plus500_last_activity');
       }
     }
     setIsLoading(false);
@@ -97,8 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('Login successful for user:', userData.email);
 
     // Store in localStorage with activity timestamp
-    localStorage.setItem('corex_user', JSON.stringify(userData));
-    localStorage.setItem('corex_last_activity', Date.now().toString());
+    localStorage.setItem('plus500_user', JSON.stringify(userData));
+    localStorage.setItem('plus500_last_activity', Date.now().toString());
     // Then update state synchronously
     setUser(userData);
 
