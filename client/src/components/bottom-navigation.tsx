@@ -29,8 +29,8 @@ export function BottomNavigation() {
               <Link key={item.path} href={item.path}>
                 <div className={`flex flex-col items-center py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 ${
                   isActive 
-                    ? 'text-bitcoin bg-bitcoin bg-opacity-10 glow-bitcoin' 
-                    : 'text-muted-foreground hover:text-bitcoin hover:bg-bitcoin hover:bg-opacity-5'
+                    ? 'text-plus500-blue bg-plus500-blue bg-opacity-10 glow-plus500' 
+                    : 'text-muted-foreground hover:text-plus500-blue hover:bg-plus500-blue hover:bg-opacity-5'
                 }`}>
                   <Icon className="w-6 h-6 mb-1" />
                   <span className="text-xs font-medium">{item.label}</span>

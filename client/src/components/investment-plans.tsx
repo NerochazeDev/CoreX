@@ -70,7 +70,7 @@ export function InvestmentPlans() {
         </div>
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="dark-card rounded-xl p-4 dark-border animate-pulse">
+            <Card key={i} className="neo-card rounded-xl p-4 animate-pulse">
               <div className="h-20 bg-muted rounded"></div>
             </Card>
           ))}

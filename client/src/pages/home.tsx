@@ -108,18 +108,19 @@ export default function Home() {
     <div className="max-w-sm mx-auto bg-background min-h-screen relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-background opacity-50"></div>
-      <div className="absolute top-0 right-0 w-64 h-64 bg-bitcoin opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-plus500-blue opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-plus500-light-blue opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
 
       {/* Header */}
       <header className="relative px-6 py-4 flex justify-between items-center backdrop-blur-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center animate-glow shadow-lg">
-            <span className="text-black text-lg font-bold">₿</span>
+          <div className="w-12 h-12 rounded-2xl plus500-gradient flex items-center justify-center glow-plus500 shadow-lg">
+            <span className="text-white text-sm font-bold">500</span>
+            <span className="text-white text-xs font-bold">+</span>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground bg-gradient-to-r from-bitcoin to-gold bg-clip-text text-transparent">
-              CoreX
+            <h1 className="text-2xl font-bold text-foreground bg-gradient-to-r from-plus500-blue to-plus500-light-blue bg-clip-text text-transparent">
+              Plus500 VIP
             </h1>
             <p className="text-sm text-muted-foreground font-medium">{user.email}</p>
           </div>
@@ -128,7 +129,7 @@ export default function Home() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-2xl relative glass-card hover:glow-bitcoin transition-all duration-300" 
+            className="rounded-2xl relative glass-card hover:glow-plus500 transition-all duration-300" 
             onClick={() => setLocation('/notifications')}
           >
             <Bell className="w-5 h-5" />
@@ -141,7 +142,7 @@ export default function Home() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-2xl glass-card hover:glow-emerald transition-all duration-300" 
+            className="rounded-2xl glass-card hover:glow-plus500 transition-all duration-300" 
             onClick={() => setLocation('/profile')}
           >
             <User className="w-5 h-5" />

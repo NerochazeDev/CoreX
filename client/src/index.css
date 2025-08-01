@@ -3,68 +3,71 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 11% 6%; /* Deep navy blue */
+  --background: 224 71% 4%; /* Deep royal blue */
   --foreground: 0 0% 98%;
-  --muted: 215 15% 12%;
-  --muted-foreground: 215 8% 65%;
-  --popover: 210 11% 8%;
+  --muted: 224 71% 8%;
+  --muted-foreground: 215 16% 65%;
+  --popover: 224 71% 6%;
   --popover-foreground: 0 0% 98%;
-  --card: 210 11% 8%;
+  --card: 224 71% 6%;
   --card-foreground: 0 0% 98%;
-  --border: 215 15% 16%;
-  --input: 215 15% 16%;
-  --primary: 25 95% 53%; /* Bitcoin orange */
-  --primary-foreground: 0 0% 2%;
-  --secondary: 215 15% 12%;
+  --border: 224 71% 12%;
+  --input: 224 71% 12%;
+  --primary: 221 83% 53%; /* Plus500 Royal Blue */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 224 71% 8%;
   --secondary-foreground: 0 0% 98%;
-  --accent: 215 15% 12%;
+  --accent: 200 98% 39%; /* Plus500 Light Blue */
   --accent-foreground: 0 0% 98%;
   --destructive: 0 62.8% 50%;
   --destructive-foreground: 0 0% 98%;
-  --ring: 25 95% 53%;
+  --ring: 221 83% 53%;
   --radius: 0.75rem;
-  --bitcoin: 25 95% 53%; /* #F7931A */
-  --bitcoin-dark: 25 91% 48%; /* #E8850F */
-  --bitcoin-light: 25 100% 65%;
-  --gold: 51 100% 50%; /* #FFD700 */
+  --plus500-blue: 221 83% 53%; /* #3B82F6 - Primary Plus500 Blue */
+  --plus500-light-blue: 200 98% 39%; /* #0EA5E9 - Light blue accent */
+  --plus500-dark-blue: 224 71% 4%; /* Very dark blue background */
+  --plus500-royal: 230 100% 32%; /* #0052CC - Deep royal blue */
   --emerald: 158 64% 52%; /* #10B981 */
   --ruby: 0 84% 60%; /* #EF4444 */
-  --sapphire: 221 83% 53%; /* #3B82F6 */
-  --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(25 91% 48%) 50%, hsl(51 100% 50%) 100%);
-  --gradient-secondary: linear-gradient(135deg, hsl(210 11% 8%) 0%, hsl(215 15% 12%) 100%);
-  --gradient-accent: linear-gradient(135deg, hsl(158 64% 52%) 0%, hsl(221 83% 53%) 100%);
+  --gold: 51 100% 50%; /* #FFD700 */
+  --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(200 98% 39%) 50%, hsl(230 100% 32%) 100%);
+  --gradient-secondary: linear-gradient(135deg, hsl(224 71% 4%) 0%, hsl(224 71% 8%) 100%);
+  --gradient-accent: linear-gradient(135deg, hsl(200 98% 39%) 0%, hsl(221 83% 53%) 100%);
+  --gradient-plus500: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-plus500: 0 10px 25px -5px rgba(59, 130, 246, 0.25), 0 4px 10px -2px rgba(59, 130, 246, 0.1);
 }
 
 .light {
   --background: 0 0% 100%;
-  --foreground: 20 14.3% 4.1%;
-  --muted: 60 4.8% 95.9%;
-  --muted-foreground: 25 5.3% 44.7%;
+  --foreground: 224 71% 4%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
   --popover: 0 0% 100%;
-  --popover-foreground: 20 14.3% 4.1%;
+  --popover-foreground: 224 71% 4%;
   --card: 0 0% 100%;
-  --card-foreground: 20 14.3% 4.1%;
-  --border: 20 5.9% 90%;
-  --input: 20 5.9% 90%;
-  --primary: 25 95% 53%; /* Bitcoin orange */
+  --card-foreground: 224 71% 4%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --primary: 221 83% 53%; /* Plus500 Royal Blue */
   --primary-foreground: 0 0% 98%;
-  --secondary: 60 4.8% 95.9%;
-  --secondary-foreground: 24 9.8% 10%;
-  --accent: 60 4.8% 95.9%;
-  --accent-foreground: 24 9.8% 10%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 220 9% 15%;
+  --accent: 200 98% 39%; /* Plus500 Light Blue */
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 20 14.3% 4.1%;
-  --bitcoin: 25 95% 53%; /* #F7931A */
-  --bitcoin-dark: 25 91% 48%; /* #E8850F */
-  --gold: 51 100% 50%; /* #FFD700 */
-  --dark-bg: 0 0% 100%;
-  --dark-card: 0 0% 98%;
-  --dark-border: 20 5.9% 90%;
+  --ring: 221 83% 53%;
+  --plus500-blue: 221 83% 53%;
+  --plus500-light-blue: 200 98% 39%;
+  --plus500-dark-blue: 224 71% 4%;
+  --plus500-royal: 230 100% 32%;
+  --emerald: 158 64% 52%;
+  --ruby: 0 84% 60%;
+  --gold: 51 100% 50%;
 }
 
 @layer base {
@@ -90,24 +93,32 @@
     background: var(--gradient-accent);
   }
   
-  .bitcoin-gradient {
-    background: linear-gradient(135deg, hsl(var(--bitcoin)) 0%, hsl(var(--bitcoin-dark)) 50%, hsl(var(--gold)) 100%);
+  .plus500-gradient {
+    background: var(--gradient-plus500);
+  }
+  
+  .plus500-card {
+    background: linear-gradient(135deg, hsl(var(--plus500-blue)) 0%, hsl(var(--plus500-royal)) 100%);
+    border-radius: 16px;
+    box-shadow: var(--shadow-plus500);
   }
   
   .glass-card {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
   }
   
   .neo-card {
     background: hsl(var(--card));
     box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.3), -8px -8px 16px rgba(255, 255, 255, 0.02);
     border: 1px solid hsl(var(--border));
+    border-radius: 16px;
   }
   
-  .glow-bitcoin {
-    box-shadow: 0 0 20px rgba(247, 147, 26, 0.3), 0 0 40px rgba(247, 147, 26, 0.2);
+  .glow-plus500 {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2);
   }
   
   .glow-emerald {
@@ -118,8 +129,12 @@
     box-shadow: 0 0 20px rgba(239, 68, 68, 0.3), 0 0 40px rgba(239, 68, 68, 0.2);
   }
   
-  .text-bitcoin {
-    color: hsl(var(--bitcoin));
+  .text-plus500 {
+    color: hsl(var(--plus500-blue));
+  }
+  
+  .text-plus500-light {
+    color: hsl(var(--plus500-light-blue));
   }
   
   .text-bitcoin-light {

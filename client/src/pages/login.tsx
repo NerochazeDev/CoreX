@@ -50,19 +50,20 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-background opacity-50"></div>
-      <div className="absolute top-20 right-20 w-96 h-96 bg-bitcoin opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-20 left-20 w-64 h-64 bg-emerald opacity-5 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute top-20 right-20 w-96 h-96 bg-plus500-blue opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
+      <div className="absolute bottom-20 left-20 w-64 h-64 bg-plus500-light-blue opacity-5 rounded-full blur-3xl animate-float"></div>
       
       <Card className="w-full max-w-md relative z-10 neo-card border-0 shadow-2xl">
         <CardHeader className="text-center pb-8">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-3xl gradient-primary flex items-center justify-center animate-glow">
-            <span className="text-3xl font-bold text-black">₿</span>
+          <div className="w-20 h-20 mx-auto mb-6 rounded-3xl plus500-gradient flex items-center justify-center glow-plus500">
+            <span className="text-2xl font-bold text-white">500</span>
+            <span className="text-lg font-bold text-white">+</span>
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-bitcoin to-gold bg-clip-text text-transparent mb-2">
-            Welcome to CoreX
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-plus500-blue to-plus500-light-blue bg-clip-text text-transparent mb-2">
+            Welcome to Plus500
           </CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
-            Secure access to your Bitcoin investment platform
+            VIP Investors - Premium Trading Platform
           </CardDescription>
           
           {/* Security indicators */}
@@ -72,7 +73,7 @@ export default function Login() {
               <span className="text-xs text-emerald font-medium">Bank-Level Security</span>
             </div>
             <div className="flex items-center gap-2 glass-card px-3 py-1 rounded-xl">
-              <Lock className="w-4 h-4 text-sapphire" />
+              <Lock className="w-4 h-4 text-plus500-blue" />
               <span className="text-xs text-sapphire font-medium">256-bit SSL</span>
             </div>
           </div>

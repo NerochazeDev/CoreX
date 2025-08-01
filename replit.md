@@ -1,8 +1,8 @@
-# CoreX Bitcoin Investment Platform
+# Plus500 VIP Investors Platform
 
 ## Overview
 
-CoreX is a Bitcoin investment platform that provides users with cryptocurrency wallet management, investment opportunities, and real-time Bitcoin price tracking. The platform features a complete investment ecosystem with different investment plans, transaction management, and administrative controls.
+Plus500 VIP Investors is a premium Bitcoin investment platform that provides VIP clients with cryptocurrency wallet management, exclusive investment opportunities, and real-time Bitcoin price tracking. The platform features a complete investment ecosystem with different investment plans, transaction management, and administrative controls, all designed with Plus500's signature royal blue and white branding.
 
 ## System Architecture
 
@@ -11,7 +11,7 @@ CoreX is a Bitcoin investment platform that provides users with cryptocurrency w
 - **Routing**: Wouter for client-side routing
 - **UI Components**: Radix UI with Tailwind CSS for styling
 - **State Management**: React Query for server state, React Context for global state
-- **Styling**: Custom dark theme with Bitcoin-themed color scheme
+- **Styling**: Custom dark theme with Plus500 royal blue and white color scheme
 
 ### Backend Architecture
 - **Runtime**: Node.js with TypeScript
@@ -106,6 +106,9 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 - `PORT`: Server port (defaults to 5000)
 
 ## Changelog
+- August 1, 2025. Successfully rebranded from CoreX to Plus500 VIP Investors with royal blue and white theme
+- August 1, 2025. Updated all UI components with Plus500 branding and color scheme
+- August 1, 2025. Completed migration to Replit environment with full functionality
 - June 30, 2025. Successfully migrated to Replit environment with PostgreSQL database
 - June 30, 2025. Added PostgreSQL data export and import functionality for complete database backup/restore
 - June 30, 2025. Updated database configuration to use Replit's PostgreSQL service
