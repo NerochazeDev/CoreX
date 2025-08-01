@@ -49,10 +49,11 @@ export function OfficialPlus500Logo({
         borderRadius: '12px', // Enhanced curved corners
         textRendering: 'optimizeLegibility'
       }}>
-        {/* Plus500 text with positioned + symbol - Clean bold without strokes */}
+        {/* Plus500 text with positioned + symbol - Consistent Orbitron font */}
         <div className="font-black relative z-10" style={{ 
-          fontFamily: '"Orbitron", "Arial", sans-serif',
-          fontWeight: '900'
+          fontFamily: '"Orbitron", monospace, sans-serif',
+          fontWeight: '900',
+          fontFeatureSettings: 'normal' // Reset any font features that might add strokes
         }}>
           <span className="relative">
             Plu<span className="relative">
@@ -65,13 +66,10 @@ export function OfficialPlus500Logo({
                 left: '50%',
                 transform: 'translateX(-50%)',
                 lineHeight: '1',
-                fontFamily: '"Orbitron", "Arial", sans-serif',
+                fontFamily: '"Orbitron", monospace, sans-serif',
                 fontWeight: '900'
               }}>+</span>
-            </span>5<span style={{ 
-              fontFamily: '"Arial", sans-serif',
-              fontWeight: '900'
-            }}>00</span>
+            </span>500
           </span>
         </div>
       </div>
