@@ -21,12 +21,12 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const setCurrency = (newCurrency: Currency) => {
+  const updateCurrency = (newCurrency: Currency) => {
     setCurrency(newCurrency);
   };
 
   return (
-    <CurrencyContext.Provider value={{ currency, toggleCurrency, setCurrency }}>
+    <CurrencyContext.Provider value={{ currency, toggleCurrency, setCurrency: updateCurrency }}>
       {children}
     </CurrencyContext.Provider>
   );
