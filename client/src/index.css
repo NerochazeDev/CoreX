@@ -27,9 +27,9 @@
   --ring: 210 100% 44%; /* Plus500 Blue ring */
   --radius: 0.5rem;
   
-  /* Plus500 VIP Extended Palette */
-  --plus500-primary: 210 100% 44%; /* #003AE0 - Main Plus500 Blue */
-  --plus500-secondary: 210 100% 34%; /* Darker blue variant */
+  /* Plus500 VIP Extended Palette - Authentic Colors */
+  --plus500-primary: 210 100% 30%; /* #003399 - Authentic Plus500 Royal Blue */
+  --plus500-secondary: 210 100% 25%; /* Darker blue variant */
   --plus500-gold: 45 93% 47%; /* #E6A817 - Plus500 Gold */
   --plus500-light: 210 40% 96%; /* Very light background */
   --plus500-dark: 210 40% 15%; /* Professional dark with better contrast */

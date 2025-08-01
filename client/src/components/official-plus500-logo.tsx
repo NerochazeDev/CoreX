@@ -13,37 +13,46 @@ export function OfficialPlus500Logo({
   size = "md", 
   variant = "light" 
 }: OfficialPlus500LogoProps) {
-  const sizeClasses = {
-    sm: "text-lg",
-    md: "text-xl",
-    lg: "text-3xl", 
-    xl: "text-4xl"
+  const containerSize = {
+    sm: "px-3 py-2 text-sm",
+    md: "px-4 py-2 text-base",
+    lg: "px-6 py-3 text-lg", 
+    xl: "px-8 py-4 text-xl"
   };
 
-  const iconSize = {
-    sm: "w-5 h-5",
-    md: "w-6 h-6",
-    lg: "w-8 h-8",
-    xl: "w-10 h-10"
+  const plusSize = {
+    sm: "text-xs",
+    md: "text-sm",
+    lg: "text-base",
+    xl: "text-lg"
   };
 
-  const textColor = variant === 'white' ? 'text-white' : 'text-plus500';
-  const bgColor = variant === 'white' ? 'bg-white' : 'bg-plus500';
-  const iconTextColor = variant === 'white' ? 'text-plus500' : 'text-white';
+  // Authentic Plus500 colors
+  const bgColor = variant === 'white' ? 'bg-white' : 'bg-[#003399]'; // Royal blue
+  const textColor = variant === 'white' ? 'text-[#003399]' : 'text-white';
+  const borderColor = variant === 'white' ? 'border-[#003399]' : 'border-transparent';
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      {/* Authentic Plus500 Logo Design */}
-      <div className="flex items-center">
-        <span className={cn("font-bold tracking-tight", sizeClasses[size], textColor)}>
-          Plus
-        </span>
-        <div className={cn("rounded-sm flex items-center justify-center mx-1", iconSize[size], bgColor)}>
-          <span className={cn("font-bold text-lg leading-none", iconTextColor)}>+</span>
+      {/* Authentic Plus500 Logo - Royal Blue Background */}
+      <div className={cn(
+        "relative rounded-lg font-bold tracking-wide uppercase leading-tight border-2",
+        containerSize[size],
+        bgColor,
+        textColor,
+        borderColor
+      )}>
+        {/* Plus symbol positioned above the 's' in Plus */}
+        <div className={cn(
+          "absolute -top-1 left-[2.2em] font-bold",
+          plusSize[size]
+        )}>
+          +
         </div>
-        <span className={cn("font-bold tracking-tight", sizeClasses[size], textColor)}>
-          500
-        </span>
+        {/* Plus500 text */}
+        <div className="font-black" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          PLUS500
+        </div>
       </div>
       
       {showVIP && (
