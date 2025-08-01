@@ -23,6 +23,13 @@ function ProfileContent() {
   const { currency } = useCurrency();
   const { data: price } = useBitcoinPrice();
   const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
+  const [displayUserId, setDisplayUserId] = useState(0);
+
+  useEffect(() => {
+    // Generate user ID between 3455 and 9999
+    const userId = Math.floor(Math.random() * (9999 - 3455 + 1)) + 3455;
+    setDisplayUserId(userId);
+  }, []);
 
   const { data: investments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user?.id],
@@ -84,7 +91,8 @@ function ProfileContent() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">{user.email.split('@')[0]}</h2>
-                  <div className="flex items-center gap-2">
+                  <p className="text-orange-100 text-sm">ID: #{displayUserId}</p>
+                  <div className="flex items-center gap-2 mt-1">
                     {user.isAdmin ? (
                       <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
                         <Shield className="w-3 h-3 mr-1" />
