@@ -14,10 +14,10 @@ export function OfficialPlus500Logo({
   variant = "light" 
 }: OfficialPlus500LogoProps) {
   const containerSize = {
-    sm: "px-4 py-2 text-sm min-w-[100px]",
-    md: "px-5 py-2.5 text-base min-w-[120px]",
-    lg: "px-6 py-3 text-lg min-w-[140px]", 
-    xl: "px-8 py-4 text-xl min-w-[160px]"
+    sm: "px-5 py-3 text-sm min-w-[100px]",
+    md: "px-6 py-3.5 text-base min-w-[120px]",
+    lg: "px-7 py-4 text-lg min-w-[140px]", 
+    xl: "px-9 py-5 text-xl min-w-[160px]"
   };
 
   const plusSize = {
@@ -36,7 +36,7 @@ export function OfficialPlus500Logo({
     <div className={cn("flex items-center gap-3", className)}>
       {/* Authentic Plus500 Logo - Exact replica of official design */}
       <div className={cn(
-        "relative rounded-lg font-black tracking-wider leading-none text-center",
+        "relative rounded-xl font-black tracking-wider leading-none text-center",
         containerSize[size],
         bgColor,
         textColor,
@@ -45,7 +45,8 @@ export function OfficialPlus500Logo({
       style={{ 
         fontFamily: '"Arial Black", "Helvetica Bold", "Futura Bold", system-ui, sans-serif',
         letterSpacing: '0.05em',
-        fontWeight: '900'
+        fontWeight: '900',
+        borderRadius: '12px' // Enhanced curved corners
       }}>
         {/* Plus500 text with positioned + symbol - Extra bold and thick */}
         <div className="font-black relative z-10" style={{ 
