@@ -14,42 +14,28 @@ export function OfficialPlus500Logo({
   variant = "light" 
 }: OfficialPlus500LogoProps) {
   const sizeMap = {
-    sm: { container: "px-4 py-2", text: "text-lg", plus: "text-sm", top: "top-1", left: "left-6" },
-    md: { container: "px-6 py-3", text: "text-2xl", plus: "text-lg", top: "top-1", left: "left-8" },
-    lg: { container: "px-8 py-4", text: "text-3xl", plus: "text-xl", top: "top-2", left: "left-10" },
-    xl: { container: "px-10 py-5", text: "text-4xl", plus: "text-2xl", top: "top-2", left: "left-12" }
+    sm: { text: "text-lg" },
+    md: { text: "text-2xl" },
+    lg: { text: "text-3xl" },
+    xl: { text: "text-4xl" }
   };
 
   const currentSize = sizeMap[size];
+  const textColor = variant === 'white' ? 'text-white' : 'text-plus500';
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      {/* Exact Plus500 Logo Recreation */}
-      <div className={cn(
-        "bg-plus500 rounded-xl relative inline-block",
-        currentSize.container
-      )}>
-        <span 
-          className={cn(
-            "font-bold text-white relative",
-            currentSize.text
-          )}
-          style={{ fontFamily: 'Orbitron, monospace, sans-serif' }}
-        >
-          Plu
-          <span 
-            className={cn(
-              "absolute text-white font-bold",
-              currentSize.plus,
-              currentSize.top,
-              currentSize.left
-            )}
-          >
-            +
-          </span>
-          s500
-        </span>
-      </div>
+      {/* Simple Plus500 Text Logo */}
+      <span 
+        className={cn(
+          "font-bold tracking-tight",
+          currentSize.text,
+          textColor
+        )}
+        style={{ fontFamily: 'Orbitron, monospace, sans-serif' }}
+      >
+        Plus500
+      </span>
       
       {showVIP && (
         <span className="text-plus500-gold font-bold px-3 py-1 rounded-full text-sm bg-plus500-gold/10 border border-plus500-gold/20">
@@ -61,20 +47,16 @@ export function OfficialPlus500Logo({
 }
 
 export function SimplePlus500Logo({ className, variant = "light" }: { className?: string; variant?: "light" | "dark" | "white" }) {
+  const textColor = variant === 'white' ? 'text-white' : 'text-plus500';
+  
   return (
     <div className={cn("flex items-center", className)}>
-      <div className="bg-plus500 rounded-xl px-6 py-3 relative inline-block">
-        <span 
-          className="font-bold text-white relative text-2xl"
-          style={{ fontFamily: 'Orbitron, monospace, sans-serif' }}
-        >
-          Plu
-          <span className="absolute text-white font-bold text-lg top-1 left-8">
-            +
-          </span>
-          s500
-        </span>
-      </div>
+      <span 
+        className={cn("font-bold tracking-tight text-2xl", textColor)}
+        style={{ fontFamily: 'Orbitron, monospace, sans-serif' }}
+      >
+        Plus500
+      </span>
     </div>
   );
 }
