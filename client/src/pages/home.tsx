@@ -108,7 +108,7 @@ export default function Home() {
   return (
     <div className="max-w-sm mx-auto min-h-screen bg-background">
       {/* Plus500 VIP Header */}
-      <header className="gradient-primary text-white px-6 py-4 shadow-xl">
+      <header className="bg-gradient-to-br from-blue-700 to-blue-900 text-white px-6 py-4 shadow-xl">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <OfficialPlus500Logo variant="white" size="md" showVIP={true} />
