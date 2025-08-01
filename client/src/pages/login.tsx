@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, Shield, Lock, Mail, ArrowRight } from "lucide-react";
+import { OfficialPlus500Logo } from "@/components/official-plus500-logo";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -51,16 +52,7 @@ export default function Login() {
       <Card className="w-full max-w-md plus500-professional shadow-xl">
         <CardHeader className="text-center pb-8">
           <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center">
-                <span className="font-bold tracking-tight text-plus500 text-3xl">Plus</span>
-                <div className="w-8 h-8 bg-plus500 rounded-sm flex items-center justify-center mx-1">
-                  <span className="text-white font-bold text-xl leading-none">+</span>
-                </div>
-                <span className="font-bold tracking-tight text-plus500 text-3xl">500</span>
-              </div>
-              <span className="text-plus500-gold font-bold bg-plus500-gold/10 px-3 py-1 rounded-full text-lg ml-2 border border-plus500-gold/20">VIP</span>
-            </div>
+            <OfficialPlus500Logo size="lg" showVIP={true} />
           </div>
           <CardTitle className="text-3xl font-bold text-plus500 mb-2">
             Welcome Back

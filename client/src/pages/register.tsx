@@ -13,6 +13,7 @@ import { Eye, EyeOff, Shield, UserCheck, Globe, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { countries } from "@/lib/countries";
 import { CustomCaptcha } from "@/components/custom-captcha";
+import { OfficialPlus500Logo } from "@/components/official-plus500-logo";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -147,16 +148,7 @@ export default function Register() {
       <Card className="w-full max-w-2xl plus500-professional shadow-xl mx-2 sm:mx-4">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center mb-4">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center">
-                <span className="font-bold tracking-tight text-plus500 text-3xl">Plus</span>
-                <div className="w-8 h-8 bg-plus500 rounded-sm flex items-center justify-center mx-1">
-                  <span className="text-white font-bold text-xl leading-none">+</span>
-                </div>
-                <span className="font-bold tracking-tight text-plus500 text-3xl">500</span>
-              </div>
-              <span className="text-plus500-gold font-bold bg-plus500-gold/10 px-3 py-1 rounded-full text-lg ml-2 border border-plus500-gold/20">VIP</span>
-            </div>
+            <OfficialPlus500Logo size="lg" showVIP={true} />
           </div>
           <div>
             <CardTitle className="text-3xl font-bold text-plus500">

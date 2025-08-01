@@ -2,8 +2,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { WalletBalance } from "@/components/wallet-balance";
 import { BitcoinPrice } from "@/components/bitcoin-price";
 import { BitcoinSync } from "@/components/bitcoin-sync";
-
 import { BottomNavigation } from "@/components/bottom-navigation";
+import { OfficialPlus500Logo } from "@/components/official-plus500-logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Bell, User, ArrowUpRight, ArrowDownLeft, TrendingUp, Activity } from "lucide-react";
@@ -110,14 +110,7 @@ export default function Home() {
       <header className="gradient-primary text-white px-6 py-4 shadow-xl">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="flex items-center">
-              <span className="text-white font-bold text-xl tracking-tight">Plus</span>
-              <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center mx-1">
-                <span className="text-plus500 font-bold text-lg leading-none">+</span>
-              </div>
-              <span className="text-white font-bold text-xl tracking-tight">500</span>
-            </div>
-            <span className="text-plus500-gold font-bold text-sm bg-white/10 px-2 py-1 rounded-full border border-white/20">VIP</span>
+            <OfficialPlus500Logo variant="white" size="md" showVIP={true} />
           </div>
           <div className="flex items-center gap-3">
             <button 

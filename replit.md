@@ -106,6 +106,8 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 - `PORT`: Server port (defaults to 5000)
 
 ## Changelog
+- August 1, 2025. Implemented official Plus500 logo component throughout the application
+- August 1, 2025. Fixed component visibility issues with improved color contrast
 - August 1, 2025. Successfully rebranded from CoreX to Plus500 VIP Investors with royal blue and white theme
 - August 1, 2025. Updated all UI components with Plus500 branding and color scheme
 - August 1, 2025. Completed migration to Replit environment with full functionality
