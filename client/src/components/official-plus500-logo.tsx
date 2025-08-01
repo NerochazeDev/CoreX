@@ -36,7 +36,7 @@ export function OfficialPlus500Logo({
     <div className={cn("flex items-center gap-3", className)}>
       {/* Authentic Plus500 Logo - Exact replica of official design */}
       <div className={cn(
-        "relative rounded-lg font-extrabold tracking-wider leading-none text-center",
+        "relative rounded-lg font-black tracking-wider leading-none text-center",
         containerSize[size],
         bgColor,
         textColor,
@@ -44,14 +44,18 @@ export function OfficialPlus500Logo({
       )}
       style={{ 
         fontFamily: '"Arial Black", "Helvetica Bold", "Futura Bold", system-ui, sans-serif',
-        letterSpacing: '0.05em'
+        letterSpacing: '0.05em',
+        fontWeight: '900'
       }}>
-        {/* Plus500 text with positioned + symbol */}
-        <div className="font-extrabold relative z-10">
+        {/* Plus500 text with positioned + symbol - Extra bold and thick */}
+        <div className="font-black relative z-10" style={{ 
+          fontWeight: '900',
+          textShadow: '0 0 1px currentColor'
+        }}>
           <span className="relative">
             Plu<span className="relative">
               s<span className={cn(
-                "absolute font-extrabold",
+                "absolute font-black",
                 plusSize[size]
               )}
               style={{
@@ -59,7 +63,9 @@ export function OfficialPlus500Logo({
                 left: '50%',
                 transform: 'translateX(-50%)',
                 lineHeight: '1',
-                fontFamily: 'inherit'
+                fontFamily: 'inherit',
+                fontWeight: '900',
+                textShadow: '0 0 1px currentColor'
               }}>+</span>
             </span>500
           </span>
