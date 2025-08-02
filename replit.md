@@ -106,6 +106,7 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 - `PORT`: Server port (defaults to 5000)
 
 ## Changelog
+- August 2, 2025. **Fixed Railway deployment configuration (v2)** - Removed problematic nixpacks.toml with invalid package names, created .nvmrc for Node.js 20, using Railway's automatic Node.js detection for reliable deployment
 - August 2, 2025. **Fixed Railway deployment configuration** - Removed Dockerfile to prevent Docker detection, updated railway.json and nixpacks.toml for proper Node.js deployment, created .railwayignore, verified build process works correctly
 - August 2, 2025. Configured Railway deployment with optimized build process and production environment variables
 - August 1, 2025. Finalized Plus500 logo with Orbitron font, clean zeros (no slashed zeros), and removed shining effects
