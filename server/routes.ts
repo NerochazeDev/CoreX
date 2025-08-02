@@ -367,55 +367,47 @@ async function refreshUserBalance(userId: number): Promise<void> {
 }
 
 async function fetchBitcoinPrice() {
+  console.log('🚀 [Backend] Fetching real-time Bitcoin price from CoinGecko API...');
+  
   try {
-    // Use multiple sources for reliability
-    const sources = [
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,gbp&include_24hr_change=true',
-      'https://api.coindesk.com/v1/bpi/currentprice.json'
-    ];
+    // Use CoinGecko API with all required currencies
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,gbp,eur&include_24hr_change=true'
+    );
 
-    // Try CoinGecko first (most comprehensive)
-    try {
-      const response = await fetch(sources[0]);
-      if (response.ok) {
-        const data = await response.json();
-        return {
-          usd: {
-            price: Math.round(data.bitcoin.usd * 100) / 100, // Round to 2 decimal places
-            change24h: Math.round(data.bitcoin.usd_24h_change * 100) / 100,
-          },
-          gbp: {
-            price: Math.round(data.bitcoin.gbp * 100) / 100,
-            change24h: Math.round((data.bitcoin.gbp_24h_change || data.bitcoin.usd_24h_change) * 100) / 100,
-          }
-        };
-      }
-    } catch (e) {
-      console.log('CoinGecko API failed, trying CoinDesk...');
+    if (!response.ok) {
+      throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
     }
 
-    // Fallback to CoinDesk for USD only
-    const response = await fetch(sources[1]);
     const data = await response.json();
-    const usdPrice = Math.round(parseFloat(data.bpi.USD.rate.replace(',', '')) * 100) / 100;
+    const bitcoin = data.bitcoin;
 
-    return {
+    const result = {
       usd: {
-        price: usdPrice,
-        change24h: 0, // CoinDesk doesn't provide 24h change
+        price: bitcoin.usd,
+        change24h: bitcoin.usd_24h_change || 0,
       },
       gbp: {
-        price: Math.round(usdPrice * 0.79 * 100) / 100, // Approximate GBP conversion
-        change24h: 0,
+        price: bitcoin.gbp,
+        change24h: bitcoin.gbp_24h_change || 0,
+      },
+      eur: {
+        price: bitcoin.eur,
+        change24h: bitcoin.eur_24h_change || 0,
       }
     };
-  } catch (error) {
-    console.error('All Bitcoin price APIs failed:', error);
-    // Return last known good price or reasonable fallback
-    return { 
-      usd: { price: 105000, change24h: 0 },
-      gbp: { price: 83000, change24h: 0 }
-    };
+
+    console.log('✅ [Backend] Real Bitcoin price fetched successfully:', {
+      usd: `$${result.usd.price.toLocaleString()}`,
+      gbp: `£${result.gbp.price.toLocaleString()}`,
+      eur: `€${result.eur.price.toLocaleString()}`
+    });
+
+    return result;
+  } catch (error: any) {
+    console.error('❌ [Backend] CoinGecko API failed:', error);
+    // Throw error to let the frontend handle fallback
+    throw new Error(`Failed to fetch Bitcoin price: ${error?.message || 'Unknown error'}`);
   }
 }
 
