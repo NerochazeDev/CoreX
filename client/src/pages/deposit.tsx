@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ interface AdminConfig {
 // Simple QR Code component (you can replace with a proper QR library)
 function QRCodeDisplay({ value, size = 200 }: { value: string; size?: number }) {
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}`;
-  
+
   return (
     <div className="flex justify-center p-4 bg-white rounded-lg">
       <img 
@@ -64,7 +63,7 @@ export default function Deposit() {
   const submitDepositMutation = useMutation({
     mutationFn: async (data: { amount: string; transactionHash?: string }) => {
       console.log('Submitting deposit:', data);
-      
+
       const response = await fetch('/api/deposit', {
         method: 'POST',
         headers: { 
@@ -75,15 +74,15 @@ export default function Deposit() {
         credentials: 'include', // Include session cookies
         body: JSON.stringify(data),
       });
-      
+
       console.log('Deposit response status:', response.status);
-      
+
       if (!response.ok) {
         const error = await response.json();
         console.log('Deposit error response:', error);
         throw new Error(error.error || 'Deposit submission failed');
       }
-      
+
       const result = await response.json();
       console.log('Deposit success response:', result);
       return result;
@@ -101,10 +100,10 @@ export default function Deposit() {
     },
     onError: (error: any) => {
       console.error('Deposit mutation error:', error);
-      
+
       let errorMessage = error.message;
       let errorTitle = "Deposit Submission Failed";
-      
+
       // Handle specific error cases
       if (error.message.includes("Authentication required")) {
         errorTitle = "Authentication Required";
@@ -116,7 +115,7 @@ export default function Deposit() {
         errorTitle = "Invalid Amount";
         errorMessage = "Please enter a valid Bitcoin amount.";
       }
-      
+
       toast({
         title: errorTitle,
         description: errorMessage,
@@ -358,7 +357,7 @@ export default function Deposit() {
                   Minimum: 0.001 BTC (~$104)
                 </p>
               </div>
-              
+
               <div>
                 <Label htmlFor="txHash">Transaction Hash (Optional)</Label>
                 <Input
@@ -385,7 +384,7 @@ export default function Deposit() {
                     });
                     return;
                   }
-                  
+
                   if (amountNum < 0.001) {
                     toast({
                       title: "Amount Too Small",
@@ -394,7 +393,7 @@ export default function Deposit() {
                     });
                     return;
                   }
-                  
+
                   if (amountNum > 10) {
                     toast({
                       title: "Large Amount Warning",
@@ -403,7 +402,7 @@ export default function Deposit() {
                     });
                     return;
                   }
-                  
+
                   // Proceed with submission
                   submitDepositMutation.mutate({ amount, transactionHash });
                 }}

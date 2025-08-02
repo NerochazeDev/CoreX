@@ -55,7 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const response = await fetch('/api/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Ensure cookies are sent with requests
       body: JSON.stringify({ email, password }),
     });
 
@@ -73,7 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Store in localStorage with activity timestamp
     localStorage.setItem('corex_user', JSON.stringify(userData));
     localStorage.setItem('corex_last_activity', Date.now().toString());
-    // Then update state synchronously
+    
+    // Set user state
     setUser(userData);
 
     console.log('User state updated:', userData.email);
