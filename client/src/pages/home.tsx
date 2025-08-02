@@ -1,7 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { WalletBalance } from "@/components/wallet-balance";
 import { BitcoinPrice } from "@/components/bitcoin-price";
-import { BitcoinChart } from "@/components/bitcoin-chart";
 
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { OfficialPlus500Logo } from "@/components/official-plus500-logo";
@@ -160,11 +159,6 @@ export default function Home() {
       {/* Bitcoin Price */}
       <div className="px-4 mb-6">
         <BitcoinPrice />
-      </div>
-
-      {/* Bitcoin Chart */}
-      <div className="px-4 mb-6">
-        <BitcoinChart />
       </div>
 
       

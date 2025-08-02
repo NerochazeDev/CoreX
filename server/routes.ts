@@ -943,7 +943,16 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       // Handle different transaction confirmations
-      if (transaction.type === "withdrawal") {
+      if (transaction.type === "deposit") {
+        // Add deposit amount to user balance (only once when confirmed)
+        const user = await storage.getUser(transaction.userId);
+        if (user) {
+          const currentBalance = parseFloat(user.balance);
+          const depositAmount = parseFloat(transaction.amount);
+          const newBalance = currentBalance + depositAmount;
+          await storage.updateUserBalance(transaction.userId, newBalance.toFixed(8));
+        }
+      } else if (transaction.type === "withdrawal") {
         const user = await storage.getUser(transaction.userId);
         if (user) {
           const currentBalance = parseFloat(user.balance);
@@ -979,15 +988,6 @@ You will receive a notification once your deposit is confirmed and added to your
             await storage.rejectTransaction(transaction.id, adminId, "Insufficient balance for investment");
             return res.status(400).json({ error: "Insufficient balance for investment" });
           }
-        }
-      } else if (transaction.type === "deposit") {
-        // Add deposit amount to user balance
-        const user = await storage.getUser(transaction.userId);
-        if (user) {
-          const currentBalance = parseFloat(user.balance);
-          const depositAmount = parseFloat(transaction.amount);
-          const newBalance = currentBalance + depositAmount;
-          await storage.updateUserBalance(transaction.userId, newBalance.toFixed(8));
         }
       }
 
