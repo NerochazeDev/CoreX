@@ -70,6 +70,7 @@ app.use((req, res, next) => {
   if (path.startsWith("/api")) {
     console.log(`${req.method} ${path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
     console.log(`  Headers: Origin=${req.headers.origin}, Cookie=${req.headers.cookie || 'none'}`);
+    console.log(`  Authorization: ${req.headers.authorization || 'none'}`);
     console.log(`  User-Agent: ${req.headers['user-agent']}`);
   }
 

@@ -51,6 +51,31 @@ const depositSchema = z.object({
   transactionHash: z.string().optional(),
 });
 
+// Helper function to get userId from session or auth token
+function getUserIdFromRequest(req: any): number | null {
+  // Check session first
+  if (req.session?.userId) {
+    return req.session.userId;
+  }
+  
+  // Check auth token header
+  const authToken = req.headers.authorization?.replace('Bearer ', '');
+  if (authToken) {
+    try {
+      const decoded = Buffer.from(authToken, 'base64').toString();
+      const [tokenUserId] = decoded.split(':');
+      const userId = parseInt(tokenUserId);
+      if (userId && !isNaN(userId)) {
+        return userId;
+      }
+    } catch (error) {
+      console.log('Invalid auth token format');
+    }
+  }
+  
+  return null;
+}
+
 const investmentTransactionSchema = z.object({
   planId: z.number(),
   amount: z.string(),
@@ -712,15 +737,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Deposit request - User ID:', req.session?.userId);
       console.log('Deposit request - Body:', req.body);
       
-      if (!req.session?.userId) {
-        console.log('Authentication failed - no userId in session');
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        console.log('Authentication failed - no userId in session or token');
         return res.status(401).json({ error: "Authentication required. Please log in again." });
       }
 
+      console.log('Deposit request - Authenticated User ID:', userId);
+
       // Verify user exists
-      const user = await storage.getUser(req.session.userId);
+      const user = await storage.getUser(userId);
       if (!user) {
-        console.log('User not found for session userId:', req.session.userId);
+        console.log('User not found for userId:', userId);
         return res.status(401).json({ error: "User not found. Please log in again." });
       }
 
@@ -737,7 +765,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const transaction = await storage.createTransaction({
-        userId: req.session.userId,
+        userId: userId,
         type: "deposit",
         amount,
         transactionHash,
@@ -746,7 +774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create notification for user
       await storage.createNotification({
-        userId: req.session.userId,
+        userId: userId,
         title: "✅ Deposit Submitted Successfully",
         message: `Your deposit of ${amount} BTC has been submitted and is being processed.
 
