@@ -46,19 +46,19 @@ app.use(express.urlencoded({ extended: false }));
 app.use(session({
   secret: SESSION_SECRET,
   resave: false, // Don't save session if unmodified
-  saveUninitialized: true, // Save uninitialized sessions to ensure cookie is set
+  saveUninitialized: false, // Don't create sessions until explicitly needed
   rolling: false, // Don't reset expiration on every request
   name: 'connect.sid', // Explicit session cookie name
   store: new MemStore({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Required for sameSite: 'none' in HTTPS
+    secure: false, // Must be false for HTTP development
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: false, // Allow client-side access for debugging
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-origin for production, lax for dev
+    sameSite: 'lax', // Lax works for same-site and cross-origin requests
     path: '/', // Ensure cookie is available for all paths
-    domain: undefined // Let browser handle cross-origin domains
+    domain: undefined // Let browser handle domains
   }
 }));
 

@@ -1405,6 +1405,17 @@ Your investment journey starts here!`,
     }
   });
 
+  // Debug endpoint to check cookie behavior
+  app.get("/api/debug/session", (req, res) => {
+    res.json({
+      sessionID: req.sessionID,
+      userId: req.session?.userId,
+      cookies: req.headers.cookie,
+      origin: req.headers.origin,
+      userAgent: req.headers['user-agent']?.slice(0, 50)
+    });
+  });
+
   // Get current user with session validation
   // Get current authenticated user from session
   app.get("/api/me", async (req, res) => {
