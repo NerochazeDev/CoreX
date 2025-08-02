@@ -24,16 +24,16 @@ export async function fetchBitcoinPrice(): Promise<BitcoinPrice> {
 
     const result = {
       usd: {
-        price: bitcoin.usd || 45000,
-        change24h: bitcoin.usd_24h_change || 0
+        price: bitcoin.usd || 113000,
+        change24h: bitcoin.usd_24h_change || -1.2
       },
       gbp: {
-        price: bitcoin.gbp || 35000,
-        change24h: bitcoin.gbp_24h_change || 0
+        price: bitcoin.gbp || 85000,
+        change24h: bitcoin.gbp_24h_change || -1.5
       },
       eur: {
-        price: bitcoin.eur || 42000,
-        change24h: bitcoin.eur_24h_change || 0
+        price: bitcoin.eur || 97500,
+        change24h: bitcoin.eur_24h_change || -1.8
       }
     };
 
@@ -44,11 +44,11 @@ export async function fetchBitcoinPrice(): Promise<BitcoinPrice> {
     return result;
   } catch (error) {
     console.error('Error fetching Bitcoin price:', error);
-    // Return fallback prices
+    // Return realistic fallback prices based on current market levels
     return {
-      usd: { price: 45000, change24h: 0 },
-      gbp: { price: 35000, change24h: 0 },
-      eur: { price: 42000, change24h: 0 }
+      usd: { price: 113000, change24h: -1.2 },
+      gbp: { price: 85000, change24h: -1.5 },
+      eur: { price: 97500, change24h: -1.8 }
     };
   }
 }

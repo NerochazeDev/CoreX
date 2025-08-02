@@ -26,12 +26,20 @@ export function formatGBP(amount: number): string {
   }).format(amount);
 }
 
-export function formatCurrency(amount: number, currency: 'USD' | 'GBP' | 'EUR'): string {
+export function formatCurrency(amount: number, currency: 'USD' | 'GBP' | 'EUR', options?: { compact?: boolean }): string {
   const locale = currency === 'EUR' ? 'de-DE' : currency === 'GBP' ? 'en-GB' : 'en-US';
-  return new Intl.NumberFormat(locale, {
+  
+  const formatOptions: Intl.NumberFormatOptions = {
     style: 'currency',
     currency: currency,
-  }).format(amount);
+  };
+  
+  if (options?.compact) {
+    formatOptions.notation = 'compact';
+    formatOptions.maximumFractionDigits = 1;
+  }
+  
+  return new Intl.NumberFormat(locale, formatOptions).format(amount);
 }
 
 export function calculateUSDValue(btcAmount: string | number, btcPrice: number): number {
