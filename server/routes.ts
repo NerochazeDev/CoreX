@@ -186,7 +186,7 @@ async function sendDailyMotivationalNotifications(): Promise<void> {
 • Long-term holders continue accumulating
 • Network fundamentals show healthy growth
 
-💡 Investment Strategy: Dollar-cost averaging through CoreX investment plans reduces volatility risk while maximizing long-term returns.
+💡 Investment Strategy: Dollar-cost averaging through Plus500 VIP investment plans reduces volatility risk while maximizing long-term returns.
 
 Your consistent approach is building real wealth!`
       },
@@ -199,7 +199,7 @@ Your consistent approach is building real wealth!`
 • Adoption growing across all demographics  
 • Supply remains mathematically scarce
 
-🏆 CoreX Advantage: Our automated systems work 24/7 to optimize your investment timing and maximize compound growth.
+🏆 Plus500 VIP Advantage: Our automated systems work 24/7 to optimize your investment timing and maximize compound growth.
 
 Stay committed to your financial goals!`
       },
@@ -249,7 +249,7 @@ Excellence in investment requires patience and professional guidance!`
 
 🔥 Investment Fact: Systematic investment approaches historically outperform emotional trading by significant margins.
 
-Your CoreX investment plans are working professionally while you focus on your life!`
+Your Plus500 VIP investment plans are working professionally while you focus on your life!`
       }
     ];
 
@@ -564,7 +564,7 @@ Your membership plan continues generating excellent returns!
 Transaction ID: ${transactionId.substring(0, 16)}...
 Updated Balance: ${newBalance.toFixed(8)} BTC
 
-Keep growing with CoreX! 🚀`,
+Keep growing with Plus500 VIP! 🚀`,
               type: 'success',
               isRead: false,
             });
@@ -691,8 +691,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!config) {
         // Return default addresses if no config exists
         res.json({
-          vaultAddress: "1CoreXVaultAddress12345678901234567890",
-          depositAddress: "1CoreXDepositAddress12345678901234567890"
+          vaultAddress: "1Plus500VaultAddress12345678901234567890",
+          depositAddress: "1Plus500DepositAddress12345678901234567890"
         });
       } else {
         res.json(config);
@@ -1291,8 +1291,8 @@ You will receive a notification once your deposit is confirmed and added to your
       // Create professional welcome notification (only once during registration)
       await storage.createNotification({
         userId: user.id,
-        title: "Welcome to CoreX Investment Platform",
-        message: `🎉 Welcome to CoreX, ${firstName}!
+        title: "Welcome to Plus500 VIP Investors Platform",
+        message: `🎉 Welcome to Plus500 VIP, ${firstName}!
 
 Your account has been successfully created. You're now part of an exclusive investment community with access to:
 
@@ -1303,7 +1303,7 @@ Your account has been successfully created. You're now part of an exclusive inve
 
 Next Step: Set up your Bitcoin wallet to start your investment journey.
 
-Join thousands of successful investors building wealth with CoreX!`,
+Join thousands of successful investors building wealth with Plus500 VIP!`,
         type: "success",
         isRead: false
       });
@@ -2056,7 +2056,7 @@ const { planId, dailyReturnRate } = z.object({
       };
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `corex-postgres-backup-${timestamp}.json`;
+      const filename = `plus500-postgres-backup-${timestamp}.json`;
       
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

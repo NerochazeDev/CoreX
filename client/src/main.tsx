@@ -12,7 +12,7 @@ window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<R
   modifiedInit.credentials = 'include';
   
   // Add auth token if available and not already present
-  const authToken = localStorage.getItem('corex_auth_token');
+  const authToken = localStorage.getItem('plus500_auth_token');
   if (authToken) {
     modifiedInit.headers = {
       ...modifiedInit.headers,

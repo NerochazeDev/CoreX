@@ -410,7 +410,7 @@ export default function Notifications() {
             </h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
               {filter === 'all' 
-                ? 'When you start using CoreX, important updates and transaction notifications will appear here.'
+                ? 'When you start using Plus500 VIP, important updates and transaction notifications will appear here.'
                 : `No notifications match the "${filter}" filter.`
               }
             </p>
