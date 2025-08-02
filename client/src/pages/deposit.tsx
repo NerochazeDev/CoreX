@@ -61,16 +61,16 @@ export default function Deposit() {
   // Submit deposit transaction
   const submitDepositMutation = useMutation({
     mutationFn: async (data: { amount: string; transactionHash?: string }) => {
-      console.log('Submitting deposit:', data);
+
 
       const response = await apiRequest('POST', '/api/deposit', data);
       const result = await response.json();
       
-      console.log('Deposit success response:', result);
+
       return result;
     },
     onSuccess: (data) => {
-      console.log('Deposit mutation success:', data);
+
       toast({
         title: "Deposit Submitted Successfully! 🎉",
         description: "Your deposit is being processed and will be confirmed shortly.",
@@ -81,7 +81,7 @@ export default function Deposit() {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
     onError: (error: any) => {
-      console.error('Deposit mutation error:', error);
+
 
       let errorMessage = error.message;
       let errorTitle = "Deposit Submission Failed";

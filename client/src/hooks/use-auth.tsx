@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    console.log('Attempting login for:', email);
+
 
     const response = await fetch('/api/login', {
       method: 'POST',
@@ -89,21 +89,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
 
-    console.log('Login response status:', response.status);
+
 
     if (!response.ok) {
       const error = await response.json();
-      console.error('Login failed:', error);
+
       throw new Error(error.message);
     }
 
     const userData = await response.json();
-    console.log('Login successful for user:', userData.email);
+
 
     // Store auth token if provided
     if (userData.authToken) {
       localStorage.setItem('corex_auth_token', userData.authToken);
-      console.log('Auth token stored for cross-origin requests');
+
     }
 
     // Store in localStorage with activity timestamp
@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set user state
     setUser(userData);
 
-    console.log('User state updated:', userData.email);
+
 
     // Force a re-render by updating loading state
     setIsLoading(false);
@@ -162,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // Only clear session if it's an authentication error
         if (response.status === 401 || response.status === 403) {
-          console.error('Authentication failed, clearing session');
+  
           logout();
         }
       }

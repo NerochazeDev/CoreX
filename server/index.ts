@@ -66,12 +66,9 @@ app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
 
-  // Debug session information for API requests
-  if (path.startsWith("/api")) {
+  // Debug session information for API requests (development only)
+  if (process.env.NODE_ENV === 'development' && path.startsWith("/api")) {
     console.log(`${req.method} ${path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
-    console.log(`  Headers: Origin=${req.headers.origin}, Cookie=${req.headers.cookie || 'none'}`);
-    console.log(`  Authorization: ${req.headers.authorization || 'none'}`);
-    console.log(`  User-Agent: ${req.headers['user-agent']}`);
   }
 
   res.on("finish", () => {

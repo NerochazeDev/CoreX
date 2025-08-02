@@ -733,22 +733,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Transaction routes
   app.post("/api/deposit", async (req, res) => {
     try {
-      console.log('Deposit request - Session ID:', req.sessionID);
-      console.log('Deposit request - User ID:', req.session?.userId);
-      console.log('Deposit request - Body:', req.body);
+
       
       const userId = getUserIdFromRequest(req);
       if (!userId) {
-        console.log('Authentication failed - no userId in session or token');
+
         return res.status(401).json({ error: "Authentication required. Please log in again." });
       }
 
-      console.log('Deposit request - Authenticated User ID:', userId);
+
 
       // Verify user exists
       const user = await storage.getUser(userId);
       if (!user) {
-        console.log('User not found for userId:', userId);
+
         return res.status(401).json({ error: "User not found. Please log in again." });
       }
 
@@ -790,7 +788,7 @@ You will receive a notification once your deposit is confirmed and added to your
         isRead: false
       });
 
-      console.log('Deposit submitted successfully for user:', userId);
+
 
       res.json({ 
         message: "Deposit submitted successfully and is pending confirmation",
@@ -1395,8 +1393,7 @@ Your investment journey starts here!`,
 
       // Set session userId for authentication
       req.session.userId = user.id;
-      console.log('Login successful - Setting session userId:', user.id);
-      console.log('Login successful - Session ID:', req.sessionID);
+
       
       // Generate a simple auth token for cross-origin requests
       const authToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
@@ -1408,7 +1405,7 @@ Your investment journey starts here!`,
           return res.status(500).json({ message: "Session save error" });
         }
 
-        console.log('Session saved successfully for user:', user.id);
+
         // Don't return private key and password in response, include auth token
         const { privateKey, password: _, ...userResponse } = user;
         res.json({ ...userResponse, authToken });
@@ -1455,8 +1452,7 @@ Your investment journey starts here!`,
   app.get("/api/me", async (req, res) => {
     try {
       let userId = req.session?.userId;
-      console.log('Auth check - Session userId:', userId);
-      console.log('Auth check - Session ID:', req.sessionID);
+
       
       // If no session, check for auth token header
       if (!userId) {
@@ -1466,27 +1462,27 @@ Your investment journey starts here!`,
             const decoded = Buffer.from(authToken, 'base64').toString();
             const [tokenUserId] = decoded.split(':');
             userId = parseInt(tokenUserId);
-            console.log('Auth check - Token userId:', userId);
+
           } catch (error) {
-            console.log('Invalid auth token');
+
           }
         }
       }
       
       if (!userId) {
-        console.log('No userId in session or token, user not authenticated');
+
         return res.status(401).json({ message: "Authentication required" });
       }
 
       const user = await storage.getUser(userId);
       if (!user) {
-        console.log('User not found in database for userId:', userId);
+
         return res.status(401).json({ message: "User not found" });
       }
 
       // Don't return private key and password
       const { privateKey, password, ...userResponse } = user;
-      console.log('Auth check successful for user:', userResponse.email);
+
       res.json(userResponse);
     } catch (error) {
       console.error('Auth check error:', error);
