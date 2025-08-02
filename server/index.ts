@@ -10,6 +10,21 @@ import { SESSION_SECRET, PORT } from "./config";
 const MemStore = MemoryStore(session);
 
 const app = express();
+
+// CORS configuration to allow credentials
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -19,6 +34,7 @@ app.use(session({
   resave: false, // Don't save session if unmodified
   saveUninitialized: false, // Don't save uninitialized sessions
   rolling: true, // Reset expiration on every request
+  name: 'connect.sid', // Explicit session cookie name
   store: new MemStore({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
@@ -26,7 +42,9 @@ app.use(session({
     secure: false, // Set to true in production with HTTPS
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: false, // Allow client-side access for debugging
-    sameSite: 'lax'
+    sameSite: 'lax',
+    path: '/', // Ensure cookie is available for all paths
+    domain: undefined // Let it default to current domain
   }
 }));
 
@@ -35,8 +53,8 @@ app.use((req, res, next) => {
   const path = req.path;
 
   // Debug session information for API requests
-  if (path.startsWith("/api") && path !== "/api/login") {
-    console.log(`${req.method} ${path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
+  if (path.startsWith("/api")) {
+    console.log(`${req.method} ${path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}, Cookies: ${req.headers.cookie || 'none'}`);
   }
 
   res.on("finish", () => {
