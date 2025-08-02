@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AdminConfig {
   vaultAddress: string;
@@ -49,14 +50,12 @@ export default function Deposit() {
   // Fetch admin configuration for deposit addresses
   const { data: adminConfig } = useQuery<AdminConfig>({
     queryKey: ['/api/admin/config'],
-    queryFn: () => fetch('/api/admin/config').then(res => res.json()),
   });
 
   // Fetch recent deposit transactions
   const { data: recentDeposits } = useQuery({
     queryKey: ['/api/transactions'],
-    queryFn: () => fetch('/api/transactions').then(res => res.json()),
-    select: (data: any[]) => data.filter(tx => tx.type === 'deposit').slice(0, 3),
+    select: (data: any[]) => data?.filter(tx => tx.type === 'deposit').slice(0, 3) || [],
   });
 
   // Submit deposit transaction
@@ -64,26 +63,9 @@ export default function Deposit() {
     mutationFn: async (data: { amount: string; transactionHash?: string }) => {
       console.log('Submitting deposit:', data);
 
-      const response = await fetch('/api/deposit', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'Cache-Control': 'no-cache'
-        },
-        credentials: 'include', // Include session cookies
-        body: JSON.stringify(data),
-      });
-
-      console.log('Deposit response status:', response.status);
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.log('Deposit error response:', error);
-        throw new Error(error.error || 'Deposit submission failed');
-      }
-
+      const response = await apiRequest('POST', '/api/deposit', data);
       const result = await response.json();
+      
       console.log('Deposit success response:', result);
       return result;
     },
