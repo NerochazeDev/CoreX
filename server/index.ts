@@ -17,9 +17,10 @@ app.use((req, res, next) => {
   
   res.header('Access-Control-Allow-Credentials', 'true');
   
-  // Allow Replit domains and localhost for development
+  // Allow Replit, Railway domains and localhost for development
   if (origin && (
     origin.includes('replit.dev') || 
+    origin.includes('railway.app') ||
     origin.includes('localhost') || 
     origin.includes('127.0.0.1')
   )) {
