@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 // Configure session middleware with proper store
 app.use(session({
   secret: SESSION_SECRET,
-  resave: false,
+  resave: true, // Force session save even if unmodified
   saveUninitialized: false,
   store: new MemStore({
     checkPeriod: 86400000 // prune expired entries every 24h
@@ -24,9 +24,10 @@ app.use(session({
   cookie: {
     secure: false, // Set to true in production with HTTPS
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    httpOnly: true,
+    httpOnly: false, // Allow client-side access for debugging
     sameSite: 'lax'
-  }
+  },
+  name: 'connect.sid' // Explicit session name
 }));
 
 app.use((req, res, next) => {

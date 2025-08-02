@@ -69,7 +69,8 @@ export default function Deposit() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
+          'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'no-cache'
         },
         credentials: 'include', // Include session cookies
         body: JSON.stringify(data),
