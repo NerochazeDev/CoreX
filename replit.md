@@ -87,8 +87,8 @@ Plus500 VIP Investors is a premium Bitcoin investment platform that provides VIP
 - **Environment**: Production-ready with automatic migrations
 
 ### Deployment Platforms
-- **Primary**: Render.com with PostgreSQL service
-- **Alternative**: Railway, Heroku, Docker containers
+- **Primary**: Railway.app with PostgreSQL plugin (production-ready setup)
+- **Alternative**: Render.com, Heroku, Docker containers
 - **Build Process**: Vite for frontend, esbuild for backend bundling
 
 ### Build Commands
@@ -106,6 +106,7 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 - `PORT`: Server port (defaults to 5000)
 
 ## Changelog
+- August 2, 2025. Configured Railway deployment with optimized build process and production environment variables
 - August 1, 2025. Finalized Plus500 logo with Orbitron font, clean zeros (no slashed zeros), and removed shining effects
 - August 1, 2025. Completed comprehensive platform audit - all systems production-ready for official Plus500 deployment
 - August 1, 2025. Fixed TypeScript errors and verified all core functionality including Bitcoin wallet integration
