@@ -1391,13 +1391,66 @@ Your investment journey starts here!`,
     }
   });
 
+  // Logout endpoint
+  app.post("/api/logout", async (req, res) => {
+    try {
+      if (req.session) {
+        req.session.destroy((err) => {
+          if (err) {
+            console.error('Session destruction error:', err);
+            return res.status(500).json({ message: "Logout failed" });
+          }
+          res.clearCookie('connect.sid'); // Clear the session cookie
+          res.json({ message: "Logged out successfully" });
+        });
+      } else {
+        res.json({ message: "Already logged out" });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({ message: "Logout failed" });
+    }
+  });
+
   // Get current user with session validation
+  // Get current authenticated user from session
+  app.get("/api/me", async (req, res) => {
+    try {
+      console.log('Auth check - Session userId:', req.session?.userId);
+      console.log('Auth check - Session ID:', req.sessionID);
+      
+      if (!req.session?.userId) {
+        console.log('No userId in session, user not authenticated');
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        console.log('User not found in database for userId:', req.session.userId);
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Don't return private key and password
+      const { privateKey, password, ...userResponse } = user;
+      console.log('Auth check successful for user:', userResponse.email);
+      res.json(userResponse);
+    } catch (error) {
+      console.error('Auth check error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/user/:id", async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
 
-      // Check if user is authenticated via session or if it's their own data
-      if (req.session?.userId && req.session.userId !== userId) {
+      // Check if user is authenticated via session
+      if (!req.session?.userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Check if requesting their own data
+      if (req.session.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
 

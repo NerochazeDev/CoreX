@@ -26,29 +26,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user data
-    const storedUser = localStorage.getItem('corex_user');
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
+    // Validate session with server on app load
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('/api/me', {
+        method: 'GET',
+        credentials: 'include', // Include session cookies
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
         setUser(userData);
-        
-        // Only validate session if user has been inactive for more than 30 minutes
-        const lastActivity = localStorage.getItem('corex_last_activity');
-        const now = Date.now();
-        const thirtyMinutes = 30 * 60 * 1000;
-        
-        if (lastActivity && (now - parseInt(lastActivity)) < thirtyMinutes) {
-          // Session is recent, just update last activity
-          localStorage.setItem('corex_last_activity', now.toString());
-        }
-      } catch (error) {
+        // Update localStorage for offline reference
+        localStorage.setItem('corex_user', JSON.stringify(userData));
+        localStorage.setItem('corex_last_activity', Date.now().toString());
+      } else {
+        // Clear any stale localStorage data
         localStorage.removeItem('corex_user');
         localStorage.removeItem('corex_last_activity');
+        setUser(null);
       }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      // On network error, check localStorage as fallback
+      const storedUser = localStorage.getItem('corex_user');
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+        } catch (e) {
+          localStorage.removeItem('corex_user');
+          localStorage.removeItem('corex_last_activity');
+        }
+      }
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
-  }, []);
+  };
 
   const login = async (email: string, password: string) => {
     console.log('Attempting login for:', email);
@@ -113,10 +130,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshUser = async () => {
-    if (!user) return;
-    
     try {
-      const response = await fetch(`/api/user/${user.id}`);
+      const response = await fetch('/api/me', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
       if (response.ok) {
         const updatedUser = await response.json();
         setUser(updatedUser);
@@ -135,10 +154,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('corex_user');
-    localStorage.removeItem('corex_last_activity');
+  const logout = async () => {
+    try {
+      // Call server logout endpoint to destroy session
+      await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    } finally {
+      // Always clear local state regardless of server response
+      setUser(null);
+      localStorage.removeItem('corex_user');
+      localStorage.removeItem('corex_last_activity');
+    }
   };
 
   return (
