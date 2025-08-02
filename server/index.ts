@@ -11,9 +11,24 @@ const MemStore = MemoryStore(session);
 
 const app = express();
 
-// CORS configuration to allow credentials - minimal since frontend/backend are same origin
+// CORS configuration to allow credentials for cross-origin requests
 app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
   res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Allow Replit domains and localhost for development
+  if (origin && (
+    origin.includes('replit.dev') || 
+    origin.includes('localhost') || 
+    origin.includes('127.0.0.1')
+  )) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    // Fallback to localhost if no origin header
+    res.header('Access-Control-Allow-Origin', 'http://localhost:5000');
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
   
@@ -38,12 +53,12 @@ app.use(session({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
   cookie: {
-    secure: false, // Set to true in production with HTTPS
+    secure: process.env.NODE_ENV === 'production', // Required for sameSite: 'none' in HTTPS
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: false, // Allow client-side access for debugging
-    sameSite: 'lax', // Lax is better for same-origin
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-origin for production, lax for dev
     path: '/', // Ensure cookie is available for all paths
-    domain: undefined // Let it default - they're on same port anyway
+    domain: undefined // Let browser handle cross-origin domains
   }
 }));
 
