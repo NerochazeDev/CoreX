@@ -856,11 +856,12 @@ You will receive a notification once your deposit is confirmed and added to your
 
   app.get("/api/transactions", async (req, res) => {
     try {
-      if (!req.session?.userId) {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const transactions = await storage.getUserTransactions(req.session.userId);
+      const transactions = await storage.getUserTransactions(userId);
       res.json(transactions);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -870,7 +871,8 @@ You will receive a notification once your deposit is confirmed and added to your
   // Cancel pending transaction (user only)
   app.post("/api/transactions/:id/cancel", async (req, res) => {
     try {
-      if (!req.session?.userId) {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -879,14 +881,14 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(400).json({ error: "Invalid transaction ID" });
       }
 
-      const transaction = await storage.cancelTransaction(transactionId, req.session.userId);
+      const transaction = await storage.cancelTransaction(transactionId, userId);
       if (!transaction) {
         return res.status(400).json({ error: "Transaction not found or cannot be cancelled" });
       }
 
       // Create notification about cancellation
       await storage.createNotification({
-        userId: req.session.userId,
+        userId: userId,
         title: "Transaction Cancelled",
         message: `Your ${transaction.type} transaction of ${transaction.amount} BTC has been cancelled successfully.`,
         type: "info"
@@ -1195,7 +1197,8 @@ You will receive a notification once your deposit is confirmed and added to your
   // Withdraw route
   app.post("/api/withdraw", async (req, res) => {
     try {
-      if (!req.session.userId) {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
@@ -1205,7 +1208,7 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(400).json({ error: "Address and amount are required" });
       }
 
-      const user = await storage.getUser(req.session.userId);
+      const user = await storage.getUser(userId);
 
       if (!user) {
         return res.status(404).json({ error: "User not found" });
@@ -1224,7 +1227,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Create withdrawal transaction record (pending status)
       const transaction = await storage.createTransaction({
-        userId: req.session.userId,
+        userId: userId,
         type: "withdrawal",
         amount: amount,
         status: "pending",
@@ -1233,7 +1236,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Create notification about pending withdrawal
       await storage.createNotification({
-        userId: req.session.userId,
+        userId: userId,
         title: "Withdrawal Requested",
         message: `Your withdrawal request for ${amount} BTC to ${address} is under review. You will be notified once it's processed.`,
         type: "info"
