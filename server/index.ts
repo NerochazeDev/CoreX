@@ -32,8 +32,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(session({
   secret: SESSION_SECRET,
   resave: false, // Don't save session if unmodified
-  saveUninitialized: false, // Don't save uninitialized sessions
-  rolling: true, // Reset expiration on every request
+  saveUninitialized: true, // Save uninitialized sessions to ensure cookie is set
+  rolling: false, // Don't reset expiration on every request
   name: 'connect.sid', // Explicit session cookie name
   store: new MemStore({
     checkPeriod: 86400000 // prune expired entries every 24h
