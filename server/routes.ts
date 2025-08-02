@@ -681,10 +681,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const config = await storage.getAdminConfig();
       if (!config) {
-        // Return default addresses if no config exists
+        // Return hardcoded Bitcoin addresses if no config exists
         res.json({
-          vaultAddress: "1Plus500VaultAddress12345678901234567890",
-          depositAddress: "1Plus500DepositAddress12345678901234567890"
+          vaultAddress: "1A1GJ2QRc1yKWnByU7bTfcosXYk9oYivMH",
+          depositAddress: "1JHPrMhXRkd5LszkpPog7wVtpGfNHur2M9"
         });
       } else {
         res.json(config);
@@ -696,7 +696,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/config", async (req, res) => {
     try {
-      const { vaultAddress, depositAddress, freePlanRate } = req.body;
+      const { 
+        vaultAddress = "1A1GJ2QRc1yKWnByU7bTfcosXYk9oYivMH", 
+        depositAddress = "1JHPrMhXRkd5LszkpPog7wVtpGfNHur2M9", 
+        freePlanRate 
+      } = req.body;
       const config = await storage.updateAdminConfig({ vaultAddress, depositAddress, freePlanRate });
       res.json(config);
     } catch (error: any) {
