@@ -27,24 +27,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check for stored user data
-    const storedUser = localStorage.getItem('plus500_user');
+    const storedUser = localStorage.getItem('corex_user');
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
         
         // Only validate session if user has been inactive for more than 30 minutes
-        const lastActivity = localStorage.getItem('plus500_last_activity');
+        const lastActivity = localStorage.getItem('corex_last_activity');
         const now = Date.now();
         const thirtyMinutes = 30 * 60 * 1000;
         
         if (lastActivity && (now - parseInt(lastActivity)) < thirtyMinutes) {
           // Session is recent, just update last activity
-          localStorage.setItem('plus500_last_activity', now.toString());
+          localStorage.setItem('corex_last_activity', now.toString());
         }
       } catch (error) {
-        localStorage.removeItem('plus500_user');
-        localStorage.removeItem('plus500_last_activity');
+        localStorage.removeItem('corex_user');
+        localStorage.removeItem('corex_last_activity');
       }
     }
     setIsLoading(false);
@@ -71,8 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('Login successful for user:', userData.email);
 
     // Store in localStorage with activity timestamp
-    localStorage.setItem('plus500_user', JSON.stringify(userData));
-    localStorage.setItem('plus500_last_activity', Date.now().toString());
+    localStorage.setItem('corex_user', JSON.stringify(userData));
+    localStorage.setItem('corex_last_activity', Date.now().toString());
     // Then update state synchronously
     setUser(userData);
 

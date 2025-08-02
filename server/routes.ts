@@ -708,23 +708,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Transaction routes
   app.post("/api/deposit", async (req, res) => {
     try {
-      console.log('Deposit request - Session:', req.session);
       console.log('Deposit request - Session ID:', req.sessionID);
       console.log('Deposit request - User ID:', req.session?.userId);
       console.log('Deposit request - Body:', req.body);
-      console.log('Deposit request - Headers:', req.headers.cookie);
       
       if (!req.session?.userId) {
         console.log('Authentication failed - no userId in session');
-        console.log('Session regenerating...');
-        
-        // Try to regenerate session before failing
-        req.session.regenerate((err) => {
-          if (err) {
-            console.log('Session regeneration failed:', err);
-          }
-        });
-        
         return res.status(401).json({ error: "Authentication required. Please log in again." });
       }
 
