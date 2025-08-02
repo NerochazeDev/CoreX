@@ -1361,14 +1361,30 @@ Your investment journey starts here!`,
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Set session userId for authentication
-      req.session.userId = user.id;
-      console.log('Login successful - Setting session userId:', user.id);
-      console.log('Login successful - Session ID:', req.sessionID);
+      // Regenerate session to ensure proper persistence
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error('Session regeneration error:', err);
+          return res.status(500).json({ message: "Session error" });
+        }
 
-      // Don't return private key and password in response
-      const { privateKey, password: _, ...userResponse } = user;
-      res.json(userResponse);
+        // Set session userId for authentication
+        req.session.userId = user.id;
+        console.log('Login successful - Setting session userId:', user.id);
+        console.log('Login successful - Session ID:', req.sessionID);
+
+        // Save session explicitly
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ message: "Session save error" });
+          }
+
+          // Don't return private key and password in response
+          const { privateKey, password: _, ...userResponse } = user;
+          res.json(userResponse);
+        });
+      });
     } catch (error) {
       console.error('Login error:', error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Login failed" });
