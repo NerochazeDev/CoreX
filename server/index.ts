@@ -11,10 +11,9 @@ const MemStore = MemoryStore(session);
 
 const app = express();
 
-// CORS configuration to allow credentials
+// CORS configuration to allow credentials - minimal since frontend/backend are same origin
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
   
@@ -42,9 +41,9 @@ app.use(session({
     secure: false, // Set to true in production with HTTPS
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: false, // Allow client-side access for debugging
-    sameSite: 'lax',
+    sameSite: 'lax', // Lax is better for same-origin
     path: '/', // Ensure cookie is available for all paths
-    domain: undefined // Let it default to current domain
+    domain: undefined // Let it default - they're on same port anyway
   }
 }));
 
@@ -54,7 +53,9 @@ app.use((req, res, next) => {
 
   // Debug session information for API requests
   if (path.startsWith("/api")) {
-    console.log(`${req.method} ${path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}, Cookies: ${req.headers.cookie || 'none'}`);
+    console.log(`${req.method} ${path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
+    console.log(`  Headers: Origin=${req.headers.origin}, Cookie=${req.headers.cookie || 'none'}`);
+    console.log(`  User-Agent: ${req.headers['user-agent']}`);
   }
 
   res.on("finish", () => {
