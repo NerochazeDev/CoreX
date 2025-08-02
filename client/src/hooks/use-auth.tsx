@@ -116,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Ensure cookies are sent with requests
       body: JSON.stringify(registrationData),
     });
 
@@ -127,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userData = await response.json();
     setUser(userData);
     localStorage.setItem('corex_user', JSON.stringify(userData));
+    localStorage.setItem('corex_last_activity', Date.now().toString());
   };
 
   const refreshUser = async () => {

@@ -17,8 +17,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(session({
   secret: SESSION_SECRET,
   resave: false, // Don't save session if unmodified
-  saveUninitialized: true, // Save uninitialized sessions
-  rolling: false, // Don't reset expiration on every request
+  saveUninitialized: false, // Don't save uninitialized sessions
+  rolling: true, // Reset expiration on every request
   store: new MemStore({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
@@ -34,6 +34,11 @@ app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
 
+  // Debug session information for API requests
+  if (path.startsWith("/api") && path !== "/api/login") {
+    console.log(`${req.method} ${path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
+  }
+
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api") && duration > 100) { // Only log slow requests or errors
@@ -44,6 +49,15 @@ app.use((req, res, next) => {
   });
 
   next();
+});
+
+// Global error handlers for unhandled rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Promise Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
 });
 
 (async () => {
