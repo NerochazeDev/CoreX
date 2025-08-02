@@ -790,7 +790,7 @@ You will receive a notification once your deposit is confirmed and added to your
         isRead: false
       });
 
-      console.log('Deposit submitted successfully for user:', req.session.userId);
+      console.log('Deposit submitted successfully for user:', userId);
 
       res.json({ 
         message: "Deposit submitted successfully and is pending confirmation",
@@ -817,7 +817,8 @@ You will receive a notification once your deposit is confirmed and added to your
 
   app.post("/api/invest", async (req, res) => {
     try {
-      if (!req.session?.userId) {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -830,7 +831,7 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       const transaction = await storage.createTransaction({
-        userId: req.session.userId,
+        userId: userId,
         type: "investment",
         amount,
         planId,
@@ -839,7 +840,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Create notification for user
       await storage.createNotification({
-        userId: req.session.userId,
+        userId: userId,
         title: "Investment Pending",
         message: `Your investment of ${amount} BTC in ${plan.name} is under review. You will be notified once it's processed.`,
         type: "info"
