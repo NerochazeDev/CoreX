@@ -32,9 +32,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      const authToken = localStorage.getItem('corex_auth_token');
+      const headers: Record<string, string> = {};
+      
+      if (authToken) {
+        headers.Authorization = `Bearer ${authToken}`;
+      }
+
       const response = await fetch('/api/me', {
         method: 'GET',
-        credentials: 'include', // Include session cookies
+        credentials: 'include', // Still include cookies as fallback
+        headers
       });
 
       if (response.ok) {
@@ -46,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // Clear any stale localStorage data
         localStorage.removeItem('corex_user');
+        localStorage.removeItem('corex_auth_token');
         localStorage.removeItem('corex_last_activity');
         setUser(null);
       }
@@ -59,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData);
         } catch (e) {
           localStorage.removeItem('corex_user');
+          localStorage.removeItem('corex_auth_token');
           localStorage.removeItem('corex_last_activity');
         }
       }
@@ -89,6 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const userData = await response.json();
     console.log('Login successful for user:', userData.email);
+
+    // Store auth token if provided
+    if (userData.authToken) {
+      localStorage.setItem('corex_auth_token', userData.authToken);
+      console.log('Auth token stored for cross-origin requests');
+    }
 
     // Store in localStorage with activity timestamp
     localStorage.setItem('corex_user', JSON.stringify(userData));

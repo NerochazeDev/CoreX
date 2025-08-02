@@ -1361,10 +1361,13 @@ Your investment journey starts here!`,
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Set session userId for authentication without regenerating session
+      // Set session userId for authentication
       req.session.userId = user.id;
       console.log('Login successful - Setting session userId:', user.id);
       console.log('Login successful - Session ID:', req.sessionID);
+      
+      // Generate a simple auth token for cross-origin requests
+      const authToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
       
       // Save session explicitly
       req.session.save((err) => {
@@ -1374,9 +1377,9 @@ Your investment journey starts here!`,
         }
 
         console.log('Session saved successfully for user:', user.id);
-        // Don't return private key and password in response
+        // Don't return private key and password in response, include auth token
         const { privateKey, password: _, ...userResponse } = user;
-        res.json(userResponse);
+        res.json({ ...userResponse, authToken });
       });
     } catch (error) {
       console.error('Login error:', error);
@@ -1416,21 +1419,36 @@ Your investment journey starts here!`,
     });
   });
 
-  // Get current user with session validation
-  // Get current authenticated user from session
+  // Get current user with session validation or auth token
   app.get("/api/me", async (req, res) => {
     try {
-      console.log('Auth check - Session userId:', req.session?.userId);
+      let userId = req.session?.userId;
+      console.log('Auth check - Session userId:', userId);
       console.log('Auth check - Session ID:', req.sessionID);
       
-      if (!req.session?.userId) {
-        console.log('No userId in session, user not authenticated');
+      // If no session, check for auth token header
+      if (!userId) {
+        const authToken = req.headers.authorization?.replace('Bearer ', '');
+        if (authToken) {
+          try {
+            const decoded = Buffer.from(authToken, 'base64').toString();
+            const [tokenUserId] = decoded.split(':');
+            userId = parseInt(tokenUserId);
+            console.log('Auth check - Token userId:', userId);
+          } catch (error) {
+            console.log('Invalid auth token');
+          }
+        }
+      }
+      
+      if (!userId) {
+        console.log('No userId in session or token, user not authenticated');
         return res.status(401).json({ message: "Authentication required" });
       }
 
-      const user = await storage.getUser(req.session.userId);
+      const user = await storage.getUser(userId);
       if (!user) {
-        console.log('User not found in database for userId:', req.session.userId);
+        console.log('User not found in database for userId:', userId);
         return res.status(401).json({ message: "User not found" });
       }
 
