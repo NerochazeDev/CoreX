@@ -449,8 +449,20 @@ async function processAutomaticUpdates(): Promise<void> {
           const newBalance = currentBalance + profitIncrease;
           await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
 
-          // Create investment growth notifications more frequently
-          const shouldCreateNotification = Math.random() < 0.8; // 80% chance for better visibility
+          // Create investment growth notifications more frequently and broadcast immediately
+          const shouldCreateNotification = Math.random() < 0.9; // 90% chance for better visibility
+
+          // Always broadcast investment updates for real-time dashboard
+          broadcastToClients({
+            type: 'investment_update',
+            investmentId: investment.id,
+            userId: investment.userId,
+            profit: profitIncrease.toFixed(8),
+            totalProfit: newProfit.toFixed(8),
+            planName: plan.name,
+            newBalance: newBalance.toFixed(8),
+            timestamp: new Date().toISOString()
+          });
 
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
@@ -488,17 +500,6 @@ Your investment strategy is working! 🎉`,
           }
 
           console.log(`Investment #${investment.id} earned +${profitIncrease.toFixed(8)} BTC for user ${investment.userId} (Total profit: ${newProfit.toFixed(8)} BTC)`);
-
-          // Broadcast investment update to connected clients
-          broadcastToClients({
-            type: 'investment_update',
-            investmentId: investment.id,
-            userId: investment.userId,
-            profit: profitIncrease.toFixed(8),
-            totalProfit: newProfit.toFixed(8),
-            planName: plan.name,
-            newBalance: newBalance.toFixed(8)
-          });
         }
       }
     }

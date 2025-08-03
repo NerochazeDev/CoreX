@@ -16,17 +16,20 @@ import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Home() {
   const { user, logout, refreshUser } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: investments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user?.id],
     enabled: !!user?.id,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 5000, // Refresh every 5 seconds for instant updates
+    staleTime: 0, // Always consider data stale
   });
 
   const { data: investmentPlans } = useQuery<InvestmentPlan[]>({
@@ -50,7 +53,49 @@ export default function Home() {
     if (!user.hasWallet) {
       setLocation('/wallet-setup');
     }
-  }, [user, setLocation]);
+
+    // Set up WebSocket for real-time investment updates
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+    
+    try {
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        console.log('WebSocket connected for investment updates');
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'investment_update' && data.userId === user.id) {
+            // Invalidate and refetch investment data immediately
+            queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user.id] });
+            queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+            
+            // Show real-time notification
+            toast({
+              title: "💰 Investment Profit",
+              description: `+${data.profit} BTC earned from ${data.planName}`,
+            });
+          }
+        } catch (error) {
+          console.error('WebSocket message parse error:', error);
+        }
+      };
+      
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+      };
+      
+      return () => {
+        ws.close();
+      };
+    } catch (error) {
+      console.error('WebSocket connection failed:', error);
+    }
+  }, [user, setLocation, queryClient, toast]);
 
   if (!user) {
     return <div>Redirecting to login...</div>;
@@ -240,10 +285,47 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* Active Investments */}
+      {/* Advanced Investment Dashboard */}
       {activeInvestments.length > 0 && (
-        <div className="px-4 mb-20">
-          <h3 className="text-lg font-semibold mb-4 text-foreground">Active Investments</h3>
+        <div className="px-4 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Active Investments</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                // Force refresh investments
+                queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user?.id] });
+                toast({
+                  title: "Investments Refreshed",
+                  description: "Your investment data has been updated",
+                });
+              }}
+              className="h-8 w-8 p-0"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Investment Overview Cards */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <Card className="plus500-professional p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="w-4 h-4 text-green-500" />
+                <span className="text-xs text-muted-foreground">Total Invested</span>
+              </div>
+              <p className="text-lg font-bold text-foreground">{formatBitcoin(totalInvestedAmount.toString())} BTC</p>
+            </Card>
+            <Card className="plus500-professional p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Activity className="w-4 h-4 text-plus500-success" />
+                <span className="text-xs text-muted-foreground">Total Profit</span>
+              </div>
+              <p className="text-lg font-bold text-plus500-success">+{formatBitcoin(totalProfit.toString())} BTC</p>
+            </Card>
+          </div>
+
+          {/* Active Investment Cards */}
           <div className="space-y-3">
             {activeInvestments.map((investment) => {
               const progress = calculateInvestmentProgress(
@@ -253,38 +335,104 @@ export default function Home() {
               const daysLeft = Math.ceil(
                 (new Date(investment.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
               );
+              const plan = investmentPlans?.find(p => p.id === investment.planId);
+              const profitPercentage = totalInvestedAmount > 0 ? ((parseFloat(investment.currentProfit) / parseFloat(investment.amount)) * 100) : 0;
 
               return (
-                <Card key={investment.id} className="plus500-professional p-4">
+                <Card key={investment.id} className="plus500-professional p-4 border border-green-500/20">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h4 className="font-semibold text-plus500-gold">Investment #{investment.id}</h4>
+                      <h4 className="font-semibold text-plus500-gold flex items-center gap-2">
+                        {plan ? plan.name : `Investment #${investment.id}`}
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      </h4>
                       <p className="text-muted-foreground text-sm">
                         Started: {formatDate(new Date(investment.startDate))}
                       </p>
+                      {plan && (
+                        <p className="text-xs text-plus500">
+                          Daily Rate: {(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}%
+                        </p>
+                      )}
                     </div>
-                    <span className="bg-plus500-success bg-opacity-20 text-plus500-success px-2 py-1 rounded-full text-xs">
-                      Active
+                    <div className="text-right">
+                      <span className="bg-plus500-success bg-opacity-20 text-plus500-success px-2 py-1 rounded-full text-xs">
+                        Earning
+                      </span>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        +{profitPercentage.toFixed(2)}% ROI
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <span className="text-xs text-muted-foreground">Principal</span>
+                      <div className="font-semibold text-foreground">{formatBitcoin(investment.amount)} BTC</div>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Current Profit</span>
+                      <div className="font-semibold text-plus500-success">+{formatBitcoin(investment.currentProfit)} BTC</div>
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-foreground">{progress.toFixed(1)}%</span>
+                    </div>
+                    <Progress value={progress} className="w-full h-2" />
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-muted-foreground">
+                      {daysLeft > 0 ? `${daysLeft} days remaining` : 'Completed'}
+                    </span>
+                    <span className="text-plus500-gold">
+                      Total Value: {formatBitcoin((parseFloat(investment.amount) + parseFloat(investment.currentProfit)).toString())} BTC
                     </span>
                   </div>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Invested</span>
-                      <span className="text-foreground">{formatBitcoin(investment.amount)} BTC</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Current Profit</span>
-                      <span className="text-plus500-success">+{formatBitcoin(investment.currentProfit)} BTC</span>
-                    </div>
+
+                  {/* Real-time update indicator */}
+                  <div className="mt-2 p-2 bg-green-500/10 rounded text-xs text-green-400 flex items-center gap-1">
+                    <div className="w-1 h-1 bg-green-400 rounded-full animate-ping"></div>
+                    Live updates every 5 minutes
                   </div>
-                  <Progress value={progress} className="w-full mb-2" />
-                  <p className="text-xs text-muted-foreground">
-                    {daysLeft > 0 ? `${daysLeft} days remaining` : 'Completed'}
-                  </p>
                 </Card>
               );
             })}
           </div>
+
+          {/* Quick Actions for Investments */}
+          <div className="mt-4">
+            <Button 
+              className="w-full plus500-btn"
+              onClick={() => setLocation('/investment')}
+            >
+              View Full Investment Dashboard
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Investment Quick Start (when no active investments) */}
+      {activeInvestments.length === 0 && (
+        <div className="px-4 mb-6">
+          <Card className="plus500-professional p-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-plus500/20 flex items-center justify-center mx-auto mb-4">
+              <TrendingUp className="w-8 h-8 text-plus500" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">Start Investing Today</h3>
+            <p className="text-muted-foreground mb-4 text-sm">
+              Begin your investment journey with Plus500 VIP and earn automated daily returns on your Bitcoin.
+            </p>
+            <Button 
+              className="plus500-btn"
+              onClick={() => setLocation('/investment')}
+            >
+              Explore Investment Plans
+            </Button>
+          </Card>
         </div>
       )}
 
