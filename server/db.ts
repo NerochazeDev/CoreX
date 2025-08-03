@@ -21,130 +21,217 @@ if (!databaseUrl.includes('sslmode=') && !databaseUrl.includes('localhost')) {
 
 console.log('🔗 Using database URL:', databaseUrl.replace(/:[^:@]+@/, ':****@'));
 
-// Enhanced connection configuration with robust retry logic and port stability
+// Enhanced connection configuration with endpoint failure protection
 const connectionConfig = {
-  max: 8, // Optimized pool size for stability
-  idle_timeout: 20, // Shorter idle timeout to prevent port issues
-  connect_timeout: 90, // Extended connection timeout
+  max: 12, // Increased pool size for better availability
+  idle_timeout: 15, // Shorter idle timeout to prevent endpoint disable
+  connect_timeout: 120, // Extended connection timeout for slow endpoints
   prepare: false, // Disable prepared statements for better compatibility
   onnotice: () => {}, // Suppress notices
   onparameter: () => {}, // Suppress parameter notices
   connection: {
-    application_name: 'plus500_investment_platform',
-    statement_timeout: 45000, // 45 second query timeout
-    idle_in_transaction_session_timeout: 90000, // 90 second idle transaction timeout
-    tcp_keepalives_idle: 60, // TCP keepalive settings for port stability
-    tcp_keepalives_interval: 10,
-    tcp_keepalives_count: 3,
+    application_name: 'plus500_investment_platform_persistent',
+    statement_timeout: 60000, // 60 second query timeout
+    idle_in_transaction_session_timeout: 120000, // 120 second idle transaction timeout
+    tcp_keepalives_idle: 30, // More frequent keepalives to prevent endpoint disable
+    tcp_keepalives_interval: 5,
+    tcp_keepalives_count: 6,
+    lock_timeout: 30000, // 30 second lock timeout
   },
   transform: postgres.camel, // Convert snake_case to camelCase
-  retry: 7, // Increased retry attempts
+  retry: 10, // Maximum retry attempts for endpoint issues
   backoff: 'exponential', // Exponential backoff for retries
   ssl: databaseUrl.includes('sslmode=require') ? { 
     rejectUnauthorized: false,
-    checkServerIdentity: () => undefined // Bypass certificate validation issues
+    checkServerIdentity: () => undefined,
+    // Additional SSL options for stability
+    secureProtocol: 'TLSv1_2_method',
+    ciphers: 'ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS'
   } : false,
-  socket_timeout: 300, // 5 minute socket timeout
+  socket_timeout: 600, // 10 minute socket timeout
   keep_alive: true, // Enable TCP keep-alive
+  // Additional options for endpoint stability
+  no_prepare: true, // Disable prepared statements completely
+  fetch_types: false, // Disable automatic type fetching
 };
 
 let client: postgres.Sql;
 let db: ReturnType<typeof drizzle>;
 let connectionAttempts = 0;
-const maxConnectionAttempts = 10;
-const baseRetryDelay = 1000; // 1 second base delay
+const maxConnectionAttempts = 15; // Increased for endpoint issues
+const baseRetryDelay = 2000; // 2 second base delay
+let lastEndpointError: Date | null = null;
+let isEndpointDisabled = false;
+let keepAliveInterval: NodeJS.Timeout | null = null;
 
-// Initialize connection with enhanced retry logic and port management
+// Initialize connection with endpoint failure protection
 async function initializeConnection(): Promise<void> {
   connectionAttempts++;
   
   try {
+    // Clear keep-alive interval if exists
+    if (keepAliveInterval) {
+      clearInterval(keepAliveInterval);
+      keepAliveInterval = null;
+    }
+    
     // Gracefully close existing connection and clean up ports
     if (client) {
       try {
-        await client.end({ timeout: 5 });
+        await client.end({ timeout: 8 });
       } catch (closeError) {
         console.warn('⚠️ Error closing previous connection:', closeError);
       }
       client = null as any;
     }
     
-    // Small delay to allow port cleanup
-    if (connectionAttempts > 1) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    // Extended delay for endpoint recovery if previously disabled
+    if (isEndpointDisabled && connectionAttempts > 1) {
+      const recoveryDelay = 15000; // 15 seconds for endpoint recovery
+      console.log(`⏳ Waiting ${recoveryDelay}ms for endpoint recovery...`);
+      await new Promise(resolve => setTimeout(resolve, recoveryDelay));
+    } else if (connectionAttempts > 1) {
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
     
     client = postgres(databaseUrl, connectionConfig);
     db = drizzle(client, { schema });
     
-    // Test the connection with timeout
-    const testPromise = client`SELECT 1, current_database(), inet_server_addr(), inet_server_port()`;
+    // Enhanced connection test with endpoint status check
+    const testPromise = client`SELECT 1 as status, current_database(), inet_server_addr(), inet_server_port(), version()`;
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Connection test timeout')), 30000)
+      setTimeout(() => reject(new Error('Connection test timeout - possible endpoint issue')), 45000)
     );
     
-    await Promise.race([testPromise, timeoutPromise]);
-    console.log(`✅ Database connection successful (attempt ${connectionAttempts})`);
-    connectionAttempts = 0; // Reset counter on success
+    const result = await Promise.race([testPromise, timeoutPromise]);
+    console.log(`✅ Database connection successful (attempt ${connectionAttempts}) - Endpoint active`);
     
-    // Set up connection monitoring
+    // Reset failure states on success
+    connectionAttempts = 0;
+    isEndpointDisabled = false;
+    lastEndpointError = null;
+    
+    // Set up connection monitoring and keep-alive
     setupConnectionMonitoring();
+    setupEndpointKeepAlive();
     
   } catch (error: any) {
-    console.error(`❌ Database connection failed (attempt ${connectionAttempts}):`, error.message);
+    const errorMessage = error.message || '';
+    const isEndpointError = errorMessage.includes('endpoint is disabled') ||
+                           errorMessage.includes('Control plane request failed') ||
+                           errorMessage.includes('Server error') ||
+                           error.code === 'NeonDbError';
+    
+    if (isEndpointError) {
+      isEndpointDisabled = true;
+      lastEndpointError = new Date();
+      console.error(`🚨 ENDPOINT DISABLED ERROR (attempt ${connectionAttempts}): ${errorMessage}`);
+      console.log('🔧 Implementing endpoint recovery strategy...');
+    } else {
+      console.error(`❌ Database connection failed (attempt ${connectionAttempts}): ${errorMessage}`);
+    }
     
     // Force cleanup on connection errors
     if (client) {
       try {
-        await client.end({ timeout: 2 });
+        await client.end({ timeout: 3 });
       } catch {}
       client = null as any;
     }
     
     if (connectionAttempts < maxConnectionAttempts) {
-      const delay = Math.min(baseRetryDelay * Math.pow(2, connectionAttempts - 1), 30000);
-      console.log(`🔄 Retrying database connection in ${delay}ms...`);
+      // Extended delays for endpoint errors
+      const baseDelay = isEndpointError ? 10000 : baseRetryDelay;
+      const delay = Math.min(baseDelay * Math.pow(1.8, connectionAttempts - 1), 60000);
+      
+      console.log(`🔄 Retrying ${isEndpointError ? 'endpoint recovery' : 'database connection'} in ${delay}ms...`);
       
       await new Promise(resolve => setTimeout(resolve, delay));
       return initializeConnection();
     } else {
       console.error('💥 Maximum database connection attempts reached. Application will continue in degraded mode.');
-      // Don't throw error - allow application to start in degraded mode
+      console.log('💡 Endpoint issues may require manual intervention or time to resolve');
     }
   }
 }
 
-// Monitor connection health and auto-reconnect with enhanced port management
+// Monitor connection health and auto-reconnect with endpoint protection
 function setupConnectionMonitoring(): void {
   setInterval(async () => {
     try {
       if (client) {
-        // Enhanced health check with connection info
+        // Enhanced health check with endpoint status verification
         const result = await Promise.race([
-          client`SELECT 1, pg_backend_pid() as pid, inet_server_addr() as addr, inet_server_port() as port`,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Health check timeout')), 10000))
+          client`SELECT 1 as healthy, pg_backend_pid() as pid, inet_server_addr() as addr, inet_server_port() as port, now() as timestamp`,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Health check timeout - possible endpoint issue')), 15000))
         ]);
         
         // Log connection details for monitoring
         if (Array.isArray(result) && result[0]) {
-          console.log(`💓 Database health check passed - PID: ${result[0].pid}, Port: ${result[0].port}`);
+          console.log(`💓 Database health check passed - PID: ${result[0].pid}, Port: ${result[0].port}, Endpoint: Active`);
+          
+          // Reset endpoint failure state on successful health check
+          if (isEndpointDisabled) {
+            isEndpointDisabled = false;
+            console.log('✅ Endpoint recovered and operational');
+          }
         }
       } else {
         console.warn('⚠️ No database client available, attempting reconnection...');
         await initializeConnection();
       }
     } catch (error: any) {
-      console.warn('⚠️ Database connection health check failed:', error.message);
+      const isEndpointError = error.message?.includes('endpoint') || 
+                             error.message?.includes('Control plane') ||
+                             error.message?.includes('Server error');
+      
+      if (isEndpointError) {
+        isEndpointDisabled = true;
+        lastEndpointError = new Date();
+        console.warn('🚨 Endpoint health check failed - endpoint may be disabled:', error.message);
+      } else {
+        console.warn('⚠️ Database connection health check failed:', error.message);
+      }
+      
       console.log('🔄 Attempting automatic reconnection...');
       await initializeConnection();
     }
-  }, 25000); // Check every 25 seconds for more responsive monitoring
+  }, 20000); // Check every 20 seconds for faster endpoint issue detection
 }
 
-// Wrapper for database operations with enhanced retry and port stability
+// Keep endpoint active to prevent automatic disable
+function setupEndpointKeepAlive(): void {
+  // Prevent endpoint from going idle by running lightweight queries
+  keepAliveInterval = setInterval(async () => {
+    try {
+      if (client && !isEndpointDisabled) {
+        // Lightweight query to keep endpoint active
+        await Promise.race([
+          client`SELECT 1 as keepalive, extract(epoch from now()) as timestamp`,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Keep-alive timeout')), 8000))
+        ]);
+        
+        console.log('🔄 Endpoint keep-alive successful');
+      }
+    } catch (error: any) {
+      const isEndpointError = error.message?.includes('endpoint') || 
+                             error.message?.includes('Control plane');
+      
+      if (isEndpointError) {
+        console.warn('⚠️ Keep-alive detected endpoint issue:', error.message);
+        isEndpointDisabled = true;
+        lastEndpointError = new Date();
+      } else {
+        console.warn('⚠️ Keep-alive failed:', error.message);
+      }
+    }
+  }, 180000); // Every 3 minutes to prevent endpoint idle timeout
+}
+
+// Wrapper for database operations with endpoint failure protection
 export async function executeQuery<T>(operation: () => Promise<T>): Promise<T> {
   let attempts = 0;
-  const maxAttempts = 6; // Further increased max attempts
+  const maxAttempts = 8; // Increased for endpoint issues
   
   while (attempts < maxAttempts) {
     try {
@@ -152,10 +239,10 @@ export async function executeQuery<T>(operation: () => Promise<T>): Promise<T> {
         await initializeConnection();
       }
       
-      // Wrap operation with timeout to prevent hanging
+      // Enhanced timeout handling for slow endpoints
       const operationPromise = operation();
       const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Query execution timeout')), 45000)
+        setTimeout(() => reject(new Error('Query execution timeout - possible endpoint slowdown')), 60000)
       );
       
       return await Promise.race([operationPromise, timeoutPromise]);
@@ -163,7 +250,13 @@ export async function executeQuery<T>(operation: () => Promise<T>): Promise<T> {
     } catch (error: any) {
       attempts++;
       
-      // Enhanced connection error detection including port issues
+      // Enhanced error detection including endpoint-specific errors
+      const isEndpointError = error?.message?.includes('endpoint is disabled') ||
+                             error?.message?.includes('Control plane request failed') ||
+                             error?.message?.includes('Server error') ||
+                             error?.code === 'NeonDbError' ||
+                             error?.message?.includes('HTTP status 500');
+      
       const isConnectionError = error?.code === 'ECONNRESET' || 
                                error?.code === 'ENOTFOUND' || 
                                error?.code === 'ENOENT' ||
@@ -177,31 +270,48 @@ export async function executeQuery<T>(operation: () => Promise<T>): Promise<T> {
                                error?.message?.toLowerCase().includes('nonce') ||
                                error?.message?.toLowerCase().includes('socket');
       
-      if (isConnectionError && attempts < maxAttempts) {
-        console.warn(`🔄 Database operation failed (attempt ${attempts}/${maxAttempts}) - ${error.message}, retrying...`);
+      const shouldRetry = (isConnectionError || isEndpointError) && attempts < maxAttempts;
+      
+      if (shouldRetry) {
+        if (isEndpointError) {
+          isEndpointDisabled = true;
+          lastEndpointError = new Date();
+          console.warn(`🚨 ENDPOINT ERROR detected (attempt ${attempts}/${maxAttempts}): ${error.message}`);
+          console.log('🔧 Initiating endpoint recovery protocol...');
+        } else {
+          console.warn(`🔄 Database operation failed (attempt ${attempts}/${maxAttempts}) - ${error.message}, retrying...`);
+        }
         
-        // Force complete reconnection with port cleanup
+        // Force complete reconnection with cleanup
         if (client) {
           try {
-            await client.end({ timeout: 3 });
+            await client.end({ timeout: 5 });
           } catch (cleanupError) {
             console.warn('⚠️ Error during connection cleanup:', cleanupError);
           }
           client = null as any;
         }
         
-        // Progressive delay with jitter to avoid thundering herd
-        const baseDelay = 1500 * Math.pow(1.5, attempts - 1);
-        const jitter = Math.random() * 1000;
-        const delay = Math.min(baseDelay + jitter, 20000);
+        // Extended delays for endpoint errors
+        const baseDelay = isEndpointError ? 8000 : 2000;
+        const multiplier = isEndpointError ? 2.0 : 1.5;
+        const calculatedDelay = baseDelay * Math.pow(multiplier, attempts - 1);
+        const jitter = Math.random() * 2000;
+        const delay = Math.min(calculatedDelay + jitter, isEndpointError ? 45000 : 25000);
         
+        console.log(`⏳ Waiting ${delay}ms before retry (${isEndpointError ? 'endpoint recovery' : 'reconnection'})...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
       
-      // If it's not a connection error or we've exhausted retries, log and throw
+      // Log final error details
       const errorMsg = `Database operation failed after ${attempts} attempts: ${error.message}`;
       console.error(errorMsg);
+      
+      if (isEndpointError) {
+        console.error('🚨 CRITICAL: Persistent endpoint failure detected');
+        console.error('💡 This may require Neon database restart or plan upgrade');
+      }
       
       if (attempts >= maxAttempts) {
         console.error('💥 All database retry attempts exhausted');
@@ -241,12 +351,18 @@ export async function testConnection(): Promise<boolean> {
   }
 }
 
-// Graceful shutdown handler
+// Graceful shutdown handler with endpoint cleanup
 export async function closeConnection(): Promise<void> {
   try {
+    // Clear keep-alive interval
+    if (keepAliveInterval) {
+      clearInterval(keepAliveInterval);
+      keepAliveInterval = null;
+    }
+    
     if (client) {
-      await client.end();
-      console.log('🔌 Database connection closed gracefully');
+      await client.end({ timeout: 10 });
+      console.log('🔌 Database connection closed gracefully with endpoint cleanup');
     }
   } catch (error) {
     console.error('⚠️ Error closing database connection:', error);
@@ -255,7 +371,36 @@ export async function closeConnection(): Promise<void> {
 
 // Export helper for checking connection status
 export function isConnected(): boolean {
-  return !!client;
+  return !!client && !isEndpointDisabled;
+}
+
+// Export endpoint status helpers
+export function getEndpointStatus(): {
+  isDisabled: boolean;
+  lastError: Date | null;
+  timeSinceError: number | null;
+} {
+  return {
+    isDisabled: isEndpointDisabled,
+    lastError: lastEndpointError,
+    timeSinceError: lastEndpointError ? Date.now() - lastEndpointError.getTime() : null
+  };
+}
+
+// Force endpoint recovery
+export async function forceEndpointRecovery(): Promise<boolean> {
+  console.log('🔧 Forcing endpoint recovery...');
+  isEndpointDisabled = false;
+  lastEndpointError = null;
+  connectionAttempts = 0;
+  
+  try {
+    await initializeConnection();
+    return true;
+  } catch (error) {
+    console.error('❌ Forced endpoint recovery failed:', error);
+    return false;
+  }
 }
 
 // Handle process termination
