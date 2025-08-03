@@ -58,6 +58,10 @@ export interface IStorage {
   deleteBackupDatabase(id: number): Promise<void>;
   setPrimaryDatabase(id: number): Promise<BackupDatabase | undefined>;
   syncDataToBackup(backupId: number): Promise<void>;
+
+  getInvestmentById(id: number): Promise<Investment | null>;
+  toggleInvestmentStatus(id: number): Promise<Investment | null>;
+  cancelInvestment(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -114,7 +118,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(notifications).where(eq(notifications.userId, userId));
     await db.delete(transactions).where(eq(transactions.userId, userId));
     await db.delete(investments).where(eq(investments.userId, userId));
-    
+
     // Finally delete the user
     await db.delete(users).where(eq(users.id, userId));
   }
@@ -188,7 +192,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveInvestments(): Promise<Investment[]> {
-    return await db.select().from(investments).where(eq(investments.isActive, true));
+    try {
+      const result = await db.select().from(investments).where(eq(investments.isActive, true));
+
+      return result.map(row => ({
+        id: row.id,
+        userId: row.userId,
+        planId: row.planId,
+        amount: row.amount,
+        startDate: row.startDate.toISOString(),
+        endDate: row.endDate.toISOString(),
+        currentProfit: row.currentProfit,
+        isActive: row.isActive,
+      }));
+    } catch (error) {
+      console.error('Error getting active investments:', error);
+      return [];
+    }
   }
 
   async getUserNotifications(userId: number): Promise<Notification[]> {
@@ -501,10 +521,10 @@ export class DatabaseStorage implements IStorage {
 
     // Import the backup sync service
     const { backupSyncService } = await import('./backup-sync');
-    
+
     // Perform actual data synchronization
     const syncResult = await backupSyncService.syncDataToBackup(backup[0].connectionString);
-    
+
     if (!syncResult.success) {
       throw new Error(syncResult.error || 'Failed to sync data to backup database');
     }
@@ -519,6 +539,61 @@ export class DatabaseStorage implements IStorage {
         errorMessage: null
       })
       .where(eq(backupDatabases.id, backupId));
+  }
+
+  async getInvestmentById(id: number): Promise<Investment | null> {
+    try {
+      const result = await db.select().from(investments).where(eq(investments.id, id)).limit(1);
+
+      if (result.length === 0) return null;
+
+      const row = result[0];
+      return {
+        id: row.id,
+        userId: row.userId,
+        planId: row.planId,
+        amount: row.amount,
+        startDate: row.startDate.toISOString(),
+        endDate: row.endDate.toISOString(),
+        currentProfit: row.currentProfit,
+        isActive: row.isActive,
+      };
+    } catch (error) {
+      console.error('Error getting investment by ID:', error);
+      return null;
+    }
+  }
+
+  async toggleInvestmentStatus(id: number): Promise<Investment | null> {
+    try {
+      // First get current status
+      const current = await this.getInvestmentById(id);
+      if (!current) return null;
+
+      // Toggle the status
+      const newStatus = !current.isActive;
+      await db.update(investments)
+        .set({ isActive: newStatus })
+        .where(eq(investments.id, id));
+
+      // Return updated investment
+      return await this.getInvestmentById(id);
+    } catch (error) {
+      console.error('Error toggling investment status:', error);
+      return null;
+    }
+  }
+
+  async cancelInvestment(id: number): Promise<boolean> {
+    try {
+      await db.update(investments)
+        .set({ isActive: false })
+        .where(eq(investments.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error cancelling investment:', error);
+      return false;
+    }
   }
 }
 
