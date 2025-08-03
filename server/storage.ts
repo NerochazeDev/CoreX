@@ -62,6 +62,7 @@ export interface IStorage {
   getInvestmentById(id: number): Promise<Investment | null>;
   toggleInvestmentStatus(id: number): Promise<Investment | null>;
   cancelInvestment(id: number): Promise<boolean>;
+  getAllInvestments(): Promise<Investment[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -192,23 +193,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveInvestments(): Promise<Investment[]> {
-    try {
-      const result = await db.select().from(investments).where(eq(investments.isActive, true));
+    return await db.select().from(investments).where(eq(investments.isActive, true));
+  }
 
-      return result.map(row => ({
-        id: row.id,
-        userId: row.userId,
-        planId: row.planId,
-        amount: row.amount,
-        startDate: row.startDate.toISOString(),
-        endDate: row.endDate.toISOString(),
-        currentProfit: row.currentProfit,
-        isActive: row.isActive,
-      }));
-    } catch (error) {
-      console.error('Error getting active investments:', error);
-      return [];
-    }
+  async getAllInvestments(): Promise<Investment[]> {
+    return await db.select().from(investments).orderBy(investments.createdAt);
   }
 
   async getUserNotifications(userId: number): Promise<Notification[]> {

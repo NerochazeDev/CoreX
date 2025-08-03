@@ -1047,62 +1047,72 @@ export default function Management() {
     </Card>
   );
 
+  // Declare all mutations and queries at the top level to maintain hook order
+  const { data: allInvestments, isLoading: investmentsLoading } = useQuery({
+    queryKey: ['/api/admin/investments'],
+    queryFn: async () => {
+      const headers: Record<string, string> = {};
+      if (isBackdoorAccess) {
+        headers['x-backdoor-access'] = 'true';
+      }
+      
+      const response = await fetch('/api/admin/investments', { 
+        headers,
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch investments');
+      return response.json();
+    },
+    enabled: activeTab === 'investments', // Only fetch when needed
+  });
+
+  const pauseInvestmentMutation = useMutation({
+    mutationFn: async ({ investmentId, reason }: { investmentId: number; reason?: string }) => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
+      
+      const response = await fetch(`/api/admin/investments/${investmentId}/toggle`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ reason }),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to toggle investment');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/investments'] });
+      toast({ title: "Investment status updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to update investment", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const cancelInvestmentMutation = useMutation({
+    mutationFn: async ({ investmentId, reason, refund }: { investmentId: number; reason?: string; refund?: boolean }) => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
+      
+      const response = await fetch(`/api/admin/investments/${investmentId}`, {
+        method: 'DELETE',
+        headers,
+        body: JSON.stringify({ reason, refund }),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to cancel investment');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/investments'] });
+      toast({ title: "Investment cancelled successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to cancel investment", description: error.message, variant: "destructive" });
+    },
+  });
+
   const renderInvestmentsTab = () => {
-    const { data: allInvestments, isLoading: investmentsLoading } = useQuery({
-      queryKey: ['/api/admin/investments'],
-      queryFn: async () => {
-        const response = await fetch('/api/admin/investments', {
-          headers: isBackdoorAccess ? { 'x-backdoor-access': 'true' } : {},
-        });
-        if (!response.ok) throw new Error('Failed to fetch investments');
-        return response.json();
-      },
-    });
-
-    const pauseInvestmentMutation = useMutation({
-      mutationFn: async ({ investmentId, reason }: { investmentId: number; reason?: string }) => {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
-        
-        const response = await fetch(`/api/admin/investments/${investmentId}/toggle`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ reason }),
-        });
-        if (!response.ok) throw new Error('Failed to toggle investment');
-        return response.json();
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['/api/admin/investments'] });
-        toast({ title: "Investment status updated successfully" });
-      },
-      onError: (error: any) => {
-        toast({ title: "Failed to update investment", description: error.message, variant: "destructive" });
-      },
-    });
-
-    const cancelInvestmentMutation = useMutation({
-      mutationFn: async ({ investmentId, reason, refund }: { investmentId: number; reason?: string; refund?: boolean }) => {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
-        
-        const response = await fetch(`/api/admin/investments/${investmentId}`, {
-          method: 'DELETE',
-          headers,
-          body: JSON.stringify({ reason, refund }),
-        });
-        if (!response.ok) throw new Error('Failed to cancel investment');
-        return response.json();
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['/api/admin/investments'] });
-        toast({ title: "Investment cancelled successfully" });
-      },
-      onError: (error: any) => {
-        toast({ title: "Failed to cancel investment", description: error.message, variant: "destructive" });
-      },
-    });
-
     return (
       <div className="space-y-6">
         <Card>
@@ -1110,6 +1120,15 @@ export default function Management() {
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
               Investment Management
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/admin/investments'] })}
+                className="ml-auto"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Refresh
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1119,15 +1138,24 @@ export default function Management() {
                   <div key={i} className="h-20 bg-muted rounded animate-pulse"></div>
                 ))}
               </div>
-            ) : allInvestments?.length === 0 ? (
+            ) : !allInvestments || allInvestments.length === 0 ? (
               <div className="text-center py-8">
                 <TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="font-semibold mb-2">No Active Investments</h3>
                 <p className="text-sm text-muted-foreground">All investments have been completed or cancelled.</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/admin/investments'] })}
+                  className="mt-4"
+                >
+                  <RefreshCw className="w-4 h-4 mr-1" />
+                  Check Again
+                </Button>
               </div>
             ) : (
               <div className="space-y-4">
-                {allInvestments?.map((investment: any) => (
+                {allInvestments.map((investment: any) => (
                   <div key={investment.id} className="border rounded-lg p-4 bg-gradient-to-r from-gray-50 to-white">
                     <div className="flex justify-between items-start mb-3">
                       <div>
