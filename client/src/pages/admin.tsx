@@ -1047,7 +1047,6 @@ export default function Management() {
     </Card>
   );
 
-  // Declare all mutations and queries at the top level to maintain hook order
   const { data: allInvestments, isLoading: investmentsLoading } = useQuery({
     queryKey: ['/api/admin/investments'],
     queryFn: async () => {
@@ -1063,7 +1062,7 @@ export default function Management() {
       if (!response.ok) throw new Error('Failed to fetch investments');
       return response.json();
     },
-    enabled: activeTab === 'investments', // Only fetch when needed
+    enabled: activeTab === 'investments',
   });
 
   const pauseInvestmentMutation = useMutation({
@@ -1141,8 +1140,8 @@ export default function Management() {
             ) : !allInvestments || allInvestments.length === 0 ? (
               <div className="text-center py-8">
                 <TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="font-semibold mb-2">No Active Investments</h3>
-                <p className="text-sm text-muted-foreground">All investments have been completed or cancelled.</p>
+                <h3 className="font-semibold mb-2">No Investments Found</h3>
+                <p className="text-sm text-muted-foreground">No user investments have been created yet.</p>
                 <Button
                   size="sm"
                   variant="outline"

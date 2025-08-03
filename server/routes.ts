@@ -999,36 +999,8 @@ Your investment will start generating profits automatically. You can track your 
           const newBalance = Math.max(0, currentBalance - withdrawAmount);
           await storage.updateUserBalance(transaction.userId, newBalance.toFixed(8));
         }
-      } else if (transaction.type === "investment" && transaction.planId) {
-        // Deduct investment amount from user balance first
-        const user = await storage.getUser(transaction.userId);
-        if (user) {
-          const currentBalance = parseFloat(user.balance);
-          const investmentAmount = parseFloat(transaction.amount);
-
-          if (currentBalance >= investmentAmount) {
-            const newBalance = currentBalance - investmentAmount;
-            await storage.updateUserBalance(transaction.userId, newBalance.toFixed(8));
-
-            // Create active investment when investment transaction is confirmed
-            const plan = await storage.getInvestmentPlan(transaction.planId);
-            if (plan) {
-              const endDate = new Date();
-              endDate.setDate(endDate.getDate() + plan.durationDays);
-
-              await storage.createInvestment({
-                userId: transaction.userId,
-                planId: transaction.planId,
-                amount: transaction.amount
-              });
-            }
-          } else {
-            // Insufficient balance - reject the transaction
-            await storage.rejectTransaction(transaction.id, adminId, "Insufficient balance for investment");
-            return res.status(400).json({ error: "Insufficient balance for investment" });
-          }
-        }
       }
+      // Note: Investment balance deduction is handled when the investment is created, not in transaction confirmation
 
       // Create notification for user
       let notificationMessage = "";
