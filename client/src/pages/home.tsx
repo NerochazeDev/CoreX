@@ -89,6 +89,17 @@ export default function Home() {
               title: "💰 Investment Profit",
               description: `+${data.profit} BTC earned from ${data.planName}`,
             });
+          } else if (data.type === 'investment_status_change' && data.userId === user.id) {
+            // Handle investment pause/resume notifications
+            queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user.id] });
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id] });
+            
+            // Show immediate status change notification
+            toast({
+              title: data.notification.title,
+              description: data.notification.message,
+              variant: data.notification.type === 'warning' ? 'destructive' : 'default',
+            });
           }
         } catch (error) {
           console.error('WebSocket message parse error:', error);

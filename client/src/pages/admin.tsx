@@ -68,6 +68,19 @@ export default function Management() {
 
   const { data: users } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
+    queryFn: async () => {
+      const headers: Record<string, string> = {};
+      if (isBackdoorAccess) {
+        headers['x-backdoor-access'] = 'true';
+      }
+      
+      const response = await fetch('/api/admin/users', { 
+        headers,
+        credentials: 'include' // Ensure cookies are sent
+      });
+      if (!response.ok) throw new Error('Failed to fetch users');
+      return response.json();
+    },
   });
 
   const { data: investmentPlans } = useQuery<InvestmentPlan[]>({
@@ -1153,13 +1166,23 @@ export default function Management() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          const reason = prompt(`Enter reason to ${investment.isActive ? 'pause' : 'resume'} this investment (optional):`);
-                          pauseInvestmentMutation.mutate({ investmentId: investment.id, reason: reason || undefined });
+                          const action = investment.isActive ? 'pause' : 'resume';
+                          const reason = prompt(`Enter reason to ${action} this investment:\n\nThis message will be sent to the user immediately.`);
+                          if (reason !== null) { // Allow empty string but not cancelled dialog
+                            pauseInvestmentMutation.mutate({ 
+                              investmentId: investment.id, 
+                              reason: reason || `Investment ${action}d by administrator` 
+                            });
+                          }
                         }}
                         disabled={pauseInvestmentMutation.isPending}
                         className={investment.isActive ? "bg-yellow-600 hover:bg-yellow-700" : "bg-green-600 hover:bg-green-700"}
                       >
-                        {investment.isActive ? 'Pause' : 'Resume'}
+                        {pauseInvestmentMutation.isPending ? (
+                          investment.isActive ? 'Pausing...' : 'Resuming...'
+                        ) : (
+                          investment.isActive ? 'Pause' : 'Resume'
+                        )}
                       </Button>
                       <Button
                         size="sm"

