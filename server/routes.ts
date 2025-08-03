@@ -825,27 +825,61 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(404).json({ error: "Investment plan not found" });
       }
 
-      const transaction = await storage.createTransaction({
+      // Get user and check balance
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const userBalance = parseFloat(user.balance);
+      const investmentAmount = parseFloat(amount);
+
+      if (investmentAmount <= 0) {
+        return res.status(400).json({ error: "Investment amount must be greater than 0" });
+      }
+
+      if (investmentAmount < parseFloat(plan.minAmount)) {
+        return res.status(400).json({ error: `Minimum investment amount is ${plan.minAmount} BTC` });
+      }
+
+      if (userBalance < investmentAmount) {
+        return res.status(400).json({ error: "Insufficient balance for this investment" });
+      }
+
+      // Deduct amount from user balance immediately
+      const newBalance = userBalance - investmentAmount;
+      await storage.updateUserBalance(userId, newBalance.toFixed(8));
+
+      // Create the investment directly (no need for admin approval)
+      const investment = await storage.createInvestment({
         userId: userId,
-        type: "investment",
-        amount,
-        planId,
-        transactionHash,
+        planId: planId,
+        amount: amount
       });
 
-      // Create notification for user
+      // Create notification for successful investment
       await storage.createNotification({
         userId: userId,
-        title: "Investment Pending",
-        message: `Your investment of ${amount} BTC in ${plan.name} is under review. You will be notified once it's processed.`,
-        type: "info"
+        title: "Investment Activated",
+        message: `🎉 Your investment of ${amount} BTC in ${plan.name} has been activated successfully!
+
+✅ Investment Details:
+• Plan: ${plan.name}
+• Amount: ${amount} BTC
+• Daily Return: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}%
+• Duration: ${plan.durationDays} days
+
+Your investment will start generating profits automatically. You can track your earnings in real-time on the Investment page.`,
+        type: "success"
       });
 
       res.json({ 
-        message: "Investment submitted successfully and is pending confirmation",
-        transaction 
+        message: "Investment created successfully",
+        investment,
+        newBalance: newBalance.toFixed(8)
       });
     } catch (error: any) {
+      console.error('Investment creation error:', error);
       res.status(500).json({ error: error.message });
     }
   });
