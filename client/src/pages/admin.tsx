@@ -53,12 +53,21 @@ export default function Management() {
   const isBackdoorAccess = window.location.pathname === '/Hello10122';
 
   // Set backdoor access flag for other admin pages
-  if (isBackdoorAccess) {
-    sessionStorage.setItem('backdoorAccess', 'true');
-  }
+  useEffect(() => {
+    if (isBackdoorAccess) {
+      sessionStorage.setItem('backdoorAccess', 'true');
+    }
+  }, [isBackdoorAccess]);
 
+  // Use useEffect to handle navigation after hooks are called
+  useEffect(() => {
+    if (!user?.isAdmin && !isBackdoorAccess) {
+      setLocation('/');
+    }
+  }, [user?.isAdmin, isBackdoorAccess, setLocation]);
+
+  // Don't render anything if not authorized
   if (!user?.isAdmin && !isBackdoorAccess) {
-    setLocation('/');
     return null;
   }
 
