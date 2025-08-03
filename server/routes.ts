@@ -1573,10 +1573,28 @@ Your investment journey starts here!`,
   // Get user investments
   app.get("/api/investments/user/:userId", async (req, res) => {
     try {
-      const userId = parseInt(req.params.userId);
-      const investments = await storage.getUserInvestments(userId);
+      const requestedUserId = parseInt(req.params.userId);
+      
+      // Get authenticated user ID
+      const authenticatedUserId = getUserIdFromRequest(req);
+      
+      // Allow access if user is requesting their own investments or if it's admin access
+      if (!authenticatedUserId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Users can only access their own investments unless they're admin
+      if (authenticatedUserId !== requestedUserId) {
+        const user = await storage.getUser(authenticatedUserId);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const investments = await storage.getUserInvestments(requestedUserId);
       res.json(investments);
     } catch (error) {
+      console.error('Get user investments error:', error);
       res.status(500).json({ message: "Failed to get user investments" });
     }
   });

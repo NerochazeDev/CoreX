@@ -27,6 +27,16 @@ export default function Home() {
 
   const { data: investments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user?.id],
+    queryFn: () => fetch(`/api/investments/user/${user?.id}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+      }
+    }).then(res => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch investments');
+      }
+      return res.json();
+    }),
     enabled: !!user?.id,
     refetchInterval: 5000, // Refresh every 5 seconds for instant updates
     staleTime: 0, // Always consider data stale
