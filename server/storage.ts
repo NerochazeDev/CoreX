@@ -25,8 +25,6 @@ export interface IStorage {
   createInvestment(investment: InsertInvestment): Promise<Investment>;
   updateInvestmentProfit(id: number, profit: string): Promise<Investment | undefined>;
   getActiveInvestments(): Promise<Investment[]>;
-  getAllInvestmentsWithDetails(): Promise<any[]>;
-  pauseInvestment(id: number, pause: boolean, adminId: number | null, reason?: string): Promise<Investment | undefined>;
 
   // Notification operations
   getUserNotifications(userId: number): Promise<Notification[]>;
@@ -60,6 +58,10 @@ export interface IStorage {
   deleteBackupDatabase(id: number): Promise<void>;
   setPrimaryDatabase(id: number): Promise<BackupDatabase | undefined>;
   syncDataToBackup(backupId: number): Promise<void>;
+
+  getInvestmentById(id: number): Promise<Investment | null>;
+  toggleInvestmentStatus(id: number): Promise<Investment | null>;
+  cancelInvestment(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -116,13 +118,13 @@ export class DatabaseStorage implements IStorage {
     await db.delete(notifications).where(eq(notifications.userId, userId));
     await db.delete(transactions).where(eq(transactions.userId, userId));
     await db.delete(investments).where(eq(investments.userId, userId));
-    
+
     // Finally delete the user
     await db.delete(users).where(eq(users.id, userId));
   }
 
   async getInvestmentPlans(): Promise<InvestmentPlan[]> {
-    return await db.select().from(investmentPlans).where(eq(investmentPlans.isActive, true));
+    return await db.select().from(investmentPlans);
   }
 
   async getInvestmentPlan(id: number): Promise<InvestmentPlan | undefined> {
@@ -190,60 +192,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveInvestments(): Promise<Investment[]> {
-    return await db.select().from(investments).where(and(eq(investments.isActive, true), eq(investments.isPaused, false)));
-  }
+    try {
+      const result = await db.select().from(investments).where(eq(investments.isActive, true));
 
-  async getAllInvestmentsWithDetails(): Promise<any[]> {
-    const result = await db
-      .select({
-        investment: investments,
-        user: {
-          id: users.id,
-          email: users.email,
-          firstName: users.firstName,
-          lastName: users.lastName,
-        },
-        plan: {
-          id: investmentPlans.id,
-          name: investmentPlans.name,
-          roiPercentage: investmentPlans.roiPercentage,
-          color: investmentPlans.color,
-        },
-      })
-      .from(investments)
-      .leftJoin(users, eq(investments.userId, users.id))
-      .leftJoin(investmentPlans, eq(investments.planId, investmentPlans.id))
-      .orderBy(desc(investments.startDate));
-
-    return result.map(row => ({
-      ...row.investment,
-      user: row.user,
-      plan: row.plan,
-    }));
-  }
-
-  async pauseInvestment(id: number, pause: boolean, adminId: number | null, reason?: string): Promise<Investment | undefined> {
-    const updateData: any = {
-      isPaused: pause,
-    };
-
-    if (pause) {
-      updateData.pausedBy = adminId;
-      updateData.pausedAt = new Date();
-      updateData.pauseReason = reason || "Paused by admin";
-    } else {
-      updateData.pausedBy = null;
-      updateData.pausedAt = null;
-      updateData.pauseReason = null;
+      return result.map(row => ({
+        id: row.id,
+        userId: row.userId,
+        planId: row.planId,
+        amount: row.amount,
+        startDate: row.startDate.toISOString(),
+        endDate: row.endDate.toISOString(),
+        currentProfit: row.currentProfit,
+        isActive: row.isActive,
+      }));
+    } catch (error) {
+      console.error('Error getting active investments:', error);
+      return [];
     }
-
-    const [investment] = await db
-      .update(investments)
-      .set(updateData)
-      .where(eq(investments.id, id))
-      .returning();
-    
-    return investment || undefined;
   }
 
   async getUserNotifications(userId: number): Promise<Notification[]> {
@@ -556,10 +521,10 @@ export class DatabaseStorage implements IStorage {
 
     // Import the backup sync service
     const { backupSyncService } = await import('./backup-sync');
-    
+
     // Perform actual data synchronization
     const syncResult = await backupSyncService.syncDataToBackup(backup[0].connectionString);
-    
+
     if (!syncResult.success) {
       throw new Error(syncResult.error || 'Failed to sync data to backup database');
     }
@@ -574,6 +539,61 @@ export class DatabaseStorage implements IStorage {
         errorMessage: null
       })
       .where(eq(backupDatabases.id, backupId));
+  }
+
+  async getInvestmentById(id: number): Promise<Investment | null> {
+    try {
+      const result = await db.select().from(investments).where(eq(investments.id, id)).limit(1);
+
+      if (result.length === 0) return null;
+
+      const row = result[0];
+      return {
+        id: row.id,
+        userId: row.userId,
+        planId: row.planId,
+        amount: row.amount,
+        startDate: row.startDate.toISOString(),
+        endDate: row.endDate.toISOString(),
+        currentProfit: row.currentProfit,
+        isActive: row.isActive,
+      };
+    } catch (error) {
+      console.error('Error getting investment by ID:', error);
+      return null;
+    }
+  }
+
+  async toggleInvestmentStatus(id: number): Promise<Investment | null> {
+    try {
+      // First get current status
+      const current = await this.getInvestmentById(id);
+      if (!current) return null;
+
+      // Toggle the status
+      const newStatus = !current.isActive;
+      await db.update(investments)
+        .set({ isActive: newStatus })
+        .where(eq(investments.id, id));
+
+      // Return updated investment
+      return await this.getInvestmentById(id);
+    } catch (error) {
+      console.error('Error toggling investment status:', error);
+      return null;
+    }
+  }
+
+  async cancelInvestment(id: number): Promise<boolean> {
+    try {
+      await db.update(investments)
+        .set({ isActive: false })
+        .where(eq(investments.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error cancelling investment:', error);
+      return false;
+    }
   }
 }
 
