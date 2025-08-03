@@ -197,7 +197,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllInvestments(): Promise<Investment[]> {
-    return await db.select().from(investments).orderBy(investments.createdAt);
+    return await db.select().from(investments).orderBy(desc(investments.createdAt));
   }
 
   async getUserNotifications(userId: number): Promise<Notification[]> {
