@@ -1629,13 +1629,20 @@ Your investment journey starts here!`,
       const allInvestments = await storage.getAllInvestments();
       console.log(`Found ${allInvestments.length} total investments`);
       
-      // Get user information for each investment
+      // Get user information for each investment and format dates properly
       const investmentsWithUsers = await Promise.all(
         allInvestments.map(async (investment) => {
           const user = await storage.getUser(investment.userId);
           const plan = await storage.getInvestmentPlan(investment.planId);
           return {
-            ...investment,
+            id: investment.id,
+            userId: investment.userId,
+            planId: investment.planId,
+            amount: investment.amount,
+            startDate: investment.startDate instanceof Date ? investment.startDate.toISOString() : investment.startDate,
+            endDate: investment.endDate instanceof Date ? investment.endDate.toISOString() : investment.endDate,
+            currentProfit: investment.currentProfit,
+            isActive: investment.isActive,
             userEmail: user?.email || 'Unknown',
             planName: plan?.name || 'Unknown Plan',
             dailyReturnRate: plan?.dailyReturnRate || '0'
