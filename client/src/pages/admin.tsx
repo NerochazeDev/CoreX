@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { InvestmentManagement } from "@/components/investment-management";
 
 interface AdminStats {
   totalUsers: number;
@@ -645,6 +646,63 @@ export default function Management() {
 
   const renderUsersTab = () => (
     <div className="space-y-6">
+      {/* Investment Management */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Investment Management</h3>
+          <InvestmentManagement />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">User Management</h3>
+          {users?.length === 0 ? (
+            <p className="text-muted-foreground">No users found.</p>
+          ) : (
+            <div className="space-y-2">
+              {users?.map((user) => (
+                <React.Fragment key={user.id}>
+                  {/* User Row */}
+                  <div className="flex items-center justify-between p-4 rounded-md bg-gray-100">
+                    <div className="flex items-center space-x-3">
+                      {/* User Info */}
+                      <div>
+                        <p className="font-semibold">{user.email}</p>
+                        <p className="text-sm text-gray-500">ID: {user.id}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                      {/* Balance */}
+                      <div>
+                        <p className="text-sm text-gray-500">Balance:</p>
+                        <p className="font-semibold">{formatBitcoin(user.balance)}</p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex space-x-2">
+                        <Button size="sm" onClick={() => handleUpdateBalance(user)}><Edit className="h-4 w-4 mr-1" /> Edit</Button>
+                        <Button size="sm" variant="outline" onClick={() => handleUpdatePlan(user)}><Settings className="h-4 w-4 mr-1" /> Plan</Button>
+                        {!user.isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to delete user ${user.email}? This action cannot be undone.`)) {
+                                deleteUserMutation.mutate(user.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" /> Delete
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+        </div>
+
       {/* User Management Table */}
       <Card>
         <CardHeader>
@@ -824,9 +882,7 @@ export default function Management() {
         </CardContent>
       </Card>
     </div>
-  );
-
-  const renderPlansTab = () => (
+  );The changes involve adding the InvestmentManagement component and integrating it into the Users tab, to facilitate investment pause/unpause functionality.  const renderPlansTab = () => (
     <div className="space-y-6">
       {/* Free Plan Rate Configuration */}
       <Card>
@@ -905,7 +961,7 @@ export default function Management() {
                     {plan.isActive ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor={`minAmount-${plan.id}`}>Minimum Amount (BTC)</Label>
@@ -934,7 +990,7 @@ export default function Management() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor={`dailyRate-${plan.id}`}>Daily Return Rate (%)</Label>
                     <div className="flex gap-2 mt-1">

@@ -99,13 +99,39 @@ export async function runSafeMigrations() {
         start_date TIMESTAMP DEFAULT NOW(),
         end_date TIMESTAMP,
         current_profit DECIMAL(20, 8) DEFAULT 0,
-        status VARCHAR(50) DEFAULT 'active',
+        is_active BOOLEAN DEFAULT TRUE,
         is_paused BOOLEAN DEFAULT FALSE,
         paused_at TIMESTAMP,
         pause_reason TEXT,
         paused_by INTEGER REFERENCES users(id),
         created_at TIMESTAMP DEFAULT NOW()
       )
+    `);
+
+    -- Add missing columns if they don't exist
+    await db.execute(sql`
+      ALTER TABLE investments 
+      ADD COLUMN IF NOT EXISTS is_paused BOOLEAN DEFAULT FALSE
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE investments 
+      ADD COLUMN IF NOT EXISTS paused_at TIMESTAMP
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE investments 
+      ADD COLUMN IF NOT EXISTS pause_reason TEXT
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE investments 
+      ADD COLUMN IF NOT EXISTS paused_by INTEGER REFERENCES users(id)
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE investments 
+      ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE
     `);
 
     await db.execute(sql`
