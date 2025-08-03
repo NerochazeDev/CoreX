@@ -25,8 +25,6 @@ export interface IStorage {
   createInvestment(investment: InsertInvestment): Promise<Investment>;
   updateInvestmentProfit(id: number, profit: string): Promise<Investment | undefined>;
   getActiveInvestments(): Promise<Investment[]>;
-  pauseInvestment(id: number, reason: string, adminId: number): Promise<Investment | undefined>;
-  unpauseInvestment(id: number): Promise<Investment | undefined>;
 
   // Notification operations
   getUserNotifications(userId: number): Promise<Notification[]>;
@@ -190,35 +188,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveInvestments(): Promise<Investment[]> {
-    return await db.select().from(investments).where(and(eq(investments.isActive, true), eq(investments.isPaused, false)));
-  }
-
-  async pauseInvestment(id: number, reason: string, adminId: number): Promise<Investment | undefined> {
-    const [investment] = await db
-      .update(investments)
-      .set({ 
-        isPaused: true, 
-        pauseReason: reason,
-        pausedAt: new Date(),
-        pausedBy: adminId
-      })
-      .where(eq(investments.id, id))
-      .returning();
-    return investment || undefined;
-  }
-
-  async unpauseInvestment(id: number): Promise<Investment | undefined> {
-    const [investment] = await db
-      .update(investments)
-      .set({ 
-        isPaused: false, 
-        pauseReason: null,
-        pausedAt: null,
-        pausedBy: null
-      })
-      .where(eq(investments.id, id))
-      .returning();
-    return investment || undefined;
+    return await db.select().from(investments).where(eq(investments.isActive, true));
   }
 
   async getUserNotifications(userId: number): Promise<Notification[]> {
