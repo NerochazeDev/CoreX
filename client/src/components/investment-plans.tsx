@@ -19,8 +19,7 @@ export function InvestmentPlans() {
     staleTime: 30000,
   });
 
-  // Debug logging
-  console.log('Investment Plans Debug:', { plans, isLoading, error });
+
 
   const createInvestmentMutation = useMutation({
     mutationFn: async ({ planId, amount }: { planId: number; amount: string }) => {
