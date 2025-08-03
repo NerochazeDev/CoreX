@@ -124,7 +124,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInvestmentPlans(): Promise<InvestmentPlan[]> {
-    return await db.select().from(investmentPlans);
+    return await db.select().from(investmentPlans).where(eq(investmentPlans.isActive, true));
   }
 
   async getInvestmentPlan(id: number): Promise<InvestmentPlan | undefined> {
