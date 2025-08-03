@@ -25,6 +25,8 @@ export interface IStorage {
   createInvestment(investment: InsertInvestment): Promise<Investment>;
   updateInvestmentProfit(id: number, profit: string): Promise<Investment | undefined>;
   getActiveInvestments(): Promise<Investment[]>;
+  getAllInvestmentsWithDetails(): Promise<any[]>;
+  pauseInvestment(id: number, pause: boolean, adminId: number | null, reason?: string): Promise<Investment | undefined>;
 
   // Notification operations
   getUserNotifications(userId: number): Promise<Notification[]>;
@@ -188,7 +190,60 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveInvestments(): Promise<Investment[]> {
-    return await db.select().from(investments).where(eq(investments.isActive, true));
+    return await db.select().from(investments).where(and(eq(investments.isActive, true), eq(investments.isPaused, false)));
+  }
+
+  async getAllInvestmentsWithDetails(): Promise<any[]> {
+    const result = await db
+      .select({
+        investment: investments,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        },
+        plan: {
+          id: investmentPlans.id,
+          name: investmentPlans.name,
+          roiPercentage: investmentPlans.roiPercentage,
+          color: investmentPlans.color,
+        },
+      })
+      .from(investments)
+      .leftJoin(users, eq(investments.userId, users.id))
+      .leftJoin(investmentPlans, eq(investments.planId, investmentPlans.id))
+      .orderBy(desc(investments.startDate));
+
+    return result.map(row => ({
+      ...row.investment,
+      user: row.user,
+      plan: row.plan,
+    }));
+  }
+
+  async pauseInvestment(id: number, pause: boolean, adminId: number | null, reason?: string): Promise<Investment | undefined> {
+    const updateData: any = {
+      isPaused: pause,
+    };
+
+    if (pause) {
+      updateData.pausedBy = adminId;
+      updateData.pausedAt = new Date();
+      updateData.pauseReason = reason || "Paused by admin";
+    } else {
+      updateData.pausedBy = null;
+      updateData.pausedAt = null;
+      updateData.pauseReason = null;
+    }
+
+    const [investment] = await db
+      .update(investments)
+      .set(updateData)
+      .where(eq(investments.id, id))
+      .returning();
+    
+    return investment || undefined;
   }
 
   async getUserNotifications(userId: number): Promise<Notification[]> {
