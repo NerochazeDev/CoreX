@@ -160,7 +160,7 @@ export default function Investment() {
         </div>
 
         {/* Performance Insights */}
-        {activeInvestments.length > 0 && (
+        {(activeInvestments.length > 0 || investments?.some(inv => inv.isPaused)) && (
           <Card className="bg-gray-900/50 backdrop-blur-sm border border-gray-800">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
@@ -169,17 +169,21 @@ export default function Investment() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-green-500/20 rounded-lg border border-green-500/30">
-                  <div className="text-2xl font-bold text-green-400">{activeInvestments.length}</div>
-                  <div className="text-sm text-gray-300">Active Investments</div>
+                  <div className="text-2xl font-bold text-green-400">{activeInvestments.filter(inv => !inv.isPaused).length}</div>
+                  <div className="text-sm text-gray-300">Active & Earning</div>
+                </div>
+                <div className="text-center p-4 bg-orange-500/20 rounded-lg border border-orange-500/30">
+                  <div className="text-2xl font-bold text-orange-400">{investments?.filter(inv => inv.isPaused).length || 0}</div>
+                  <div className="text-sm text-gray-300">Paused</div>
                 </div>
                 <div className="text-center p-4 bg-blue-500/20 rounded-lg border border-blue-500/30">
                   <div className="text-2xl font-bold text-blue-400">{completedInvestments.length}</div>
                   <div className="text-sm text-gray-300">Completed</div>
                 </div>
-                <div className="text-center p-4 bg-orange-500/20 rounded-lg border border-orange-500/30">
-                  <div className="text-2xl font-bold text-orange-400">{pendingInvestments.length}</div>
+                <div className="text-center p-4 bg-purple-500/20 rounded-lg border border-purple-500/30">
+                  <div className="text-2xl font-bold text-purple-400">{pendingInvestments.length}</div>
                   <div className="text-sm text-gray-300">Pending Review</div>
                 </div>
               </div>
@@ -189,6 +193,57 @@ export default function Investment() {
 
         {/* Investment Plans */}
         <InvestmentPlans />
+
+        {/* Paused Investments */}
+        {investments?.filter(inv => inv.isPaused).length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <span className="w-5 h-5 text-orange-400">⏸️</span>
+              Paused Investments
+            </h3>
+            <div className="space-y-3">
+              {investments.filter(inv => inv.isPaused).map((investment) => {
+                const plan = plans?.find(p => p.id === investment.planId);
+                const profitPercentage = ((parseFloat(investment.currentProfit) / parseFloat(investment.amount)) * 100);
+
+                return (
+                  <Card key={investment.id} className="dark-card rounded-xl p-4 dark-border border-orange-500/20">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-semibold text-orange-400">{getPlanName(investment.planId)}</h4>
+                        <p className="text-muted-foreground text-sm">
+                          Paused: {investment.pausedAt ? formatDate(new Date(investment.pausedAt)) : 'Recently'}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="border-orange-500 text-orange-400">
+                        Paused
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div>
+                        <span className="text-xs text-muted-foreground">Principal</span>
+                        <div className="font-semibold text-foreground">{formatBitcoin(investment.amount)} BTC</div>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground">Current Profit</span>
+                        <div className="font-semibold text-green-400">+{formatBitcoin(investment.currentProfit)} BTC</div>
+                        <div className="text-xs text-green-400">+{profitPercentage.toFixed(2)}%</div>
+                      </div>
+                    </div>
+
+                    {investment.pauseReason && (
+                      <div className="bg-orange-500/10 p-3 rounded border border-orange-500/20">
+                        <span className="text-orange-400 font-medium text-sm block mb-1">Pause Reason:</span>
+                        <span className="text-muted-foreground text-sm">{investment.pauseReason}</span>
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Pending Investments */}
         {pendingInvestments.length > 0 && (
@@ -253,9 +308,10 @@ export default function Investment() {
                 const plan = plans?.find(p => p.id === investment.planId);
                 const currentValue = parseFloat(investment.amount) + parseFloat(investment.currentProfit);
                 const profitPercentage = ((parseFloat(investment.currentProfit) / parseFloat(investment.amount)) * 100);
+                const isPaused = investment.isPaused;
 
                 return (
-                  <Card key={investment.id} className="bg-gray-900/60 backdrop-blur-sm border border-green-500/30 rounded-xl p-4">
+                  <Card key={investment.id} className={`bg-gray-900/60 backdrop-blur-sm border rounded-xl p-4 ${isPaused ? 'border-orange-500/30' : 'border-green-500/30'}`}>
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h4 className="font-semibold text-yellow-400 flex items-center gap-2">
@@ -265,11 +321,28 @@ export default function Investment() {
                         <p className="text-gray-400 text-sm">
                           Started: {formatDate(new Date(investment.startDate))}
                         </p>
+                        {isPaused && investment.pausedAt && (
+                          <p className="text-orange-400 text-sm">
+                            Paused: {formatDate(new Date(investment.pausedAt))}
+                          </p>
+                        )}
                       </div>
-                      <Badge className="bg-green-500/30 text-green-300 hover:bg-green-500/40 border-green-500/50">
-                        Earning
+                      <Badge className={isPaused 
+                        ? "bg-orange-500/30 text-orange-300 hover:bg-orange-500/40 border-orange-500/50"
+                        : "bg-green-500/30 text-green-300 hover:bg-green-500/40 border-green-500/50"
+                      }>
+                        {isPaused ? 'Paused' : 'Earning'}
                       </Badge>
                     </div>
+                    
+                    {isPaused && investment.pauseReason && (
+                      <div className="mb-4 p-3 bg-orange-500/10 rounded border border-orange-500/20">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-orange-400 font-medium text-sm">⏸️ Pause Reason:</span>
+                        </div>
+                        <p className="text-orange-300 text-sm">{investment.pauseReason}</p>
+                      </div>
+                    )}
                     
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>

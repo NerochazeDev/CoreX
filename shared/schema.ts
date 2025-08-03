@@ -42,6 +42,10 @@ export const investments = pgTable("investments", {
   endDate: timestamp("end_date").notNull(),
   currentProfit: decimal("current_profit", { precision: 18, scale: 8 }).notNull().default("0"),
   isActive: boolean("is_active").notNull().default(true),
+  isPaused: boolean("is_paused").notNull().default(false),
+  pausedAt: timestamp("paused_at"),
+  pauseReason: text("pause_reason"),
+  pausedBy: integer("paused_by"), // admin user id who paused
 });
 
 export const notifications = pgTable("notifications", {

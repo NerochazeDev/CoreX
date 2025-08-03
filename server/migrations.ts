@@ -100,6 +100,10 @@ export async function runSafeMigrations() {
         end_date TIMESTAMP,
         current_profit DECIMAL(20, 8) DEFAULT 0,
         status VARCHAR(50) DEFAULT 'active',
+        is_paused BOOLEAN DEFAULT FALSE,
+        paused_at TIMESTAMP,
+        pause_reason TEXT,
+        paused_by INTEGER REFERENCES users(id),
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
