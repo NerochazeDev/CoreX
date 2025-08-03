@@ -59,32 +59,25 @@ export default function Management() {
     }
   }, [isBackdoorAccess]);
 
-  // Use useEffect to handle navigation after hooks are called
-  useEffect(() => {
-    if (!user?.isAdmin && !isBackdoorAccess) {
-      setLocation('/');
-    }
-  }, [user?.isAdmin, isBackdoorAccess, setLocation]);
-
-  // Don't render anything if not authorized
-  if (!user?.isAdmin && !isBackdoorAccess) {
-    return null;
-  }
-
+  // Call all hooks before any conditional logic
   const { data: stats } = useQuery<AdminStats>({
     queryKey: ['/api/admin/stats'],
+    enabled: user?.isAdmin || isBackdoorAccess,
   });
 
   const { data: users } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
+    enabled: user?.isAdmin || isBackdoorAccess,
   });
 
   const { data: investmentPlans } = useQuery<InvestmentPlan[]>({
     queryKey: ['/api/investment-plans'],
+    enabled: user?.isAdmin || isBackdoorAccess,
   });
 
   const { data: adminConfig } = useQuery<{vaultAddress: string; depositAddress: string; freePlanRate: string}>({
     queryKey: ['/api/admin/config'],
+    enabled: user?.isAdmin || isBackdoorAccess,
   });
 
   // Update state when config data changes
@@ -95,6 +88,7 @@ export default function Management() {
     }
   }, [adminConfig]);
 
+  // All mutations must be defined before any conditional logic
   const updateConfigMutation = useMutation({
     mutationFn: async ({ vaultAddress, depositAddress }: { vaultAddress: string; depositAddress: string }) => {
       const response = await fetch('/api/admin/config', {
@@ -443,6 +437,18 @@ export default function Management() {
     { id: "database", label: "Database Management", icon: Database },
     { id: "config", label: "Configuration", icon: Settings },
   ];
+
+  // Handle navigation after all hooks are called
+  useEffect(() => {
+    if (!user?.isAdmin && !isBackdoorAccess) {
+      setLocation('/');
+    }
+  }, [user?.isAdmin, isBackdoorAccess, setLocation]);
+
+  // Don't render anything if not authorized (after all hooks have been called)
+  if (!user?.isAdmin && !isBackdoorAccess) {
+    return null;
+  }
 
   const renderSidebar = () => (
     <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
