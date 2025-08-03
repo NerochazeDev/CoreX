@@ -13,9 +13,13 @@ export function InvestmentPlans() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const { data: plans, isLoading } = useQuery<InvestmentPlan[]>({
+  const { data: plans, isLoading, error } = useQuery<InvestmentPlan[]>({
     queryKey: ['/api/investment-plans'],
+    retry: 3,
+    staleTime: 30000,
   });
+
+
 
   const createInvestmentMutation = useMutation({
     mutationFn: async ({ planId, amount }: { planId: number; amount: string }) => {
@@ -75,6 +79,36 @@ export function InvestmentPlans() {
             </Card>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="px-4 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-foreground">Investment Plans</h3>
+        </div>
+        <Card className="p-4 border-red-500/20 bg-red-500/10">
+          <p className="text-red-400 text-center">
+            Error loading investment plans: {error.message}
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!plans || plans.length === 0) {
+    return (
+      <div className="px-4 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-foreground">Investment Plans</h3>
+        </div>
+        <Card className="p-4 border-yellow-500/20 bg-yellow-500/10">
+          <p className="text-yellow-400 text-center">
+            No investment plans available at the moment.
+          </p>
+        </Card>
       </div>
     );
   }
