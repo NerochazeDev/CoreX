@@ -8,22 +8,35 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
+// Clean and validate the DATABASE_URL
+let databaseUrl = process.env.DATABASE_URL.trim();
+
+// Remove any trailing file paths or socket references that might be invalid
+databaseUrl = databaseUrl.replace(/\/\.s\.PGSQL\.\d+$/, '');
+
+// Ensure proper SSL mode for production databases
+if (!databaseUrl.includes('sslmode=') && !databaseUrl.includes('localhost')) {
+  databaseUrl += databaseUrl.includes('?') ? '&sslmode=require' : '?sslmode=require';
+}
+
+console.log('🔗 Using database URL:', databaseUrl.replace(/:[^:@]+@/, ':****@'));
+
 // Enhanced connection configuration with robust retry logic
 const connectionConfig = {
-  host: process.env.DATABASE_URL,
-  max: 20, // Maximum connections in pool
-  idle_timeout: 20, // Close idle connections after 20 seconds
-  connect_timeout: 30, // Connection timeout in seconds
+  max: 10, // Reduced pool size for stability
+  idle_timeout: 30, // Close idle connections after 30 seconds
+  connect_timeout: 60, // Increased connection timeout
   prepare: false, // Disable prepared statements for better compatibility
   onnotice: () => {}, // Suppress notices
   connection: {
     application_name: 'plus500_investment_platform',
-    statement_timeout: 30000, // 30 second query timeout
-    idle_in_transaction_session_timeout: 60000, // 1 minute idle transaction timeout
+    statement_timeout: 60000, // 60 second query timeout
+    idle_in_transaction_session_timeout: 120000, // 2 minute idle transaction timeout
   },
   transform: postgres.camel, // Convert snake_case to camelCase
-  retry: 3, // Retry failed queries 3 times
+  retry: 5, // Increased retry attempts
   backoff: 'exponential', // Exponential backoff for retries
+  ssl: databaseUrl.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
 };
 
 let client: postgres.Sql;
@@ -41,7 +54,7 @@ async function initializeConnection(): Promise<void> {
       await client.end();
     }
     
-    client = postgres(process.env.DATABASE_URL!, connectionConfig);
+    client = postgres(databaseUrl, connectionConfig);
     db = drizzle(client, { schema });
     
     // Test the connection
@@ -85,25 +98,44 @@ function setupConnectionMonitoring(): void {
 // Wrapper for database operations with automatic retry
 export async function executeQuery<T>(operation: () => Promise<T>): Promise<T> {
   let attempts = 0;
-  const maxAttempts = 3;
+  const maxAttempts = 5; // Increased max attempts
   
   while (attempts < maxAttempts) {
     try {
+      if (!client) {
+        await initializeConnection();
+      }
       return await operation();
     } catch (error: any) {
       attempts++;
       
       // Check if it's a connection error
-      if (error?.code === 'ECONNRESET' || error?.code === 'ENOTFOUND' || error?.message?.includes('connection')) {
-        console.warn(`🔄 Database operation failed (attempt ${attempts}), retrying...`);
+      const isConnectionError = error?.code === 'ECONNRESET' || 
+                               error?.code === 'ENOTFOUND' || 
+                               error?.code === 'ENOENT' ||
+                               error?.message?.includes('connection') ||
+                               error?.message?.includes('connect') ||
+                               error?.message?.includes('timeout');
+      
+      if (isConnectionError) {
+        console.warn(`🔄 Database operation failed (attempt ${attempts}/${maxAttempts}), retrying...`);
         
         if (attempts < maxAttempts) {
-          await initializeConnection();
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+          // Force reconnection
+          if (client) {
+            try {
+              await client.end();
+            } catch {}
+            client = null as any;
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 2000 * attempts));
           continue;
         }
       }
       
+      // If it's not a connection error or we've exhausted retries, throw
+      console.error(`Database operation failed after ${attempts} attempts:`, error.message);
       throw error;
     }
   }
@@ -111,8 +143,12 @@ export async function executeQuery<T>(operation: () => Promise<T>): Promise<T> {
   throw new Error('Database operation failed after maximum retry attempts');
 }
 
-// Initialize connection immediately
-initializeConnection().catch(console.error);
+// Initialize connection with additional error handling
+initializeConnection().catch((error) => {
+  console.error('Initial database connection failed:', error);
+  console.log('💡 The application will continue in degraded mode');
+  console.log('💡 Database will retry connecting automatically');
+});
 
 // Export the database instance with fallback handling
 export { client, db };

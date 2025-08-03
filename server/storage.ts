@@ -129,22 +129,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(userId: number): Promise<void> {
-    // Delete user's related data first to maintain referential integrity
-    await db.delete(notifications).where(eq(notifications.userId, userId));
-    await db.delete(transactions).where(eq(transactions.userId, userId));
-    await db.delete(investments).where(eq(investments.userId, userId));
+    return await executeQuery(async () => {
+      // Delete user's related data first to maintain referential integrity
+      await db.delete(notifications).where(eq(notifications.userId, userId));
+      await db.delete(transactions).where(eq(transactions.userId, userId));
+      await db.delete(investments).where(eq(investments.userId, userId));
 
-    // Finally delete the user
-    await db.delete(users).where(eq(users.id, userId));
+      // Finally delete the user
+      await db.delete(users).where(eq(users.id, userId));
+    });
   }
 
   async getInvestmentPlans(): Promise<InvestmentPlan[]> {
-    return await db.select().from(investmentPlans).where(eq(investmentPlans.isActive, true));
+    return await executeQuery(async () => {
+      return await db.select().from(investmentPlans).where(eq(investmentPlans.isActive, true));
+    });
   }
 
   async getInvestmentPlan(id: number): Promise<InvestmentPlan | undefined> {
-    const [plan] = await db.select().from(investmentPlans).where(eq(investmentPlans.id, id));
-    return plan || undefined;
+    return await executeQuery(async () => {
+      const [plan] = await db.select().from(investmentPlans).where(eq(investmentPlans.id, id));
+      return plan || undefined;
+    });
   }
 
   async createInvestmentPlan(insertPlan: InsertInvestmentPlan): Promise<InvestmentPlan> {
