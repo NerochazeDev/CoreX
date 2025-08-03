@@ -6,6 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { testConnection } from "./db";
 import { runSafeMigrations } from "./migrations";
 import { SESSION_SECRET, PORT } from "./config";
+import { databaseHealthMonitor } from "./database-health";
 
 const MemStore = MemoryStore(session);
 
@@ -94,16 +95,36 @@ process.on('uncaughtException', (error) => {
 });
 
 (async () => {
-  // Initialize database with migrations - don't fail on connection issues
-  try {
-    const connected = await testConnection();
-    if (connected) {
-      await runSafeMigrations();
-    } else {
-      console.warn('⚠️  Database connection failed, starting server without database');
+  // Enhanced database initialization with retry logic
+  let dbInitialized = false;
+  let initAttempts = 0;
+  const maxInitAttempts = 5;
+  
+  while (!dbInitialized && initAttempts < maxInitAttempts) {
+    try {
+      initAttempts++;
+      console.log(`🔄 Database initialization attempt ${initAttempts}/${maxInitAttempts}...`);
+      
+      const connected = await testConnection();
+      if (connected) {
+        await runSafeMigrations();
+        dbInitialized = true;
+        console.log('✅ Database initialized successfully');
+      } else {
+        throw new Error('Database connection test failed');
+      }
+    } catch (error) {
+      console.warn(`⚠️  Database initialization attempt ${initAttempts} failed:`, error instanceof Error ? error.message : 'Unknown error');
+      
+      if (initAttempts < maxInitAttempts) {
+        const delay = 2000 * initAttempts; // Increasing delay
+        console.log(`🕐 Retrying database initialization in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.warn('💥 All database initialization attempts failed. Server will start in degraded mode.');
+        console.warn('📝 Some features may not work properly without database connection.');
+      }
     }
-  } catch (error) {
-    console.warn('⚠️  Database initialization failed, starting server in limited mode:', error instanceof Error ? error.message : 'Unknown error');
   }
   
   const server = await registerRoutes(app);

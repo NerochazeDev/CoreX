@@ -1,5 +1,5 @@
 import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase } from "@shared/schema";
-import { db } from "./db";
+import { db, executeQuery } from "./db";
 import { eq, desc, and, isNotNull, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -67,51 +67,65 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return await executeQuery(async () => {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user || undefined;
+    });
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
+    return await executeQuery(async () => {
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+      return user || undefined;
+    });
   }
 
   async createUser(insertUser: InsertUser & { bitcoinAddress: string; privateKey: string }): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values({
-        ...insertUser,
-        balance: "0",
-        isAdmin: false,
-      })
-      .returning();
-    return user;
+    return await executeQuery(async () => {
+      const [user] = await db
+        .insert(users)
+        .values({
+          ...insertUser,
+          balance: "0",
+          isAdmin: false,
+        })
+        .returning();
+      return user;
+    });
   }
 
   async updateUserBalance(userId: number, balance: string): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({ balance })
-      .where(eq(users.id, userId))
-      .returning();
-    return user || undefined;
+    return await executeQuery(async () => {
+      const [user] = await db
+        .update(users)
+        .set({ balance })
+        .where(eq(users.id, userId))
+        .returning();
+      return user || undefined;
+    });
   }
 
   async updateUserPlan(userId: number, planId: number | null): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({ currentPlanId: planId })
-      .where(eq(users.id, userId))
-      .returning();
-    return user || undefined;
+    return await executeQuery(async () => {
+      const [user] = await db
+        .update(users)
+        .set({ currentPlanId: planId })
+        .where(eq(users.id, userId))
+        .returning();
+      return user || undefined;
+    });
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
+    return await executeQuery(async () => {
+      return await db.select().from(users);
+    });
   }
 
   async getUsersWithPlans(): Promise<User[]> {
-    return await db.select().from(users).where(isNotNull(users.currentPlanId));
+    return await executeQuery(async () => {
+      return await db.select().from(users).where(isNotNull(users.currentPlanId));
+    });
   }
 
   async deleteUser(userId: number): Promise<void> {
