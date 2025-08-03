@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const authToken = localStorage.getItem('plus500_auth_token');
       const headers: Record<string, string> = {};
-
+      
       if (authToken) {
         headers.Authorization = `Bearer ${authToken}`;
       }
@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Store in localStorage with activity timestamp
     localStorage.setItem('plus500_user', JSON.stringify(userData));
     localStorage.setItem('plus500_last_activity', Date.now().toString());
-
+    
     // Set user state
     setUser(userData);
 
@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: 'GET',
         credentials: 'include',
       });
-
+      
       if (response.ok) {
         const updatedUser = await response.json();
         setUser(updatedUser);
@@ -162,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // Only clear session if it's an authentication error
         if (response.status === 401 || response.status === 403) {
-
+  
           logout();
         }
       }

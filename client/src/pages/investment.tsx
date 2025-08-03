@@ -36,19 +36,8 @@ export default function Investment() {
 
   const { data: investments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user.id],
-    queryFn: () => fetch(`/api/investments/user/${user.id}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
-      }
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error('Failed to fetch investments');
-      }
-      return res.json();
-    }),
-    refetchInterval: 5000, // Refresh every 5 seconds for instant updates
+    refetchInterval: 30000,
     staleTime: 0, // Always consider data stale
-    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   const { data: plans } = useQuery<InvestmentPlan[]>({
@@ -58,9 +47,8 @@ export default function Investment() {
 
   const { data: transactions } = useQuery<any[]>({
     queryKey: ['/api/transactions'],
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 30000,
     staleTime: 0, // Always consider data stale
-    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   const getPlanName = (planId: number) => {
