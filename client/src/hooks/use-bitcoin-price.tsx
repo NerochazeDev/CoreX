@@ -63,10 +63,10 @@ export function useBitcoinPrice() {
         throw error; // Don't use fallback data, let React Query handle retries
       }
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
-    staleTime: 25000, // Consider data stale after 25 seconds
-    retry: 3, // Retry failed requests
-    retryDelay: 2000, // Wait 2 seconds between retries
+    refetchInterval: 60000, // Refresh every 60 seconds (reduced frequency)
+    staleTime: 50000, // Consider data stale after 50 seconds
+    retry: 2, // Reduce retry attempts
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backofftries
   });
 }
 
