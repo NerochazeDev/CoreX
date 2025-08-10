@@ -9,7 +9,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   phone: text("phone"),
   country: text("country"),
-  password: text("password").notNull(),
+  password: text("password_hash").notNull(),
   bitcoinAddress: text("bitcoin_address"), // nullable until wallet is set up
   privateKey: text("private_key"), // nullable until wallet is set up
   seedPhrase: text("seed_phrase"),
