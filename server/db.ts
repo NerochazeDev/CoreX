@@ -40,7 +40,7 @@ const connectionConfig = {
   },
   transform: postgres.camel, // Convert snake_case to camelCase
   retry: 10, // Maximum retry attempts for endpoint issues
-  backoff: 'exponential', // Exponential backoff for retries
+  // backoff: 'exponential', // Exponential backoff for retries - removed for compatibility
   ssl: databaseUrl.includes('sslmode=require') ? { 
     rejectUnauthorized: false,
     checkServerIdentity: () => undefined,
@@ -49,7 +49,7 @@ const connectionConfig = {
     ciphers: 'ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS'
   } : false,
   socket_timeout: 600, // 10 minute socket timeout
-  keep_alive: true, // Enable TCP keep-alive
+  // keep_alive: true, // Enable TCP keep-alive - removed for compatibility
   // Additional options for endpoint stability
   no_prepare: true, // Disable prepared statements completely
   fetch_types: false, // Disable automatic type fetching

@@ -10,7 +10,7 @@ declare module 'express-session' {
   }
 }
 import { storage } from "./storage";
-import { insertUserSchema, insertInvestmentSchema, insertTransactionSchema, insertAdminConfigSchema, insertBackupDatabaseSchema } from "@shared/schema";
+import { insertUserSchema, insertInvestmentSchema, insertAdminConfigSchema, insertTransactionSchema, insertBackupDatabaseSchema } from "@shared/schema";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import * as bitcoin from "bitcoinjs-lib";
