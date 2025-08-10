@@ -2,14 +2,17 @@ import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import * as schema from "@shared/schema";
 
-if (!process.env.DATABASE_URL) {
+// Use the new Neon database URL
+const NEON_DATABASE_URL = "postgresql://neondb_owner:npg_ajx30GrguBRk@ep-withered-lab-abmkbwbi-pooler.eu-west-2.aws.neon.tech/Plus500?sslmode=require&channel_binding=require";
+
+if (!process.env.DATABASE_URL && !NEON_DATABASE_URL) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );
 }
 
-// Clean and validate the DATABASE_URL
-let databaseUrl = process.env.DATABASE_URL.trim();
+// Clean and validate the DATABASE_URL - use Neon database exclusively
+let databaseUrl = NEON_DATABASE_URL.trim();
 
 // Remove any trailing file paths or socket references that might be invalid
 databaseUrl = databaseUrl.replace(/\/\.s\.PGSQL\.\d+$/, '');
