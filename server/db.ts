@@ -11,6 +11,17 @@ if (!process.env.DATABASE_URL) {
 // Clean and validate the DATABASE_URL from environment secrets
 let databaseUrl = process.env.DATABASE_URL.trim();
 
+// Remove any prefixes that might be added incorrectly
+if (databaseUrl.startsWith("DATABASE_URL=")) {
+  databaseUrl = databaseUrl.replace("DATABASE_URL=", "");
+}
+if (databaseUrl.startsWith("'") && databaseUrl.endsWith("'")) {
+  databaseUrl = databaseUrl.slice(1, -1);
+}
+if (databaseUrl.startsWith('"') && databaseUrl.endsWith('"')) {
+  databaseUrl = databaseUrl.slice(1, -1);
+}
+
 // Remove any trailing file paths or socket references that might be invalid
 databaseUrl = databaseUrl.replace(/\/\.s\.PGSQL\.\d+$/, '');
 
