@@ -70,9 +70,10 @@ Plus500 VIP Investors is a premium Bitcoin investment platform that provides VIP
 - **QR Code API**: QR code generation for Bitcoin addresses
 
 ### Database
-- **Replit PostgreSQL**: Replit-hosted PostgreSQL database with secure environment variables
-- **Connection**: Serverless connection using @neondatabase/serverless package
+- **Neon PostgreSQL**: Neon-hosted PostgreSQL database with secure environment variables
+- **Connection**: Serverless connection using postgres package with SSL support
 - **Data Export/Import**: Admin interface for downloading and importing complete database backups
+- **Security**: Database URL stored securely in Replit Secrets, no hardcoded credentials
 
 ### Bitcoin Libraries
 - **bitcoinjs-lib**: Bitcoin transaction and wallet operations
@@ -106,6 +107,7 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 - `PORT`: Server port (defaults to 5000)
 
 ## Changelog
+- August 10, 2025. **Migrated to new Neon PostgreSQL database** - Successfully integrated user's new Neon database with secure environment variables, removed old database connections, all user data and features working correctly
 - August 2, 2025. **Fixed Railway deployment configuration (v2)** - Removed problematic nixpacks.toml with invalid package names, created .nvmrc for Node.js 20, using Railway's automatic Node.js detection for reliable deployment
 - August 2, 2025. **Fixed Railway deployment configuration** - Removed Dockerfile to prevent Docker detection, updated railway.json and nixpacks.toml for proper Node.js deployment, created .railwayignore, verified build process works correctly
 - August 2, 2025. Configured Railway deployment with optimized build process and production environment variables
