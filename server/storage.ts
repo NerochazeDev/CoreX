@@ -63,7 +63,7 @@ export interface IStorage {
   toggleInvestmentStatus(id: number): Promise<Investment | null>;
   cancelInvestment(id: number): Promise<boolean>;
   getAllInvestments(): Promise<Investment[]>;
-  
+
   // Support ticket operations
   createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket>;
   getUserSupportTickets(userId: number): Promise<SupportTicket[]>;

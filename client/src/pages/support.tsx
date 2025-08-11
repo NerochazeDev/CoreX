@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { MessageCircle, Upload, Clock, CheckCircle, AlertTriangle, X, Image, Plus } from "lucide-react";
+import { MessageCircle, Upload, Clock, CheckCircle, AlertTriangle, X, Image, Plus, ArrowLeft } from "lucide-react";
 import type { SupportTicket, SupportResponse } from "@shared/schema";
 
 interface CreateTicketForm {
@@ -24,6 +25,7 @@ interface CreateTicketForm {
 }
 
 export default function Support() {
+  const [location, setLocation] = useLocation();
   const [showCreateTicket, setShowCreateTicket] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<number | null>(null);
   const [responseMessage, setResponseMessage] = useState("");
@@ -205,11 +207,22 @@ export default function Support() {
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Support Center</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Get help with your Plus500 VIP account and investments
-          </p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation('/settings')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Support Center</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Get help with your Plus500 VIP account and investments
+            </p>
+          </div>
         </div>
         <Button
           onClick={() => setShowCreateTicket(true)}

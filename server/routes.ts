@@ -766,7 +766,102 @@ function broadcastToClients(data: any) {
       }
 
       // Check if user owns the ticket or is admin
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      if (ticket.userId !== userId && !user.isAdmin) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const responses = await storage.getSupportTicketResponses(ticketId);
+      res.json({
+        ticket,
+        responses
+      });
+    } catch (error: any) {
+      console.error('Error fetching ticket details:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/support/ticket/:id/respond", async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Please login to respond to ticket" });
+      }
+
+      const ticketId = parseInt(req.params.id);
+      const { message } = req.body;
+      
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      const ticket = await storage.getSupportTicketById(ticketId);
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket not found" });
+      }
+
+      // Check if user owns the ticket
+      if (ticket.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Create response
+      const response = await storage.createSupportResponse({
+        ticketId,
+        userId,
+        adminId: null,
+        message: message.trim(),
+        isFromAdmin: false
+      });
+
+      // Update ticket status to in_progress if it was open
+      if (ticket.status === "open") {
+        await storage.updateSupportTicketStatus(ticketId, "in_progress");
+      }
+
+      // Create notification for user
+      await storage.createNotification({
+        userId,
+        title: "Support Response Added",
+        message: `You added a response to ticket "${ticket.subject}".`,
+        type: "info"
+      });
+
+      res.json({ 
+        message: "Response added successfully",
+        response 
+      });
+    } catch (error: any) {
+      console.error('Support response error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Admin support ticket routes
+  app.get("/api/admin/support-tickets", async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Please login" });
+      }
+
+      const user = await storage.getUserById(userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const tickets = await storage.getAllSupportTickets();
+      res.json(tickets);
+    } catch (error: any) {
+      console.error('Error fetching admin tickets:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });t user = await storage.getUser(userId);
       if (ticket.userId !== userId && !user?.isAdmin) {
         return res.status(403).json({ message: "Access denied" });
       }
