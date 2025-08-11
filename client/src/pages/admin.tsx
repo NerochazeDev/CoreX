@@ -443,7 +443,6 @@ export default function Management() {
     { id: "investments", label: "Investment Control", icon: Activity },
     { id: "plans", label: "Investment Plans", icon: TrendingUp },
     { id: "transactions", label: "Transactions", icon: Clock },
-    { id: "support", label: "Support Tickets", icon: Users },
     { id: "security", label: "Security", icon: Shield },
     { id: "database", label: "Database Management", icon: Database },
     { id: "config", label: "Configuration", icon: Settings },
@@ -478,8 +477,6 @@ export default function Management() {
             onClick={() => {
               if (item.id === 'database') {
                 setLocation('/admin-database');
-              } else if (item.id === 'support') {
-                setLocation('/admin-support');
               } else {
                 setActiveTab(item.id);
                 setSidebarOpen(false);

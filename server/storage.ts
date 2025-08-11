@@ -1,4 +1,4 @@
-import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, supportTickets, supportResponses, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase, type SupportTicket, type InsertSupportTicket, type SupportResponse, type InsertSupportResponse } from "@shared/schema";
+import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase } from "@shared/schema";
 import { db, executeQuery } from "./db";
 import { eq, desc, and, isNotNull, inArray } from "drizzle-orm";
 
@@ -63,16 +63,6 @@ export interface IStorage {
   toggleInvestmentStatus(id: number): Promise<Investment | null>;
   cancelInvestment(id: number): Promise<boolean>;
   getAllInvestments(): Promise<Investment[]>;
-
-  // Support ticket operations
-  createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket>;
-  getUserSupportTickets(userId: number): Promise<SupportTicket[]>;
-  getAllSupportTickets(): Promise<SupportTicket[]>;
-  getSupportTicketById(id: number): Promise<SupportTicket | null>;
-  updateSupportTicketStatus(id: number, status: string, adminId?: number): Promise<SupportTicket | null>;
-  createSupportResponse(response: InsertSupportResponse): Promise<SupportResponse>;
-  getSupportTicketResponses(ticketId: number): Promise<SupportResponse[]>;
-  uploadImage(buffer: Buffer, filename: string): Promise<string>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -613,87 +603,6 @@ export class DatabaseStorage implements IStorage {
       console.error('Error cancelling investment:', error);
       return false;
     }
-  }
-
-  // Support ticket operations
-  async createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket> {
-    return await executeQuery(async () => {
-      const [created] = await db
-        .insert(supportTickets)
-        .values(ticket)
-        .returning();
-      return created;
-    });
-  }
-
-  async getUserSupportTickets(userId: number): Promise<SupportTicket[]> {
-    return await executeQuery(async () => {
-      return await db
-        .select()
-        .from(supportTickets)
-        .where(eq(supportTickets.userId, userId))
-        .orderBy(desc(supportTickets.createdAt));
-    });
-  }
-
-  async getAllSupportTickets(): Promise<SupportTicket[]> {
-    return await executeQuery(async () => {
-      return await db
-        .select()
-        .from(supportTickets)
-        .orderBy(desc(supportTickets.createdAt));
-    });
-  }
-
-  async getSupportTicketById(id: number): Promise<SupportTicket | null> {
-    return await executeQuery(async () => {
-      const [ticket] = await db
-        .select()
-        .from(supportTickets)
-        .where(eq(supportTickets.id, id));
-      return ticket || null;
-    });
-  }
-
-  async updateSupportTicketStatus(id: number, status: string, adminId?: number): Promise<SupportTicket | null> {
-    return await executeQuery(async () => {
-      const [updated] = await db
-        .update(supportTickets)
-        .set({ 
-          status, 
-          updatedAt: new Date()
-        })
-        .where(eq(supportTickets.id, id))
-        .returning();
-      return updated || null;
-    });
-  }
-
-  async createSupportResponse(response: InsertSupportResponse): Promise<SupportResponse> {
-    return await executeQuery(async () => {
-      const [created] = await db
-        .insert(supportResponses)
-        .values(response)
-        .returning();
-      return created;
-    });
-  }
-
-  async getSupportTicketResponses(ticketId: number): Promise<SupportResponse[]> {
-    return await executeQuery(async () => {
-      return await db
-        .select()
-        .from(supportResponses)
-        .where(eq(supportResponses.ticketId, ticketId))
-        .orderBy(supportResponses.createdAt);
-    });
-  }
-
-  async uploadImage(buffer: Buffer, filename: string): Promise<string> {
-    // Simple base64 encoding for image storage
-    const base64 = buffer.toString('base64');
-    const dataUrl = `data:image/${filename.split('.').pop()};base64,${base64}`;
-    return dataUrl;
   }
 }
 
