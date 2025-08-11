@@ -41,19 +41,40 @@ export default function History() {
 
   const { data: investments, isLoading } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user?.id],
-    queryFn: () => fetch(`/api/investments/user/${user?.id}`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`/api/investments/user/${user?.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch investments');
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: !!user?.id,
   });
 
   const { data: notifications, isLoading: loadingNotifications } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    queryFn: () => fetch(`/api/notifications/${user?.id}`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`/api/notifications/${user?.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch notifications');
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: !!user?.id,
   });
 
   const { data: transactions, isLoading: loadingTransactions } = useQuery<Transaction[]>({
     queryKey: ['/api/transactions'],
-    queryFn: () => fetch(`/api/transactions`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`/api/transactions`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch transactions');
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: !!user?.id,
   });
 
@@ -141,7 +162,7 @@ export default function History() {
             {/* All transactions including investment history */}
             <div className="space-y-3">
               {/* Recent transactions from API */}
-              {transactions?.map((transaction) => {
+              {Array.isArray(transactions) && transactions.map((transaction) => {
                 const getTransactionIcon = (type: string, status: string) => {
                   if (type === 'deposit') return <ArrowDownLeft className="w-4 h-4 text-green-500" />;
                   if (type === 'withdrawal') return <ArrowUpRight className="w-4 h-4 text-red-500" />;
@@ -236,7 +257,7 @@ export default function History() {
               })}
 
               {/* Investment History as Transactions */}
-              {investments?.map((investment) => {
+              {Array.isArray(investments) && investments.map((investment) => {
                 const currentValue = parseFloat(investment.amount) + parseFloat(investment.currentProfit);
                 const progress = calculateInvestmentProgress(new Date(investment.startDate), new Date(investment.endDate));
                 const getPlanName = (planId: number) => {
@@ -312,7 +333,7 @@ export default function History() {
             </div>
 
             {/* Bitcoin Transactions from Notifications */}
-            {notifications && notifications
+            {Array.isArray(notifications) && notifications
               .filter(notif => notif.title.includes("Bitcoin Received") || notif.title.includes("Bitcoin Sent"))
               .map((notification) => {
                 const isReceived = notification.title.includes("Bitcoin Received");
@@ -388,9 +409,9 @@ export default function History() {
             </div>
 
             {/* Show empty state only if no transactions, investments, or notifications */}
-            {(!investments || investments.length === 0) && 
-             (!transactions || transactions.length === 0) &&
-             (!notifications || notifications.filter(n => n.title.includes("Bitcoin")).length === 0) && (
+            {(!Array.isArray(investments) || investments.length === 0) && 
+             (!Array.isArray(transactions) || transactions.length === 0) &&
+             (!Array.isArray(notifications) || notifications.filter(n => n.title.includes("Bitcoin")).length === 0) && (
               <Card className="dark-card dark-border">
                 <CardContent className="p-8 text-center">
                   <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
