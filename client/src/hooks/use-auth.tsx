@@ -78,44 +78,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Ensure cookies are sent with requests
-        body: JSON.stringify({ email, password }),
-      });
 
-      if (!response.ok) {
-        const error = await response.json();
 
-        throw new Error(error.message);
-      }
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Ensure cookies are sent with requests
+      body: JSON.stringify({ email, password }),
+    });
 
-      const userData = await response.json();
 
-      // Store auth token if provided
-      if (userData.authToken) {
-        localStorage.setItem('plus500_auth_token', userData.authToken);
 
-      }
+    if (!response.ok) {
+      const error = await response.json();
 
-      // Store in localStorage with activity timestamp
-      localStorage.setItem('plus500_user', JSON.stringify(userData));
-      localStorage.setItem('plus500_last_activity', Date.now().toString());
+      throw new Error(error.message);
+    }
 
-      // Set user state
-      setUser(userData);
+    const userData = await response.json();
 
-      // Force a re-render by updating loading state
-      setIsLoading(false);
-    } catch (error: any) {
-        console.error("Login error in component:", error);
-        setUser(null);
-        throw error;
-      }
+
+    // Store auth token if provided
+    if (userData.authToken) {
+      localStorage.setItem('plus500_auth_token', userData.authToken);
+
+    }
+
+    // Store in localStorage with activity timestamp
+    localStorage.setItem('plus500_user', JSON.stringify(userData));
+    localStorage.setItem('plus500_last_activity', Date.now().toString());
+
+    // Set user state
+    setUser(userData);
+
+
+
+    // Force a re-render by updating loading state
+    setIsLoading(false);
   };
 
   const register = async (registrationData: {

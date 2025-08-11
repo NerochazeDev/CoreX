@@ -995,11 +995,10 @@ Your investment will start generating profits automatically. You can track your 
       }
 
       const transactions = await storage.getUserTransactions(userId);
-      const safeTransactions = Array.isArray(transactions) ? transactions : [];
-      res.json(safeTransactions);
+      res.json(Array.isArray(transactions) ? transactions : []);
     } catch (error: any) {
       console.error('Error fetching user transactions:', error);
-      res.status(500).json({ error: error.message, transactions: [] });
+      res.status(500).json({ error: error.message });
     }
   });
 
