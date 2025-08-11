@@ -255,11 +255,17 @@ function SettingsContent() {
         </div>
 
         {/* Help Section */}
-        <Card className="mt-8 border-0 shadow-lg">
+        <Card 
+          className="mt-8 border-0 shadow-lg cursor-pointer hover:bg-primary/5 transition-colors"
+          onClick={() => setLocation('/support')}
+        >
           <CardContent className="p-4">
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <HelpCircle className="w-5 h-5" />
-              <span className="text-sm">Need help? Contact our support team</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <HelpCircle className="w-5 h-5" />
+                <span className="text-sm">Need help? Contact our support team</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
