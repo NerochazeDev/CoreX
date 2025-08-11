@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, TrendingUp, History, Settings, Shield } from "lucide-react";
+import { Home, TrendingUp, History, Settings, Shield, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function BottomNavigation() {
@@ -10,6 +10,7 @@ export function BottomNavigation() {
     { path: "/", icon: Home, label: "Wallet" },
     { path: "/investment", icon: TrendingUp, label: "Invest" },
     { path: "/history", icon: History, label: "History" },
+    { path: "/support", icon: MessageCircle, label: "Support" },
     { path: "/settings", icon: Settings, label: "Settings" },
   ];
 

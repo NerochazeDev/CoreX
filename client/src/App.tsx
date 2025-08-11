@@ -26,6 +26,8 @@ import WalletSetup from "@/pages/wallet-setup";
 import NotFound from "@/pages/not-found";
 import NotificationDetail from "@/pages/notification-detail";
 import TransactionDetail from "@/pages/transaction-detail";
+import Support from "@/pages/support";
+import AdminSupport from "@/pages/admin-support";
 
 function Router() {
   return (
@@ -37,6 +39,7 @@ function Router() {
       <Route path="/admin-transactions" component={ManagementTransactions} />
       <Route path="/admin-notifications" component={ManagementNotifications} />
       <Route path="/admin-database" component={AdminDatabase} />
+      <Route path="/admin-support" component={AdminSupport} />
       <Route path="/Hello10122" component={Management} />
       <Route path="/investment" component={Investment} />
       <Route path="/history" component={History} />
@@ -45,6 +48,7 @@ function Router() {
       <Route path="/notifications" component={Notifications} />
       <Route path="/notifications/:id" component={NotificationDetail} />
       <Route path="/transactions/:id" component={TransactionDetail} />
+      <Route path="/support" component={Support} />
       <Route path="/profile" component={Profile} />
       <Route path="/withdraw" component={Withdraw} />
       <Route path="/deposit" component={Deposit} />

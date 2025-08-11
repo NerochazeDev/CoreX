@@ -90,6 +90,29 @@ export const backupDatabases = pgTable("backup_databases", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const supportTickets = pgTable("support_tickets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("open"), // open, in_progress, resolved, closed
+  priority: text("priority").notNull().default("normal"), // low, normal, high, urgent
+  category: text("category").notNull().default("general"), // general, technical, billing, complaint
+  imageUrl: text("image_url"), // URL to uploaded image
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const supportResponses = pgTable("support_responses", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").notNull(),
+  adminId: integer("admin_id"), // null for user responses
+  userId: integer("user_id"), // null for admin responses
+  message: text("message").notNull(),
+  isFromAdmin: boolean("is_from_admin").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   bitcoinAddress: true,
@@ -136,6 +159,17 @@ export const insertBackupDatabaseSchema = createInsertSchema(backupDatabases).om
   updatedAt: true,
 });
 
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSupportResponseSchema = createInsertSchema(supportResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertInvestmentPlan = z.infer<typeof insertInvestmentPlanSchema>;
@@ -150,3 +184,7 @@ export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertBackupDatabase = z.infer<typeof insertBackupDatabaseSchema>;
 export type BackupDatabase = typeof backupDatabases.$inferSelect;
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportResponse = z.infer<typeof insertSupportResponseSchema>;
+export type SupportResponse = typeof supportResponses.$inferSelect;
