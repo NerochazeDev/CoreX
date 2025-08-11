@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -8,7 +7,7 @@ import type { Investment, InvestmentPlan, Transaction } from "@shared/schema";
 import { formatBitcoin, calculateInvestmentProgress, formatDate } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,8 @@ export default function Investment() {
   const [, setLocation] = useLocation();
   const { currency } = useCurrency();
   const { data: bitcoinPrice } = useBitcoinPrice();
+  const { invalidateQueries } = useQueryClient();
+
 
   if (!user) {
     setLocation('/login');
@@ -79,14 +80,24 @@ export default function Investment() {
   const portfolioReturn = totalInvested > 0 ? ((totalProfit / totalInvested) * 100) : 0;
 
   // Calculate average daily return
-  const avgDailyReturn = activeInvestments.length > 0 
+  const avgDailyReturn = activeInvestments.length > 0
     ? activeInvestments.reduce((sum, inv) => {
         const plan = plans?.find(p => p.id === inv.planId);
         return sum + (plan ? parseFloat(plan.dailyReturnRate) * 100 : 0);
-      }, 0) / activeInvestments.length 
+      }, 0) / activeInvestments.length
     : 0;
 
   const currencyPrice = currency === 'USD' ? bitcoinPrice?.usd.price : bitcoinPrice?.gbp.price;
+
+  // Auto-refresh investments every 30 seconds
+  useEffect(() => {
+    if (user?.id) {
+      const interval = setInterval(() => {
+        invalidateQueries({ queryKey: ['investments', user.id] });
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.id]);
 
   return (
     <div className="min-h-screen dark-bg">
@@ -282,7 +293,7 @@ export default function Investment() {
                         Earning
                       </Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <span className="text-xs text-gray-400">Principal</span>
@@ -335,7 +346,7 @@ export default function Investment() {
             <div className="space-y-3">
               {completedInvestments.map((investment) => {
                 const finalReturn = ((parseFloat(investment.currentProfit) / parseFloat(investment.amount)) * 100);
-                
+
                 return (
                   <Card key={investment.id} className="dark-card rounded-xl p-4 dark-border opacity-75">
                     <div className="flex justify-between items-start mb-3">
@@ -347,7 +358,7 @@ export default function Investment() {
                       </div>
                       <Badge variant="secondary">Completed</Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
                         <span className="text-muted-foreground block">Invested</span>

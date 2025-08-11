@@ -162,7 +162,7 @@ export default function History() {
             {/* All transactions including investment history */}
             <div className="space-y-3">
               {/* Recent transactions from API */}
-              {Array.isArray(transactions) && transactions.map((transaction) => {
+              {Array.isArray(transactions) && transactions.length > 0 ? transactions.map((transaction) => {
                 const getTransactionIcon = (type: string, status: string) => {
                   if (type === 'deposit') return <ArrowDownLeft className="w-4 h-4 text-green-500" />;
                   if (type === 'withdrawal') return <ArrowUpRight className="w-4 h-4 text-red-500" />;
@@ -254,10 +254,18 @@ export default function History() {
                     )}
                   </Card>
                 );
-              })}
+              }) : (
+                <Card className="dark-card dark-border">
+                  <CardContent className="pt-6 text-center">
+                    <Activity className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="font-semibold text-foreground mb-2">No Transaction History</h3>
+                    <p className="text-sm text-muted-foreground">Your transactions will appear here once you make deposits or withdrawals.</p>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Investment History as Transactions */}
-              {Array.isArray(investments) && investments.map((investment) => {
+              {Array.isArray(investments) && investments.length > 0 ? investments.map((investment) => {
                 const currentValue = parseFloat(investment.amount) + parseFloat(investment.currentProfit);
                 const progress = calculateInvestmentProgress(new Date(investment.startDate), new Date(investment.endDate));
                 const getPlanName = (planId: number) => {
@@ -329,11 +337,21 @@ export default function History() {
                     </div>
                   </Card>
                 );
-              })}
+              }) : (
+                <Card className="dark-card dark-border">
+                  <CardContent className="pt-6 text-center">
+                    <Activity className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="font-semibold text-foreground mb-2">No Investment History</h3>
+                    <p className="text-sm text-muted-foreground">Your investments will appear here once you start investing.</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Bitcoin Transactions from Notifications */}
             {Array.isArray(notifications) && notifications
+              .filter(notif => notif.title.includes("Bitcoin Received") || notif.title.includes("Bitcoin Sent"))
+              .length > 0 ? notifications
               .filter(notif => notif.title.includes("Bitcoin Received") || notif.title.includes("Bitcoin Sent"))
               .map((notification) => {
                 const isReceived = notification.title.includes("Bitcoin Received");
@@ -405,7 +423,15 @@ export default function History() {
                     </CardContent>
                   </Card>
                 );
-              })}
+              }) : (
+                <Card className="dark-card dark-border">
+                  <CardContent className="pt-6 text-center">
+                    <Activity className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="font-semibold text-foreground mb-2">No Bitcoin Activity</h3>
+                    <p className="text-sm text-muted-foreground">Your Bitcoin transactions will appear here.</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Show empty state only if no transactions, investments, or notifications */}

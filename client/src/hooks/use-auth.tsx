@@ -78,45 +78,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Ensure cookies are sent with requests
+        body: JSON.stringify({ email, password }),
+      });
 
+      if (!response.ok) {
+        const error = await response.json();
 
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Ensure cookies are sent with requests
-      body: JSON.stringify({ email, password }),
-    });
+        throw new Error(error.message);
+      }
 
+      const userData = await response.json();
 
+      // Store auth token if provided
+      if (userData.authToken) {
+        localStorage.setItem('plus500_auth_token', userData.authToken);
 
-    if (!response.ok) {
-      const error = await response.json();
+      }
 
-      throw new Error(error.message);
-    }
+      // Store in localStorage with activity timestamp
+      localStorage.setItem('plus500_user', JSON.stringify(userData));
+      localStorage.setItem('plus500_last_activity', Date.now().toString());
 
-    const userData = await response.json();
+      // Set user state
+      setUser(userData);
 
-
-    // Store auth token if provided
-    if (userData.authToken) {
-      localStorage.setItem('plus500_auth_token', userData.authToken);
-
-    }
-
-    // Store in localStorage with activity timestamp
-    localStorage.setItem('plus500_user', JSON.stringify(userData));
-    localStorage.setItem('plus500_last_activity', Date.now().toString());
-
-    // Set user state
-    setUser(userData);
-
-
-
-    // Force a re-render by updating loading state
-    setIsLoading(false);
+      // Force a re-render by updating loading state
+      setIsLoading(false);
+    } catch (error: any) {
+        console.error("Login error in component:", error);
+        setUser(null);
+        throw error;
+      }
   };
 
   const register = async (registrationData: {
