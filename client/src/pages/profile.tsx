@@ -200,6 +200,11 @@ function ProfileContent() {
         title: "Profile Picture Updated",
         description: "Your new profile picture has been saved successfully.",
       });
+
+      // Reload the page to show changes immediately
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error: any) {
       console.error('Avatar upload error:', error);
       toast({
@@ -222,6 +227,11 @@ function ProfileContent() {
         title: "Profile Picture Removed",
         description: "Your profile picture has been removed.",
       });
+
+      // Reload the page to show changes immediately
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error: any) {
       console.error('Avatar removal error:', error);
       toast({
@@ -256,6 +266,11 @@ function ProfileContent() {
         title: "Avatar Generated",
         description: "A new gradient avatar has been created for you.",
       });
+
+      // Reload the page to show changes immediately
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error: any) {
       console.error('Gradient avatar generation error:', error);
       toast({
@@ -316,6 +331,11 @@ function ProfileContent() {
     try {
       const { notifications, privacy, ...profileUpdateData } = profileData;
       await updateProfileMutation.mutateAsync(profileUpdateData);
+      
+      // Reload the page to show changes immediately
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       // Error handling is done in the mutation's onError callback
     }
