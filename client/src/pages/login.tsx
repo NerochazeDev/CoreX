@@ -68,8 +68,8 @@ export default function Login() {
               <span className="text-xs text-green-700 font-medium">Bank-Level Security</span>
             </div>
             <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
-              <Lock className="w-4 h-4 text-primary-blue" />
-              <span className="text-xs text-primary-blue font-medium">256-bit SSL</span>
+              <Lock className="w-4 h-4 text-primary" />
+              <span className="text-xs text-primary font-medium">256-bit SSL</span>
             </div>
           </div>
         </CardHeader>
@@ -123,7 +123,7 @@ export default function Login() {
             
             <Button 
               type="submit" 
-              className="w-full plus500-btn h-12 font-semibold"
+              className="w-full bitvault-btn h-12 font-semibold"
               disabled={isLoading}
             >
               {isLoading ? (

@@ -213,7 +213,7 @@ export default function AdminDatabase() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `plus500-database-backup-${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `bitvault-database-backup-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

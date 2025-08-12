@@ -2404,7 +2404,7 @@ const { planId, dailyReturnRate } = z.object({
       };
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `plus500-postgres-backup-${timestamp}.json`;
+      const filename = `bitvault-postgres-backup-${timestamp}.json`;
       
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

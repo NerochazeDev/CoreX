@@ -1,18 +1,18 @@
 import { cn } from "@/lib/utils";
 
-interface OfficialPlus500LogoProps {
+interface OfficialBitVaultLogoProps {
   className?: string;
   showVIP?: boolean;
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "light" | "dark" | "white";
 }
 
-export function OfficialPlus500Logo({ 
+export function OfficialBitVaultLogo({ 
   className, 
   showVIP = true, 
   size = "md", 
   variant = "light" 
-}: OfficialPlus500LogoProps) {
+}: OfficialBitVaultLogoProps) {
   const containerSize = {
     sm: "px-6 py-3 text-sm min-w-[140px]",
     md: "px-8 py-4 text-base min-w-[160px]",
@@ -27,14 +27,14 @@ export function OfficialPlus500Logo({
     xl: "text-xl"
   };
 
-  // Authentic Plus500 colors - Royal Blue #003399
+  // Authentic BitVault colors - Royal Blue #003399
   const bgColor = variant === 'white' ? 'bg-white' : 'bg-[#003399]';
   const textColor = variant === 'white' ? 'text-[#003399]' : 'text-white';
   const borderColor = variant === 'white' ? 'border-[#003399] border-2' : 'border-transparent';
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      {/* Authentic Plus500 Logo - Exact replica of official design */}
+      {/* Authentic BitVault Logo - Exact replica of official design */}
       <div className={cn(
         "relative rounded-xl font-black tracking-wide leading-none text-center",
         containerSize[size],
@@ -50,7 +50,7 @@ export function OfficialPlus500Logo({
         textRendering: 'optimizeLegibility',
         minHeight: 'fit-content'
       } as React.CSSProperties}>
-        {/* Plus500 text with positioned + symbol - More spaced, same boldness */}
+        {/* BitVault text with positioned + symbol - More spaced, same boldness */}
         <div className="font-black relative z-10" style={{ 
           fontFamily: '"Orbitron", monospace, sans-serif',
           fontWeight: '900',
@@ -83,7 +83,7 @@ export function OfficialPlus500Logo({
       </div>
       
       {showVIP && (
-        <span className="text-plus500-gold font-bold px-3 py-1 rounded-full text-sm bg-plus500-gold/10 border border-plus500-gold/20">
+        <span className="text-bitvault-gold font-bold px-3 py-1 rounded-full text-sm bg-bitvault-gold/10 border border-bitvault-gold/20">
           VIP
         </span>
       )}
@@ -91,17 +91,17 @@ export function OfficialPlus500Logo({
   );
 }
 
-export function SimplePlus500Logo({ className, variant = "light" }: { className?: string; variant?: "light" | "dark" | "white" }) {
-  const colorClass = variant === 'white' ? 'text-white' : 'text-plus500';
+export function SimpleBitVaultLogo({ className, variant = "light" }: { className?: string; variant?: "light" | "dark" | "white" }) {
+  const colorClass = variant === 'white' ? 'text-white' : 'text-bitvault';
   
   return (
     <div className={cn("flex items-center gap-1", className)}>
       <span className={cn("font-bold tracking-tight text-2xl", colorClass)}>Plus</span>
       <div className={cn("w-8 h-8 rounded-sm flex items-center justify-center", 
-        variant === 'white' ? 'bg-white' : 'bg-plus500'
+        variant === 'white' ? 'bg-white' : 'bg-bitvault'
       )}>
         <span className={cn("font-bold text-xl leading-none", 
-          variant === 'white' ? 'text-plus500' : 'text-white'
+          variant === 'white' ? 'text-bitvault' : 'text-white'
         )}>+</span>
       </div>
       <span className={cn("font-bold tracking-tight text-2xl", colorClass)}>500</span>

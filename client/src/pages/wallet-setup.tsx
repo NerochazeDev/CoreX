@@ -79,9 +79,9 @@ export default function WalletSetup() {
               <div className="w-16 h-16 rounded-full bg-bitcoin/10 flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-bitcoin" />
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-foreground">Welcome to Plus500 VIP</h3>
+              <h3 className="text-lg font-semibold mb-2 text-foreground">Welcome to BitVault Pro</h3>
               <p className="text-sm text-muted-foreground">
-                To start using Plus500 VIP, you need to set up your Bitcoin wallet. Choose one of the options below to continue.
+                To start using BitVault Pro, you need to set up your Bitcoin wallet. Choose one of the options below to continue.
               </p>
             </div>
           </CardContent>

@@ -30,7 +30,7 @@ const connectionConfig = {
   onnotice: () => {}, // Suppress notices
   onparameter: () => {}, // Suppress parameter notices
   connection: {
-    application_name: 'plus500_investment_platform_persistent',
+    application_name: 'bitvault_investment_platform_persistent',
     statement_timeout: 60000, // 60 second query timeout
     idle_in_transaction_session_timeout: 120000, // 120 second idle transaction timeout
     tcp_keepalives_idle: 30, // More frequent keepalives to prevent endpoint disable

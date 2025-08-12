@@ -203,7 +203,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Wallet Balance - Plus500 Professional Style */}
+      {/* Wallet Balance - BitVault Professional Style */}
       <div className="px-4 py-6">
         <div className="bitvault-professional p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
@@ -229,7 +229,7 @@ export default function Home() {
 
       
 
-      {/* Quick Actions - Plus500 Professional */}
+      {/* Quick Actions - BitVault Professional */}
       <div className="px-4 mb-6">
         <h3 className="text-lg font-bold mb-4 text-primary">Trading Actions</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -260,7 +260,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Current Investment Plan - Plus500 Professional */}
+      {/* Current Investment Plan - BitVault Professional */}
       <div className="px-4 mb-6">
         <h3 className="text-lg font-bold mb-4 text-primary">Investment Plan</h3>
         <Card className="bitvault-professional p-6 hover:shadow-lg transition-all duration-300">
@@ -297,10 +297,10 @@ export default function Home() {
           </div>
           {!currentPlan && (
             <Button 
-              className="w-full plus500-btn mt-4"
+              className="w-full bitvault-btn mt-4"
               onClick={() => setLocation('/investment')}
             >
-              Upgrade to VIP Plan
+              Upgrade to Pro Plan
             </Button>
           )}
         </Card>
@@ -427,7 +427,7 @@ export default function Home() {
           {/* Quick Actions for Investments */}
           <div className="mt-4">
             <Button 
-              className="w-full plus500-btn"
+              className="w-full bitvault-btn"
               onClick={() => setLocation('/investment')}
             >
               View Full Investment Dashboard
@@ -445,10 +445,10 @@ export default function Home() {
             </div>
             <h3 className="text-lg font-semibold mb-2 text-foreground">Start Investing Today</h3>
             <p className="text-muted-foreground mb-4 text-sm">
-              Begin your investment journey with Plus500 VIP and earn automated daily returns on your Bitcoin.
+              Begin your investment journey with BitVault Pro and earn automated daily returns on your Bitcoin.
             </p>
             <Button 
-              className="plus500-btn"
+              className="bitvault-btn"
               onClick={() => setLocation('/investment')}
             >
               Explore Investment Plans

@@ -1,4 +1,4 @@
-# Railway Deployment Guide for Plus500 VIP Bitcoin Investment Platform
+# Railway Deployment Guide for BitVault VIP Bitcoin Investment Platform
 
 ## Quick Deploy to Railway
 

@@ -78,7 +78,7 @@ export function BitcoinChart() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 bg-gradient-to-br from-plus500/5 to-plus500-gold/5 rounded-lg animate-pulse border border-primary/10" />
+          <div className="h-80 bg-gradient-to-br from-bitvault/5 to-bitvault-gold/5 rounded-lg animate-pulse border border-primary/10" />
         </CardContent>
       </Card>
     );
@@ -94,7 +94,7 @@ export function BitcoinChart() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 bg-gradient-to-br from-plus500/5 to-plus500-gold/5 rounded-lg flex items-center justify-center border border-primary/10">
+          <div className="h-80 bg-gradient-to-br from-bitvault/5 to-bitvault-gold/5 rounded-lg flex items-center justify-center border border-primary/10">
             <p className="text-muted-foreground">Unable to load price data</p>
           </div>
         </CardContent>

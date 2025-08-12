@@ -456,7 +456,7 @@ export default function Management() {
             <span className="text-black text-sm font-bold">₿</span>
           </div>
           <div>
-            <h1 className="text-white font-bold text-lg">Plus500 VIP Admin</h1>
+            <h1 className="text-white font-bold text-lg">BitVault Pro Admin</h1>
             <p className="text-slate-400 text-xs">Management Portal</p>
           </div>
         </div>

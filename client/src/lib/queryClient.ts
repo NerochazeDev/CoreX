@@ -15,7 +15,7 @@ export async function apiRequest(
   const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
   
   // Add auth token if available
-  const authToken = localStorage.getItem('plus500_auth_token');
+  const authToken = localStorage.getItem('bitvault_auth_token');
   if (authToken) {
     headers.Authorization = `Bearer ${authToken}`;
   }
@@ -40,7 +40,7 @@ export const getQueryFn: <T>(options: {
     const headers: Record<string, string> = {};
     
     // Add auth token if available
-    const authToken = localStorage.getItem('plus500_auth_token');
+    const authToken = localStorage.getItem('bitvault_auth_token');
     if (authToken) {
       headers.Authorization = `Bearer ${authToken}`;
     }

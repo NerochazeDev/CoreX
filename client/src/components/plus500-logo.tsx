@@ -1,18 +1,18 @@
 import { cn } from "@/lib/utils";
 
-interface Plus500LogoProps {
+interface BitVaultLogoProps {
   className?: string;
   showText?: boolean;
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "light" | "dark" | "white";
 }
 
-export function Plus500Logo({ 
+export function BitVaultLogo({ 
   className, 
   showText = true, 
   size = "md", 
   variant = "light" 
-}: Plus500LogoProps) {
+}: BitVaultLogoProps) {
   const sizeClasses = {
     sm: "text-lg",
     md: "text-xl",
@@ -27,9 +27,9 @@ export function Plus500Logo({
     xl: "w-10 h-10"
   };
 
-  const textColor = variant === 'white' ? 'text-white' : 'text-plus500';
-  const bgColor = variant === 'white' ? 'bg-white' : 'bg-plus500';
-  const iconTextColor = variant === 'white' ? 'text-plus500' : 'text-white';
+  const textColor = variant === 'white' ? 'text-white' : 'text-bitvault';
+  const bgColor = variant === 'white' ? 'bg-white' : 'bg-bitvault';
+  const iconTextColor = variant === 'white' ? 'text-bitvault' : 'text-white';
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
@@ -45,7 +45,7 @@ export function Plus500Logo({
         </span>
       </div>
       {showText && (
-        <span className="text-plus500-gold font-bold px-3 py-1 rounded-full text-sm bg-plus500-gold/10 border border-plus500-gold/20">
+        <span className="text-bitvault-gold font-bold px-3 py-1 rounded-full text-sm bg-bitvault-gold/10 border border-bitvault-gold/20">
           VIP
         </span>
       )}
@@ -53,15 +53,15 @@ export function Plus500Logo({
   );
 }
 
-export function Plus500VIPBrand({ className }: { className?: string }) {
+export function BitVaultVIPBrand({ className }: { className?: string }) {
   return (
     <div className={cn("text-center space-y-4", className)}>
-      <Plus500Logo size="xl" />
+      <BitVaultLogo size="xl" />
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">
           Professional Bitcoin
         </h1>
-        <h1 className="text-4xl font-bold text-plus500">
+        <h1 className="text-4xl font-bold text-bitvault">
           Investment Platform
         </h1>
         <h1 className="text-2xl font-bold text-vip-gold">
