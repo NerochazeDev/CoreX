@@ -88,10 +88,8 @@ function ProfileContent() {
   // Profile update mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: any) => {
-      return apiRequest('/api/me/profile', {
-        method: 'PATCH',
-        body: JSON.stringify(profileData),
-      });
+      const response = await apiRequest('PATCH', '/api/me/profile', profileData);
+      return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/me'] });
