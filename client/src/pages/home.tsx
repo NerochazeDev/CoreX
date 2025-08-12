@@ -274,8 +274,13 @@ export default function Home() {
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           
-          {/* Left Column - Charts & Analytics */}
+          {/* Left Column - Balance Card & Analytics */}
           <div className="xl:col-span-8 space-y-6">
+            
+            {/* Primary Balance Card */}
+            <div className="bg-gradient-to-br from-orange-50/50 via-white to-orange-50/30 dark:from-slate-900/50 dark:via-slate-800 dark:to-slate-900/30 backdrop-blur-lg rounded-2xl p-6 border border-orange-200/50 dark:border-orange-800/50 shadow-2xl shadow-orange-500/10">
+              <WalletBalance />
+            </div>
             
             {/* Advanced Portfolio Analytics */}
             <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-lg border border-orange-200/50 dark:border-orange-800/50 shadow-2xl shadow-orange-500/10">
@@ -663,81 +668,92 @@ export default function Home() {
             )}
           </div>
 
-          {/* Right Column - Bitcoin Price & Investment Info */}
-          <div className="lg:col-span-4 space-y-6">
+          {/* Right Column - Market Data & Investment Tools */}
+          <div className="xl:col-span-4 space-y-6">
             {/* Bitcoin Price Card */}
-            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-orange-200/50 dark:border-orange-800/50 shadow-xl shadow-orange-500/5">
-              <BitcoinPrice />
-            </div>
+            <Card className="bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30 dark:from-blue-900/10 dark:via-slate-800 dark:to-blue-900/10 backdrop-blur-lg border border-blue-200/50 dark:border-blue-800/50 shadow-xl shadow-blue-500/10">
+              <div className="p-6">
+                <BitcoinPrice />
+              </div>
+            </Card>
 
             {/* Investment Plan Card */}
-            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-orange-200/50 dark:border-orange-800/50 shadow-xl shadow-orange-500/5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">Investment Plan</h3>
-                  <p className="text-sm text-muted-foreground">Your current plan</p>
+            <Card className="bg-gradient-to-br from-green-50/50 via-white to-green-50/30 dark:from-green-900/10 dark:via-slate-800 dark:to-green-900/10 backdrop-blur-lg border border-green-200/50 dark:border-green-800/50 shadow-xl shadow-green-500/10">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
+                      <Star className="w-5 h-5 text-orange-500" />
+                      Investment Plan
+                    </h3>
+                    <p className="text-sm text-muted-foreground">Your current plan status</p>
+                  </div>
+                  <Badge className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    currentPlan 
+                      ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700' 
+                      : 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700'
+                  }`}>
+                    {currentPlan ? 'Premium Active' : 'Free Tier'}
+                  </Badge>
                 </div>
-                <Badge className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  currentPlan 
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                    : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                }`}>
-                  {currentPlan ? 'Premium' : 'Free Plan'}
-                </Badge>
+                
+                <div className="flex items-center gap-4 mb-4">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+                    currentPlan 
+                      ? 'bg-green-100 dark:bg-green-900/30 border-2 border-green-200 dark:border-green-800' 
+                      : 'bg-orange-100 dark:bg-orange-900/30 border-2 border-orange-200 dark:border-orange-800'
+                  }`}>
+                    {currentPlan ? (
+                      <Crown className="w-7 h-7 text-green-600 dark:text-green-400" />
+                    ) : (
+                      <TrendingUp className="w-7 h-7 text-orange-600 dark:text-orange-400" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-foreground text-lg">
+                      {currentPlan ? currentPlan.name : "Free Plan"}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {currentPlan 
+                        ? `${(parseFloat(currentPlan.dailyReturnRate) * 100).toFixed(2)}% daily return`
+                        : "3.67% every 10 minutes"
+                      }
+                    </p>
+                  </div>
+                </div>
+                
+                {!currentPlan && (
+                  <Button 
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                    onClick={() => setLocation('/investment')}
+                  >
+                    <Crown className="w-4 h-4 mr-2" />
+                    Upgrade to Premium
+                  </Button>
+                )}
               </div>
-              
-              <div className="flex items-center gap-4 mb-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                  currentPlan 
-                    ? 'bg-green-100 dark:bg-green-900/30' 
-                    : 'bg-orange-100 dark:bg-orange-900/30'
-                }`}>
-                  <TrendingUp className={`w-6 h-6 ${
-                    currentPlan ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'
-                  }`} />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-foreground">
-                    {currentPlan ? currentPlan.name : "Free Plan"}
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    {currentPlan 
-                      ? `${(parseFloat(currentPlan.dailyReturnRate) * 100).toFixed(2)}% daily return`
-                      : "3.67% every 10 minutes"
-                    }
-                  </p>
-                </div>
-              </div>
-              
-              {!currentPlan && (
-                <Button 
-                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-none shadow-lg hover:shadow-xl transition-all duration-200"
-                  onClick={() => setLocation('/investment')}
-                >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Upgrade to Pro Plan
-                </Button>
-              )}
-            </div>
+            </Card>
 
             {/* Quick Start Card (when no active investments) */}
             {(!activeInvestments || activeInvestments.length === 0) && (
-              <div className="bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/20 dark:to-orange-800/20 backdrop-blur-sm rounded-2xl p-6 border border-orange-200/50 dark:border-orange-800/50 shadow-xl shadow-orange-500/5 text-center">
-                <div className="w-16 h-16 rounded-full bg-orange-200 dark:bg-orange-800/30 flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+              <Card className="bg-gradient-to-br from-purple-50/50 via-white to-purple-50/30 dark:from-purple-900/10 dark:via-slate-800 dark:to-purple-900/10 backdrop-blur-lg border border-purple-200/50 dark:border-purple-800/50 shadow-xl shadow-purple-500/10">
+                <div className="p-6 text-center">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 flex items-center justify-center mx-auto mb-4">
+                    <Zap className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-2 text-foreground">Start Investing Today</h3>
+                  <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
+                    Begin your investment journey with BitVault Pro and earn automated daily returns on your Bitcoin.
+                  </p>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                    onClick={() => setLocation('/investment')}
+                  >
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Explore Investment Plans
+                  </Button>
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">Start Investing Today</h3>
-                <p className="text-muted-foreground mb-4 text-sm">
-                  Begin your investment journey with BitVault Pro and earn automated daily returns on your Bitcoin.
-                </p>
-                <Button 
-                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-none shadow-lg hover:shadow-xl transition-all duration-200"
-                  onClick={() => setLocation('/investment')}
-                >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Explore Investment Plans
-                </Button>
-              </div>
+              </Card>
             )}
           </div>
         </div>
