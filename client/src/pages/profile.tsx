@@ -10,7 +10,7 @@ import {
   BarChart3, PieChart, LineChart, DollarSign, Clock, CheckCircle,
   AlertTriangle, Star, Trophy, Target, Zap, Lock, Globe, Smartphone,
   CreditCard, Download, Upload, RefreshCw, Bell, Users, BookOpen,
-  HelpCircle, MessageSquare, Share2, Edit, Camera, MapPin, Phone
+  HelpCircle, MessageSquare, Share2, Edit, Camera, MapPin, Phone, X, Crown
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
@@ -32,6 +32,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 function ProfileContent() {
   const { user, logout } = useAuth();
@@ -61,6 +62,90 @@ function ProfileContent() {
       showInvestments: false
     }
   });
+
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setUploadedImage(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarSave = async () => {
+    if (!uploadedImage) return;
+    
+    setIsUploadingAvatar(true);
+    
+    try {
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setProfileData(prev => ({ ...prev, avatar: uploadedImage }));
+      setAvatarDialogOpen(false);
+      setUploadedImage(null);
+      
+      toast({
+        title: "Profile Picture Updated",
+        description: "Your new profile picture has been saved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "Failed to update profile picture. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarRemove = () => {
+    setProfileData(prev => ({ ...prev, avatar: '' }));
+    setUploadedImage(null);
+    toast({
+      title: "Profile Picture Removed",
+      description: "Your profile picture has been removed.",
+    });
+  };
+
+  const generateGradientAvatar = () => {
+    const gradients = [
+      'from-blue-400 to-purple-600',
+      'from-green-400 to-blue-500',
+      'from-pink-400 to-red-600',
+      'from-yellow-400 to-orange-600',
+      'from-indigo-400 to-purple-600',
+      'from-teal-400 to-cyan-600'
+    ];
+    const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+    
+    setProfileData(prev => ({ 
+      ...prev, 
+      avatar: `gradient-${randomGradient}` 
+    }));
+    
+    toast({
+      title: "Avatar Generated",
+      description: "A new gradient avatar has been created for you.",
+    });
+  };
 
   useEffect(() => {
     const userId = Math.floor(Math.random() * (9999 - 3455 + 1)) + 3455;
@@ -230,16 +315,138 @@ function ProfileContent() {
           
           <CardContent className="p-8 relative z-10">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <div className="relative">
-                <Avatar className="w-24 h-24 border-4 border-white/30 shadow-lg">
-                  <AvatarImage src={profileData.avatar} />
-                  <AvatarFallback className="text-2xl font-bold bg-white/20 text-white">
-                    {user.email.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <Button size="sm" className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-white/20 hover:bg-white/30">
-                  <Camera className="w-4 h-4" />
-                </Button>
+              <div className="relative group">
+                <div className="relative">
+                  <Avatar className="w-24 h-24 border-4 border-white/30 shadow-xl transition-all duration-300 group-hover:scale-105">
+                    {profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
+                      <AvatarImage src={profileData.avatar} className="object-cover" />
+                    ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
+                      <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
+                        <span className="text-2xl font-bold text-white">
+                          {(profileData.firstName || user.email).charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    ) : (
+                      <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
+                        {(profileData.firstName || user.email).charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <Camera className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="absolute -bottom-2 -right-2 rounded-full w-10 h-10 p-0 bg-white hover:bg-white/90 text-orange-600 shadow-lg border-2 border-orange-200 hover:border-orange-300 transition-all duration-300">
+                      <Camera className="w-5 h-5" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Camera className="w-5 h-5 text-orange-500" />
+                        Update Profile Picture
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      {/* Current/Preview Avatar */}
+                      <div className="flex justify-center">
+                        <div className="relative">
+                          <Avatar className="w-32 h-32 border-4 border-border shadow-lg">
+                            {uploadedImage ? (
+                              <AvatarImage src={uploadedImage} className="object-cover" />
+                            ) : profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
+                              <AvatarImage src={profileData.avatar} className="object-cover" />
+                            ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
+                              <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
+                                <span className="text-3xl font-bold text-white">
+                                  {(profileData.firstName || user.email).charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            ) : (
+                              <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
+                                {(profileData.firstName || user.email).charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                        </div>
+                      </div>
+
+                      {/* Upload Options */}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-3">
+                          <label className="block">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleAvatarUpload}
+                              className="hidden"
+                            />
+                            <Button variant="outline" className="w-full gap-2 cursor-pointer" asChild>
+                              <span>
+                                <Upload className="w-4 h-4" />
+                                Upload New Picture
+                              </span>
+                            </Button>
+                          </label>
+
+                          <Button
+                            variant="outline"
+                            onClick={generateGradientAvatar}
+                            className="w-full gap-2"
+                          >
+                            <Star className="w-4 h-4" />
+                            Generate Avatar
+                          </Button>
+
+                          {(profileData.avatar || uploadedImage) && (
+                            <Button
+                              variant="outline"
+                              onClick={handleAvatarRemove}
+                              className="w-full gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                            >
+                              <X className="w-4 h-4" />
+                              Remove Picture
+                            </Button>
+                          )}
+                        </div>
+
+                        {uploadedImage && (
+                          <div className="border-t pt-4">
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={handleAvatarSave}
+                                disabled={isUploadingAvatar}
+                                className="flex-1 bg-orange-500 hover:bg-orange-600"
+                              >
+                                {isUploadingAvatar ? (
+                                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                )}
+                                {isUploadingAvatar ? 'Saving...' : 'Save Picture'}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => setUploadedImage(null)}
+                                disabled={isUploadingAvatar}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="text-sm text-muted-foreground text-center">
+                          <p>• Max file size: 5MB</p>
+                          <p>• Supported: JPG, PNG, GIF</p>
+                          <p>• Recommended: Square images work best</p>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
               
               <div className="flex-1 space-y-3">
