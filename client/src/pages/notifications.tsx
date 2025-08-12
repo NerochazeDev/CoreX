@@ -43,6 +43,15 @@ export default function Notifications() {
     enabled: !!user?.id,
   });
 
+  // Fetch unread notification count separately for real-time updates
+  const { data: unreadNotificationCount } = useQuery<{ count: number }>({
+    queryKey: ['/api/notifications', user?.id, 'unread-count'],
+    queryFn: () => fetch(`/api/notifications/${user?.id}/unread-count`).then(res => res.json()),
+    enabled: !!user?.id,
+    refetchInterval: 5000, // Refresh unread count more frequently
+  });
+
+
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch(`/api/notifications/${user?.id}/mark-all-read`, {
@@ -143,19 +152,20 @@ export default function Notifications() {
     return true;
   }) || [];
 
-  const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
+  // Use unread count from dedicated query
+  const unreadCount = unreadNotificationCount?.count || notifications?.filter(n => !n.isRead).length || 0;
 
   // Helper function to extract transaction ID from notification and check if it's pending
   const getRelatedPendingTransaction = (notification: Notification) => {
     if (!transactions) return null;
-    
+
     // Only show cancel button for specific pending transaction notifications
     const isPendingTransactionNotification = (
       notification.title.includes("Investment Submitted") || 
       notification.title.includes("Deposit Submitted") ||
       notification.title.includes("Transaction Pending")
     ) && notification.type === 'info';
-    
+
     if (isPendingTransactionNotification) {
       // Look for pending transactions that match the timeframe of this notification
       const pendingTransactions = transactions.filter(t => t.status === 'pending');

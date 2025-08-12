@@ -62,11 +62,31 @@ export function useRealtimeUpdates() {
                 duration: 3000,
               });
 
-              // Invalidate relevant queries to refresh data
+              // Invalidate relevant queries to refresh data immediately
               queryClient.invalidateQueries({ queryKey: ['/api/user'] });
               queryClient.invalidateQueries({ queryKey: ['/api/investments'] });
               queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id, 'unread-count'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/me'] });
             }
+          }
+
+          // Handle notification updates
+          if (data.type === 'notification_update' && user) {
+            // Immediately refresh notification data
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id, 'unread-count'] });
+            
+            // Force refetch with no cache
+            queryClient.refetchQueries({ 
+              queryKey: ['/api/notifications', user.id, 'unread-count'],
+              type: 'all'
+            });
+          }
+
+          // Handle any general updates
+          if (data.type === 'general_update' && user) {
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id, 'unread-count'] });
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);

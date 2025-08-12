@@ -16,14 +16,28 @@ export function NotificationsPanel() {
 
   const { data: notifications, isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    queryFn: () => fetch(`/api/notifications/${user?.id}`).then(res => res.json()),
+    queryFn: () => fetch(`/api/notifications/${user?.id}`).then(res => {
+      if (!res.ok) throw new Error('Failed to fetch notifications');
+      return res.json();
+    }),
     enabled: !!user?.id,
+    refetchInterval: 5000, // Refresh every 5 seconds
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const { data: unreadCount } = useQuery<{ count: number }>({
     queryKey: ['/api/notifications', user?.id, 'unread-count'],
-    queryFn: () => fetch(`/api/notifications/${user?.id}/unread-count`).then(res => res.json()),
+    queryFn: () => fetch(`/api/notifications/${user?.id}/unread-count`).then(res => {
+      if (!res.ok) throw new Error('Failed to fetch unread count');
+      return res.json();
+    }),
     enabled: !!user?.id,
+    refetchInterval: 3000, // Refresh every 3 seconds for instant updates
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const markAsReadMutation = useMutation({

@@ -55,7 +55,15 @@ export default function Home() {
 
   const { data: unreadCount } = useQuery<{ count: number }>({
     queryKey: ['/api/notifications', user.id, 'unread-count'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    queryFn: () => fetch(`/api/notifications/${user.id}/unread-count`).then(res => {
+      if (!res.ok) throw new Error('Failed to fetch unread count');
+      return res.json();
+    }),
+    enabled: !!user?.id,
+    refetchInterval: 5000, // Refresh every 5 seconds for instant updates
+    staleTime: 0, // Always consider data stale for real-time updates
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Always refetch on component mount
   });
 
   const { data: activeInvestments } = useQuery<Investment[]>({
