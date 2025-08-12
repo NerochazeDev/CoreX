@@ -10,8 +10,6 @@ import { Progress } from "@/components/ui/progress";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-const queryClient = useQueryClient();
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,14 +22,12 @@ import { TrendingUp, Target, Clock, Award, ArrowLeft, BarChart3, PieChart, Calen
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
-import { useEffect } from "react";
 
 export default function Investment() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { currency } = useCurrency();
   const { data: bitcoinPrice } = useBitcoinPrice();
-  const queryClient = useQueryClient();
 
   if (!user) {
     setLocation('/login');
@@ -50,10 +46,9 @@ export default function Investment() {
       }
       return res.json();
     }),
-    refetchInterval: 2000, // Refresh every 2 seconds for instant updates
+    refetchInterval: 5000, // Refresh every 5 seconds for instant updates
     staleTime: 0, // Always consider data stale
     refetchOnWindowFocus: true, // Refetch when window gains focus
-    refetchOnMount: true, // Always refetch on component mount
   });
 
   const { data: plans } = useQuery<InvestmentPlan[]>({
@@ -67,53 +62,6 @@ export default function Investment() {
     staleTime: 0, // Always consider data stale
     refetchOnWindowFocus: true, // Refetch when window gains focus
   });
-
-  // Set up WebSocket for real-time investment updates
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
-    
-    const ws = new WebSocket(wsUrl);
-    
-    ws.onopen = () => {
-      console.log('WebSocket connected for investment updates');
-    };
-    
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === 'investment_update' && data.userId === user.id) {
-          // Force immediate refresh of investment data
-          queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user.id] });
-          queryClient.refetchQueries({ queryKey: ['/api/investments/user', user.id] });
-          
-          // Show real-time notification
-          toast({
-            title: "💰 Investment Profit",
-            description: `+${data.profit} BTC earned from ${data.planName}`,
-          });
-        }
-      } catch (error) {
-        console.error('WebSocket message parsing error:', error);
-      }
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    // Cleanup on unmount
-    return () => {
-      ws.close();
-    };
-  }, [user?.id, queryClient, toast]);
 
   const getPlanName = (planId: number) => {
     return plans?.find(plan => plan.id === planId)?.name || `Plan ${planId}`;
