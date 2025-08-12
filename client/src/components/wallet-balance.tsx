@@ -42,14 +42,14 @@ export function WalletBalance() {
 
   return (
     <div>
-      <Card className="plus500-professional p-6 relative overflow-hidden shadow-lg">
+      <Card className="bitvault-professional p-6 relative overflow-hidden shadow-lg">
         {/* Security indicators */}
         <div className="absolute top-3 right-3 flex gap-1.5">
-          <div className="w-6 h-6 rounded-lg bg-plus500-success/10 flex items-center justify-center border border-plus500-success/20">
-            <Shield className="w-3 h-3 text-plus500-success" />
+          <div className="w-6 h-6 rounded-lg bg-primary-success/10 flex items-center justify-center border border-primary-success/20">
+            <Shield className="w-3 h-3 text-primary-success" />
           </div>
-          <div className="w-6 h-6 rounded-lg bg-plus500/10 flex items-center justify-center border border-plus500/20 animate-pulse">
-            <Zap className="w-3 h-3 text-plus500" />
+          <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 animate-pulse">
+            <Zap className="w-3 h-3 text-primary" />
           </div>
         </div>
 
@@ -59,11 +59,11 @@ export function WalletBalance() {
             <p className="text-muted-foreground text-xs font-medium mb-2">Total Portfolio Balance</p>
             <div className="flex items-center gap-2 mb-3">
               {isBalanceVisible ? (
-                <h2 className="text-2xl sm:text-3xl font-bold text-plus500 tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
                   {formatBitcoin(user.balance)} BTC
                 </h2>
               ) : (
-                <h2 className="text-2xl sm:text-3xl font-bold text-plus500 tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
                   ••••••••
                 </h2>
               )}
@@ -93,7 +93,7 @@ export function WalletBalance() {
             </div>
 
             {isBalanceVisible && (
-              <p className="text-plus500-success text-lg font-semibold">
+              <p className="text-primary-success text-lg font-semibold">
                 ≈ {formatCurrency(fiatValue, currency)}
               </p>
             )}
@@ -102,7 +102,7 @@ export function WalletBalance() {
           {/* Footer */}
           <div className="flex items-center justify-between pt-3 border-t border-border">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-plus500-success animate-pulse"></div>
+              <div className="w-2 h-2 rounded-full bg-primary-success animate-pulse"></div>
               <p className="text-muted-foreground text-xs font-medium">
                 Secure Vault Protected
               </p>

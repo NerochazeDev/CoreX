@@ -1,4 +1,4 @@
-// Production configuration for Plus500 VIP Bitcoin Investment Platform
+// Production configuration for BitVault VIP Bitcoin Investment Platform
 // Environment variables hardcoded for easy deployment
 
 export const config = {

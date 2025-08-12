@@ -262,17 +262,17 @@ export default function Home() {
 
       {/* Current Investment Plan - Plus500 Professional */}
       <div className="px-4 mb-6">
-        <h3 className="text-lg font-bold mb-4 text-plus500">Investment Plan</h3>
-        <Card className="plus500-professional p-6 hover:shadow-lg transition-all duration-300">
+        <h3 className="text-lg font-bold mb-4 text-primary">Investment Plan</h3>
+        <Card className="bitvault-professional p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                 currentPlan 
-                  ? 'bg-plus500-success bg-opacity-20' 
-                  : 'bg-plus500 bg-opacity-20'
+                  ? 'bg-green-500 bg-opacity-20' 
+                  : 'bg-primary bg-opacity-20'
               }`}>
                 <TrendingUp className={`w-5 h-5 ${
-                  currentPlan ? 'text-plus500-success' : 'text-plus500'
+                  currentPlan ? 'text-primary-success' : 'text-primary'
                 }`} />
               </div>
               <div className="flex-1 min-w-0">
@@ -289,8 +289,8 @@ export default function Home() {
             </div>
             <Badge className={`px-2 py-1 rounded-lg text-xs font-medium ${
               currentPlan 
-                ? 'bg-plus500-success bg-opacity-20 text-plus500-success border-plus500-success' 
-                : 'bg-plus500 bg-opacity-20 text-plus500 border-plus500'
+                ? 'bg-green-500 bg-opacity-20 text-primary-success border-green-500' 
+                : 'bg-primary bg-opacity-20 text-primary border-primary'
             }`}>
               {currentPlan ? 'Premium' : 'Free'}
             </Badge>
@@ -330,19 +330,19 @@ export default function Home() {
 
           {/* Investment Overview Cards */}
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <Card className="plus500-professional p-3">
+            <Card className="bitvault-professional p-3">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="w-4 h-4 text-green-500" />
                 <span className="text-xs text-muted-foreground">Total Invested</span>
               </div>
               <p className="text-lg font-bold text-foreground">{formatBitcoin(totalInvestedAmount.toString())} BTC</p>
             </Card>
-            <Card className="plus500-professional p-3">
+            <Card className="bitvault-professional p-3">
               <div className="flex items-center gap-2 mb-1">
-                <Activity className="w-4 h-4 text-plus500-success" />
+                <Activity className="w-4 h-4 text-primary-success" />
                 <span className="text-xs text-muted-foreground">Total Profit</span>
               </div>
-              <p className="text-lg font-bold text-plus500-success">+{formatBitcoin(totalProfit.toString())} BTC</p>
+              <p className="text-lg font-bold text-primary-success">+{formatBitcoin(totalProfit.toString())} BTC</p>
             </Card>
           </div>
 
@@ -360,10 +360,10 @@ export default function Home() {
               const profitPercentage = totalInvestedAmount > 0 ? ((parseFloat(investment.currentProfit) / parseFloat(investment.amount)) * 100) : 0;
 
               return (
-                <Card key={investment.id} className="plus500-professional p-4 border border-green-500/20">
+                <Card key={investment.id} className="bitvault-professional p-4 border border-green-500/20">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h4 className="font-semibold text-plus500-gold flex items-center gap-2">
+                      <h4 className="font-semibold text-primary-gold flex items-center gap-2">
                         {plan ? plan.name : `Investment #${investment.id}`}
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       </h4>
@@ -371,13 +371,13 @@ export default function Home() {
                         Started: {formatDate(new Date(investment.startDate))}
                       </p>
                       {plan && (
-                        <p className="text-xs text-plus500">
+                        <p className="text-xs text-primary">
                           Daily Rate: {(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}%
                         </p>
                       )}
                     </div>
                     <div className="text-right">
-                      <span className="bg-plus500-success bg-opacity-20 text-plus500-success px-2 py-1 rounded-full text-xs">
+                      <span className="bg-green-500 bg-opacity-20 text-primary-success px-2 py-1 rounded-full text-xs">
                         Earning
                       </span>
                       <p className="text-xs text-muted-foreground mt-1">
@@ -393,7 +393,7 @@ export default function Home() {
                     </div>
                     <div>
                       <span className="text-xs text-muted-foreground">Current Profit</span>
-                      <div className="font-semibold text-plus500-success">+{formatBitcoin(investment.currentProfit)} BTC</div>
+                      <div className="font-semibold text-primary-success">+{formatBitcoin(investment.currentProfit)} BTC</div>
                     </div>
                   </div>
 
@@ -409,7 +409,7 @@ export default function Home() {
                     <span className="text-muted-foreground">
                       {daysLeft > 0 ? `${daysLeft} days remaining` : 'Completed'}
                     </span>
-                    <span className="text-plus500-gold">
+                    <span className="text-primary-gold">
                       Total Value: {formatBitcoin((parseFloat(investment.amount) + parseFloat(investment.currentProfit)).toString())} BTC
                     </span>
                   </div>
@@ -439,9 +439,9 @@ export default function Home() {
       {/* Investment Quick Start (when no active investments) */}
       {activeInvestments.length === 0 && (
         <div className="px-4 mb-6">
-          <Card className="plus500-professional p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-plus500/20 flex items-center justify-center mx-auto mb-4">
-              <TrendingUp className="w-8 h-8 text-plus500" />
+          <Card className="bitvault-professional p-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
+              <TrendingUp className="w-8 h-8 text-primary" />
             </div>
             <h3 className="text-lg font-semibold mb-2 text-foreground">Start Investing Today</h3>
             <p className="text-muted-foreground mb-4 text-sm">

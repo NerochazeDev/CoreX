@@ -13,7 +13,7 @@ import { Eye, EyeOff, Shield, UserCheck, Globe, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { countries } from "@/lib/countries";
 import { CustomCaptcha } from "@/components/custom-captcha";
-import { OfficialPlus500Logo } from "@/components/official-plus500-logo";
+import { BitVaultLogo } from "@/components/bitvault-logo";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -129,7 +129,7 @@ export default function Register() {
       });
       toast({
         title: "Account created successfully!",
-        description: "Your Bitcoin wallet has been automatically generated. Welcome to Plus500 VIP!",
+        description: "Your Bitcoin wallet has been automatically generated. Welcome to BitVault Pro!",
       });
       setLocation('/');
     } catch (error) {
@@ -145,14 +145,14 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-2 sm:p-4 bg-background">
-      <Card className="w-full max-w-2xl plus500-professional shadow-xl mx-2 sm:mx-4">
+      <Card className="w-full max-w-2xl bitvault-professional shadow-xl mx-2 sm:mx-4">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center mb-4">
-            <OfficialPlus500Logo size="lg" showVIP={true} />
+            <BitVaultLogo size="lg" showPro={true} />
           </div>
           <div>
-            <CardTitle className="text-3xl font-bold text-plus500">
-              Join Plus500 VIP
+            <CardTitle className="text-3xl font-bold text-primary">
+              Join BitVault Pro
             </CardTitle>
             <CardDescription className="text-lg mt-2 text-muted-foreground">
               Create your premium investment account
@@ -174,7 +174,7 @@ export default function Register() {
             {/* Personal Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-plus500" />
+                <UserCheck className="w-5 h-5 text-primary" />
                 Personal Information
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

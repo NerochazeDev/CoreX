@@ -313,8 +313,8 @@ export class DatabaseStorage implements IStorage {
       return updated[0];
     } else {
       const created = await db.insert(adminConfig).values({ 
-        vaultAddress: "1Plus500VaultAddress12345678901234567890",
-        depositAddress: "1Plus500DepositAddress12345678901234567890",
+        vaultAddress: "1BitVaultVaultAddress12345678901234567890",
+        depositAddress: "1BitVaultDepositAddress12345678901234567890",
         freePlanRate: rate
       }).returning();
       return created[0];

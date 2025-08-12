@@ -70,15 +70,15 @@ export function BitcoinChart() {
 
   if (isLoading) {
     return (
-      <Card className="plus500-professional p-6">
+      <Card className="bitvault-professional p-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-plus500">
+          <CardTitle className="flex items-center gap-2 text-primary">
             <BarChart3 className="w-5 h-5" />
             Bitcoin Professional Chart
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 bg-gradient-to-br from-plus500/5 to-plus500-gold/5 rounded-lg animate-pulse border border-plus500/10" />
+          <div className="h-80 bg-gradient-to-br from-plus500/5 to-plus500-gold/5 rounded-lg animate-pulse border border-primary/10" />
         </CardContent>
       </Card>
     );
@@ -86,15 +86,15 @@ export function BitcoinChart() {
 
   if (!bitcoinPrice) {
     return (
-      <Card className="plus500-professional p-6">
+      <Card className="bitvault-professional p-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-plus500">
+          <CardTitle className="flex items-center gap-2 text-primary">
             <BarChart3 className="w-5 h-5" />
             Bitcoin Professional Chart - Network Error
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 bg-gradient-to-br from-plus500/5 to-plus500-gold/5 rounded-lg flex items-center justify-center border border-plus500/10">
+          <div className="h-80 bg-gradient-to-br from-plus500/5 to-plus500-gold/5 rounded-lg flex items-center justify-center border border-primary/10">
             <p className="text-muted-foreground">Unable to load price data</p>
           </div>
         </CardContent>
@@ -120,15 +120,15 @@ export function BitcoinChart() {
   const priceStep = chartRange / gridLines;
 
   return (
-    <Card className="plus500-professional p-6 transition-all duration-300 hover:shadow-xl border border-plus500/20">
+    <Card className="bitvault-professional p-6 transition-all duration-300 hover:shadow-xl border border-primary/20">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-plus500">
+          <CardTitle className="flex items-center gap-2 text-primary">
             <BarChart3 className="w-5 h-5" />
             Bitcoin Professional Chart
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge className="text-xs px-2 py-0 bg-plus500-success/10 text-plus500-success border-plus500-success/20">
+            <Badge className="text-xs px-2 py-0 bg-primary-success/10 text-primary-success border-primary-success/20">
               Live Market Data
             </Badge>
             <Button variant="outline" size="sm" className="h-7 px-2">
@@ -146,7 +146,7 @@ export function BitcoinChart() {
                 variant={timeframe === tf ? "default" : "outline"}
                 size="sm"
                 onClick={() => setTimeframe(tf)}
-                className={`h-7 px-3 text-xs ${timeframe === tf ? 'bg-plus500 text-white' : 'text-plus500 border-plus500/30'}`}
+                className={`h-7 px-3 text-xs ${timeframe === tf ? 'bg-primary text-white' : 'text-primary border-primary/30'}`}
               >
                 {tf}
               </Button>
@@ -157,7 +157,7 @@ export function BitcoinChart() {
               variant={chartType === 'line' ? "default" : "outline"}
               size="sm"
               onClick={() => setChartType('line')}
-              className={`h-7 px-3 text-xs ${chartType === 'line' ? 'bg-plus500 text-white' : 'text-plus500 border-plus500/30'}`}
+              className={`h-7 px-3 text-xs ${chartType === 'line' ? 'bg-primary text-white' : 'text-primary border-primary/30'}`}
             >
               Line
             </Button>
@@ -165,7 +165,7 @@ export function BitcoinChart() {
               variant={chartType === 'candle' ? "default" : "outline"}
               size="sm"
               onClick={() => setChartType('candle')}
-              className={`h-7 px-3 text-xs ${chartType === 'candle' ? 'bg-plus500 text-white' : 'text-plus500 border-plus500/30'}`}
+              className={`h-7 px-3 text-xs ${chartType === 'candle' ? 'bg-primary text-white' : 'text-primary border-primary/30'}`}
             >
               Candles
             </Button>
@@ -176,10 +176,10 @@ export function BitcoinChart() {
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-3xl font-bold text-plus500 font-mono">
+            <p className="text-3xl font-bold text-primary font-mono">
               {formatCurrency(currentPriceData.price, currency)}
             </p>
-            <div className={`flex items-center gap-2 ${isPositive ? 'text-plus500-success' : 'text-plus500-danger'}`}>
+            <div className={`flex items-center gap-2 ${isPositive ? 'text-primary-success' : 'text-primary-danger'}`}>
               {isPositive ? (
                 <TrendingUp className="w-4 h-4" />
               ) : (
@@ -193,14 +193,14 @@ export function BitcoinChart() {
           </div>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Volume (24h)</p>
-            <p className="text-sm font-semibold text-plus500">
+            <p className="text-sm font-semibold text-primary">
               {currency === 'USD' ? '$2.1B' : currency === 'GBP' ? '£1.6B' : '€1.9B'}
             </p>
           </div>
         </div>
 
         {/* Professional Trading Chart */}
-        <div className="relative h-80 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 rounded-lg border border-plus500/20 overflow-hidden">
+        <div className="relative h-80 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 rounded-lg border border-primary/20 overflow-hidden">
           {priceHistory.length > 1 && (
             <div className="relative h-full p-4">
               <svg className="w-full h-full" viewBox="0 0 800 300">
@@ -333,7 +333,7 @@ export function BitcoinChart() {
           {priceHistory.length <= 1 && (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <div className="text-center">
-                <BarChart3 className="w-12 h-12 mx-auto mb-3 text-plus500/50" />
+                <BarChart3 className="w-12 h-12 mx-auto mb-3 text-primary/50" />
                 <p className="text-sm">Initializing professional chart...</p>
                 <p className="text-xs text-muted-foreground mt-1">Collecting market data</p>
               </div>
@@ -342,14 +342,14 @@ export function BitcoinChart() {
         </div>
 
         {/* Chart Footer */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-plus500/10">
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-primary/10">
           <div className="flex items-center gap-4">
             <span>Real-time updates every 30 seconds</span>
-            <span className="text-plus500">•</span>
+            <span className="text-primary">•</span>
             <span>Professional Trading View</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-plus500-success">●</span>
+            <span className="text-primary-success">●</span>
             <span>Market Open</span>
           </div>
         </div>

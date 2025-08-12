@@ -68,8 +68,8 @@ export default function Login() {
               <span className="text-xs text-green-700 font-medium">Bank-Level Security</span>
             </div>
             <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
-              <Lock className="w-4 h-4 text-plus500-blue" />
-              <span className="text-xs text-plus500-blue font-medium">256-bit SSL</span>
+              <Lock className="w-4 h-4 text-primary-blue" />
+              <span className="text-xs text-primary-blue font-medium">256-bit SSL</span>
             </div>
           </div>
         </CardHeader>
@@ -77,7 +77,7 @@ export default function Login() {
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-medium text-plus500-dark-blue">Email Address</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-primary-dark-blue">Email Address</Label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
@@ -143,7 +143,7 @@ export default function Login() {
           <div className="text-center space-y-4">
             <div className="flex items-center gap-4">
               <div className="flex-1 h-px bg-border"></div>
-              <span className="text-sm text-muted-foreground">New to Plus500 VIP?</span>
+              <span className="text-sm text-muted-foreground">New to BitVault Pro?</span>
               <div className="flex-1 h-px bg-border"></div>
             </div>
             

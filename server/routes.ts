@@ -186,7 +186,7 @@ async function sendDailyMotivationalNotifications(): Promise<void> {
 • Long-term holders continue accumulating
 • Network fundamentals show healthy growth
 
-💡 Investment Strategy: Dollar-cost averaging through Plus500 VIP investment plans reduces volatility risk while maximizing long-term returns.
+💡 Investment Strategy: Dollar-cost averaging through BitVault VIP investment plans reduces volatility risk while maximizing long-term returns.
 
 Your consistent approach is building real wealth!`
       },
@@ -199,7 +199,7 @@ Your consistent approach is building real wealth!`
 • Adoption growing across all demographics  
 • Supply remains mathematically scarce
 
-🏆 Plus500 VIP Advantage: Our automated systems work 24/7 to optimize your investment timing and maximize compound growth.
+🏆 BitVault VIP Advantage: Our automated systems work 24/7 to optimize your investment timing and maximize compound growth.
 
 Stay committed to your financial goals!`
       },
@@ -212,7 +212,7 @@ Stay committed to your financial goals!`
 • Consistent accumulation builds lasting wealth
 • Professional management reduces emotional decisions
 
-🌟 Plus500 VIP delivers institutional-grade investment strategies directly to your portfolio. Your systematic approach is paying dividends!`
+🌟 BitVault VIP delivers institutional-grade investment strategies directly to your portfolio. Your systematic approach is paying dividends!`
       },
       {
         title: "📊 Financial Freedom Progress",
@@ -223,7 +223,7 @@ Stay committed to your financial goals!`
 • Professional management active ✓
 • Long-term strategy in place ✓
 
-💪 Keep Growing: Every successful investor started with a single decision to begin. Your commitment to Plus500 VIP investment plans positions you for long-term financial success.`
+💪 Keep Growing: Every successful investor started with a single decision to begin. Your commitment to BitVault VIP investment plans positions you for long-term financial success.`
       },
       {
         title: "⭐ Investment Community Update", 
@@ -234,7 +234,7 @@ Stay committed to your financial goals!`
 • Consistent daily returns being generated
 • Professional portfolio management active
 
-🎯 Pro Insight: The cryptocurrency market rewards disciplined, long-term investors. Your Plus500 VIP investment strategy is designed for sustainable wealth building.
+🎯 Pro Insight: The cryptocurrency market rewards disciplined, long-term investors. Your BitVault VIP investment strategy is designed for sustainable wealth building.
 
 Excellence in investment requires patience and professional guidance!`
       },
@@ -249,7 +249,7 @@ Excellence in investment requires patience and professional guidance!`
 
 🔥 Investment Fact: Systematic investment approaches historically outperform emotional trading by significant margins.
 
-Your Plus500 VIP investment plans are working professionally while you focus on your life!`
+Your BitVault VIP investment plans are working professionally while you focus on your life!`
       }
     ];
 
@@ -443,7 +443,7 @@ async function fetchBitcoinPrice() {
       const response = await fetch(source.url, {
         method: 'GET',
         headers: {
-          'User-Agent': 'Plus500VIP/1.0',
+          'User-Agent': 'BitVaultVIP/1.0',
           'Accept': 'application/json'
         },
         signal: controller.signal
@@ -660,7 +660,7 @@ Your membership plan continues generating excellent returns!
 Transaction ID: ${transactionId.substring(0, 16)}...
 Updated Balance: ${newBalance.toFixed(8)} BTC
 
-Keep growing with Plus500 VIP! 🚀`,
+Keep growing with BitVault VIP! 🚀`,
               type: 'success',
               isRead: false,
             });
@@ -1400,8 +1400,8 @@ Your investment will start generating profits automatically. You can track your 
       // Create professional welcome notification (only once during registration)
       await storage.createNotification({
         userId: user.id,
-        title: "Welcome to Plus500 VIP Investors Platform",
-        message: `🎉 Welcome to Plus500 VIP, ${firstName}!
+        title: "Welcome to BitVault VIP Investors Platform",
+        message: `🎉 Welcome to BitVault VIP, ${firstName}!
 
 Your account has been successfully created. You're now part of an exclusive investment community with access to:
 
@@ -1412,7 +1412,7 @@ Your account has been successfully created. You're now part of an exclusive inve
 
 Next Step: Set up your Bitcoin wallet to start your investment journey.
 
-Join thousands of successful investors building wealth with Plus500 VIP!`,
+Join thousands of successful investors building wealth with BitVault VIP!`,
         type: "success",
         isRead: false
       });

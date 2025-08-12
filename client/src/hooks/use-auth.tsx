@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
-      const authToken = localStorage.getItem('plus500_auth_token');
+      const authToken = localStorage.getItem('bitvault_auth_token');
       const headers: Record<string, string> = {};
 
       if (authToken) {
@@ -49,27 +49,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await response.json();
         setUser(userData);
         // Update localStorage for offline reference
-        localStorage.setItem('plus500_user', JSON.stringify(userData));
-        localStorage.setItem('plus500_last_activity', Date.now().toString());
+        localStorage.setItem('bitvault_user', JSON.stringify(userData));
+        localStorage.setItem('bitvault_last_activity', Date.now().toString());
       } else {
         // Clear any stale localStorage data
-        localStorage.removeItem('plus500_user');
-        localStorage.removeItem('plus500_auth_token');
-        localStorage.removeItem('plus500_last_activity');
+        localStorage.removeItem('bitvault_user');
+        localStorage.removeItem('bitvault_auth_token');
+        localStorage.removeItem('bitvault_last_activity');
         setUser(null);
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
       // On network error, check localStorage as fallback
-      const storedUser = localStorage.getItem('plus500_user');
+      const storedUser = localStorage.getItem('bitvault_user');
       if (storedUser) {
         try {
           const userData = JSON.parse(storedUser);
           setUser(userData);
         } catch (e) {
-          localStorage.removeItem('plus500_user');
-          localStorage.removeItem('plus500_auth_token');
-          localStorage.removeItem('plus500_last_activity');
+          localStorage.removeItem('bitvault_user');
+          localStorage.removeItem('bitvault_auth_token');
+          localStorage.removeItem('bitvault_last_activity');
         }
       }
     } finally {
@@ -102,13 +102,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Store auth token if provided
     if (userData.authToken) {
-      localStorage.setItem('plus500_auth_token', userData.authToken);
+      localStorage.setItem('bitvault_auth_token', userData.authToken);
 
     }
 
     // Store in localStorage with activity timestamp
-    localStorage.setItem('plus500_user', JSON.stringify(userData));
-    localStorage.setItem('plus500_last_activity', Date.now().toString());
+    localStorage.setItem('bitvault_user', JSON.stringify(userData));
+    localStorage.setItem('bitvault_last_activity', Date.now().toString());
 
     // Set user state
     setUser(userData);
@@ -143,8 +143,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const userData = await response.json();
     setUser(userData);
-    localStorage.setItem('plus500_user', JSON.stringify(userData));
-    localStorage.setItem('plus500_last_activity', Date.now().toString());
+    localStorage.setItem('bitvault_user', JSON.stringify(userData));
+    localStorage.setItem('bitvault_last_activity', Date.now().toString());
   };
 
   const refreshUser = async () => {
@@ -157,8 +157,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const updatedUser = await response.json();
         setUser(updatedUser);
-        localStorage.setItem('plus500_user', JSON.stringify(updatedUser));
-        localStorage.setItem('plus500_last_activity', Date.now().toString());
+        localStorage.setItem('bitvault_user', JSON.stringify(updatedUser));
+        localStorage.setItem('bitvault_last_activity', Date.now().toString());
       } else {
         // Only clear session if it's an authentication error
         if (response.status === 401 || response.status === 403) {
@@ -184,8 +184,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       // Always clear local state regardless of server response
       setUser(null);
-      localStorage.removeItem('plus500_user');
-      localStorage.removeItem('plus500_last_activity');
+      localStorage.removeItem('bitvault_user');
+      localStorage.removeItem('bitvault_last_activity');
     }
   };
 
