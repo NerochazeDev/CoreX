@@ -48,8 +48,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
-      <Card className="w-full max-w-md bitvault-professional shadow-xl">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-orange-50/30 dark:from-slate-900 dark:to-slate-800">
+      <Card className="w-full max-w-md bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-orange-200/50 dark:border-orange-800/50 shadow-xl shadow-orange-500/5">
         <CardHeader className="text-center pb-8">
           <div className="flex justify-center mb-6">
             <BitVaultLogo size="lg" showPro={true} />

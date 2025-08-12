@@ -18,21 +18,21 @@ export function BottomNavigation() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm">
-      <div className="bitvault-professional rounded-t-3xl mx-4 mb-4 shadow-xl border-t-2 border-bitvault">
-        <div className="flex justify-around py-4 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden">
+      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-orange-200/50 dark:border-orange-800/50 mx-4 mb-4 rounded-2xl shadow-xl">
+        <div className="flex justify-around py-3 px-2">
           {navItems.map((item) => {
             const isActive = location === item.path;
             const Icon = item.icon;
             
             return (
               <Link key={item.path} href={item.path}>
-                <div className={`flex flex-col items-center py-3 px-4 rounded-xl transition-all duration-300 ${
+                <div className={`flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-300 ${
                   isActive 
-                    ? 'text-white bg-bitvault shadow-md transform scale-105' 
-                    : 'text-muted-foreground hover:text-bitvault hover:bg-bitvault/5'
+                    ? 'text-white bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg transform scale-105' 
+                    : 'text-muted-foreground hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20'
                 }`}>
-                  <Icon className="w-6 h-6 mb-1" />
+                  <Icon className="w-5 h-5 mb-1" />
                   <span className="text-xs font-medium">{item.label}</span>
                 </div>
               </Link>
