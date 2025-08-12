@@ -66,6 +66,8 @@ export function useRealtimeUpdates() {
               queryClient.invalidateQueries({ queryKey: ['/api/user'] });
               queryClient.invalidateQueries({ queryKey: ['/api/investments'] });
               queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id, 'unread-count'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id, 'unread-count'] });
             }
           }
         } catch (error) {

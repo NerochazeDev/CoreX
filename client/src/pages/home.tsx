@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   // Redirect to login if not authenticated
   if (!user) {
@@ -53,9 +54,17 @@ export default function Home() {
     return null;
   }
 
+  // Fetch unread notifications count with proper refreshing
   const { data: unreadCount } = useQuery<{ count: number }>({
-    queryKey: ['/api/notifications', user.id, 'unread-count'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    queryKey: ['/api/notifications', user?.id, 'unread-count'],
+    queryFn: async () => {
+      const response = await fetch(`/api/notifications/${user?.id}/unread-count`);
+      if (!response.ok) throw new Error('Failed to fetch unread count');
+      return response.json();
+    },
+    enabled: !!user?.id,
+    refetchInterval: 5000, // Refresh every 5 seconds
+    staleTime: 0, // Always consider data stale for real-time updates
   });
 
   const { data: activeInvestments } = useQuery<Investment[]>({
@@ -99,20 +108,20 @@ export default function Home() {
   const totalValue = totalInvestedAmount + totalProfit;
   const profitMargin = totalInvestedAmount > 0 ? (totalProfit / totalInvestedAmount) * 100 : 0;
   const currentPlan = user.currentPlanId ? investmentPlans?.find(p => p.id === user.currentPlanId) : null;
-  
+
   // Generate mock chart data for realistic investment visualization
   const generateChartData = () => {
     const data = [];
     const baseAmount = totalInvestedAmount || 0.1;
     const now = new Date();
-    
+
     for (let i = 29; i >= 0; i--) {
       const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
       const randomVariation = (Math.random() - 0.5) * 0.02;
       const growthFactor = 1 + (29 - i) * 0.001 + randomVariation;
       const value = baseAmount * growthFactor;
       const profit = value - baseAmount;
-      
+
       data.push({
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         value: parseFloat(value.toFixed(8)),
@@ -124,7 +133,7 @@ export default function Home() {
   };
 
   const chartData = generateChartData();
-  
+
   // Investment distribution data
   const investmentDistribution = activeInvestments?.filter(inv => inv.isActive === true).map((inv, index) => ({
     name: investmentPlans?.find(p => p.id === inv.planId)?.name || `Plan ${inv.planId}`,
@@ -184,6 +193,23 @@ export default function Home() {
     }
   };
 
+  // Real-time updates
+  useRealtimeUpdates();
+
+  // Refresh unread count every 10 seconds for real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/notifications', user.id, 'unread-count'] 
+        });
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [user?.id, queryClient]);
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       {/* Advanced Professional Header */}
@@ -209,7 +235,7 @@ export default function Home() {
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-xs font-medium text-green-700 dark:text-green-400">Live</span>
               </div>
-              
+
               {/* Quick Stats */}
               <div className="hidden lg:flex items-center gap-4 bg-white/80 dark:bg-slate-800/80 px-4 py-2 rounded-xl border border-orange-200/50 dark:border-orange-800/50">
                 <div className="text-center">
@@ -233,7 +259,7 @@ export default function Home() {
                   </span>
                 )}
               </button>
-              
+
               <button 
                 onClick={() => setLocation('/profile')}
                 className="p-2 sm:p-2.5 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl transition-all duration-200 border border-transparent hover:border-orange-200 dark:hover:border-orange-800"
@@ -247,7 +273,7 @@ export default function Home() {
 
       {/* Advanced Professional Dashboard */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        
+
         {/* Top Performance Metrics Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200/50 dark:border-green-800/50 p-4">
@@ -304,15 +330,15 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          
+
           {/* Left Column - Balance Card & Analytics */}
           <div className="xl:col-span-8 space-y-6">
-            
+
             {/* Primary Balance Card */}
             <div className="bg-gradient-to-br from-orange-50/50 via-white to-orange-50/30 dark:from-slate-900/50 dark:via-slate-800 dark:to-slate-900/30 backdrop-blur-lg rounded-2xl p-6 border border-orange-200/50 dark:border-orange-800/50 shadow-2xl shadow-orange-500/10">
               <WalletBalance />
             </div>
-            
+
             {/* Advanced Portfolio Analytics */}
             <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-lg border border-orange-200/50 dark:border-orange-800/50 shadow-2xl shadow-orange-500/10">
               <div className="p-6">
@@ -357,7 +383,7 @@ export default function Home() {
                       Analysis
                     </TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="chart" className="space-y-4">
                     <div className="h-80 w-full">
                       <ResponsiveContainer width="100%" height="100%">
@@ -415,7 +441,7 @@ export default function Home() {
                       </ResponsiveContainer>
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="distribution" className="space-y-4">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="h-64">
@@ -448,7 +474,7 @@ export default function Home() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="space-y-4">
                         <h4 className="font-semibold text-foreground">Investment Breakdown</h4>
                         {investmentDistribution.length > 0 ? (
@@ -479,7 +505,7 @@ export default function Home() {
                       </div>
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="analysis" className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <Card className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200/50">
@@ -509,7 +535,7 @@ export default function Home() {
                         <p className="text-sm text-purple-600 dark:text-purple-400">Above market avg</p>
                       </Card>
                     </div>
-                    
+
                     {totalInvestedAmount > 0 && (
                       <Card className="p-6 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200/50">
                         <div className="flex items-center gap-3 mb-4">
@@ -682,7 +708,7 @@ export default function Home() {
                             Earning
                           </Badge>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <p className="text-muted-foreground">Amount</p>
@@ -734,7 +760,7 @@ export default function Home() {
                     {currentPlan ? 'Premium Active' : 'Free Tier'}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center gap-4 mb-4">
                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
                     currentPlan 
@@ -759,7 +785,7 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                
+
                 {!currentPlan && (
                   <Button 
                     className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
