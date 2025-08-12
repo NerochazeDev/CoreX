@@ -60,16 +60,42 @@ export default function Home() {
 
   const { data: activeInvestments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user.id],
-    refetchInterval: 30000, // Refresh every 30 seconds for live updates
+    queryFn: () => fetch(`/api/investments/user/${user.id}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+      }
+    }).then(res => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch investments');
+      }
+      return res.json();
+    }),
+    enabled: !!user?.id,
+    refetchInterval: 5000, // Refresh every 5 seconds for instant updates
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   const { data: investmentPlans } = useQuery<InvestmentPlan[]>({
     queryKey: ['/api/investment-plans'],
+    queryFn: () => fetch('/api/investment-plans', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+      }
+    }).then(res => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch investment plans');
+      }
+      return res.json();
+    }),
+    enabled: !!user,
+    refetchInterval: 60000, // Refresh every minute
   });
 
   // Calculate complex investment analytics
-  const totalInvestedAmount = activeInvestments?.reduce((sum, inv) => sum + parseFloat(inv.amount), 0) || 0;
-  const totalProfit = activeInvestments?.reduce((sum, inv) => sum + parseFloat(inv.currentProfit), 0) || 0;
+  const actualActiveInvestments = activeInvestments?.filter(inv => inv.isActive === true) || [];
+  const totalInvestedAmount = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+  const totalProfit = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit), 0);
   const totalValue = totalInvestedAmount + totalProfit;
   const profitMargin = totalInvestedAmount > 0 ? (totalProfit / totalInvestedAmount) * 100 : 0;
   const currentPlan = user.currentPlanId ? investmentPlans?.find(p => p.id === user.currentPlanId) : null;
@@ -100,15 +126,20 @@ export default function Home() {
   const chartData = generateChartData();
   
   // Investment distribution data
-  const investmentDistribution = activeInvestments?.map(inv => ({
+  const investmentDistribution = activeInvestments?.filter(inv => inv.isActive === true).map((inv, index) => ({
     name: investmentPlans?.find(p => p.id === inv.planId)?.name || `Plan ${inv.planId}`,
     value: parseFloat(inv.amount),
     profit: parseFloat(inv.currentProfit),
-    color: `hsl(${Math.random() * 360}, 70%, 50%)`
+    color: `hsl(${index * 45}, 70%, 50%)`
   })) || [];
 
   // Performance metrics
-  const dailyGrowthRate = currentPlan ? parseFloat(currentPlan.dailyReturnRate) * 100 : 3.67;
+  const dailyGrowthRate = actualActiveInvestments.length > 0 
+    ? actualActiveInvestments.reduce((sum, inv) => {
+        const plan = investmentPlans?.find(p => p.id === inv.planId);
+        return sum + (plan ? parseFloat(plan.dailyReturnRate) * 100 : 0);
+      }, 0) / actualActiveInvestments.length 
+    : (currentPlan ? parseFloat(currentPlan.dailyReturnRate) * 100 : 3.67);
   const monthlyProjection = totalValue * (1 + dailyGrowthRate / 100) ** 30;
   const weeklyGrowth = totalValue * (1 + dailyGrowthRate / 100) ** 7;
 
@@ -390,13 +421,20 @@ export default function Home() {
                       <div className="h-64">
                         {investmentDistribution.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
-                            <RechartsPieChart>
+                            <RechartsPieChart data={investmentDistribution}>
                               <Tooltip 
                                 formatter={(value: any) => [`${parseFloat(value).toFixed(6)} BTC`, 'Investment']}
                               />
-                              <RechartsPieChart width={400} height={400}>
+                              <RechartsPieChart 
+                                data={investmentDistribution}
+                                cx="50%" 
+                                cy="50%" 
+                                outerRadius={80} 
+                                fill="#8884d8" 
+                                dataKey="value"
+                              >
                                 {investmentDistribution.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
+                                  <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
                               </RechartsPieChart>
                             </RechartsPieChart>
@@ -574,7 +612,7 @@ export default function Home() {
             </Card>
 
             {/* Active Investments Section */}
-            {activeInvestments && activeInvestments.length > 0 && (
+            {activeInvestments && activeInvestments.filter(inv => inv.isActive === true).length > 0 && (
               <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-orange-200/50 dark:border-orange-800/50 shadow-xl shadow-orange-500/5">
                 <div className="flex justify-between items-center mb-6">
                   <div>
@@ -617,7 +655,7 @@ export default function Home() {
 
                 {/* Investment Cards */}
                 <div className="space-y-4">
-                  {activeInvestments.map((investment) => {
+                  {activeInvestments.filter(inv => inv.isActive === true).map((investment) => {
                     const progress = calculateInvestmentProgress(
                       new Date(investment.startDate),
                       new Date(investment.endDate)
@@ -735,7 +773,7 @@ export default function Home() {
             </Card>
 
             {/* Quick Start Card (when no active investments) */}
-            {(!activeInvestments || activeInvestments.length === 0) && (
+            {(!actualActiveInvestments || actualActiveInvestments.length === 0) && (
               <Card className="bg-gradient-to-br from-purple-50/50 via-white to-purple-50/30 dark:from-purple-900/10 dark:via-slate-800 dark:to-purple-900/10 backdrop-blur-lg border border-purple-200/50 dark:border-purple-800/50 shadow-xl shadow-purple-500/10">
                 <div className="p-6 text-center">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30 flex items-center justify-center mx-auto mb-4">
