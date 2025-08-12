@@ -136,8 +136,8 @@ function ProfileContent() {
     setIsUploadingAvatar(true);
     
     try {
-      // Update profile with new avatar
-      await updateProfileMutation.mutateAsync({ avatar: uploadedImage });
+      // Update profile with new avatar using the correct mutation
+      const result = await updateProfileMutation.mutateAsync({ avatar: uploadedImage });
       
       setProfileData(prev => ({ ...prev, avatar: uploadedImage }));
       setAvatarDialogOpen(false);
@@ -147,10 +147,11 @@ function ProfileContent() {
         title: "Profile Picture Updated",
         description: "Your new profile picture has been saved successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Avatar upload error:', error);
       toast({
         title: "Upload Failed",
-        description: "Failed to update profile picture. Please try again.",
+        description: error?.message || "Failed to update profile picture. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -168,10 +169,11 @@ function ProfileContent() {
         title: "Profile Picture Removed",
         description: "Your profile picture has been removed.",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Avatar removal error:', error);
       toast({
         title: "Removal Failed",
-        description: "Failed to remove profile picture. Please try again.",
+        description: error?.message || "Failed to remove profile picture. Please try again.",
         variant: "destructive"
       });
     }
@@ -201,10 +203,11 @@ function ProfileContent() {
         title: "Avatar Generated",
         description: "A new gradient avatar has been created for you.",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Gradient avatar generation error:', error);
       toast({
         title: "Generation Failed",
-        description: "Failed to generate new avatar. Please try again.",
+        description: error?.message || "Failed to generate new avatar. Please try again.",
         variant: "destructive"
       });
     }

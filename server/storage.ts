@@ -119,9 +119,14 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserProfile(userId: number, profileData: Partial<UpdateUserProfile>): Promise<User | undefined> {
     return await executeQuery(async () => {
+      // Filter out undefined values to prevent overwriting with nulls
+      const cleanProfileData = Object.fromEntries(
+        Object.entries(profileData).filter(([_, value]) => value !== undefined)
+      );
+      
       const [user] = await db
         .update(users)
-        .set(profileData)
+        .set(cleanProfileData)
         .where(eq(users.id, userId))
         .returning();
       return user || undefined;
