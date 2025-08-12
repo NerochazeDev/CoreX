@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 :root {
-  /* Plus500 Authentic Color Palette */
+  /* BitVault Pro Color Palette */
   --background: 210 20% 98%; /* Professional light gray background */
   --foreground: 210 40% 8%; /* Professional dark text */
   --muted: 210 40% 94%; /* Subtle light gray */
@@ -16,32 +16,32 @@
   --border: 210 20% 92%; /* Subtle border */
   --input: 210 20% 98%; /* Light input background */
   
-  /* Plus500 Brand Colors - Authentic */
-  --primary: 210 100% 44%; /* Plus500 Blue #003AE0 */
+  /* BitVault Brand Colors - Orange/Bitcoin Theme */
+  --primary: 25 95% 53%; /* BitVault Orange #FF8C00 */
   --primary-foreground: 0 0% 100%; /* Pure white text */
   --secondary: 210 40% 94%; /* Light secondary */
   --secondary-foreground: 210 40% 10%; /* Dark text */
-  --accent: 45 93% 47%; /* Plus500 Gold #E6A817 */
+  --accent: 45 93% 47%; /* BitVault Gold #E6A817 */
   --accent-foreground: 210 40% 8%; /* Dark text on gold */
   --destructive: 0 84% 60%; /* Professional red */
   --destructive-foreground: 0 0% 98%; /* White text */
-  --ring: 210 100% 44%; /* Plus500 Blue ring */
+  --ring: 25 95% 53%; /* BitVault Orange ring */
   --radius: 0.5rem;
   
-  /* Plus500 VIP Extended Palette - Authentic Colors */
-  --plus500-primary: 210 100% 30%; /* #003399 - Authentic Plus500 Royal Blue */
-  --plus500-secondary: 210 100% 25%; /* Darker blue variant */
-  --plus500-gold: 45 93% 47%; /* #E6A817 - Plus500 Gold */
-  --plus500-light: 210 40% 96%; /* Very light background */
-  --plus500-dark: 210 40% 15%; /* Professional dark with better contrast */
-  --plus500-success: 142 71% 35%; /* Professional green with better contrast */
-  --plus500-warning: 25 95% 45%; /* Professional orange with better contrast */
-  --plus500-danger: 0 84% 50%; /* Professional red with better contrast */
+  /* BitVault Pro Extended Palette */
+  --bitvault-primary: 25 95% 53%; /* #FF8C00 - BitVault Orange */
+  --bitvault-secondary: 25 95% 45%; /* Darker orange variant */
+  --bitvault-gold: 45 93% 47%; /* #E6A817 - BitVault Gold */
+  --bitvault-light: 25 40% 96%; /* Very light background */
+  --bitvault-dark: 25 40% 15%; /* Professional dark with better contrast */
+  --bitvault-success: 142 71% 35%; /* Professional green with better contrast */
+  --bitvault-warning: 25 95% 45%; /* Professional orange with better contrast */
+  --bitvault-danger: 0 84% 50%; /* Professional red with better contrast */
   
-  /* VIP Gradients */
-  --gradient-primary: linear-gradient(135deg, #003AE0 0%, #0052FF 100%);
+  /* Pro Gradients */
+  --gradient-primary: linear-gradient(135deg, #FF8C00 0%, #FFA500 100%);
   --gradient-gold: linear-gradient(135deg, #E6A817 0%, #FFD700 100%);
-  --gradient-vip: linear-gradient(135deg, #003AE0 0%, #E6A817 100%);
+  --gradient-pro: linear-gradient(135deg, #FF8C00 0%, #E6A817 100%);
   --gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   
   /* Professional Shadows */
@@ -49,8 +49,8 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-plus500: 0 8px 32px 0 rgba(0, 58, 224, 0.12);
-  --shadow-vip: 0 8px 32px 0 rgba(230, 168, 23, 0.15);
+  --shadow-bitvault: 0 8px 32px 0 rgba(255, 140, 0, 0.12);
+  --shadow-pro: 0 8px 32px 0 rgba(230, 168, 23, 0.15);
 }
 
 .dark {
@@ -84,7 +84,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background: linear-gradient(135deg, hsl(var(--plus500-light)) 0%, hsl(var(--background)) 100%);
+    background: linear-gradient(135deg, hsl(var(--bitvault-light)) 0%, hsl(var(--background)) 100%);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', 'Helvetica Neue', Arial, sans-serif;
     font-weight: 400;
     line-height: 1.6;
@@ -96,7 +96,7 @@
 }
 
 @layer utilities {
-  /* Plus500 VIP Gradients */
+  /* BitVault Pro Gradients */
   .gradient-primary {
     background: var(--gradient-primary);
   }
@@ -105,31 +105,31 @@
     background: var(--gradient-gold);
   }
   
-  .gradient-vip {
-    background: var(--gradient-vip);
+  .gradient-pro {
+    background: var(--gradient-pro);
   }
   
   .gradient-dark {
     background: var(--gradient-dark);
   }
   
-  /* Plus500 Professional Cards */
-  .plus500-card {
+  /* BitVault Professional Cards */
+  .bitvault-card {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: calc(var(--radius) + 2px);
-    box-shadow: var(--shadow-plus500);
+    box-shadow: var(--shadow-bitvault);
     backdrop-filter: blur(8px);
   }
 
-  .plus500-vip-card {
+  .bitvault-pro-card {
     background: var(--gradient-vip);
     border-radius: calc(var(--radius) + 4px);
     box-shadow: var(--shadow-vip);
     color: white;
   }
 
-  .plus500-professional {
+  .bitvault-professional {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
@@ -137,13 +137,13 @@
     transition: all 0.2s ease;
   }
 
-  .plus500-professional:hover {
+  .bitvault-professional:hover {
     box-shadow: var(--shadow-lg);
     transform: translateY(-1px);
   }
 
-  /* Plus500 Buttons */
-  .plus500-btn {
+  /* BitVault Buttons */
+  .bitvault-btn {
     background: var(--gradient-primary);
     border: none;
     border-radius: var(--radius);
@@ -155,10 +155,10 @@
     box-shadow: var(--shadow-md);
   }
 
-  .plus500-btn:hover {
-    background: hsl(var(--plus500-secondary));
+  .bitvault-btn:hover {
+    background: hsl(var(--bitvault-secondary));
     transform: translateY(-1px);
-    box-shadow: var(--shadow-plus500);
+    box-shadow: var(--shadow-bitvault);
   }
 
   .plus500-btn-gold {

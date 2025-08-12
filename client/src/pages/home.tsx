@@ -3,7 +3,7 @@ import { WalletBalance } from "@/components/wallet-balance";
 import { BitcoinPrice } from "@/components/bitcoin-price";
 
 import { BottomNavigation } from "@/components/bottom-navigation";
-import { OfficialPlus500Logo } from "@/components/official-plus500-logo";
+import { BitVaultLogo } from "@/components/bitvault-logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Bell, User, ArrowUpRight, ArrowDownLeft, TrendingUp, Activity } from "lucide-react";
@@ -172,11 +172,11 @@ export default function Home() {
 
   return (
     <div className="max-w-sm mx-auto min-h-screen bg-background">
-      {/* Plus500 VIP Header */}
-      <header className="bg-gradient-to-br from-blue-700 to-blue-900 text-white px-6 py-4 shadow-xl">
+      {/* BitVault Pro Header */}
+      <header className="bg-gradient-to-br from-orange-500 to-orange-700 text-white px-6 py-4 shadow-xl">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <OfficialPlus500Logo variant="white" size="md" showVIP={true} />
+            <BitVaultLogo variant="white" size="md" showPro={true} />
           </div>
           <div className="flex items-center gap-3">
             <button 
@@ -185,7 +185,7 @@ export default function Home() {
             >
               <Bell className="h-5 w-5" />
               {unreadCount && unreadCount.count > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-plus500-gold text-plus500-dark text-xs">
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-orange-500 text-white text-xs">
                   {unreadCount.count}
                 </Badge>
               )}
@@ -205,15 +205,15 @@ export default function Home() {
 
       {/* Wallet Balance - Plus500 Professional Style */}
       <div className="px-4 py-6">
-        <div className="plus500-professional p-6 mb-4">
+        <div className="bitvault-professional p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-plus500">Portfolio Balance</h3>
+            <h3 className="text-lg font-bold text-primary">Portfolio Balance</h3>
             <Button
               variant="ghost"
               size="icon"
               onClick={handleRefreshBalance}
               disabled={isRefreshing}
-              className="plus500-btn h-8 w-8 p-0 rounded-lg"
+              className="bitvault-btn h-8 w-8 p-0 rounded-lg"
             >
               <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
@@ -231,10 +231,10 @@ export default function Home() {
 
       {/* Quick Actions - Plus500 Professional */}
       <div className="px-4 mb-6">
-        <h3 className="text-lg font-bold mb-4 text-plus500">Trading Actions</h3>
+        <h3 className="text-lg font-bold mb-4 text-primary">Trading Actions</h3>
         <div className="grid grid-cols-2 gap-3">
           <Button 
-            className="plus500-professional p-4 text-center hover:shadow-lg transition-all duration-300 flex flex-col items-center gap-3 h-auto group"
+            className="bitvault-professional p-4 text-center hover:shadow-lg transition-all duration-300 flex flex-col items-center gap-3 h-auto group"
             onClick={() => setLocation('/withdraw')}
           >
             <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-all border border-red-200">
@@ -246,7 +246,7 @@ export default function Home() {
             </div>
           </Button>
           <Button 
-            className="plus500-professional p-4 text-center hover:shadow-lg transition-all duration-300 flex flex-col items-center gap-3 h-auto group"
+            className="bitvault-professional p-4 text-center hover:shadow-lg transition-all duration-300 flex flex-col items-center gap-3 h-auto group"
             onClick={() => setLocation('/deposit')}
           >
             <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-all border border-green-200">

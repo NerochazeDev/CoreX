@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, Shield, Lock, Mail, ArrowRight } from "lucide-react";
-import { OfficialPlus500Logo } from "@/components/official-plus500-logo";
+import { BitVaultLogo } from "@/components/bitvault-logo";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -49,16 +49,16 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-background">
-      <Card className="w-full max-w-md plus500-professional shadow-xl">
+      <Card className="w-full max-w-md bitvault-professional shadow-xl">
         <CardHeader className="text-center pb-8">
           <div className="flex justify-center mb-6">
-            <OfficialPlus500Logo size="lg" showVIP={true} />
+            <BitVaultLogo size="lg" showPro={true} />
           </div>
-          <CardTitle className="text-3xl font-bold text-plus500 mb-2">
+          <CardTitle className="text-3xl font-bold text-primary mb-2">
             Welcome Back
           </CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
-            Access your Plus500 VIP investment platform
+            Access your BitVault Pro investment platform
           </CardDescription>
           
           {/* Security indicators */}

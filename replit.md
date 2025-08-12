@@ -1,8 +1,8 @@
-# Plus500 VIP Investors Platform
+# BitVault Pro - Bitcoin Investment Platform
 
 ## Overview
 
-Plus500 VIP Investors is a premium Bitcoin investment platform that provides VIP clients with cryptocurrency wallet management, exclusive investment opportunities, and real-time Bitcoin price tracking. The platform features a complete investment ecosystem with different investment plans, transaction management, and administrative controls, all designed with Plus500's authentic professional interface using royal blue and white branding with gradient backgrounds and professional styling matching the real Plus500 platform.
+BitVault Pro is a premium Bitcoin investment platform that provides professional clients with cryptocurrency wallet management, exclusive investment opportunities, and real-time Bitcoin price tracking. The platform features a complete investment ecosystem with different investment plans, transaction management, and administrative controls, all designed with a modern Bitcoin-focused professional interface using orange and gold branding with gradient backgrounds and professional styling optimized for Bitcoin trading.
 
 ## System Architecture
 
@@ -11,7 +11,7 @@ Plus500 VIP Investors is a premium Bitcoin investment platform that provides VIP
 - **Routing**: Wouter for client-side routing
 - **UI Components**: Radix UI with Tailwind CSS for styling
 - **State Management**: React Query for server state, React Context for global state
-- **Styling**: Custom dark theme with Plus500 royal blue and white color scheme
+- **Styling**: Custom dark theme with BitVault orange and gold Bitcoin-focused color scheme
 
 ### Backend Architecture
 - **Runtime**: Node.js with TypeScript
@@ -107,6 +107,7 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 - `PORT`: Server port (defaults to 5000)
 
 ## Changelog
+- August 12, 2025. **Rebranded to BitVault Pro** - Complete rebrand from Plus500 to BitVault Pro with Bitcoin-focused orange/gold theme, updated all UI components, logos, and styling to match professional Bitcoin investment platform
 - August 10, 2025. **Migrated to new Neon PostgreSQL database** - Successfully integrated user's new Neon database with secure environment variables, removed old database connections, all user data and features working correctly
 - August 2, 2025. **Fixed Railway deployment configuration (v2)** - Removed problematic nixpacks.toml with invalid package names, created .nvmrc for Node.js 20, using Railway's automatic Node.js detection for reliable deployment
 - August 2, 2025. **Fixed Railway deployment configuration** - Removed Dockerfile to prevent Docker detection, updated railway.json and nixpacks.toml for proper Node.js deployment, created .railwayignore, verified build process works correctly
