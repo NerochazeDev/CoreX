@@ -446,6 +446,7 @@ export default function Management() {
     { id: "security", label: "Security", icon: Shield },
     { id: "database", label: "Database Management", icon: Database },
     { id: "config", label: "Configuration", icon: Settings },
+    { id: "brand", label: "Brand Showcase", icon: Bitcoin },
   ];
 
   const renderSidebar = () => (
@@ -1446,6 +1447,194 @@ export default function Management() {
     </Card>
   );
 
+  const renderBrandTab = () => (
+    <div className="space-y-6">
+      {/* Main Brand Showcase Card - Advertisement Style */}
+      <Card className="overflow-hidden border-0 shadow-2xl">
+        <div className="relative h-96 bg-gradient-to-br from-slate-900 via-orange-900 to-black">
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-amber-400/20"></div>
+          <div className="absolute top-0 left-0 w-full h-full opacity-10">
+            <div className="absolute top-10 left-10 w-32 h-32 bg-orange-400 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-400 rounded-full blur-3xl animate-pulse delay-1000"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-orange-500/30 rounded-full blur-3xl animate-pulse delay-500"></div>
+          </div>
+          
+          {/* Grid Pattern Overlay */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="w-full h-full" style={{
+              backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+              backgroundSize: '50px 50px'
+            }}></div>
+          </div>
+          
+          {/* Main Content */}
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white p-8">
+            {/* Logo */}
+            <div className="mb-8 transform hover:scale-105 transition-transform duration-300">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-2xl">
+                  <span className="text-4xl font-bold text-black">₿</span>
+                </div>
+                <div className="text-left">
+                  <h1 className="text-5xl font-bold tracking-tight mb-2">BitVault</h1>
+                  <div className="bg-gradient-to-r from-orange-400 to-amber-400 text-black px-4 py-1 rounded-full text-lg font-bold">
+                    PRO EDITION
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Taglines */}
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl font-bold text-orange-400">
+                Professional Bitcoin Investment Platform
+              </h2>
+              <div className="flex items-center justify-center gap-8 text-lg">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-6 h-6 text-green-400" />
+                  <span>Bank-Level Security</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-6 h-6 text-blue-400" />
+                  <span>Advanced Analytics</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Bitcoin className="w-6 h-6 text-orange-400" />
+                  <span>Real-Time Trading</span>
+                </div>
+              </div>
+              <p className="text-xl text-orange-200 font-medium mt-6">
+                Secure • Professional • Exclusive
+              </p>
+            </div>
+            
+            {/* Call to Action */}
+            <div className="mt-8">
+              <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-black px-8 py-3 rounded-full text-xl font-bold shadow-2xl">
+                Join the Elite Bitcoin Investors
+              </div>
+            </div>
+          </div>
+          
+          {/* Corner Decorations */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-400/20 to-transparent rounded-bl-full"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-amber-400/20 to-transparent rounded-tr-full"></div>
+        </div>
+      </Card>
+
+      {/* Alternative Brand Variations */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Minimal Dark Version */}
+        <Card className="overflow-hidden border border-gray-800">
+          <div className="bg-slate-900 p-8 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 rounded-xl bg-orange-500 flex items-center justify-center">
+                <span className="text-2xl font-bold text-black">₿</span>
+              </div>
+            </div>
+            <h3 className="text-3xl font-bold text-white mb-2">BitVault</h3>
+            <div className="bg-orange-500 text-black px-3 py-1 rounded-full text-sm font-bold inline-block mb-4">
+              PRO
+            </div>
+            <p className="text-gray-400">Professional Bitcoin Platform</p>
+          </div>
+        </Card>
+
+        {/* Light Corporate Version */}
+        <Card className="overflow-hidden">
+          <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-8 text-center border">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
+                <span className="text-2xl font-bold text-white">₿</span>
+              </div>
+            </div>
+            <h3 className="text-3xl font-bold text-gray-900 mb-2">BitVault</h3>
+            <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 py-1 rounded-full text-sm font-bold inline-block mb-4">
+              PRO EDITION
+            </div>
+            <p className="text-gray-600">Trusted Bitcoin Investment Solution</p>
+          </div>
+        </Card>
+      </div>
+
+      {/* Brand Guidelines */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            Brand Guidelines & Assets
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Color Palette */}
+            <div>
+              <h4 className="font-semibold mb-4">Brand Colors</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-orange-500"></div>
+                  <div>
+                    <p className="font-medium">Primary Orange</p>
+                    <p className="text-sm text-muted-foreground">#F97316</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-amber-500"></div>
+                  <div>
+                    <p className="font-medium">Secondary Amber</p>
+                    <p className="text-sm text-muted-foreground">#F59E0B</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-slate-900"></div>
+                  <div>
+                    <p className="font-medium">Dark Background</p>
+                    <p className="text-sm text-muted-foreground">#0F172A</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Typography */}
+            <div>
+              <h4 className="font-semibold mb-4">Typography</h4>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-2xl font-bold">BitVault</p>
+                  <p className="text-sm text-muted-foreground">Primary Brand Name</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 py-1 rounded-full inline-block">
+                    PRO EDITION
+                  </p>
+                  <p className="text-sm text-muted-foreground">Brand Modifier</p>
+                </div>
+                <div>
+                  <p className="text-base">Professional Bitcoin Investment Platform</p>
+                  <p className="text-sm text-muted-foreground">Brand Tagline</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-semibold text-blue-900 mb-2">Usage Guidelines</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• Always maintain the Bitcoin symbol (₿) in the logo</li>
+              <li>• Use the gradient backgrounds for premium feel</li>
+              <li>• Maintain minimum clear space around the logo</li>
+              <li>• PRO EDITION should always appear with brand name</li>
+              <li>• Use high contrast for accessibility</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "overview":
@@ -1462,6 +1651,8 @@ export default function Management() {
         return renderSecurityTab();
       case "config":
         return renderConfigTab();
+      case "brand":
+        return renderBrandTab();
       default:
         return renderOverviewTab();
     }
