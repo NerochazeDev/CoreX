@@ -1606,7 +1606,7 @@ Your investment journey starts here!`,
       if (!userId) {
         return res.status(401).json({ message: "Authentication required" });
       }
-
+      
       const profileData = updateUserProfileSchema.parse(req.body);
       const updatedUser = await storage.updateUserProfile(userId, profileData);
 
