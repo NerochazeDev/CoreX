@@ -86,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'Content-Type': 'application/json',
       },
       credentials: 'include', // Ensure cookies are sent with requests
+      mode: 'cors', // Enable CORS with credentials
       body: JSON.stringify({ email, password }),
     });
 
@@ -149,9 +150,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = async () => {
     try {
+      const authToken = localStorage.getItem('bitvault_auth_token');
+      const headers: Record<string, string> = {};
+
+      if (authToken) {
+        headers.Authorization = `Bearer ${authToken}`;
+      }
+
       const response = await fetch('/api/me', {
         method: 'GET',
-        credentials: 'include',
+        credentials: 'include', // Ensure cookies are sent
+        mode: 'cors', // Enable CORS with credentials
+        headers
       });
 
       if (response.ok) {
@@ -162,7 +172,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // Only clear session if it's an authentication error
         if (response.status === 401 || response.status === 403) {
-
           logout();
         }
       }

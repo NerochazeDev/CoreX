@@ -24,7 +24,8 @@ export async function apiRequest(
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: "include", // This ensures cookies are sent with every request
+    mode: "cors", // Enable CORS with credentials
   });
 
   await throwIfResNotOk(res);
@@ -46,7 +47,8 @@ export const getQueryFn: <T>(options: {
     }
 
     const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
+      credentials: "include", // Ensure cookies are sent with every request
+      mode: "cors", // Enable CORS with credentials
       headers,
     });
 

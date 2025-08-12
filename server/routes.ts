@@ -1502,8 +1502,16 @@ Your investment journey starts here!`,
 
       // Set session userId for authentication
       req.session.userId = user.id;
-
       
+      // Force session save to ensure it's written to store
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+        } else {
+          console.log(`Session saved for user ${user.id}, Session ID: ${req.sessionID}`);
+        }
+      });
+
       // Generate a simple auth token for cross-origin requests
       const authToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
       
