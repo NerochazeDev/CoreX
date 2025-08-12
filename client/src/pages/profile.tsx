@@ -94,8 +94,8 @@ function ProfileContent() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/me'] });
       toast({
-        title: "Profile Updated",
-        description: "Your profile information has been saved successfully.",
+        title: "Profile Updated Successfully! 🎉",
+        description: "Your changes have been saved and will be visible shortly.",
       });
     },
     onError: (error: any) => {
@@ -312,10 +312,20 @@ function ProfileContent() {
     });
   };
 
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
   const handleProfileUpdate = async () => {
     try {
       const { notifications, privacy, ...profileUpdateData } = profileData;
       await updateProfileMutation.mutateAsync(profileUpdateData);
+      
+      // Close dialog and show success feedback
+      setIsEditDialogOpen(false);
+      
+      // Force a page reload to show updated data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       // Error handling is done in the mutation's onError callback
     }
@@ -348,7 +358,7 @@ function ProfileContent() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Dialog>
+              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
                     <Edit className="w-4 h-4" />
@@ -407,9 +417,32 @@ function ProfileContent() {
                         />
                       </div>
                     </div>
-                    <Button onClick={handleProfileUpdate} className="w-full">
-                      Save Changes
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={handleProfileUpdate} 
+                        className="flex-1"
+                        disabled={updateProfileMutation.isPending}
+                      >
+                        {updateProfileMutation.isPending ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsEditDialogOpen(false)}
+                        disabled={updateProfileMutation.isPending}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
