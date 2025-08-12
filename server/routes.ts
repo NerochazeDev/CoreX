@@ -51,25 +51,29 @@ const depositSchema = z.object({
   transactionHash: z.string().optional(),
 });
 
-// Helper function to get userId from session or auth token
+// Helper function to get userId from session or auth token - maintains stable user ID
 function getUserIdFromRequest(req: any): number | null {
-  // Check session first
+  // Always prioritize session userId for consistency
   if (req.session?.userId) {
+    console.log(`Using session user ID: ${req.session.userId}`);
     return req.session.userId;
   }
   
-  // Check auth token header
+  // Check auth token header as fallback only
   const authToken = req.headers.authorization?.replace('Bearer ', '');
   if (authToken) {
     try {
       const decoded = Buffer.from(authToken, 'base64').toString();
-      const [tokenUserId] = decoded.split(':');
+      const [tokenUserId, emailHash, tokenType] = decoded.split(':');
       const userId = parseInt(tokenUserId);
-      if (userId && !isNaN(userId)) {
+      
+      // Only use token if it's a stable token type and valid user ID
+      if (userId && !isNaN(userId) && tokenType === 'stable') {
+        console.log(`Using stable auth token user ID: ${userId}`);
         return userId;
       }
     } catch (error) {
-      console.log('Invalid auth token format');
+      console.log('Invalid auth token format:', error);
     }
   }
   
@@ -1500,30 +1504,23 @@ Your investment journey starts here!`,
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Set session userId for authentication
+      // Set stable session userId - this will persist throughout the session
       req.session.userId = user.id;
       
-      // Force session save to ensure it's written to store
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-        } else {
-          console.log(`Session saved for user ${user.id}, Session ID: ${req.sessionID}`);
-        }
-      });
-
-      // Generate a simple auth token for cross-origin requests
-      const authToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+      // Generate a stable auth token using user ID and email hash for consistency
+      const emailHash = crypto.createHash('sha256').update(user.email).digest('hex').substring(0, 8);
+      const authToken = Buffer.from(`${user.id}:${emailHash}:stable`).toString('base64');
       
-      // Save session explicitly
+      // Save session explicitly and ensure consistency
       req.session.save((err) => {
         if (err) {
           console.error('Session save error:', err);
           return res.status(500).json({ message: "Session save error" });
         }
 
+        console.log(`Stable session created for user ID ${user.id}, Session ID: ${req.sessionID}`);
 
-        // Don't return private key and password in response, include auth token
+        // Don't return private key and password in response, include stable auth token
         const { privateKey, password: _, ...userResponse } = user;
         res.json({ ...userResponse, authToken });
       });
