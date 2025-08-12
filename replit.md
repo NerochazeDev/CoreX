@@ -107,6 +107,8 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 - `PORT`: Server port (defaults to 5000)
 
 ## Changelog
+- August 12, 2025. **Profile Edit Persistence Fixed** - Implemented complete profile editing system with database persistence, allowing users to save profile pictures, bio, website, and personal information permanently. Added API endpoint `/api/me/profile` with proper validation and error handling.
+- August 12, 2025. **Replit Migration Completed** - Successfully migrated from Replit Agent to standard Replit environment with PostgreSQL database provisioning, schema synchronization, and full functionality verification
 - August 12, 2025. **Modern Responsive Home Page Redesign** - Completely redesigned home page with modern responsive layout using CSS Grid, professional glass-morphism cards, updated typography, mobile-first responsive design, and desktop/tablet optimized layouts for perfect cross-device experience
 - August 12, 2025. **Complete Mobile/Desktop Responsiveness** - Ensured all pages work perfectly on both desktop and mobile devices with responsive navigation, touch-friendly buttons, optimized spacing, and adaptive layouts
 - August 12, 2025. **Rebranded to BitVault Pro** - Complete rebrand from Plus500 to BitVault Pro with Bitcoin-focused orange/gold theme, updated all UI components, logos, and styling to match professional Bitcoin investment platform

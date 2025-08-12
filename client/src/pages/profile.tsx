@@ -22,8 +22,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurrency } from "@/hooks/use-currency";
 import { formatBitcoin, formatCurrency } from "@/lib/utils";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Investment, Transaction } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ function ProfileContent() {
   const { toast } = useToast();
   const { currency } = useCurrency();
   const { data: price } = useBitcoinPrice();
+  const queryClient = useQueryClient();
   const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
   const [displayUserId, setDisplayUserId] = useState(0);
   const [activeTab, setActiveTab] = useState("overview");
@@ -46,7 +48,7 @@ function ProfileContent() {
     firstName: '',
     lastName: '',
     phone: '',
-    location: '',
+    country: '',
     bio: '',
     website: '',
     avatar: '',
@@ -63,9 +65,49 @@ function ProfileContent() {
     }
   });
 
+  // Initialize profile data from user when user data is available
+  useEffect(() => {
+    if (user) {
+      setProfileData(prev => ({
+        ...prev,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        country: user.country || '',
+        bio: user.bio || '',
+        website: user.website || '',
+        avatar: user.avatar || '',
+      }));
+    }
+  }, [user]);
+
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  // Profile update mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (profileData: any) => {
+      return apiRequest('/api/me/profile', {
+        method: 'PATCH',
+        body: JSON.stringify(profileData),
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update profile. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -94,8 +136,8 @@ function ProfileContent() {
     setIsUploadingAvatar(true);
     
     try {
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Update profile with new avatar
+      await updateProfileMutation.mutateAsync({ avatar: uploadedImage });
       
       setProfileData(prev => ({ ...prev, avatar: uploadedImage }));
       setAvatarDialogOpen(false);
@@ -116,16 +158,26 @@ function ProfileContent() {
     }
   };
 
-  const handleAvatarRemove = () => {
-    setProfileData(prev => ({ ...prev, avatar: '' }));
-    setUploadedImage(null);
-    toast({
-      title: "Profile Picture Removed",
-      description: "Your profile picture has been removed.",
-    });
+  const handleAvatarRemove = async () => {
+    try {
+      await updateProfileMutation.mutateAsync({ avatar: '' });
+      
+      setProfileData(prev => ({ ...prev, avatar: '' }));
+      setUploadedImage(null);
+      toast({
+        title: "Profile Picture Removed",
+        description: "Your profile picture has been removed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Removal Failed",
+        description: "Failed to remove profile picture. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const generateGradientAvatar = () => {
+  const generateGradientAvatar = async () => {
     const gradients = [
       'from-blue-400 to-purple-600',
       'from-green-400 to-blue-500',
@@ -135,16 +187,27 @@ function ProfileContent() {
       'from-teal-400 to-cyan-600'
     ];
     const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+    const gradientAvatar = `gradient-${randomGradient}`;
     
-    setProfileData(prev => ({ 
-      ...prev, 
-      avatar: `gradient-${randomGradient}` 
-    }));
-    
-    toast({
-      title: "Avatar Generated",
-      description: "A new gradient avatar has been created for you.",
-    });
+    try {
+      await updateProfileMutation.mutateAsync({ avatar: gradientAvatar });
+      
+      setProfileData(prev => ({ 
+        ...prev, 
+        avatar: gradientAvatar
+      }));
+      
+      toast({
+        title: "Avatar Generated",
+        description: "A new gradient avatar has been created for you.",
+      });
+    } catch (error) {
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate new avatar. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   useEffect(() => {
@@ -193,11 +256,13 @@ function ProfileContent() {
     });
   };
 
-  const handleProfileUpdate = () => {
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully.",
-    });
+  const handleProfileUpdate = async () => {
+    try {
+      const { notifications, privacy, ...profileUpdateData } = profileData;
+      await updateProfileMutation.mutateAsync(profileUpdateData);
+    } catch (error) {
+      // Error handling is done in the mutation's onError callback
+    }
   };
 
   const recentActivity = [

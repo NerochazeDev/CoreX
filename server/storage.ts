@@ -1,4 +1,4 @@
-import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase } from "@shared/schema";
+import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase, type UpdateUserProfile } from "@shared/schema";
 import { db, executeQuery } from "./db";
 import { eq, desc, and, isNotNull, inArray } from "drizzle-orm";
 
@@ -9,6 +9,7 @@ export interface IStorage {
   createUser(user: InsertUser & { bitcoinAddress: string | null; privateKey: string | null }): Promise<User>;
   updateUserBalance(id: number, balance: string): Promise<User | undefined>;
   updateUserPlan(id: number, planId: number | null): Promise<User | undefined>;
+  updateUserProfile(id: number, profileData: Partial<UpdateUserProfile>): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   getUsersWithPlans(): Promise<User[]>;
   deleteUser(id: number): Promise<void>;
@@ -110,6 +111,17 @@ export class DatabaseStorage implements IStorage {
       const [user] = await db
         .update(users)
         .set({ currentPlanId: planId })
+        .where(eq(users.id, userId))
+        .returning();
+      return user || undefined;
+    });
+  }
+
+  async updateUserProfile(userId: number, profileData: Partial<UpdateUserProfile>): Promise<User | undefined> {
+    return await executeQuery(async () => {
+      const [user] = await db
+        .update(users)
+        .set(profileData)
         .where(eq(users.id, userId))
         .returning();
       return user || undefined;

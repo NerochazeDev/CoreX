@@ -10,7 +10,7 @@ declare module 'express-session' {
   }
 }
 import { storage } from "./storage";
-import { insertUserSchema, insertInvestmentSchema, insertAdminConfigSchema, insertTransactionSchema, insertBackupDatabaseSchema } from "@shared/schema";
+import { insertUserSchema, insertInvestmentSchema, insertAdminConfigSchema, insertTransactionSchema, insertBackupDatabaseSchema, updateUserProfileSchema } from "@shared/schema";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import * as bitcoin from "bitcoinjs-lib";
@@ -1596,6 +1596,33 @@ Your investment journey starts here!`,
     } catch (error) {
       console.error('Auth check error:', error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update user profile
+  app.patch("/api/me/profile", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const profileData = updateUserProfileSchema.parse(req.body);
+      const updatedUser = await storage.updateUserProfile(userId, profileData);
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Don't return private key and password
+      const { privateKey, password, ...userResponse } = updatedUser;
+
+      res.json({ message: "Profile updated successfully", user: userResponse });
+    } catch (error) {
+      console.error('Profile update error:', error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Failed to update profile" 
+      });
     }
   });
 

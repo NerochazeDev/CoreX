@@ -18,6 +18,9 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").notNull().default(false),
   hasWallet: boolean("has_wallet").notNull().default(false), // tracks if user has set up wallet
   acceptMarketing: boolean("accept_marketing").notNull().default(false),
+  bio: text("bio"), // user bio/about me
+  website: text("website"), // user website
+  avatar: text("avatar"), // profile picture or gradient avatar identifier
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -101,6 +104,16 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
 });
 
+export const updateUserProfileSchema = createInsertSchema(users).pick({
+  firstName: true,
+  lastName: true,
+  phone: true,
+  country: true,
+  bio: true,
+  website: true,
+  avatar: true,
+});
+
 export const insertInvestmentPlanSchema = createInsertSchema(investmentPlans).omit({
   id: true,
 });
@@ -150,3 +163,4 @@ export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertBackupDatabase = z.infer<typeof insertBackupDatabaseSchema>;
 export type BackupDatabase = typeof backupDatabases.$inferSelect;
+export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
