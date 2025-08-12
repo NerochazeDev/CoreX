@@ -31,15 +31,8 @@ export default function Login() {
         description: "You have successfully logged in.",
       });
       console.log('Redirecting to home page...');
-      // Ensure state propagation before redirect
-      setTimeout(() => {
-        console.log('Executing redirect to home...');
-        setLocation('/');
-        // Force a page refresh to ensure clean state
-        setTimeout(() => {
-          window.location.reload();
-        }, 50);
-      }, 200);
+      // Redirect immediately while user state is fresh
+      setLocation('/');
     } catch (error) {
       console.error('Login error in component:', error);
       toast({

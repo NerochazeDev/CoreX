@@ -32,6 +32,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      // First check localStorage for immediate user state restoration
+      const storedUser = localStorage.getItem('bitvault_user');
+      const lastActivity = localStorage.getItem('bitvault_last_activity');
+      
+      if (storedUser && lastActivity) {
+        try {
+          const userData = JSON.parse(storedUser);
+          const activityTime = parseInt(lastActivity);
+          const now = Date.now();
+          
+          // If last activity was within 24 hours, restore user immediately
+          if (now - activityTime < 24 * 60 * 60 * 1000) {
+            console.log('Restoring user from localStorage for instant load');
+            setUser(userData);
+            setIsLoading(false);
+            
+            // Then verify with server in background
+            verifyUserInBackground();
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing stored user data:', e);
+        }
+      }
+
+      // If no valid stored user, check with server
+      await verifyUserWithServer();
+    } catch (error) {
+      console.error('Error in checkAuthStatus:', error);
+      setIsLoading(false);
+    }
+  };
+
+  const verifyUserInBackground = async () => {
+    try {
       const authToken = localStorage.getItem('bitvault_auth_token');
       const headers: Record<string, string> = {};
 
@@ -41,37 +76,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const response = await fetch('/api/me', {
         method: 'GET',
-        credentials: 'include', // Still include cookies as fallback
+        credentials: 'include',
         headers
       });
 
       if (response.ok) {
         const userData = await response.json();
-        setUser(userData);
-        // Update localStorage for offline reference
+        // Update stored data silently
         localStorage.setItem('bitvault_user', JSON.stringify(userData));
         localStorage.setItem('bitvault_last_activity', Date.now().toString());
+        setUser(userData);
       } else {
-        // Clear any stale localStorage data
+        // Server says no - clear everything
         localStorage.removeItem('bitvault_user');
         localStorage.removeItem('bitvault_auth_token');
         localStorage.removeItem('bitvault_last_activity');
         setUser(null);
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
-      // On network error, check localStorage as fallback
-      const storedUser = localStorage.getItem('bitvault_user');
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
-        } catch (e) {
-          localStorage.removeItem('bitvault_user');
-          localStorage.removeItem('bitvault_auth_token');
-          localStorage.removeItem('bitvault_last_activity');
-        }
+      console.error('Background verification failed:', error);
+      // Keep current user state on network error
+    }
+  };
+
+  const verifyUserWithServer = async () => {
+    try {
+      const authToken = localStorage.getItem('bitvault_auth_token');
+      const headers: Record<string, string> = {};
+
+      if (authToken) {
+        headers.Authorization = `Bearer ${authToken}`;
       }
+
+      const response = await fetch('/api/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        localStorage.setItem('bitvault_user', JSON.stringify(userData));
+        localStorage.setItem('bitvault_last_activity', Date.now().toString());
+      } else {
+        localStorage.removeItem('bitvault_user');
+        localStorage.removeItem('bitvault_auth_token');
+        localStorage.removeItem('bitvault_last_activity');
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Server verification failed:', error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }

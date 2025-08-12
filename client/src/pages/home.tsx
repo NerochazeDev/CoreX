@@ -48,28 +48,40 @@ export default function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const queryClient = useQueryClient();
 
+  // Get user from localStorage as fallback for instant loading
+  const fallbackUser = !user ? (() => {
+    try {
+      const stored = localStorage.getItem('bitvault_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  })() : user;
+
+  const currentUser = user || fallbackUser;
+
   // Redirect to login if not authenticated
-  if (!user) {
+  if (!currentUser) {
     setLocation('/login');
     return null;
   }
 
   // Fetch unread notifications count with proper refreshing
   const { data: unreadCount } = useQuery<{ count: number }>({
-    queryKey: ['/api/notifications', user?.id, 'unread-count'],
+    queryKey: ['/api/notifications', currentUser?.id, 'unread-count'],
     queryFn: async () => {
-      const response = await fetch(`/api/notifications/${user?.id}/unread-count`);
+      const response = await fetch(`/api/notifications/${currentUser?.id}/unread-count`);
       if (!response.ok) throw new Error('Failed to fetch unread count');
       return response.json();
     },
-    enabled: !!user?.id,
+    enabled: !!currentUser?.id,
     refetchInterval: 5000, // Refresh every 5 seconds
     staleTime: 0, // Always consider data stale for real-time updates
   });
 
   const { data: activeInvestments } = useQuery<Investment[]>({
-    queryKey: ['/api/investments/user', user.id],
-    queryFn: () => fetch(`/api/investments/user/${user.id}`, {
+    queryKey: ['/api/investments/user', currentUser.id],
+    queryFn: () => fetch(`/api/investments/user/${currentUser.id}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
       }
@@ -79,7 +91,7 @@ export default function Home() {
       }
       return res.json();
     }),
-    enabled: !!user?.id,
+    enabled: !!currentUser?.id,
     refetchInterval: 5000, // Refresh every 5 seconds for instant updates
     staleTime: 0, // Always consider data stale
     refetchOnWindowFocus: true, // Refetch when window gains focus
@@ -97,7 +109,7 @@ export default function Home() {
       }
       return res.json();
     }),
-    enabled: !!user,
+    enabled: !!currentUser,
     refetchInterval: 60000, // Refresh every minute
   });
 
@@ -107,7 +119,7 @@ export default function Home() {
   const totalProfit = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit), 0);
   const totalValue = totalInvestedAmount + totalProfit;
   const profitMargin = totalInvestedAmount > 0 ? (totalProfit / totalInvestedAmount) * 100 : 0;
-  const currentPlan = user.currentPlanId ? investmentPlans?.find(p => p.id === user.currentPlanId) : null;
+  const currentPlan = currentUser.currentPlanId ? investmentPlans?.find(p => p.id === currentUser.currentPlanId) : null;
 
   // Generate mock chart data for realistic investment visualization
   const generateChartData = () => {
@@ -168,7 +180,7 @@ export default function Home() {
       const response = await fetch('/api/sync-balance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({ userId: currentUser.id }),
       });
 
       if (response.ok) {
@@ -199,15 +211,15 @@ export default function Home() {
   // Refresh unread count every 10 seconds for real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
-      if (user?.id) {
+      if (currentUser?.id) {
         queryClient.invalidateQueries({ 
-          queryKey: ['/api/notifications', user.id, 'unread-count'] 
+          queryKey: ['/api/notifications', currentUser.id, 'unread-count'] 
         });
       }
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [user?.id, queryClient]);
+  }, [currentUser?.id, queryClient]);
 
 
   return (
@@ -224,7 +236,7 @@ export default function Home() {
                     <Crown className="w-3 h-3 text-orange-500" />
                     Premium Dashboard
                   </p>
-                  <p className="text-sm font-semibold text-foreground truncate max-w-48">{user.email}</p>
+                  <p className="text-sm font-semibold text-foreground truncate max-w-48">{currentUser.email}</p>
                 </div>
               </div>
             </div>
