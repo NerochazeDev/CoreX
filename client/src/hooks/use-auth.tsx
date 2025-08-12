@@ -78,8 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-
-
+    console.log('Starting login API call...');
+    
     const response = await fetch('/api/login', {
       method: 'POST',
       headers: { 
@@ -89,34 +89,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
 
-
+    console.log('Login API response status:', response.status);
 
     if (!response.ok) {
       const error = await response.json();
-
+      console.error('Login API error:', error);
       throw new Error(error.message);
     }
 
     const userData = await response.json();
-
+    console.log('Login API success, user data:', userData);
 
     // Store auth token if provided
     if (userData.authToken) {
       localStorage.setItem('bitvault_auth_token', userData.authToken);
-
+      console.log('Auth token stored');
     }
 
     // Store in localStorage with activity timestamp
     localStorage.setItem('bitvault_user', JSON.stringify(userData));
     localStorage.setItem('bitvault_last_activity', Date.now().toString());
+    console.log('User data stored in localStorage');
 
-    // Set user state
+    // Set user state immediately
     setUser(userData);
-
-
+    console.log('User state updated');
 
     // Force a re-render by updating loading state
     setIsLoading(false);
+    console.log('Loading state set to false');
   };
 
   const register = async (registrationData: {

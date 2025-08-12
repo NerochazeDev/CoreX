@@ -31,10 +31,15 @@ export default function Login() {
         description: "You have successfully logged in.",
       });
       console.log('Redirecting to home page...');
-      // Small delay to ensure state is updated before redirect
+      // Ensure state propagation before redirect
       setTimeout(() => {
+        console.log('Executing redirect to home...');
         setLocation('/');
-      }, 100);
+        // Force a page refresh to ensure clean state
+        setTimeout(() => {
+          window.location.reload();
+        }, 50);
+      }, 200);
     } catch (error) {
       console.error('Login error in component:', error);
       toast({
