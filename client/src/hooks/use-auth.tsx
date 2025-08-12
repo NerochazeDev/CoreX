@@ -27,29 +27,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Validate session with server on app load
-    let isMounted = true;
-    
-    const validateSession = async () => {
-      if (isMounted) {
-        await checkAuthStatus();
-      }
-    };
-    
-    validateSession();
-    
-    return () => {
-      isMounted = false;
-    };
+    checkAuthStatus();
   }, []);
 
   const checkAuthStatus = async () => {
     try {
-      // Get stored user data first to check if we already have a stable session
-      const storedUser = localStorage.getItem('bitvault_user');
       const authToken = localStorage.getItem('bitvault_auth_token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
+      const headers: Record<string, string> = {};
 
       if (authToken) {
         headers.Authorization = `Bearer ${authToken}`;
@@ -57,45 +41,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const response = await fetch('/api/me', {
         method: 'GET',
-        credentials: 'include', // Always include cookies for session consistency
+        credentials: 'include', // Still include cookies as fallback
         headers
       });
 
       if (response.ok) {
         const userData = await response.json();
-        
-        // Only update user data if the ID matches stored data or if no stored data exists
-        if (storedUser) {
-          try {
-            const stored = JSON.parse(storedUser);
-            if (stored.id === userData.id) {
-              // Same user ID - update data while maintaining consistency
-              setUser(userData);
-              localStorage.setItem('bitvault_user', JSON.stringify(userData));
-              localStorage.setItem('bitvault_last_activity', Date.now().toString());
-            } else {
-              // User ID changed unexpectedly - clear and restart auth
-              console.warn('User ID mismatch detected, clearing session');
-              localStorage.removeItem('bitvault_user');
-              localStorage.removeItem('bitvault_auth_token');
-              localStorage.removeItem('bitvault_last_activity');
-              setUser(null);
-            }
-          } catch (parseError) {
-            console.error('Error parsing stored user data:', parseError);
-            localStorage.removeItem('bitvault_user');
-            localStorage.removeItem('bitvault_auth_token');
-            localStorage.removeItem('bitvault_last_activity');
-            setUser(null);
-          }
-        } else {
-          // No stored user - first time login
-          setUser(userData);
-          localStorage.setItem('bitvault_user', JSON.stringify(userData));
-          localStorage.setItem('bitvault_last_activity', Date.now().toString());
-        }
+        setUser(userData);
+        // Update localStorage for offline reference
+        localStorage.setItem('bitvault_user', JSON.stringify(userData));
+        localStorage.setItem('bitvault_last_activity', Date.now().toString());
       } else {
-        // Auth failed - clear stale data
+        // Clear any stale localStorage data
         localStorage.removeItem('bitvault_user');
         localStorage.removeItem('bitvault_auth_token');
         localStorage.removeItem('bitvault_last_activity');
@@ -103,22 +60,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
-      // On network error, use stored data as fallback (don't clear)
+      // On network error, check localStorage as fallback
       const storedUser = localStorage.getItem('bitvault_user');
       if (storedUser) {
         try {
           const userData = JSON.parse(storedUser);
           setUser(userData);
-          console.log('Using cached user data due to network error');
         } catch (e) {
-          console.error('Error parsing cached user data:', e);
           localStorage.removeItem('bitvault_user');
           localStorage.removeItem('bitvault_auth_token');
           localStorage.removeItem('bitvault_last_activity');
-          setUser(null);
         }
-      } else {
-        setUser(null);
       }
     } finally {
       setIsLoading(false);
@@ -126,6 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
+
+
     const response = await fetch('/api/login', {
       method: 'POST',
       headers: { 
@@ -136,26 +90,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
 
+
+
     if (!response.ok) {
       const error = await response.json();
+
       throw new Error(error.message);
     }
 
     const userData = await response.json();
 
-    // Store stable auth token (won't change during session)
+
+    // Store auth token if provided
     if (userData.authToken) {
       localStorage.setItem('bitvault_auth_token', userData.authToken);
-      console.log(`Stable auth token stored for user ID: ${userData.id}`);
+
     }
 
-    // Store user data with consistent ID
+    // Store in localStorage with activity timestamp
     localStorage.setItem('bitvault_user', JSON.stringify(userData));
     localStorage.setItem('bitvault_last_activity', Date.now().toString());
 
-    // Set user state with stable ID
+    // Set user state
     setUser(userData);
-    console.log(`User session established with stable ID: ${userData.id}`);
+
+
 
     // Force a re-render by updating loading state
     setIsLoading(false);
@@ -192,7 +151,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = async () => {
     try {
       const authToken = localStorage.getItem('bitvault_auth_token');
-      const currentUser = localStorage.getItem('bitvault_user');
       const headers: Record<string, string> = {};
 
       if (authToken) {
@@ -208,32 +166,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const updatedUser = await response.json();
-        
-        // Verify user ID consistency
-        if (currentUser) {
-          const stored = JSON.parse(currentUser);
-          if (stored.id !== updatedUser.id) {
-            console.error('User ID mismatch during refresh - forcing logout');
-            logout();
-            return;
-          }
-        }
-        
-        // Update user data while maintaining stable ID
         setUser(updatedUser);
         localStorage.setItem('bitvault_user', JSON.stringify(updatedUser));
         localStorage.setItem('bitvault_last_activity', Date.now().toString());
-        console.log(`User data refreshed for stable ID: ${updatedUser.id}`);
       } else {
         // Only clear session if it's an authentication error
         if (response.status === 401 || response.status === 403) {
-          console.log('Authentication error during refresh - logging out');
           logout();
         }
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
-      // On network error, don't clear session to maintain stability
+      // On network error, don't clear session
     }
   };
 

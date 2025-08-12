@@ -13,13 +13,9 @@ window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<R
   
   // Add auth token if available and not already present
   const authToken = localStorage.getItem('bitvault_auth_token');
-  if (authToken && modifiedInit.headers) {
+  if (authToken) {
     modifiedInit.headers = {
       ...modifiedInit.headers,
-      'Authorization': `Bearer ${authToken}`
-    };
-  } else if (authToken) {
-    modifiedInit.headers = {
       'Authorization': `Bearer ${authToken}`
     };
   }
@@ -27,10 +23,4 @@ window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<R
   return originalFetch(input, modifiedInit);
 };
 
-// Ensure DOM is ready before rendering
-const container = document.getElementById("root");
-if (container) {
-  createRoot(container).render(<App />);
-} else {
-  console.error("Root container not found");
-}
+createRoot(document.getElementById("root")!).render(<App />);

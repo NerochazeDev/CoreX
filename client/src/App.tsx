@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { CurrencyProvider } from "@/hooks/use-currency";
 import { RealtimeConnection } from "@/components/realtime-connection";
-import { ErrorBoundary } from "react-error-boundary";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -56,42 +55,19 @@ function Router() {
   );
 }
 
-function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center p-8">
-        <h2 className="text-2xl font-bold text-foreground mb-4">Something went wrong</h2>
-        <p className="text-muted-foreground mb-4">{error.message}</p>
-        <button 
-          onClick={resetErrorBoundary}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-        >
-          Try again
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   return (
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onError={(error) => console.error('App Error:', error)}
-      onReset={() => window.location.reload()}
-    >
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <CurrencyProvider>
-            <AuthProvider>
-              <RealtimeConnection />
-              <Toaster />
-              <Router />
-            </AuthProvider>
-          </CurrencyProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <CurrencyProvider>
+          <AuthProvider>
+            <RealtimeConnection />
+            <Toaster />
+            <Router />
+          </AuthProvider>
+        </CurrencyProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
