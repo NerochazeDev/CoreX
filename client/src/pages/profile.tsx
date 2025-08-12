@@ -107,24 +107,79 @@ function ProfileContent() {
     }
   });
 
-  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions (max 400x400 while maintaining aspect ratio)
+        const maxSize = 400;
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Convert to base64 with compression (0.8 quality)
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(compressedDataUrl);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
+      if (file.size > 10 * 1024 * 1024) { // Increased to 10MB since we'll compress
         toast({
           title: "File too large",
-          description: "Please select an image smaller than 5MB.",
+          description: "Please select an image smaller than 10MB.",
           variant: "destructive"
         });
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setUploadedImage(result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        setIsUploadingAvatar(true);
+        toast({
+          title: "Processing image...",
+          description: "Compressing your image for faster upload.",
+        });
+        
+        const compressedImage = await compressImage(file);
+        setUploadedImage(compressedImage);
+        
+        toast({
+          title: "Image ready",
+          description: "Your image has been processed and is ready to save.",
+        });
+      } catch (error) {
+        toast({
+          title: "Processing failed",
+          description: "Failed to process your image. Please try a different file.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsUploadingAvatar(false);
+      }
     }
   };
 
@@ -448,11 +503,21 @@ function ProfileContent() {
                               accept="image/*"
                               onChange={handleAvatarUpload}
                               className="hidden"
+                              disabled={isUploadingAvatar}
                             />
-                            <Button variant="outline" className="w-full gap-2 cursor-pointer" asChild>
+                            <Button 
+                              variant="outline" 
+                              className="w-full gap-2 cursor-pointer" 
+                              asChild
+                              disabled={isUploadingAvatar}
+                            >
                               <span>
-                                <Upload className="w-4 h-4" />
-                                Upload New Picture
+                                {isUploadingAvatar ? (
+                                  <RefreshCw className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Upload className="w-4 h-4" />
+                                )}
+                                {isUploadingAvatar ? 'Processing...' : 'Upload New Picture'}
                               </span>
                             </Button>
                           </label>
@@ -505,9 +570,9 @@ function ProfileContent() {
                         )}
 
                         <div className="text-sm text-muted-foreground text-center">
-                          <p>• Max file size: 5MB</p>
+                          <p>• Max file size: 10MB (auto-compressed)</p>
                           <p>• Supported: JPG, PNG, GIF</p>
-                          <p>• Recommended: Square images work best</p>
+                          <p>• Images resized to 400x400 for faster upload</p>
                         </div>
                       </div>
                     </div>
