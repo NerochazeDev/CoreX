@@ -54,6 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } catch (e) {
           console.error('Error parsing stored user data:', e);
+          // Clear bad data
+          localStorage.removeItem('bitvault_user');
+          localStorage.removeItem('bitvault_last_activity');
         }
       }
 

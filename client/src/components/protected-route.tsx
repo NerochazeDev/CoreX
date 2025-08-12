@@ -18,16 +18,19 @@ export function ProtectedRoute({
 
   console.log('ProtectedRoute render - isLoading:', isLoading, 'user:', user ? 'exists' : 'null');
 
-  // Show loading only for initial auth check, not for subsequent updates
-  if (isLoading && !localStorage.getItem('bitvault_user')) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-bitcoin border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm text-muted-foreground">Loading your account...</p>
+  // Only show loading spinner if we're still checking auth and have no stored user data
+  if (isLoading) {
+    const storedUser = localStorage.getItem('bitvault_user');
+    if (!storedUser) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-2 border-bitcoin border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-muted-foreground">Loading your account...</p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   if (!user) {

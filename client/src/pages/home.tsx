@@ -60,10 +60,16 @@ export default function Home() {
 
   const currentUser = user || fallbackUser;
 
-  // Redirect to login if not authenticated
+  // Show loading state while authentication is being determined
   if (!currentUser) {
-    setLocation('/login');
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-bitcoin border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm text-muted-foreground">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   // Fetch unread notifications count with proper refreshing
