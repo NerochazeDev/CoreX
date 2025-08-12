@@ -574,8 +574,8 @@ export class DatabaseStorage implements IStorage {
         userId: row.userId,
         planId: row.planId,
         amount: row.amount,
-        startDate: row.startDate.toISOString(),
-        endDate: row.endDate.toISOString(),
+        startDate: row.startDate,
+        endDate: row.endDate,
         currentProfit: row.currentProfit,
         isActive: row.isActive,
       };
