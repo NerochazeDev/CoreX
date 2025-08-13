@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { LogoDownloadManager } from "@/components/logo-download";
+import { BannerShowcase } from "@/components/banner-showcase";
 
 interface AdminStats {
   totalUsers: number;
@@ -447,7 +448,7 @@ export default function Management() {
     { id: "security", label: "Security", icon: Shield },
     { id: "database", label: "Database Management", icon: Database },
     { id: "config", label: "Configuration", icon: Settings },
-    { id: "brand", label: "Brand Showcase", icon: Bitcoin },
+    { id: "brand", label: "Banner Showcase", icon: Bitcoin },
     { id: "downloads", label: "Advertising Banners", icon: Download },
   ];
 
@@ -1450,6 +1451,12 @@ export default function Management() {
   );
 
   const renderBrandTab = () => (
+    <div className="space-y-6">
+      <BannerShowcase />
+    </div>
+  );
+
+  const renderOldBrandTab = () => (
     <div className="space-y-6">
       {/* Main Brand Showcase Card - Advertisement Style */}
       <Card className="overflow-hidden border-0 shadow-2xl">
