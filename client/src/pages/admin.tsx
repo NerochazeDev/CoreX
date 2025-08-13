@@ -14,13 +14,11 @@ import type { User, InvestmentPlan } from "@shared/schema";
 import { formatBitcoin } from "@/lib/utils";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
-import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, Download } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { LogoDownloadManager } from "@/components/logo-download";
-import { BannerShowcase } from "@/components/banner-showcase";
 
 interface AdminStats {
   totalUsers: number;
@@ -448,8 +446,7 @@ export default function Management() {
     { id: "security", label: "Security", icon: Shield },
     { id: "database", label: "Database Management", icon: Database },
     { id: "config", label: "Configuration", icon: Settings },
-    { id: "brand", label: "Banner Showcase", icon: Bitcoin },
-    { id: "downloads", label: "Advertising Banners", icon: Download },
+    { id: "brand", label: "Brand Showcase", icon: Bitcoin },
   ];
 
   const renderSidebar = () => (
@@ -1452,12 +1449,6 @@ export default function Management() {
 
   const renderBrandTab = () => (
     <div className="space-y-6">
-      <BannerShowcase />
-    </div>
-  );
-
-  const renderOldBrandTab = () => (
-    <div className="space-y-6">
       {/* Main Brand Showcase Card - Advertisement Style */}
       <Card className="overflow-hidden border-0 shadow-2xl">
         <div className="relative h-96 bg-gradient-to-br from-slate-900 via-orange-900 to-black">
@@ -1644,12 +1635,6 @@ export default function Management() {
     </div>
   );
 
-  const renderDownloadsTab = () => (
-    <div className="space-y-6">
-      <LogoDownloadManager />
-    </div>
-  );
-
   const renderTabContent = () => {
     switch (activeTab) {
       case "overview":
@@ -1668,8 +1653,6 @@ export default function Management() {
         return renderConfigTab();
       case "brand":
         return renderBrandTab();
-      case "downloads":
-        return renderDownloadsTab();
       default:
         return renderOverviewTab();
     }
