@@ -448,7 +448,7 @@ export default function Management() {
     { id: "database", label: "Database Management", icon: Database },
     { id: "config", label: "Configuration", icon: Settings },
     { id: "brand", label: "Brand Showcase", icon: Bitcoin },
-    { id: "downloads", label: "Logo Downloads", icon: Download },
+    { id: "downloads", label: "Advertising Banners", icon: Download },
   ];
 
   const renderSidebar = () => (

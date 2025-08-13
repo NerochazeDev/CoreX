@@ -21,64 +21,34 @@ interface LogoVariant {
 
 const logoVariants: LogoVariant[] = [
   {
-    id: "bitvault-logo",
-    name: "BitVault Logo",
-    component: BitVaultLogo,
-    description: "Main BitVault logo with Bitcoin symbol",
-    category: "logo",
-    formats: ["svg", "png"],
-    variants: ["light", "dark", "white"],
-    sizes: ["sm", "md", "lg", "xl"]
-  },
-  {
-    id: "bitvault-simple",
-    name: "Simple BitVault Logo",
-    component: SimpleBitVaultLogo,
-    description: "Simplified version for small spaces",
-    category: "logo",
-    formats: ["svg", "png"],
-    variants: ["light", "dark", "white"],
-    sizes: ["sm", "md", "lg", "xl"]
-  },
-  {
     id: "bitvault-brand",
-    name: "BitVault Brand Banner",
+    name: "BitVault Pro Advertising Banner",
     component: BitVaultBrand,
-    description: "Full brand banner with taglines",
+    description: "Primary advertising banner - Perfect for promotions and marketing",
     category: "banner",
     formats: ["svg", "png", "pdf"],
     variants: ["light", "dark"],
     sizes: ["lg", "xl"]
-  },
-  {
-    id: "official-bitvault",
-    name: "Official BitVault Logo",
-    component: OfficialBitVaultLogo,
-    description: "Official styled logo with royal design",
-    category: "logo",
-    formats: ["svg", "png"],
-    variants: ["light", "white"],
-    sizes: ["sm", "md", "lg", "xl"]
-  },
-  {
-    id: "plus500-logo",
-    name: "Plus500 Style Logo",
-    component: Plus500Logo,
-    description: "Alternative Plus500 styled design",
-    category: "logo",
-    formats: ["svg", "png"],
-    variants: ["light", "dark", "white"],
-    sizes: ["sm", "md", "lg", "xl"]
   },
   {
     id: "vip-brand",
-    name: "VIP Brand Banner",
+    name: "BitVault VIP Marketing Banner",
     component: BitVaultVIPBrand,
-    description: "VIP edition brand banner",
+    description: "VIP edition advertising banner - Premium marketing material",
     category: "banner",
     formats: ["svg", "png", "pdf"],
     variants: ["light", "dark"],
     sizes: ["lg", "xl"]
+  },
+  {
+    id: "bitvault-logo",
+    name: "BitVault Logo",
+    component: BitVaultLogo,
+    description: "Supporting logo for banner campaigns",
+    category: "logo",
+    formats: ["svg", "png"],
+    variants: ["light", "dark", "white"],
+    sizes: ["sm", "md", "lg", "xl"]
   }
 ];
 
@@ -189,16 +159,16 @@ export function LogoDownloadManager() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-primary">
             <FileImage className="w-5 h-5" />
-            Logo & Banner Download Center
+            BitVault Pro Advertising Banners
           </CardTitle>
           <p className="text-muted-foreground">
-            Download BitVault Pro logos and banners in various formats and styles
+            Download professional advertising banners to promote BitVault Pro - perfect for marketing campaigns, social media, and promotional materials
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Category Filter */}
           <div className="flex flex-wrap gap-2">
-            {["all", "logo", "brand", "banner"].map((category) => (
+            {["all", "banner"].map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
@@ -207,7 +177,7 @@ export function LogoDownloadManager() {
                 className="capitalize"
                 data-testid={`filter-${category}`}
               >
-                {category === "all" ? "All Assets" : `${category}s`}
+                {category === "all" ? "All Banners" : "Advertising Banners"}
               </Button>
             ))}
           </div>
@@ -343,37 +313,42 @@ export function LogoDownloadManager() {
           </div>
 
           {/* Bulk Download Section */}
-          <Card className="border-dashed">
+          <Card className="border-dashed bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20">
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                Bulk Download
+                Complete Marketing Package
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button 
                   variant="outline" 
-                  className="h-auto py-3"
-                  data-testid="bulk-download-all-logos"
+                  className="h-auto py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-0"
+                  data-testid="bulk-download-all-banners"
                 >
                   <div className="text-center">
-                    <Download className="w-5 h-5 mx-auto mb-1" />
-                    <div className="text-sm font-medium">All Logos</div>
-                    <div className="text-xs text-muted-foreground">PNG & SVG Bundle</div>
+                    <Download className="w-6 h-6 mx-auto mb-2" />
+                    <div className="text-sm font-bold">All Advertising Banners</div>
+                    <div className="text-xs opacity-90">PNG, SVG & PDF - All Sizes</div>
                   </div>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-auto py-3"
-                  data-testid="bulk-download-brand-kit"
+                  className="h-auto py-4"
+                  data-testid="bulk-download-social-media"
                 >
                   <div className="text-center">
-                    <Smartphone className="w-5 h-5 mx-auto mb-1" />
-                    <div className="text-sm font-medium">Brand Kit</div>
-                    <div className="text-xs text-muted-foreground">Complete Package</div>
+                    <Smartphone className="w-6 h-6 mx-auto mb-2" />
+                    <div className="text-sm font-medium">Social Media Pack</div>
+                    <div className="text-xs text-muted-foreground">Optimized for platforms</div>
                   </div>
                 </Button>
+              </div>
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                <p className="text-xs text-blue-800 dark:text-blue-200 text-center">
+                  Perfect for promoting BitVault Pro across all marketing channels
+                </p>
               </div>
             </CardContent>
           </Card>

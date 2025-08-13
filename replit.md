@@ -107,6 +107,7 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 - `PORT`: Server port (defaults to 5000)
 
 ## Changelog
+- August 13, 2025. **Advertising Banner Download Center Added** - Created comprehensive admin interface for downloading BitVault Pro advertising banners in multiple formats (SVG, PNG, PDF) and variants (light, dark). Focused specifically on marketing materials with bulk download options and social media optimization. Access via "Advertising Banners" tab in admin dashboard.
 - August 12, 2025. **Profile Edit System Completed** - Fixed and verified complete profile editing system with instant database persistence. Users can now save profile pictures, bio, website, and personal information permanently. Added API endpoint `/api/me/profile` with proper validation, error handling, increased payload limits for image uploads, and session-based authentication.
 - August 12, 2025. **Replit Migration Completed** - Successfully migrated from Replit Agent to standard Replit environment with PostgreSQL database provisioning, schema synchronization, and full functionality verification
 - August 12, 2025. **Modern Responsive Home Page Redesign** - Completely redesigned home page with modern responsive layout using CSS Grid, professional glass-morphism cards, updated typography, mobile-first responsive design, and desktop/tablet optimized layouts for perfect cross-device experience
