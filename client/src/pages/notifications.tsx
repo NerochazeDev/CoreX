@@ -209,7 +209,7 @@ export default function Notifications() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-background min-h-screen relative">
+    <div className="max-w-2xl mx-auto lg:max-w-4xl bg-background min-h-screen relative lg:ml-64">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b dark-border">
         <div className="px-4 py-4">

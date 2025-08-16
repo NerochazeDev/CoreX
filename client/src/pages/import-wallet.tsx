@@ -74,7 +74,7 @@ export default function ImportWallet() {
   }
 
   return (
-    <div className="max-w-sm mx-auto bg-background min-h-screen relative">
+    <div className="max-w-sm mx-auto lg:max-w-4xl bg-background min-h-screen relative lg:ml-64">
       {/* Header */}
       <header className="px-4 py-6 border-b dark-border">
         <div className="flex items-center gap-3">
