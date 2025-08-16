@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BottomNavigation } from "@/components/bottom-navigation";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Lock, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { formatBitcoin } from "@/lib/utils";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import type { Investment } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Withdraw() {
@@ -20,6 +21,16 @@ export default function Withdraw() {
   const [amount, setAmount] = useState("");
 
   const queryClient = useQueryClient();
+
+  // Check for active investments
+  const { data: activeInvestments } = useQuery<Investment[]>({
+    queryKey: ['/api/investments/user', user?.id],
+    queryFn: () => fetch(`/api/investments/user/${user?.id}`).then(res => res.json()),
+    enabled: !!user?.id,
+    select: (data) => data?.filter((inv: Investment) => inv.isActive === true) || [],
+  });
+
+  const hasActiveInvestments = activeInvestments && activeInvestments.length > 0;
 
   const withdrawMutation = useMutation({
     mutationFn: async (data: { address: string; amount: string }) => {
@@ -48,6 +59,16 @@ export default function Withdraw() {
       toast({
         title: "Missing Information",
         description: "Please enter both address and amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for active investments first
+    if (hasActiveInvestments) {
+      toast({
+        title: "Withdrawal Blocked",
+        description: "You cannot withdraw while you have active investments. Please wait for your investments to complete.",
         variant: "destructive",
       });
       return;
@@ -102,6 +123,24 @@ export default function Withdraw() {
       </header>
 
       <div className="p-4 pb-20">
+        {/* Active Investments Warning */}
+        {hasActiveInvestments && (
+          <Card className="mb-6 bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Lock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                <div>
+                  <h3 className="font-semibold text-orange-800 dark:text-orange-200">Withdrawals Temporarily Locked</h3>
+                  <p className="text-sm text-orange-700 dark:text-orange-300">
+                    You have {activeInvestments?.length} active investment{activeInvestments?.length !== 1 ? 's' : ''} running. 
+                    Withdrawals will be available once your investments complete.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Balance Info */}
         <Card className="dark-card dark-border mb-6">
           <CardHeader>
@@ -109,6 +148,12 @@ export default function Withdraw() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-bitcoin">{formatBitcoin(user.balance)} BTC</p>
+            {hasActiveInvestments && (
+              <p className="text-sm text-orange-600 dark:text-orange-400 mt-2 flex items-center gap-1">
+                <AlertTriangle className="w-4 h-4" />
+                Locked due to active investments
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -146,11 +191,16 @@ export default function Withdraw() {
             <div className="pt-4">
               <Button 
                 onClick={handleWithdraw}
-                disabled={withdrawMutation.isPending || !address || !amount}
-                className="w-full bg-bitcoin hover:bg-bitcoin/90 text-black font-semibold"
+                disabled={withdrawMutation.isPending || !address || !amount || hasActiveInvestments}
+                className="w-full bg-bitcoin hover:bg-bitcoin/90 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {withdrawMutation.isPending ? (
                   "Processing..."
+                ) : hasActiveInvestments ? (
+                  <>
+                    <Lock className="w-4 h-4 mr-2" />
+                    Withdrawal Locked
+                  </>
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />

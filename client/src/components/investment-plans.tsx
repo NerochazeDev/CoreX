@@ -112,7 +112,7 @@ export function InvestmentPlans() {
           <Card key={plan.id} className={`${getGradientClass(plan.color)} rounded-xl p-4 relative overflow-hidden border-0`}>
             <div className="absolute top-0 right-0 w-16 h-16 bg-white opacity-10 rounded-full -translate-y-8 translate-x-8"></div>
             <div className="relative z-10">
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-start mb-3">
                 <div>
                   <h4 className={`font-semibold ${getTextColorClass(plan.color)}`}>
                     {plan.name}
@@ -128,6 +128,28 @@ export function InvestmentPlans() {
                   <p className={`text-xs opacity-80 ${getTextColorClass(plan.color)}`}>
                     {plan.durationDays} days
                   </p>
+                </div>
+              </div>
+              
+              {/* Expected Returns Section */}
+              <div className={`bg-white bg-opacity-15 rounded-lg p-3 mb-3 ${getTextColorClass(plan.color)}`}>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs opacity-80">Expected Returns:</span>
+                  <Target className="w-3 h-3 opacity-80" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span>Investment:</span>
+                    <span>{formatBitcoin(plan.minAmount)} BTC</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span>Profit ({plan.roiPercentage}%):</span>
+                    <span>+{formatBitcoin((parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString())} BTC</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-semibold border-t border-white border-opacity-20 pt-1">
+                    <span>Total Return:</span>
+                    <span>{formatBitcoin((parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString())} BTC</span>
+                  </div>
                 </div>
               </div>
               <Button
