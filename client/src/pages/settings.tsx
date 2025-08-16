@@ -64,8 +64,8 @@ function SettingsContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50">
-        <div className="max-w-sm mx-auto px-6 py-4">
+      <div className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50 lg:ml-64">
+        <div className="max-w-sm mx-auto lg:max-w-4xl px-6 py-4">
           <div className="flex items-center gap-4">
             <Link href="/">
               <Button variant="ghost" size="icon" className="rounded-xl hover:bg-primary/10">
@@ -80,7 +80,7 @@ function SettingsContent() {
         </div>
       </div>
 
-      <div className="max-w-sm mx-auto px-6 pb-24">
+      <div className="max-w-sm mx-auto lg:max-w-4xl px-6 pb-24 lg:ml-64">
         {/* Profile Summary Card */}
         <Card className="mt-6 mb-8 overflow-hidden border-0 shadow-lg bg-gradient-to-br from-primary/5 to-primary/10">
           <CardContent className="p-6">

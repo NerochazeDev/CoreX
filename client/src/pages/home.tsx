@@ -195,7 +195,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       {/* Advanced Professional Header */}
-      <header className="bg-gradient-to-r from-white/90 to-orange-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl border-b border-orange-200/50 dark:border-orange-800/50 sticky top-0 z-50 shadow-sm">
+      <header className="bg-gradient-to-r from-white/90 to-orange-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-xl border-b border-orange-200/50 dark:border-orange-800/50 sticky top-0 z-50 shadow-sm lg:ml-64">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3">
             <div className="flex items-center gap-4">
@@ -254,7 +254,7 @@ export default function Home() {
       </header>
 
       {/* Advanced Professional Dashboard */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:ml-64">
         
         {/* Top Performance Metrics Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">

@@ -120,7 +120,7 @@ export default function History() {
   return (
     <div className="min-h-screen dark-bg">
       {/* Navigation Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b dark-border">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b dark-border lg:ml-64">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <Link href="/">
@@ -136,7 +136,7 @@ export default function History() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 space-y-6 pb-20">
+      <div className="max-w-4xl mx-auto p-4 space-y-6 pb-20 lg:ml-64">
         <div className="mb-6">
           <h1 className="text-2xl font-bold dark-text mb-2">Transaction History</h1>
           <p className="text-muted-foreground">Your investment and transaction history</p>

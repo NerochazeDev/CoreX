@@ -460,7 +460,7 @@ function ProfileContent() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6 pb-24">
+      <div className="max-w-6xl mx-auto p-6 pb-24 lg:ml-64">
         {/* Enhanced Profile Header */}
         <Card className="mb-8 overflow-hidden border-0 shadow-xl bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white relative">
           <div className="absolute inset-0 bg-black/20"></div>
