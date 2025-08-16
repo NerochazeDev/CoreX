@@ -55,66 +55,21 @@ export function InvestmentPlans() {
   const handleInvest = (plan: InvestmentPlan) => {
     if (!user) return;
     
-    // Prompt user for investment amount
-    const userAmount = prompt(
-      `Enter your investment amount (BTC):\n\n` +
-      `Minimum: ${formatBitcoin(plan.minAmount)} BTC\n` +
-      `Your Balance: ${formatBitcoin(user.balance)} BTC\n\n` +
-      `ROI: ${plan.roiPercentage}% in ${plan.durationDays} days\n` +
-      `Example: If you invest 0.001 BTC, you'll receive ${(0.001 * (1 + plan.roiPercentage / 100)).toFixed(8)} BTC total`
-    );
-    
-    if (!userAmount) return;
-    
-    const amount = parseFloat(userAmount);
-    if (isNaN(amount) || amount <= 0) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid positive number",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (amount < parseFloat(plan.minAmount)) {
-      toast({
-        title: "Amount Too Low",
-        description: `Minimum investment is ${formatBitcoin(plan.minAmount)} BTC`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (amount > parseFloat(user.balance)) {
-      toast({
-        title: "Insufficient Balance",
-        description: "You don't have enough BTC for this investment",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Show confirmation with exact calculations
-    const profit = amount * plan.roiPercentage / 100;
-    const totalReturn = amount + profit;
-    
+    // For simplicity, invest the minimum amount since returns are clearly shown
     const confirmed = confirm(
-      `Confirm Investment:\n\n` +
-      `Plan: ${plan.name}\n` +
-      `Amount: ${amount.toFixed(8)} BTC\n` +
-      `Duration: ${plan.durationDays} days\n\n` +
-      `Expected Returns:\n` +
-      `• Initial Investment: ${amount.toFixed(8)} BTC\n` +
-      `• Profit (${plan.roiPercentage}%): +${profit.toFixed(8)} BTC\n` +
-      `• Total Return: ${totalReturn.toFixed(8)} BTC\n\n` +
-      `*Returns are in BTC and independent of price changes*\n\n` +
+      `Invest in ${plan.name}?\n\n` +
+      `Investment: ${formatBitcoin(plan.minAmount)} BTC\n` +
+      `Profit: +${formatBitcoin((parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString())} BTC\n` +
+      `Total Return: ${formatBitcoin((parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString())} BTC\n\n` +
+      `Duration: ${plan.durationDays} days\n` +
+      `Daily Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}% per day\n\n` +
       `Proceed with investment?`
     );
     
     if (confirmed) {
       createInvestmentMutation.mutate({
         planId: plan.id,
-        amount: amount.toFixed(8),
+        amount: plan.minAmount,
       });
     }
   };
@@ -188,10 +143,10 @@ export function InvestmentPlans() {
                 </div>
               </div>
               
-              {/* Investment Details Section */}
+              {/* Expected Returns Section */}
               <div className={`bg-white bg-opacity-15 rounded-lg p-3 mb-3 ${getTextColorClass(plan.color)}`}>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs opacity-80">Investment Formula:</span>
+                  <span className="text-xs opacity-80">Expected Returns:</span>
                   <Target className="w-3 h-3 opacity-80" />
                 </div>
                 <div className="space-y-1">
@@ -200,21 +155,15 @@ export function InvestmentPlans() {
                     <span>{formatBitcoin(plan.minAmount)} BTC</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span>ROI Rate:</span>
-                    <span>{plan.roiPercentage}% in {plan.durationDays} days</span>
+                    <span>Profit ({plan.roiPercentage}%):</span>
+                    <span className="text-green-300">+{formatBitcoin((parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString())} BTC</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span>Daily Return Rate:</span>
-                    <span>{(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}% per day</span>
+                  <div className="flex justify-between text-sm font-semibold border-t border-white border-opacity-20 pt-1">
+                    <span>Total Return:</span>
+                    <span className="text-green-300">{formatBitcoin((parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString())} BTC</span>
                   </div>
-                  <div className="border-t border-white border-opacity-20 pt-1 mt-2">
-                    <div className="text-xs opacity-90">
-                      <div className="font-semibold mb-1">Return Calculation:</div>
-                      <div>Your Investment × {plan.roiPercentage}% = Total Profit</div>
-                      <div className="text-xs opacity-75 mt-1">
-                        *Returns calculated in BTC, independent of price changes
-                      </div>
-                    </div>
+                  <div className="text-xs opacity-75 mt-2">
+                    *Returns in BTC after {plan.durationDays} days
                   </div>
                 </div>
               </div>
