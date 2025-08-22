@@ -13,6 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
+import { useCurrency } from "@/hooks/use-currency";
+import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
+import { formatCurrency, formatBitcoin, convertFiatToBTC, convertBTCToFiat } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AdminConfig {
   vaultAddress: string;
@@ -46,6 +50,11 @@ export default function Deposit() {
   const [transactionHash, setTransactionHash] = useState("");
   const [selectedTab, setSelectedTab] = useState<'vault' | 'instant'>('instant');
   const [showQR, setShowQR] = useState(false);
+  const [inputMode, setInputMode] = useState<'BTC' | 'FIAT'>('BTC');
+  const [fiatAmount, setFiatAmount] = useState("");
+  
+  const { currency } = useCurrency();
+  const { data: bitcoinPrice } = useBitcoinPrice();
 
   // Fetch admin configuration for deposit addresses
   const { data: adminConfig } = useQuery<AdminConfig>({
@@ -324,19 +333,79 @@ export default function Deposit() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Dual Currency Input */}
               <div>
-                <Label htmlFor="amount">Amount (BTC)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.00000001"
-                  placeholder="0.00100000"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="mt-1"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Minimum: 0.001 BTC (~$104)
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Deposit Amount</Label>
+                  <Tabs value={inputMode} onValueChange={(value) => setInputMode(value as 'BTC' | 'FIAT')} className="w-auto">
+                    <TabsList className="h-8">
+                      <TabsTrigger value="BTC" className="text-xs px-3 py-1">BTC</TabsTrigger>
+                      <TabsTrigger value="FIAT" className="text-xs px-3 py-1">{currency}</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+                
+                {inputMode === 'BTC' ? (
+                  <div className="space-y-2">
+                    <Input
+                      type="number"
+                      step="0.00000001"
+                      placeholder="0.00100000"
+                      value={amount}
+                      onChange={(e) => {
+                        setAmount(e.target.value);
+                        if (e.target.value && bitcoinPrice) {
+                          const currentPriceData = currency === 'USD' ? bitcoinPrice.usd : currency === 'GBP' ? bitcoinPrice.gbp : bitcoinPrice.eur;
+                          const fiatValue = convertBTCToFiat(e.target.value, currentPriceData.price);
+                          setFiatAmount(fiatValue.toFixed(2));
+                        } else {
+                          setFiatAmount("");
+                        }
+                      }}
+                      className="text-lg font-mono"
+                    />
+                    {fiatAmount && bitcoinPrice && (
+                      <p className="text-sm text-muted-foreground">
+                        ≈ {formatCurrency(parseFloat(fiatAmount), currency)}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder={currency === 'USD' ? '104.00' : currency === 'GBP' ? '82.00' : '95.00'}
+                        value={fiatAmount}
+                        onChange={(e) => {
+                          setFiatAmount(e.target.value);
+                          if (e.target.value && bitcoinPrice) {
+                            const currentPriceData = currency === 'USD' ? bitcoinPrice.usd : currency === 'GBP' ? bitcoinPrice.gbp : bitcoinPrice.eur;
+                            const btcValue = convertFiatToBTC(parseFloat(e.target.value), currentPriceData.price);
+                            setAmount(btcValue.toFixed(8));
+                          } else {
+                            setAmount("");
+                          }
+                        }}
+                        className="text-lg pl-8"
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                        {currency === 'USD' ? '$' : currency === 'GBP' ? '£' : '€'}
+                      </span>
+                    </div>
+                    {amount && (
+                      <p className="text-sm text-muted-foreground">
+                        ≈ {formatBitcoin(amount)} BTC
+                      </p>
+                    )}
+                  </div>
+                )}
+                
+                <p className="text-xs text-muted-foreground mt-2">
+                  Minimum: 0.001 BTC {bitcoinPrice && (
+                    `(${formatCurrency(convertBTCToFiat(0.001, currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)})`
+                  )}
                 </p>
               </div>
 

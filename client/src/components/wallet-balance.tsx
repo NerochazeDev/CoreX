@@ -60,7 +60,7 @@ export function WalletBalance() {
             <div className="flex items-center gap-2 mb-3">
               {isBalanceVisible ? (
                 <h2 className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
-                  {formatBitcoin(user.balance)} BTC
+                  {formatBitcoin(user.balance, { compact: true })} BTC
                 </h2>
               ) : (
                 <h2 className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
@@ -92,10 +92,15 @@ export function WalletBalance() {
               </div>
             </div>
 
-            {isBalanceVisible && (
-              <p className="text-primary-success text-lg font-semibold">
-                ≈ {formatCurrency(fiatValue, currency)}
-              </p>
+            {isBalanceVisible && currentPriceData && (
+              <div className="space-y-1">
+                <p className="text-primary-success text-lg font-semibold">
+                  ≈ {formatCurrency(fiatValue, currency)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  1 BTC = {formatCurrency(currentPriceData.price, currency)} • Live Market Price
+                </p>
+              </div>
             )}
           </div>
 

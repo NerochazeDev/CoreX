@@ -11,18 +11,29 @@ interface CurrencyContextType {
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrency] = useState<Currency>('EUR');
+  const [currency, setCurrency] = useState<Currency>(() => {
+    // Get saved preference from localStorage, default to USD
+    const saved = localStorage.getItem('preferred-currency');
+    return (saved as Currency) || 'USD';
+  });
 
   const toggleCurrency = () => {
     setCurrency(current => {
-      if (current === 'EUR') return 'USD';
-      if (current === 'USD') return 'GBP';
-      return 'EUR';
+      let next: Currency;
+      if (current === 'USD') next = 'EUR';
+      else if (current === 'EUR') next = 'GBP';
+      else next = 'USD';
+      
+      // Save preference to localStorage
+      localStorage.setItem('preferred-currency', next);
+      return next;
     });
   };
 
   const updateCurrency = (newCurrency: Currency) => {
     setCurrency(newCurrency);
+    // Save preference to localStorage
+    localStorage.setItem('preferred-currency', newCurrency);
   };
 
   return (
