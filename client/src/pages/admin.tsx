@@ -73,8 +73,8 @@ export default function Management() {
       if (isBackdoorAccess) {
         headers['x-backdoor-access'] = 'true';
       }
-      
-      const response = await fetch('/api/admin/users', { 
+
+      const response = await fetch('/api/admin/users', {
         headers,
         credentials: 'include' // Ensure cookies are sent
       });
@@ -252,8 +252,9 @@ export default function Management() {
     },
     onSuccess: () => {
       toast({
-        title: "User Deleted",
-        description: "User has been permanently deleted from the system",
+        title: "✅ User Deleted",
+        description: "The user account has been permanently removed from the system along with all associated data.",
+        variant: "default",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
@@ -909,7 +910,7 @@ export default function Management() {
                   <div>
                     <h4 className="font-semibold text-lg flex items-center gap-2">
                       {plan.name}
-                      <Badge 
+                      <Badge
                         className="px-2 py-1 text-xs"
                         style={{ backgroundColor: plan.color + '20', color: plan.color }}
                       >
@@ -920,14 +921,14 @@ export default function Management() {
                       {plan.roiPercentage}% ROI over {plan.durationDays} days
                     </p>
                   </div>
-                  <Badge 
+                  <Badge
                     className="px-3 py-1"
                     style={{ backgroundColor: plan.color + '20', color: plan.color }}
                   >
                     {plan.isActive ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor={`minAmount-${plan.id}`}>Minimum Amount (BTC)</Label>
@@ -956,7 +957,7 @@ export default function Management() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor={`dailyRate-${plan.id}`}>Daily Return Rate (%)</Label>
                     <div className="flex gap-2 mt-1">
@@ -1011,7 +1012,7 @@ export default function Management() {
 
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    <strong>Current Settings:</strong> Min: {plan.minAmount} BTC | Daily: {(parseFloat(plan.dailyReturnRate) * 100).toFixed(4)}% | 
+                    <strong>Current Settings:</strong> Min: {plan.minAmount} BTC | Daily: {(parseFloat(plan.dailyReturnRate) * 100).toFixed(4)}% |
                     Total ROI: {plan.roiPercentage}% over {plan.durationDays} days
                   </p>
                 </div>
@@ -1062,8 +1063,8 @@ export default function Management() {
       if (isBackdoorAccess) {
         headers['x-backdoor-access'] = 'true';
       }
-      
-      const response = await fetch('/api/admin/investments', { 
+
+      const response = await fetch('/api/admin/investments', {
         headers,
         credentials: 'include'
       });
@@ -1077,7 +1078,7 @@ export default function Management() {
     mutationFn: async ({ investmentId, reason }: { investmentId: number; reason?: string }) => {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
-      
+
       const response = await fetch(`/api/admin/investments/${investmentId}/toggle`, {
         method: 'POST',
         headers,
@@ -1100,7 +1101,7 @@ export default function Management() {
     mutationFn: async ({ investmentId, reason, refund }: { investmentId: number; reason?: string; refund?: boolean }) => {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
-      
+
       const response = await fetch(`/api/admin/investments/${investmentId}`, {
         method: 'DELETE',
         headers,
@@ -1177,7 +1178,7 @@ export default function Management() {
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                       <div>
                         <Label className="text-xs text-muted-foreground">Amount</Label>
@@ -1204,9 +1205,9 @@ export default function Management() {
                           const action = investment.isActive ? 'pause' : 'resume';
                           const reason = prompt(`Enter reason to ${action} this investment:\n\nThis message will be sent to the user immediately.`);
                           if (reason !== null) { // Allow empty string but not cancelled dialog
-                            pauseInvestmentMutation.mutate({ 
-                              investmentId: investment.id, 
-                              reason: reason || `Investment ${action}d by administrator` 
+                            pauseInvestmentMutation.mutate({
+                              investmentId: investment.id,
+                              reason: reason || `Investment ${action}d by administrator`
                             });
                           }
                         }}
@@ -1225,10 +1226,10 @@ export default function Management() {
                           const reason = prompt("Enter reason for cancellation (optional):");
                           const refund = confirm("Refund the investment amount to user's balance?");
                           if (confirm(`Are you sure you want to cancel this investment?${refund ? ' The amount will be refunded.' : ''}`)) {
-                            cancelInvestmentMutation.mutate({ 
-                              investmentId: investment.id, 
+                            cancelInvestmentMutation.mutate({
+                              investmentId: investment.id,
                               reason: reason || undefined,
-                              refund 
+                              refund
                             });
                           }
                         }}
@@ -1466,7 +1467,7 @@ export default function Management() {
             <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-400 rounded-full blur-3xl animate-pulse delay-1000"></div>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-orange-500/30 rounded-full blur-3xl animate-pulse delay-500"></div>
           </div>
-          
+
           {/* Grid Pattern Overlay */}
           <div className="absolute inset-0 opacity-5">
             <div className="w-full h-full" style={{
@@ -1474,7 +1475,7 @@ export default function Management() {
               backgroundSize: '50px 50px'
             }}></div>
           </div>
-          
+
           {/* Main Content */}
           <div className="relative z-10 h-full flex flex-col items-center justify-center text-white p-8">
             {/* Logo */}
@@ -1491,7 +1492,7 @@ export default function Management() {
                 </div>
               </div>
             </div>
-            
+
             {/* Taglines */}
             <div className="text-center space-y-4">
               <h2 className="text-3xl font-bold text-orange-400">
@@ -1515,7 +1516,7 @@ export default function Management() {
                 Secure • Professional • Exclusive
               </p>
             </div>
-            
+
             {/* Call to Action */}
             <div className="mt-8">
               <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-black px-8 py-3 rounded-full text-xl font-bold shadow-2xl">
@@ -1523,7 +1524,7 @@ export default function Management() {
               </div>
             </div>
           </div>
-          
+
           {/* Corner Decorations */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-400/20 to-transparent rounded-bl-full"></div>
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-amber-400/20 to-transparent rounded-tr-full"></div>
@@ -1532,7 +1533,7 @@ export default function Management() {
 
       {/* Alternative Brand Variations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Minimal Dark Version */}
         <Card className="overflow-hidden border border-gray-800">
           <div className="bg-slate-900 p-8 text-center">
@@ -1576,7 +1577,7 @@ export default function Management() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             {/* Color Palette */}
             <div>
               <h4 className="font-semibold mb-4">Brand Colors</h4>

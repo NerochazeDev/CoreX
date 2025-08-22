@@ -80,8 +80,8 @@ export default function Register() {
     
     if (formData.password !== formData.confirmPassword) {
       toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
+        title: "Password Mismatch",
+        description: "The passwords you entered don't match. Please ensure both password fields contain the same value.",
         variant: "destructive",
       });
       return;
@@ -89,8 +89,8 @@ export default function Register() {
 
     if (passwordStrength < 3) {
       toast({
-        title: "Password too weak",
-        description: "Please choose a stronger password with at least 8 characters, uppercase, lowercase, and numbers.",
+        title: "Password Security Requirements",
+        description: "Your password doesn't meet our security standards. Please create a stronger password with at least 8 characters, including uppercase letters, lowercase letters, and numbers.",
         variant: "destructive",
       });
       return;
@@ -98,8 +98,8 @@ export default function Register() {
 
     if (!acceptTerms) {
       toast({
-        title: "Terms required",
-        description: "Please accept the terms and conditions to continue.",
+        title: "Agreement Required",
+        description: "Please read and accept our Terms of Service and Privacy Policy to create your BitVault Pro account.",
         variant: "destructive",
       });
       return;
@@ -107,8 +107,8 @@ export default function Register() {
 
     if (!captchaToken) {
       toast({
-        title: "Captcha verification required",
-        description: "Please complete the captcha verification to continue.",
+        title: "Security Verification Required",
+        description: "Please complete the security verification to confirm you're not a robot and continue with account creation.",
         variant: "destructive",
       });
       return;
@@ -128,14 +128,31 @@ export default function Register() {
         captchaToken: captchaToken || ''
       });
       toast({
-        title: "Account created successfully!",
-        description: "Your Bitcoin wallet has been automatically generated. Welcome to BitVault Pro!",
+        title: "🎉 Welcome to BitVault Pro!",
+        description: "Your account has been created successfully and your secure Bitcoin wallet is ready. You can now start investing!",
+        variant: "default",
       });
       setLocation('/');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Registration failed";
+      
+      let title = "Registration Failed";
+      let description = "We couldn't create your account at this time. Please try again or contact support if the issue persists.";
+      
+      if (errorMessage.toLowerCase().includes("email")) {
+        title = "Email Already Registered";
+        description = "This email address is already associated with a BitVault Pro account. Please use a different email or try logging in instead.";
+      } else if (errorMessage.toLowerCase().includes("network")) {
+        title = "Connection Error";
+        description = "Unable to connect to our servers. Please check your internet connection and try again.";
+      } else if (errorMessage.toLowerCase().includes("validation")) {
+        title = "Invalid Information";
+        description = "Please check that all required fields are filled out correctly and try again.";
+      }
+      
       toast({
-        title: "Registration failed",
-        description: error instanceof Error ? error.message : "Failed to create account",
+        title,
+        description,
         variant: "destructive",
       });
     } finally {

@@ -27,8 +27,9 @@ export default function Login() {
       await login(email, password);
       console.log('Login completed, showing success toast...');
       toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in.",
+        title: "🎉 Welcome Back!",
+        description: "You've successfully signed in to your BitVault Pro account. Your investments await!",
+        variant: "default",
       });
       console.log('Redirecting to home page...');
       // Small delay to ensure state is updated before redirect
@@ -37,9 +38,23 @@ export default function Login() {
       }, 100);
     } catch (error) {
       console.error('Login error in component:', error);
+      const errorMessage = error instanceof Error ? error.message : "Invalid credentials provided";
+      
+      let title = "Login Failed";
+      let description = "Please check your email and password and try again.";
+      
+      if (errorMessage.toLowerCase().includes("email")) {
+        description = "The email address you entered is not registered. Please check your email or create a new account.";
+      } else if (errorMessage.toLowerCase().includes("password")) {
+        description = "Incorrect password. Please try again or reset your password if you've forgotten it.";
+      } else if (errorMessage.toLowerCase().includes("network") || errorMessage.toLowerCase().includes("connection")) {
+        title = "Connection Issue";
+        description = "Unable to connect to our servers. Please check your internet connection and try again.";
+      }
+      
       toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Invalid credentials",
+        title,
+        description,
         variant: "destructive",
       });
     } finally {
