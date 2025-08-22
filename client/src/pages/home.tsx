@@ -40,12 +40,16 @@ import {
 } from "lucide-react";
 import { formatBitcoin, formatBitcoinWithFiat, formatDate } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart as RechartsPieChart, Cell, BarChart, Bar } from "recharts";
+import { useCurrency } from "@/hooks/use-currency";
+import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 
 export default function Home() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { currency } = useCurrency();
+  const { data: bitcoinPrice } = useBitcoinPrice();
 
   // Redirect to login if not authenticated
   if (!user) {

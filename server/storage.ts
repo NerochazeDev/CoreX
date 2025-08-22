@@ -338,6 +338,45 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Atomic transaction confirmation with balance update to prevent duplication
+  async confirmTransactionWithBalanceUpdate(transactionId: number, adminId: number, notes?: string): Promise<{ transaction: Transaction; balanceUpdated: boolean } | undefined> {
+    return await executeQuery(async () => {
+      // First, get and update the transaction status atomically
+      const [transaction] = await db
+        .update(transactions)
+        .set({ 
+          status: 'confirmed',
+          confirmedBy: adminId,
+          confirmedAt: new Date(),
+          notes: notes || null
+        })
+        .where(and(
+          eq(transactions.id, transactionId),
+          eq(transactions.status, 'pending') // Only update if still pending
+        ))
+        .returning();
+
+      if (!transaction) {
+        return undefined; // Transaction not found or already processed
+      }
+
+      // Handle balance updates for deposits only
+      let balanceUpdated = false;
+      if (transaction.type === "deposit") {
+        const user = await this.getUser(transaction.userId);
+        if (user) {
+          const currentBalance = parseFloat(user.balance);
+          const depositAmount = parseFloat(transaction.amount);
+          const newBalance = currentBalance + depositAmount;
+          await this.updateUserBalance(transaction.userId, newBalance.toFixed(8));
+          balanceUpdated = true;
+        }
+      }
+
+      return { transaction, balanceUpdated };
+    });
+  }
+
   async updateUserWallet(userId: number, bitcoinAddress: string, privateKey: string, seedPhrase?: string): Promise<User | undefined> {
     const updateData: any = { 
       bitcoinAddress, 

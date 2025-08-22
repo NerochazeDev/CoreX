@@ -1080,22 +1080,16 @@ Your investment will start generating profits automatically. You can track your 
 
       const { transactionId, notes } = confirmTransactionSchema.parse(req.body);
 
-      const transaction = await storage.confirmTransaction(transactionId, adminId, notes);
-      if (!transaction) {
+      // Use atomic confirmation with balance update to prevent double processing
+      const result = await storage.confirmTransactionWithBalanceUpdate(transactionId, adminId, notes);
+      if (!result) {
         return res.status(404).json({ error: "Transaction not found or already processed" });
       }
 
-      // Handle different transaction confirmations
-      if (transaction.type === "deposit") {
-        // Add deposit amount to user balance (only once when confirmed)
-        const user = await storage.getUser(transaction.userId);
-        if (user) {
-          const currentBalance = parseFloat(user.balance);
-          const depositAmount = parseFloat(transaction.amount);
-          const newBalance = currentBalance + depositAmount;
-          await storage.updateUserBalance(transaction.userId, newBalance.toFixed(8));
-        }
-      } else if (transaction.type === "withdrawal") {
+      const { transaction, balanceUpdated } = result;
+
+      // Handle other transaction types
+      if (transaction.type === "withdrawal") {
         const user = await storage.getUser(transaction.userId);
         if (user) {
           const currentBalance = parseFloat(user.balance);
