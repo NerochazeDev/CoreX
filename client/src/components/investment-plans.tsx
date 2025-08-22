@@ -6,12 +6,16 @@ import { queryClient } from "@/lib/queryClient";
 import type { InvestmentPlan } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { formatBitcoin } from "@/lib/utils";
+import { formatBitcoin, formatCurrency, calculateCurrencyValue } from "@/lib/utils";
 import { TrendingUp, Clock, Target, Shield, Star, Zap } from "lucide-react";
+import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
+import { useCurrency } from "@/hooks/use-currency";
 
 export function InvestmentPlans() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { data: bitcoinPrice } = useBitcoinPrice();
+  const { currency } = useCurrency();
 
   const { data: plans, isLoading } = useQuery<InvestmentPlan[]>({
     queryKey: ['/api/investment-plans'],
@@ -129,9 +133,22 @@ export function InvestmentPlans() {
                   <h4 className={`font-semibold ${getTextColorClass(plan.color)}`}>
                     {plan.name}
                   </h4>
-                  <p className={`text-sm opacity-80 ${getTextColorClass(plan.color)}`}>
-                    Min: {formatBitcoin(plan.minAmount)} BTC
-                  </p>
+                  <div className={`text-sm opacity-80 ${getTextColorClass(plan.color)}`}>
+                    <p>Min: {formatBitcoin(plan.minAmount)} BTC</p>
+                    {bitcoinPrice && (
+                      <p className="text-xs">
+                        ≈ {formatCurrency(
+                          calculateCurrencyValue(
+                            plan.minAmount, 
+                            currency === 'USD' ? bitcoinPrice.usd.price : 
+                            currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                            bitcoinPrice.eur.price
+                          ), 
+                          currency
+                        )}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className={`text-2xl font-bold ${getTextColorClass(plan.color)}`}>
@@ -152,15 +169,60 @@ export function InvestmentPlans() {
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs">
                     <span>Minimum Investment:</span>
-                    <span>{formatBitcoin(plan.minAmount)} BTC</span>
+                    <div className="text-right">
+                      <div>{formatBitcoin(plan.minAmount)} BTC</div>
+                      {bitcoinPrice && (
+                        <div className="text-xs opacity-75">
+                          {formatCurrency(
+                            calculateCurrencyValue(
+                              plan.minAmount, 
+                              currency === 'USD' ? bitcoinPrice.usd.price : 
+                              currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                              bitcoinPrice.eur.price
+                            ), 
+                            currency
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span>Profit ({plan.roiPercentage}%):</span>
-                    <span className="text-green-300">+{formatBitcoin((parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString())} BTC</span>
+                    <div className="text-right text-green-300">
+                      <div>+{formatBitcoin((parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString())} BTC</div>
+                      {bitcoinPrice && (
+                        <div className="text-xs opacity-75">
+                          +{formatCurrency(
+                            calculateCurrencyValue(
+                              (parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString(), 
+                              currency === 'USD' ? bitcoinPrice.usd.price : 
+                              currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                              bitcoinPrice.eur.price
+                            ), 
+                            currency
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between text-sm font-semibold border-t border-white border-opacity-20 pt-1">
                     <span>Total Return:</span>
-                    <span className="text-green-300">{formatBitcoin((parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString())} BTC</span>
+                    <div className="text-right text-green-300">
+                      <div>{formatBitcoin((parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString())} BTC</div>
+                      {bitcoinPrice && (
+                        <div className="text-xs opacity-75">
+                          {formatCurrency(
+                            calculateCurrencyValue(
+                              (parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString(), 
+                              currency === 'USD' ? bitcoinPrice.usd.price : 
+                              currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                              bitcoinPrice.eur.price
+                            ), 
+                            currency
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="text-xs opacity-75 mt-2">
                     *Returns in BTC after {plan.durationDays} days

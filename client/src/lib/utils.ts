@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatBitcoin(amount: string | number, options?: { compact?: boolean; maxDecimals?: number }): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-  
+
   if (options?.compact) {
     // For compact display, use smart decimal formatting
     if (num >= 1) return num.toFixed(2);
@@ -15,12 +15,12 @@ export function formatBitcoin(amount: string | number, options?: { compact?: boo
     if (num >= 0.0001) return num.toFixed(6);
     return num.toFixed(8);
   }
-  
+
   // Use maxDecimals if specified
   if (options?.maxDecimals !== undefined) {
     return num.toFixed(options.maxDecimals);
   }
-  
+
   // Smart formatting: remove trailing zeros for better readability
   const formatted = num.toFixed(8);
   return formatted.replace(/\.?0+$/, '') || '0';
@@ -44,17 +44,17 @@ export function formatGBP(amount: number): string {
 
 export function formatCurrency(amount: number, currency: 'USD' | 'GBP' | 'EUR', options?: { compact?: boolean }): string {
   const locale = currency === 'EUR' ? 'de-DE' : currency === 'GBP' ? 'en-GB' : 'en-US';
-  
+
   const formatOptions: Intl.NumberFormatOptions = {
     style: 'currency',
     currency: currency,
   };
-  
+
   if (options?.compact) {
     formatOptions.notation = 'compact';
     formatOptions.maximumFractionDigits = 1;
   }
-  
+
   return new Intl.NumberFormat(locale, formatOptions).format(amount);
 }
 
@@ -67,11 +67,11 @@ export function formatBitcoinWithFiat(
 ): string {
   const btc = typeof btcAmount === 'string' ? parseFloat(btcAmount) : btcAmount;
   const fiatValue = btc * fiatPrice;
-  
+
   if (options?.primaryCurrency === 'FIAT') {
     return `${formatCurrency(fiatValue, currency, options)} (${formatBitcoin(btc, options)} BTC)`;
   }
-  
+
   return `${formatBitcoin(btc, options)} BTC (${formatCurrency(fiatValue, currency, options)})`;
 }
 

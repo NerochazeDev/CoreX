@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -261,19 +260,28 @@ export default function Investment() {
                   <Card key={investment.id} className="bg-gray-900/60 backdrop-blur-sm border border-green-500/30 rounded-xl p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h4 className="font-semibold text-yellow-400 flex items-center gap-2">
-                          {getPlanName(investment.planId)}
-                          <Award className="w-4 h-4" />
-                        </h4>
-                        <p className="text-gray-400 text-sm">
-                          Started: {formatDate(new Date(investment.startDate))}
-                        </p>
+                        <h4 className="font-bold text-lg text-white">{plan?.name}</h4>
+                        <div className="text-sm text-gray-300">
+                          <p>Invested: {formatBitcoin(investment.amount)} BTC</p>
+                          {bitcoinPrice && (
+                            <p className="text-xs opacity-75">
+                              ≈ {formatCurrency(
+                                parseFloat(investment.amount) * (
+                                  currency === 'USD' ? bitcoinPrice.usd.price : 
+                                  currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                  bitcoinPrice.eur.price
+                                ), 
+                                currency
+                              )}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <Badge className="bg-green-500/30 text-green-300 hover:bg-green-500/40 border-green-500/50">
                         Earning
                       </Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <span className="text-xs text-gray-400">Principal</span>
@@ -284,10 +292,23 @@ export default function Investment() {
                           </div>
                         )}
                       </div>
-                      <div>
-                        <span className="text-xs text-gray-400">Current Profit</span>
-                        <div className="font-semibold text-green-400">+{formatBitcoin(investment.currentProfit)} BTC</div>
-                        <div className="text-xs text-green-400">+{profitPercentage.toFixed(2)}%</div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-green-400">
+                          +{formatBitcoin(investment.currentProfit)} BTC
+                        </p>
+                        {bitcoinPrice && (
+                          <p className="text-sm text-green-300 opacity-75">
+                            +{formatCurrency(
+                              parseFloat(investment.currentProfit) * (
+                                currency === 'USD' ? bitcoinPrice.usd.price : 
+                                currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                bitcoinPrice.eur.price
+                              ), 
+                              currency
+                            )}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400">Current Profit</p>
                       </div>
                     </div>
 
@@ -309,6 +330,27 @@ export default function Investment() {
                         </span>
                       )}
                     </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Total Value:</span>
+                      <div className="text-right">
+                        <span className="text-white font-semibold">
+                          {formatBitcoin((parseFloat(investment.amount) + parseFloat(investment.currentProfit)).toString())} BTC
+                        </span>
+                        {bitcoinPrice && (
+                          <p className="text-xs text-gray-300 opacity-75">
+                            {formatCurrency(
+                              (parseFloat(investment.amount) + parseFloat(investment.currentProfit)) * (
+                                currency === 'USD' ? bitcoinPrice.usd.price : 
+                                currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                bitcoinPrice.eur.price
+                              ), 
+                              currency
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </Card>
                 );
               })}
@@ -326,7 +368,7 @@ export default function Investment() {
             <div className="space-y-3">
               {completedInvestments.map((investment) => {
                 const finalReturn = ((parseFloat(investment.currentProfit) / parseFloat(investment.amount)) * 100);
-                
+
                 return (
                   <Card key={investment.id} className="dark-card rounded-xl p-4 dark-border opacity-75">
                     <div className="flex justify-between items-start mb-3">
@@ -338,7 +380,7 @@ export default function Investment() {
                       </div>
                       <Badge variant="secondary">Completed</Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
                         <span className="text-muted-foreground block">Invested</span>

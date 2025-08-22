@@ -61,7 +61,7 @@ export function WalletBalance() {
               {isBalanceVisible ? (
                 <div className="space-y-1">
                   <h2 className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
-                    {formatBitcoin(user.balance, { compact: true })} BTC
+                    {formatBitcoin(user.balance)} BTC
                   </h2>
                   <p className="text-lg font-semibold text-primary-success">
                     ≈ {formatCurrency(fiatValue, currency)}
