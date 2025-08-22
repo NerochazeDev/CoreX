@@ -115,21 +115,24 @@ export default function Home() {
   // Generate mock chart data for realistic investment visualization
   const generateChartData = () => {
     const data = [];
-    const baseAmount = totalInvestedAmount || 0.1;
+    const baseAmount = Math.max(totalInvestedAmount || 0.1, 0.01);
     const now = new Date();
 
     for (let i = 29; i >= 0; i--) {
       const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const randomVariation = (Math.random() - 0.5) * 0.02;
-      const growthFactor = 1 + (29 - i) * 0.001 + randomVariation;
+      const randomVariation = (Math.random() - 0.5) * 0.015;
+      const trendGrowth = (29 - i) * (dailyGrowthRate / 100) * 0.1;
+      const growthFactor = 1 + trendGrowth + randomVariation;
       const value = baseAmount * growthFactor;
-      const profit = value - baseAmount;
+      const profit = Math.max(value - baseAmount, 0);
+      const portfolio = baseAmount + profit;
 
       data.push({
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         value: parseFloat(value.toFixed(8)),
         profit: parseFloat(profit.toFixed(8)),
-        portfolio: parseFloat((baseAmount + profit).toFixed(8))
+        portfolio: parseFloat(portfolio.toFixed(8)),
+        usdValue: bitcoinPrice ? parseFloat((value * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price)).toFixed(2)) : 0
       });
     }
     return data;
@@ -267,8 +270,13 @@ export default function Home() {
               <div>
                 <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-1">Total Portfolio</p>
                 <p className="text-lg font-bold text-green-800 dark:text-green-300">
-                  {bitcoinPrice ? formatBitcoinWithFiat(totalValue.toString(), bitcoinPrice.usd.price, currency, { compact: true }) : `${formatBitcoin(totalValue.toString())} BTC`}
+                  {formatBitcoin(totalValue.toString())} BTC
                 </p>
+                {bitcoinPrice && (
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    ≈ {formatCurrency(totalValue * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)}
+                  </p>
+                )}
               </div>
               <div className="w-10 h-10 rounded-full bg-green-200 dark:bg-green-800/40 flex items-center justify-center">
                 <Wallet className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -281,8 +289,13 @@ export default function Home() {
               <div>
                 <p className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-1">Active Profit</p>
                 <p className="text-lg font-bold text-orange-800 dark:text-orange-300">
-                  +{bitcoinPrice ? formatBitcoinWithFiat(totalProfit.toString(), bitcoinPrice.usd.price, currency, { compact: true }) : `${formatBitcoin(totalProfit.toString())} BTC`} ({profitMargin.toFixed(2)}%)
+                  +{formatBitcoin(totalProfit.toString())} BTC
                 </p>
+                {bitcoinPrice && (
+                  <p className="text-sm text-orange-600 dark:text-orange-400">
+                    ≈ +{formatCurrency(totalProfit * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)} ({profitMargin.toFixed(2)}%)
+                  </p>
+                )}
               </div>
               <div className="w-10 h-10 rounded-full bg-orange-200 dark:bg-orange-800/40 flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -308,8 +321,13 @@ export default function Home() {
               <div>
                 <p className="text-xs font-medium text-purple-700 dark:text-purple-400 mb-1">Monthly Est.</p>
                 <p className="text-lg font-bold text-purple-800 dark:text-purple-300">
-                  {bitcoinPrice ? formatBitcoinWithFiat(monthlyProjection.toString(), bitcoinPrice.usd.price, currency, { compact: true }) : `${formatBitcoin(monthlyProjection.toString())} BTC`}
+                  {formatBitcoin(monthlyProjection.toString())} BTC
                 </p>
+                {bitcoinPrice && (
+                  <p className="text-sm text-purple-600 dark:text-purple-400">
+                    ≈ {formatCurrency(monthlyProjection * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)}
+                  </p>
+                )}
               </div>
               <div className="w-10 h-10 rounded-full bg-purple-200 dark:bg-purple-800/40 flex items-center justify-center">
                 <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -405,10 +423,18 @@ export default function Home() {
                               borderRadius: '12px',
                               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                             }}
-                            formatter={(value: any, name: string) => [
-                              `${parseFloat(value).toFixed(6)} BTC`,
-                              name === 'value' ? 'Portfolio Value' : 'Profit Earned'
-                            ]}
+                            formatter={(value: any, name: string, props: any) => {
+                              const btcAmount = parseFloat(value).toFixed(6);
+                              const usdAmount = bitcoinPrice ? formatCurrency(parseFloat(value) * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency) : '';
+                              return [
+                                <>
+                                  <div>{btcAmount} BTC</div>
+                                  {usdAmount && <div className="text-xs text-gray-500">≈ {usdAmount}</div>}
+                                </>,
+                                name === 'value' ? 'Portfolio Value' : 'Profit Earned'
+                              ];
+                            }}
+                            labelFormatter={(label) => `Date: ${label}`}
                           />
                           <Area 
                             type="monotone" 
@@ -479,7 +505,10 @@ export default function Home() {
                                 </div>
                                 <div className="text-right">
                                   <p className="font-semibold text-foreground">{formatBitcoin(item.value.toString())} BTC</p>
-                                  <p className="text-xs text-green-600 dark:text-green-400">+{formatBitcoin(item.profit.toString())} BTC</p>
+                                  {bitcoinPrice && (
+                                    <p className="text-xs text-muted-foreground">≈ {formatCurrency(item.value * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)}</p>
+                                  )}
+                                  <p className="text-xs text-green-600 dark:text-green-400">+{formatBitcoin(item.profit.toString())} BTC profit</p>
                                 </div>
                               </div>
                             ))}
@@ -504,6 +533,11 @@ export default function Home() {
                         </div>
                         <p className="text-2xl font-bold text-blue-900 dark:text-blue-200">{formatBitcoin(weeklyGrowth.toString())}</p>
                         <p className="text-sm text-blue-600 dark:text-blue-400">BTC in 7 days</p>
+                        {bitcoinPrice && (
+                          <p className="text-xs text-blue-500 dark:text-blue-400">
+                            ≈ {formatCurrency(weeklyGrowth * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)}
+                          </p>
+                        )}
                       </Card>
 
                       <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200/50">
@@ -658,6 +692,11 @@ export default function Home() {
                       <span className="text-sm text-muted-foreground">Total Invested</span>
                     </div>
                     <p className="text-xl font-bold text-foreground">{formatBitcoin(totalInvestedAmount.toString())} BTC</p>
+                    {bitcoinPrice && (
+                      <p className="text-sm text-green-600 dark:text-green-400">
+                        ≈ {formatCurrency(totalInvestedAmount * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)}
+                      </p>
+                    )}
                   </div>
                   <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -665,6 +704,11 @@ export default function Home() {
                       <span className="text-sm text-muted-foreground">Total Profit</span>
                     </div>
                     <p className="text-xl font-bold text-green-600 dark:text-green-400">+{formatBitcoin(totalProfit.toString())} BTC</p>
+                    {bitcoinPrice && (
+                      <p className="text-sm text-green-600 dark:text-green-400">
+                        ≈ +{formatCurrency(totalProfit * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -702,10 +746,20 @@ export default function Home() {
                           <div>
                             <p className="text-muted-foreground">Amount</p>
                             <p className="font-semibold text-foreground">{formatBitcoin(investment.amount)} BTC</p>
+                            {bitcoinPrice && (
+                              <p className="text-xs text-muted-foreground">
+                                ≈ {formatCurrency(parseFloat(investment.amount) * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <p className="text-muted-foreground">Profit</p>
                             <p className="font-semibold text-green-600 dark:text-green-400">+{formatBitcoin(investment.currentProfit)} BTC</p>
+                            {bitcoinPrice && (
+                              <p className="text-xs text-green-600 dark:text-green-400">
+                                ≈ +{formatCurrency(parseFloat(investment.currentProfit) * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)}
+                              </p>
+                            )}
                           </div>
                         </div>
 
