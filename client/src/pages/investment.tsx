@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { InvestmentPlans } from "@/components/investment-plans";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import type { Investment, InvestmentPlan, Transaction } from "@shared/schema";
-import { formatBitcoin, calculateInvestmentProgress, formatDate } from "@/lib/utils";
+import { formatBitcoin, formatBitcoinWithFiat, formatCurrency, calculateInvestmentProgress, formatDate } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { useLocation } from "wouter";
 import { useState } from "react";
@@ -116,12 +116,9 @@ export default function Investment() {
               <span className="text-xs text-gray-300">Total Invested</span>
             </div>
             <div className="space-y-1">
-              <p className="text-lg font-bold text-white">{formatBitcoin(totalInvested.toString())} BTC</p>
-              {currencyPrice && (
-                <p className="text-xs text-gray-400">
-                  ≈ {currency === 'USD' ? '$' : '£'}{(totalInvested * currencyPrice).toLocaleString()}
-                </p>
-              )}
+              <p className="text-lg font-bold text-white">
+                {currencyPrice ? formatBitcoinWithFiat(totalInvested.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalInvested.toString())} BTC`}
+              </p>
             </div>
           </Card>
 
@@ -131,12 +128,9 @@ export default function Investment() {
               <span className="text-xs text-gray-300">Total Profit</span>
             </div>
             <div className="space-y-1">
-              <p className="text-lg font-bold text-green-400">+{formatBitcoin(totalProfit.toString())} BTC</p>
-              {currencyPrice && (
-                <p className="text-xs text-gray-400">
-                  ≈ {currency === 'USD' ? '$' : '£'}{(totalProfit * currencyPrice).toLocaleString()}
-                </p>
-              )}
+              <p className="text-lg font-bold text-green-400">
+                +{currencyPrice ? formatBitcoinWithFiat(totalProfit.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalProfit.toString())} BTC`}
+              </p>
             </div>
           </Card>
 
@@ -146,12 +140,9 @@ export default function Investment() {
               <span className="text-xs text-gray-300">Portfolio Value</span>
             </div>
             <div className="space-y-1">
-              <p className="text-lg font-bold text-white">{formatBitcoin(totalValue.toString())} BTC</p>
-              {currencyPrice && (
-                <p className="text-xs text-gray-400">
-                  ≈ {currency === 'USD' ? '$' : '£'}{(totalValue * currencyPrice).toLocaleString()}
-                </p>
-              )}
+              <p className="text-lg font-bold text-white">
+                {currencyPrice ? formatBitcoinWithFiat(totalValue.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalValue.toString())} BTC`}
+              </p>
             </div>
           </Card>
 

@@ -490,7 +490,14 @@ export default function Deposit() {
                 {recentDeposits.map((deposit: any, index: number) => (
                   <div key={deposit.id} className="flex justify-between items-center py-2">
                     <div>
-                      <p className="text-sm font-medium">{deposit.amount} BTC</p>
+                      <p className="text-sm font-medium">
+                        {formatBitcoin(deposit.amount, { compact: true })} BTC
+                        {bitcoinPrice && (
+                          <span className="text-muted-foreground ml-2">
+                            (≈ {formatCurrency(convertBTCToFiat(deposit.amount, currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price), currency)})
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(deposit.createdAt).toLocaleDateString()}
                       </p>

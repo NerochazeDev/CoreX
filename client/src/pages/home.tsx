@@ -38,7 +38,7 @@ import {
   Shield,
   Crown
 } from "lucide-react";
-import { formatBitcoin, formatDate } from "@/lib/utils";
+import { formatBitcoin, formatBitcoinWithFiat, formatDate } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart as RechartsPieChart, Cell, BarChart, Bar } from "recharts";
 
 export default function Home() {
@@ -262,8 +262,9 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-green-700 dark:text-green-400 mb-1">Total Portfolio</p>
-                <p className="text-lg font-bold text-green-800 dark:text-green-300">{formatBitcoin(totalValue.toString())}</p>
-                <p className="text-xs text-green-600 dark:text-green-400">BTC</p>
+                <p className="text-lg font-bold text-green-800 dark:text-green-300">
+                  {bitcoinPrice ? formatBitcoinWithFiat(totalValue.toString(), bitcoinPrice.usd.price, currency, { compact: true }) : `${formatBitcoin(totalValue.toString())} BTC`}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-green-200 dark:bg-green-800/40 flex items-center justify-center">
                 <Wallet className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -275,8 +276,9 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-1">Active Profit</p>
-                <p className="text-lg font-bold text-orange-800 dark:text-orange-300">+{formatBitcoin(totalProfit.toString())}</p>
-                <p className="text-xs text-orange-600 dark:text-orange-400">BTC ({profitMargin.toFixed(2)}%)</p>
+                <p className="text-lg font-bold text-orange-800 dark:text-orange-300">
+                  +{bitcoinPrice ? formatBitcoinWithFiat(totalProfit.toString(), bitcoinPrice.usd.price, currency, { compact: true }) : `${formatBitcoin(totalProfit.toString())} BTC`} ({profitMargin.toFixed(2)}%)
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-orange-200 dark:bg-orange-800/40 flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -301,8 +303,9 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-purple-700 dark:text-purple-400 mb-1">Monthly Est.</p>
-                <p className="text-lg font-bold text-purple-800 dark:text-purple-300">{formatBitcoin(monthlyProjection.toString())}</p>
-                <p className="text-xs text-purple-600 dark:text-purple-400">BTC</p>
+                <p className="text-lg font-bold text-purple-800 dark:text-purple-300">
+                  {bitcoinPrice ? formatBitcoinWithFiat(monthlyProjection.toString(), bitcoinPrice.usd.price, currency, { compact: true }) : `${formatBitcoin(monthlyProjection.toString())} BTC`}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-purple-200 dark:bg-purple-800/40 flex items-center justify-center">
                 <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
