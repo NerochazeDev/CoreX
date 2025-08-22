@@ -232,8 +232,15 @@ export default function Management() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
+      const headers: Record<string, string> = {};
+      if (isBackdoorAccess) {
+        headers['x-backdoor-access'] = 'true';
+      }
+
       const response = await fetch(`/api/admin/delete-user/${userId}`, {
         method: 'DELETE',
+        headers,
+        credentials: 'include'
       });
 
       if (!response.ok) {
