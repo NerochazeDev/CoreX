@@ -112,6 +112,14 @@ export default function Home() {
   const profitMargin = totalInvestedAmount > 0 ? (totalProfit / totalInvestedAmount) * 100 : 0;
   const currentPlan = user.currentPlanId ? investmentPlans?.find(p => p.id === user.currentPlanId) : null;
 
+  // Performance metrics - Calculate this first before using in generateChartData
+  const dailyGrowthRate = actualActiveInvestments.length > 0 
+    ? actualActiveInvestments.reduce((sum, inv) => {
+        const plan = investmentPlans?.find(p => p.id === inv.planId);
+        return sum + (plan ? parseFloat(plan.dailyReturnRate) * 100 : 0);
+      }, 0) / actualActiveInvestments.length 
+    : (currentPlan ? parseFloat(currentPlan.dailyReturnRate) * 100 : 3.67);
+
   // Generate mock chart data for realistic investment visualization
   const generateChartData = () => {
     const data = [];
@@ -147,14 +155,6 @@ export default function Home() {
     profit: parseFloat(inv.currentProfit),
     color: `hsl(${index * 45}, 70%, 50%)`
   })) || [];
-
-  // Performance metrics
-  const dailyGrowthRate = actualActiveInvestments.length > 0 
-    ? actualActiveInvestments.reduce((sum, inv) => {
-        const plan = investmentPlans?.find(p => p.id === inv.planId);
-        return sum + (plan ? parseFloat(plan.dailyReturnRate) * 100 : 0);
-      }, 0) / actualActiveInvestments.length 
-    : (currentPlan ? parseFloat(currentPlan.dailyReturnRate) * 100 : 3.67);
   const monthlyProjection = totalValue * (1 + dailyGrowthRate / 100) ** 30;
   const weeklyGrowth = totalValue * (1 + dailyGrowthRate / 100) ** 7;
 
