@@ -39,10 +39,10 @@ export default function Login() {
     } catch (error) {
       console.error('Login error in component:', error);
       const errorMessage = error instanceof Error ? error.message : "Invalid credentials provided";
-
+      
       let title = "Login Failed";
       let description = "Please check your email and password and try again.";
-
+      
       if (errorMessage.toLowerCase().includes("email")) {
         description = "The email address you entered is not registered. Please check your email or create a new account.";
       } else if (errorMessage.toLowerCase().includes("password")) {
@@ -51,7 +51,7 @@ export default function Login() {
         title = "Connection Issue";
         description = "Unable to connect to our servers. Please check your internet connection and try again.";
       }
-
+      
       toast({
         title,
         description,
@@ -75,7 +75,7 @@ export default function Login() {
           <CardDescription className="text-lg text-muted-foreground">
             Access your BitVault Pro investment platform
           </CardDescription>
-
+          
           {/* Security indicators */}
           <div className="flex items-center justify-center gap-4 mt-4">
             <div className="flex items-center gap-2 bg-green-50 px-3 py-1 rounded-lg border border-green-200">
@@ -88,7 +88,7 @@ export default function Login() {
             </div>
           </div>
         </CardHeader>
-
+        
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
@@ -106,7 +106,7 @@ export default function Login() {
                 />
               </div>
             </div>
-
+            
             <div className="space-y-3">
               <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
               <div className="relative">
@@ -135,7 +135,7 @@ export default function Login() {
                 </Button>
               </div>
             </div>
-
+            
             <Button 
               type="submit" 
               className="w-full bitvault-btn h-12 font-semibold"
@@ -154,14 +154,14 @@ export default function Login() {
               )}
             </Button>
           </form>
-
+          
           <div className="text-center space-y-4">
             <div className="flex items-center gap-4">
               <div className="flex-1 h-px bg-border"></div>
               <span className="text-sm text-muted-foreground">New to BitVault Pro?</span>
               <div className="flex-1 h-px bg-border"></div>
             </div>
-
+            
             <Link href="/register">
               <Button 
                 variant="outline" 

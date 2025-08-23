@@ -1,72 +1,98 @@
 
-const toastMessages = {
-  auth: {
-    loginSuccess: "Welcome back! Login successful.",
-    loginFailed: "Login failed. Please check your email and password and try again.",
-    registerSuccess: "Account created successfully! Welcome to BitVault Pro.",
-    registerFailed: "Registration failed. Please check your information and try again.",
-    logoutSuccess: "You've been logged out successfully.",
-    sessionExpired: "Your session has expired. Please log in again.",
-    invalidCredentials: "Invalid email or password. Please try again.",
-    emailExists: "An account with this email already exists.",
-    weakPassword: "Password must be at least 8 characters long.",
-    networkError: "Network error. Please check your connection and try again."
-  },
-  
-  deposit: {
-    success: "Deposit submitted successfully! Your funds will be credited once confirmed.",
-    failed: "Deposit submission failed. Please try again or contact support.",
-    invalidAmount: "Please enter a valid deposit amount.",
-    missingTxid: "Transaction ID is required for faster processing.",
-    invalidTxid: "Please enter a valid Bitcoin transaction ID."
-  },
-  
-  withdrawal: {
-    success: "Withdrawal request submitted successfully! Processing typically takes 24-48 hours.",
-    failed: "Withdrawal request failed. Please try again or contact support.",
-    insufficientBalance: "Insufficient balance for this withdrawal amount.",
-    invalidAddress: "Please enter a valid Bitcoin address.",
-    minimumAmount: "Minimum withdrawal amount is 0.001 BTC."
-  },
-  
-  investment: {
-    success: "Investment created successfully! Your returns will begin accumulating.",
-    failed: "Investment creation failed. Please try again or contact support.",
-    insufficientFunds: "Insufficient balance for this investment amount.",
-    planNotFound: "Selected investment plan is not available.",
-    minimumAmount: "Investment amount below plan minimum."
-  },
-  
-  profile: {
-    updateSuccess: "Profile updated successfully!",
-    updateFailed: "Profile update failed. Please try again.",
-    passwordChangeSuccess: "Password changed successfully!",
-    passwordChangeFailed: "Password change failed. Please check your current password.",
-    avatarUpdateSuccess: "Profile picture updated successfully!",
-    avatarUpdateFailed: "Profile picture update failed. Please try again."
-  },
-  
-  admin: {
-    userDeleteSuccess: "User deleted successfully.",
-    userDeleteFailed: "Failed to delete user. Please try again.",
-    transactionUpdateSuccess: "Transaction updated successfully.",
-    transactionUpdateFailed: "Transaction update failed. Please try again.",
-    notificationSentSuccess: "Notification sent successfully!",
-    notificationSentFailed: "Failed to send notification. Please try again.",
-    backupSuccess: "Database backup created successfully!",
-    backupFailed: "Database backup failed. Please try again."
-  },
-  
-  general: {
-    success: "Operation completed successfully!",
-    error: "Something went wrong. Please try again.",
-    loading: "Processing your request...",
-    networkError: "Network connection error. Please check your internet connection.",
-    serverError: "Server error. Please try again later or contact support.",
-    validationError: "Please check your input and try again.",
-    unauthorized: "Access denied. Please log in to continue.",
-    forbidden: "You don't have permission to perform this action."
-  }
+import { toast } from "@/hooks/use-toast";
+
+export const showSuccessToast = (title: string, description: string) => {
+  toast({
+    title: `✅ ${title}`,
+    description,
+    variant: "default",
+  });
 };
 
-export default toastMessages;
+export const showErrorToast = (title: string, description: string, actionText?: string) => {
+  toast({
+    title: `⚠️ ${title}`,
+    description,
+    variant: "destructive",
+  });
+};
+
+export const showWarningToast = (title: string, description: string) => {
+  toast({
+    title: `⚡ ${title}`,
+    description,
+    variant: "warning" as any,
+  });
+};
+
+export const showInfoToast = (title: string, description: string) => {
+  toast({
+    title: `ℹ️ ${title}`,
+    description,
+    variant: "info" as any,
+  });
+};
+
+// Predefined professional messages for common scenarios
+export const ProfessionalMessages = {
+  auth: {
+    loginSuccess: {
+      title: "Welcome Back!",
+      description: "You've successfully signed in to your BitVault Pro account. Your investments await!"
+    },
+    loginFailed: {
+      title: "Login Failed",
+      description: "The email or password you entered is incorrect. Please verify your credentials and try again."
+    },
+    sessionExpired: {
+      title: "Session Expired",
+      description: "For your security, you've been logged out. Please sign in again to continue."
+    },
+    networkError: {
+      title: "Connection Issue",
+      description: "Unable to connect to our servers. Please check your internet connection and try again."
+    }
+  },
+  investment: {
+    success: {
+      title: "Investment Created!",
+      description: "Your Bitcoin investment has been successfully activated and is now generating returns."
+    },
+    insufficientFunds: {
+      title: "Insufficient Balance",
+      description: "You don't have enough Bitcoin to make this investment. Please deposit more funds to continue."
+    },
+    planUnavailable: {
+      title: "Plan Unavailable",
+      description: "This investment plan is currently not available. Please select a different plan or try again later."
+    }
+  },
+  transaction: {
+    success: {
+      title: "Transaction Successful",
+      description: "Your transaction has been processed successfully and will reflect in your account shortly."
+    },
+    pending: {
+      title: "Transaction Pending",
+      description: "Your transaction is being processed. This may take a few minutes to complete."
+    },
+    failed: {
+      title: "Transaction Failed",
+      description: "We couldn't process your transaction. Please check your details and try again."
+    }
+  },
+  validation: {
+    requiredField: {
+      title: "Required Information Missing",
+      description: "Please fill in all required fields marked with an asterisk (*) to continue."
+    },
+    invalidEmail: {
+      title: "Invalid Email Format",
+      description: "Please enter a valid email address in the correct format (e.g., user@example.com)."
+    },
+    weakPassword: {
+      title: "Password Too Weak",
+      description: "Your password must contain at least 8 characters with uppercase, lowercase, and numeric characters."
+    }
+  }
+};
