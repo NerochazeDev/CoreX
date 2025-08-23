@@ -160,33 +160,30 @@ export default function Deposit() {
       </header>
 
       <div className="p-4 pb-20 space-y-6">
-        {/* Step-by-Step Guide */}
-        <Card className="neo-card rounded-2xl p-6 mb-6 bg-gradient-to-br from-bitcoin/5 to-emerald/5">
-          <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-            <Info className="w-5 h-5 text-bitcoin" />
-            How to Deposit Bitcoin
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-bitcoin text-black text-sm font-bold flex items-center justify-center flex-shrink-0">1</div>
-              <div>
-                <p className="font-medium text-foreground">Choose Your Deposit Method</p>
-                <p className="text-sm text-muted-foreground">Select instant deposit for trading or vault for long-term storage</p>
-              </div>
+        {/* Deposit Instructions */}
+        <Card className="neo-card rounded-2xl p-6 mb-6 bg-gradient-to-br from-bitcoin/10 to-emerald/10 border-bitcoin/20">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-full bg-bitcoin/20 flex items-center justify-center">
+              <Wallet className="w-6 h-6 text-bitcoin" />
             </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-emerald text-black text-sm font-bold flex items-center justify-center flex-shrink-0">2</div>
-              <div>
-                <p className="font-medium text-foreground">Copy the Address or Scan QR Code</p>
-                <p className="text-sm text-muted-foreground">Use your Bitcoin wallet to send to our secure address</p>
-              </div>
+            <div>
+              <h3 className="text-xl font-bold text-foreground">Quick Deposit Guide</h3>
+              <p className="text-sm text-muted-foreground">Follow these 3 simple steps</p>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-sapphire text-white text-sm font-bold flex items-center justify-center flex-shrink-0">3</div>
-              <div>
-                <p className="font-medium text-foreground">Submit Your Deposit</p>
-                <p className="text-sm text-muted-foreground">Enter amount and transaction hash for faster confirmation</p>
-              </div>
+          </div>
+          
+          <div className="bg-white/50 dark:bg-slate-900/50 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-bitcoin text-black text-sm font-bold flex items-center justify-center flex-shrink-0">1</div>
+              <p className="text-sm font-medium text-foreground">Choose your deposit method below</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-bitcoin text-black text-sm font-bold flex items-center justify-center flex-shrink-0">2</div>
+              <p className="text-sm font-medium text-foreground">Send Bitcoin to the address shown</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-bitcoin text-black text-sm font-bold flex items-center justify-center flex-shrink-0">3</div>
+              <p className="text-sm font-medium text-foreground">Enter amount & transaction hash for faster confirmation</p>
             </div>
           </div>
         </Card>
@@ -225,114 +222,153 @@ export default function Deposit() {
           </div>
         </div>
 
-        {/* Deposit Address Card */}
-        <Card className="dark-card dark-border">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {selectedTab === 'instant' ? (
-                  <Zap className="w-5 h-5 text-bitcoin" />
-                ) : (
-                  <Shield className="w-5 h-5 text-bitcoin" />
-                )}
-                {selectedTab === 'instant' ? 'Instant Deposit' : 'Investment Vault'}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowQR(!showQR)}
-                className="h-8 px-2"
-              >
-                <QrCode className="w-4 h-4" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {/* QR Code Display */}
-              {showQR && currentAddress && (
-                <div className="border rounded-lg p-4 bg-white">
-                  <QRCodeDisplay value={currentAddress} size={180} />
-                  <p className="text-center text-xs text-muted-foreground mt-2">
-                    Scan with your Bitcoin wallet
-                  </p>
-                </div>
-              )}
-
-              {/* Address Input */}
-              <div>
-                <Label className="text-xs text-muted-foreground">
-                  {selectedTab === 'instant' ? 'Instant Deposit Address' : 'Vault Address'}
-                </Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Input
-                    value={currentAddress || "Loading..."}
-                    readOnly
-                    className="text-xs font-mono"
-                  />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => currentAddress && copyToClipboard(currentAddress, selectedTab === 'instant' ? 'Instant' : 'Vault')}
-                    disabled={!currentAddress}
-                  >
-                    {copied === (selectedTab === 'instant' ? 'Instant' : 'Vault') ? 
-                      <Check className="w-4 h-4 text-green-500" /> : 
-                      <Copy className="w-4 h-4" />
-                    }
-                  </Button>
-                </div>
-              </div>
-
-              {/* Method Description */}
-              <div className="bg-gradient-to-r from-muted/50 to-muted/30 p-4 rounded-xl border border-muted">
-                <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-xl ${selectedTab === 'instant' ? 'bg-bitcoin/20' : 'bg-emerald/20'} flex items-center justify-center flex-shrink-0`}>
+        {/* Prominent Deposit Address - Step 2 */}
+        <Card className="dark-card dark-border border-bitcoin/30 shadow-lg shadow-bitcoin/10">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-bitcoin text-black text-lg font-bold flex items-center justify-center">2</div>
+                <div>
+                  <div className="flex items-center gap-2">
                     {selectedTab === 'instant' ? (
                       <Zap className="w-5 h-5 text-bitcoin" />
                     ) : (
-                      <Shield className="w-5 h-5 text-emerald" />
+                      <Shield className="w-5 h-5 text-bitcoin" />
                     )}
+                    <span className="text-lg">Send Bitcoin to This Address</span>
                   </div>
-                  <div className="text-sm space-y-2">
-                    {selectedTab === 'instant' ? (
-                      <>
-                        <p className="font-bold text-foreground text-base">⚡ Instant Deposit</p>
-                        <div className="space-y-1 text-muted-foreground">
-                          <p>✅ Balance updates within 1 confirmation (~10 mins)</p>
-                          <p>✅ Perfect for active trading and investments</p>
-                          <p>✅ Start earning profits immediately</p>
-                          <p>✅ Minimum deposit: 0.001 BTC</p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <p className="font-bold text-foreground text-base">🔒 Secure Vault</p>
-                        <div className="space-y-1 text-muted-foreground">
-                          <p>✅ Multi-signature protection (2-of-3)</p>
-                          <p>✅ Cold storage security</p>
-                          <p>✅ Ideal for large amounts (1+ BTC)</p>
-                          <p>✅ Enhanced insurance coverage</p>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  <p className="text-sm text-muted-foreground font-normal">
+                    {selectedTab === 'instant' ? 'Instant Deposit Address' : 'Secure Vault Address'}
+                  </p>
+                </div>
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowQR(!showQR)}
+                className="flex items-center gap-2"
+              >
+                <QrCode className="w-4 h-4" />
+                {showQR ? 'Hide QR' : 'Show QR'}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Important Notice */}
+            <div className="bg-gradient-to-r from-bitcoin/10 to-emerald/10 border border-bitcoin/20 rounded-xl p-4">
+              <div className="flex items-center gap-3 mb-2">
+                <Info className="w-5 h-5 text-bitcoin flex-shrink-0" />
+                <p className="font-semibold text-foreground">Send Bitcoin to this address first</p>
+              </div>
+              <p className="text-sm text-muted-foreground ml-8">
+                After sending, enter the amount and transaction hash below for faster confirmation
+              </p>
+            </div>
+
+            {/* QR Code Display */}
+            {showQR && currentAddress && (
+              <div className="border-2 border-bitcoin/20 rounded-xl p-6 bg-white text-center">
+                <QRCodeDisplay value={currentAddress} size={200} />
+                <p className="text-sm text-muted-foreground mt-3 font-medium">
+                  Scan with your Bitcoin wallet app
+                </p>
+              </div>
+            )}
+
+            {/* Prominent Address Display */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Wallet className="w-4 h-4" />
+                Bitcoin Deposit Address
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={currentAddress || "Loading address..."}
+                  readOnly
+                  className="text-sm font-mono bg-muted/50 border-2 focus:border-bitcoin/50 text-center py-3"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => currentAddress && copyToClipboard(currentAddress, selectedTab === 'instant' ? 'Instant' : 'Vault')}
+                  disabled={!currentAddress}
+                  className="h-12 w-12 border-2 hover:border-bitcoin/50"
+                >
+                  {copied === (selectedTab === 'instant' ? 'Instant' : 'Vault') ? 
+                    <Check className="w-5 h-5 text-green-500" /> : 
+                    <Copy className="w-5 h-5" />
+                  }
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                ⚠️ Only send Bitcoin (BTC) to this address. Other cryptocurrencies will be lost.
+              </p>
+            </div>
+
+            {/* Method Benefits */}
+            <div className="bg-gradient-to-r from-muted/30 to-muted/20 p-4 rounded-xl border">
+              <div className="flex items-start gap-3">
+                <div className={`w-10 h-10 rounded-xl ${selectedTab === 'instant' ? 'bg-bitcoin/20' : 'bg-emerald/20'} flex items-center justify-center flex-shrink-0`}>
+                  {selectedTab === 'instant' ? (
+                    <Zap className="w-5 h-5 text-bitcoin" />
+                  ) : (
+                    <Shield className="w-5 h-5 text-emerald" />
+                  )}
+                </div>
+                <div className="text-sm space-y-2">
+                  {selectedTab === 'instant' ? (
+                    <>
+                      <p className="font-bold text-foreground">⚡ Instant Deposit Benefits</p>
+                      <div className="space-y-1 text-muted-foreground">
+                        <p>• Balance updates within 1 confirmation (~10 mins)</p>
+                        <p>• Perfect for active trading and investments</p>
+                        <p>• Start earning profits immediately</p>
+                        <p>• Minimum: 0.001 BTC</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-bold text-foreground">🔒 Secure Vault Benefits</p>
+                      <div className="space-y-1 text-muted-foreground">
+                        <p>• Multi-signature protection (2-of-3)</p>
+                        <p>• Cold storage security</p>
+                        <p>• Ideal for large amounts (1+ BTC)</p>
+                        <p>• Enhanced insurance coverage</p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Submit Deposit */}
+        {/* Submit Deposit - Step 3 */}
         <Card className="dark-card dark-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Send className="w-5 h-5 text-bitcoin" />
-              Submit Deposit
+            <CardTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald text-black text-lg font-bold flex items-center justify-center">3</div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <Send className="w-5 h-5 text-bitcoin" />
+                  <span>Confirm Your Deposit</span>
+                </div>
+                <p className="text-sm text-muted-foreground font-normal">Enter details after sending Bitcoin</p>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Important Notice */}
+              <div className="bg-gradient-to-r from-emerald/10 to-sapphire/10 border border-emerald/20 rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Clock className="w-5 h-5 text-emerald flex-shrink-0" />
+                  <p className="font-semibold text-foreground">Complete this after sending Bitcoin</p>
+                </div>
+                <p className="text-sm text-muted-foreground ml-8">
+                  Fill out the form below with your transaction details for faster processing and confirmation
+                </p>
+              </div>
               {/* Dual Currency Input */}
               <div>
                 <div className="flex items-center justify-between mb-2">
