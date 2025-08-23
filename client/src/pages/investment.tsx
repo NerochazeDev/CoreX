@@ -217,6 +217,11 @@ export default function Investment() {
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Amount</span>
                       <span className="text-foreground font-medium">{formatBitcoin(transaction.amount)} BTC</span>
+                      {currencyPrice && (
+                        <div className="text-xs text-muted-foreground">
+                          ≈ {formatCurrency(parseFloat(transaction.amount) * currencyPrice, currency)}
+                        </div>
+                      )}
                     </div>
                     {transaction.transactionHash && (
                       <div className="flex justify-between text-sm">
@@ -425,6 +430,11 @@ export default function Investment() {
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Amount</span>
                       <span className="text-foreground">{formatBitcoin(transaction.amount)} BTC</span>
+                      {currencyPrice && (
+                        <div className="text-xs text-muted-foreground">
+                          ≈ {formatCurrency(parseFloat(transaction.amount) * currencyPrice, currency)}
+                        </div>
+                      )}
                     </div>
                     {transaction.notes && (
                       <div className="bg-red-500/10 p-3 rounded border border-red-500/20">

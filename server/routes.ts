@@ -57,7 +57,7 @@ function getUserIdFromRequest(req: any): number | null {
   if (req.session?.userId) {
     return req.session.userId;
   }
-  
+
   // Check auth token header
   const authToken = req.headers.authorization?.replace('Bearer ', '');
   if (authToken) {
@@ -72,7 +72,7 @@ function getUserIdFromRequest(req: any): number | null {
       console.log('Invalid auth token format');
     }
   }
-  
+
   return null;
 }
 
@@ -403,19 +403,19 @@ const API_SOURCES = [
 
 async function fetchBitcoinPrice() {
   const now = Date.now();
-  
+
   // Reset API call counter every hour
   if (now - lastApiReset > API_RESET_INTERVAL) {
     apiCallCount = 0;
     lastApiReset = now;
   }
-  
+
   // Return cached data if still fresh
   if (priceCache && (now - lastPriceFetch) < CACHE_DURATION) {
     console.log('📦 [Backend] Using cached Bitcoin price data');
     return priceCache;
   }
-  
+
   // Check rate limit
   if (apiCallCount >= MAX_API_CALLS_PER_HOUR) {
     console.warn('⚠️ [Backend] API rate limit reached, using cached or fallback data');
@@ -429,17 +429,17 @@ async function fetchBitcoinPrice() {
       eur: { price: 98000 + Math.random() * 1800, change24h: (Math.random() - 0.5) * 4 }
     };
   }
-  
+
   console.log(`🚀 [Backend] Fetching Bitcoin price (${apiCallCount + 1}/${MAX_API_CALLS_PER_HOUR} calls)...`);
-  
+
   // Try each API source
   for (const source of API_SOURCES) {
     try {
       apiCallCount++;
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
+
       const response = await fetch(source.url, {
         method: 'GET',
         headers: {
@@ -448,9 +448,9 @@ async function fetchBitcoinPrice() {
         },
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         if (response.status === 429) {
           console.warn(`⚠️ [Backend] ${source.name} rate limited (429), trying next source...`);
@@ -458,40 +458,40 @@ async function fetchBitcoinPrice() {
         }
         throw new Error(`${source.name} API error: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       const result = source.parser(data);
-      
+
       // Cache successful result
       priceCache = result;
       lastPriceFetch = now;
-      
+
       console.log('✅ [Backend] Bitcoin price fetched successfully from', source.name, ':', {
         usd: `$${result.usd.price.toLocaleString()}`,
         gbp: `£${result.gbp.price.toLocaleString()}`,
         eur: `€${result.eur.price.toLocaleString()}`
       });
-      
+
       return result;
-      
+
     } catch (error: any) {
       console.warn(`⚠️ [Backend] ${source.name} API failed:`, error.message);
       continue;
     }
   }
-  
+
   // All APIs failed, use cached data if available
   if (priceCache) {
     console.warn('⚠️ [Backend] All APIs failed, using cached data');
     return priceCache;
   }
-  
+
   // Generate realistic fallback data as last resort
   console.warn('⚠️ [Backend] All APIs failed, using simulated market data');
   const basePrice = 114000;
   const volatility = Math.random() * 0.05; // 5% volatility
   const trend = Math.random() - 0.5; // Random trend
-  
+
   const fallbackData = {
     usd: { 
       price: basePrice * (1 + (trend * volatility)), 
@@ -506,11 +506,11 @@ async function fetchBitcoinPrice() {
       change24h: trend * 3 
     }
   };
-  
+
   // Cache fallback data briefly
   priceCache = fallbackData;
   lastPriceFetch = now;
-  
+
   return fallbackData;
 }
 
@@ -750,7 +750,7 @@ function startAutomaticUpdates(): void {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // PostgreSQL storage doesn't need initialization
-  
+
   // Database health check endpoint
   app.get("/api/health", async (req, res) => {
     try {
@@ -833,8 +833,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Transaction routes
   app.post("/api/deposit", async (req, res) => {
     try {
-
-      
       const userId = getUserIdFromRequest(req);
       if (!userId) {
 
@@ -870,11 +868,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "pending"
       });
 
-      // Create notification for user
+      // Get current Bitcoin price for USD equivalent
+      let bitcoinPrice = 67000; // Default fallback
+      try {
+        const priceResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
+          bitcoinPrice = priceData.bitcoin.usd;
+        }
+      } catch (error) {
+        console.log('Could not fetch Bitcoin price for notification, using fallback');
+      }
+
+      const usdEquivalent = (parseFloat(amount) * bitcoinPrice).toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      // Create notification for successful deposit
       await storage.createNotification({
         userId: userId,
         title: "✅ Deposit Submitted Successfully",
-        message: `Your deposit of ${amount} BTC has been submitted and is being processed.
+        message: `Your deposit of ${amount} BTC (≈ ${usdEquivalent}) has been submitted and is being processed.
 
 Transaction Details:
 • Amount: ${amount} BTC
@@ -897,7 +914,7 @@ You will receive a notification once your deposit is confirmed and added to your
       });
     } catch (error: any) {
       console.error('Deposit error:', error);
-      
+
       // Handle validation errors specifically
       if (error.name === 'ZodError') {
         return res.status(400).json({ 
@@ -905,7 +922,7 @@ You will receive a notification once your deposit is confirmed and added to your
           details: error.issues
         });
       }
-      
+
       res.status(500).json({ 
         error: "Failed to submit deposit. Please try again.",
         details: error.message 
@@ -960,20 +977,32 @@ You will receive a notification once your deposit is confirmed and added to your
         amount: amount
       });
 
-      // Create notification for successful investment
+      // Get current Bitcoin price for USD equivalent
+      let bitcoinPrice = 67000; // Default fallback
+      try {
+        const priceResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
+          bitcoinPrice = priceData.bitcoin.usd;
+        }
+      } catch (error) {
+        console.log('Could not fetch Bitcoin price for notification, using fallback');
+      }
+
+      const usdEquivalent = (parseFloat(amount) * bitcoinPrice).toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      // Create notification
       await storage.createNotification({
         userId: userId,
-        title: "Investment Activated",
-        message: `🎉 Your investment of ${amount} BTC in ${plan.name} has been activated successfully!
-
-✅ Investment Details:
-• Plan: ${plan.name}
-• Amount: ${amount} BTC
-• Daily Return: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}%
-• Duration: ${plan.durationDays} days
-
-Your investment will start generating profits automatically. You can track your earnings in real-time on the Investment page.`,
-        type: "success"
+        title: 'Investment Submitted',
+        message: `Your investment of ${amount} BTC (≈ ${usdEquivalent}) in ${plan.name} has been submitted for review. You will be notified once it's approved.`,
+        type: 'info',
+        isRead: false,
       });
 
       res.json({ 
@@ -1496,7 +1525,7 @@ Your investment journey starts here!`,
 
       // Set session userId for authentication
       req.session.userId = user.id;
-      
+
       // Force session save to ensure it's written to store
       req.session.save((err) => {
         if (err) {
@@ -1508,7 +1537,7 @@ Your investment journey starts here!`,
 
       // Generate a simple auth token for cross-origin requests
       const authToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
-      
+
       // Save session explicitly
       req.session.save((err) => {
         if (err) {
@@ -1564,7 +1593,7 @@ Your investment journey starts here!`,
     try {
       let userId = req.session?.userId;
 
-      
+
       // If no session, check for auth token header
       if (!userId) {
         const authToken = req.headers.authorization?.replace('Bearer ', '');
@@ -1579,7 +1608,7 @@ Your investment journey starts here!`,
           }
         }
       }
-      
+
       if (!userId) {
 
         return res.status(401).json({ message: "Authentication required" });
@@ -1608,7 +1637,7 @@ Your investment journey starts here!`,
       if (!userId) {
         return res.status(401).json({ message: "Authentication required" });
       }
-      
+
       const profileData = updateUserProfileSchema.parse(req.body);
       const updatedUser = await storage.updateUserProfile(userId, profileData);
 
@@ -1660,18 +1689,18 @@ Your investment journey starts here!`,
   app.get("/api/bitcoin/price", async (req, res) => {
     try {
       const priceData = await fetchBitcoinPrice();
-      
+
       // Add cache headers to reduce frontend requests
       res.set({
         'Cache-Control': 'public, max-age=30', // Cache for 30 seconds
         'X-RateLimit-Remaining': (MAX_API_CALLS_PER_HOUR - apiCallCount).toString(),
         'X-Cache-Status': priceCache && (Date.now() - lastPriceFetch) < CACHE_DURATION ? 'HIT' : 'MISS'
       });
-      
+
       res.json(priceData);
     } catch (error: any) {
       console.error('Bitcoin price endpoint error:', error);
-      
+
       // Try to return cached data even on error
       if (priceCache) {
         res.set('X-Cache-Status', 'STALE');
@@ -1734,15 +1763,15 @@ Your investment journey starts here!`,
   app.get("/api/investments/user/:userId", async (req, res) => {
     try {
       const requestedUserId = parseInt(req.params.userId);
-      
+
       // Get authenticated user ID
       const authenticatedUserId = getUserIdFromRequest(req);
-      
+
       // Allow access if user is requesting their own investments or if it's admin access
       if (!authenticatedUserId) {
         return res.status(401).json({ message: "Authentication required" });
       }
-      
+
       // Users can only access their own investments unless they're admin
       if (authenticatedUserId !== requestedUserId) {
         const user = await storage.getUser(authenticatedUserId);
@@ -1750,7 +1779,7 @@ Your investment journey starts here!`,
           return res.status(403).json({ message: "Access denied" });
         }
       }
-      
+
       const investments = await storage.getUserInvestments(requestedUserId);
       res.json(investments);
     } catch (error) {
@@ -1782,7 +1811,7 @@ Your investment journey starts here!`,
       // Get both active and all investments for better visibility
       const allInvestments = await storage.getAllInvestments();
       console.log(`Found ${allInvestments.length} total investments`);
-      
+
       // Get user information for each investment and format dates properly
       const investmentsWithUsers = await Promise.all(
         allInvestments.map(async (investment) => {
@@ -1847,7 +1876,7 @@ Your investment journey starts here!`,
       // Create detailed notification for user
       const statusText = investment.isActive ? 'resumed' : 'paused';
       const notificationTitle = investment.isActive ? '✅ Investment Resumed' : '⏸️ Investment Paused';
-      
+
       let notificationMessage = `🔔 Investment Status Update
 
 Your ${planName} investment (#${investment.id}) has been ${statusText} by our admin team.
@@ -1966,7 +1995,7 @@ Contact support if you have any questions.`;
 
       // Get authenticated user ID using the same helper function
       const authenticatedUserId = getUserIdFromRequest(req);
-      
+
       if (!isBackdoorAccess && !authenticatedUserId) {
         return res.status(401).json({ error: "Authentication required" });
       }
@@ -2434,7 +2463,7 @@ const { planId, dailyReturnRate } = z.object({
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const filename = `bitvault-postgres-backup-${timestamp}.json`;
-      
+
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.json(exportData);
@@ -2461,7 +2490,7 @@ const { planId, dailyReturnRate } = z.object({
       }
 
       const { databaseData } = req.body;
-      
+
       if (!databaseData) {
         return res.status(400).json({ error: "Database data is required" });
       }
@@ -2469,7 +2498,7 @@ const { planId, dailyReturnRate } = z.object({
       // Validate and import data to PostgreSQL
       try {
         const importData = typeof databaseData === 'string' ? JSON.parse(databaseData) : databaseData;
-        
+
         // Basic validation of required fields
         const requiredFields = ['users', 'investmentPlans', 'investments', 'notifications', 'adminConfig', 'transactions'];
         for (const field of requiredFields) {

@@ -22,12 +22,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
+import { useCurrency } from "@/hooks/use-currency";
+import { formatCurrency } from "@/lib/utils";
 
 export default function Notifications() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currency } = useCurrency();
+  const { data: bitcoinPrice } = useBitcoinPrice();
   const [filter, setFilter] = useState<'all' | 'unread' | 'success' | 'error' | 'info'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -359,6 +364,23 @@ export default function Notifications() {
                       <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
                         {notification.message}
                       </p>
+                      {/* Show USD equivalent for Bitcoin amount notifications */}
+                      {(notification.title.includes("Bitcoin") || notification.title.includes("Investment") || notification.title.includes("Deposit") || notification.title.includes("Withdrawal")) && bitcoinPrice && (() => {
+                        const amountMatch = notification.message.match(/(\d+\.?\d*) BTC/);
+                        if (amountMatch) {
+                          const amount = parseFloat(amountMatch[1]);
+                          const currencyPrice = currency === 'USD' ? bitcoinPrice.usd.price : 
+                                              currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                              bitcoinPrice.eur.price;
+                          const fiatValue = amount * currencyPrice;
+                          return (
+                            <p className="text-xs text-bitcoin mt-1">
+                              ≈ {formatCurrency(fiatValue, currency)}
+                            </p>
+                          );
+                        }
+                        return null;
+                      })()}
                       <div className="flex items-center justify-between mt-2">
                         <Badge 
                           variant="outline" 

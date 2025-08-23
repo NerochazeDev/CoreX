@@ -203,6 +203,19 @@ export default function History() {
                           {transaction.type === 'withdrawal' ? '-' : '+'}
                           {formatBitcoin(transaction.amount)} BTC
                         </p>
+                        {bitcoinPrice && (
+                          <p className="text-xs text-muted-foreground">
+                            ≈ {transaction.type === 'withdrawal' ? '-' : '+'}
+                            {formatCurrency(
+                              parseFloat(transaction.amount) * (
+                                currency === 'USD' ? bitcoinPrice.usd.price : 
+                                currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                bitcoinPrice.eur.price
+                              ), 
+                              currency
+                            )}
+                          </p>
+                        )}
                         <p className={`text-sm capitalize ${getStatusColor(transaction.status)}`}>
                           {transaction.status}
                         </p>
@@ -290,6 +303,18 @@ export default function History() {
                         <p className="font-semibold dark-text">
                           {formatBitcoin(currentValue.toString())} BTC
                         </p>
+                        {bitcoinPrice && (
+                          <p className="text-xs text-muted-foreground">
+                            ≈ {formatCurrency(
+                              currentValue * (
+                                currency === 'USD' ? bitcoinPrice.usd.price : 
+                                currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                bitcoinPrice.eur.price
+                              ), 
+                              currency
+                            )}
+                          </p>
+                        )}
                         <p className={`text-sm ${investment.isActive ? 'text-green-500' : 'text-blue-500'}`}>
                           {investment.isActive ? 'Active' : 'Completed'}
                         </p>
@@ -379,7 +404,7 @@ export default function History() {
                             </div>
                             {currencyPrice && (
                               <div className="text-sm text-muted-foreground">
-                                {isReceived ? "+" : "-"}{formatCurrency(fiatValue, currency)}
+                                ≈ {isReceived ? "+" : "-"}{formatCurrency(fiatValue, currency)}
                               </div>
                             )}
                           </div>
