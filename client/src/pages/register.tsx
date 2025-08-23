@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -77,7 +76,7 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Password Mismatch",
@@ -129,16 +128,16 @@ export default function Register() {
       });
       toast({
         title: "🎉 Welcome to BitVault Pro!",
-        description: "Your account has been created successfully and your secure Bitcoin wallet is ready. You can now start investing!",
+        description: "Your account has been created successfully and your secure Bitcoin wallet is ready. You can start investing!",
         variant: "default",
       });
       setLocation('/');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Registration failed";
-      
+
       let title = "Registration Failed";
       let description = "We couldn't create your account at this time. Please try again or contact support if the issue persists.";
-      
+
       if (errorMessage.toLowerCase().includes("email")) {
         title = "Email Already Registered";
         description = "This email address is already associated with a BitVault Pro account. Please use a different email or try logging in instead.";
@@ -149,7 +148,7 @@ export default function Register() {
         title = "Invalid Information";
         description = "Please check that all required fields are filled out correctly and try again.";
       }
-      
+
       toast({
         title,
         description,
@@ -406,7 +405,7 @@ export default function Register() {
               <span className="text-sm text-muted-foreground">Already have an account?</span>
               <div className="flex-1 h-px bg-border"></div>
             </div>
-            
+
             <Link href="/login">
               <Button 
                 variant="outline" 

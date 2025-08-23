@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { User } from '@shared/schema';
+import toastMessages from "@/lib/toast-messages";
 
 interface AuthContextType {
   user: User | null;
@@ -82,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const response = await fetch('/api/login', {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include', // Ensure cookies are sent with requests
