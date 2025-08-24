@@ -215,12 +215,18 @@ export default function Management() {
               <Button
                 onClick={async () => {
                   try {
+                    const headers: Record<string, string> = {
+                      'Content-Type': 'application/json'
+                    };
+                    
+                    if (isBackdoorAccess) {
+                      headers['x-backdoor-access'] = 'true';
+                    }
+
                     const response = await fetch('/api/admin/test-telegram', {
                       method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'x-backdoor-access': 'true'
-                      }
+                      headers,
+                      credentials: 'include'
                     });
                     
                     if (response.ok) {
