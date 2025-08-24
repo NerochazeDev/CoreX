@@ -140,7 +140,7 @@ export async function sendDailyStatsToChannel(): Promise<void> {
   }
 }
 
-export async function sendBatchedUpdatesToChannel(): Promise<void> {
+export async function sendBatchedUpdatesToChannel(imageUrl?: string): Promise<void> {
   console.log('🔍 Telegram Debug - Bot configured:', !!bot, 'Channel ID:', channelId);
   
   if (!bot || !channelId) {
@@ -152,6 +152,22 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
 
   try {
     console.log('📱 Attempting to send Telegram update...');
+    
+    // If an image is provided, send it first
+    if (imageUrl && imageUrl.startsWith('http')) {
+      try {
+        await bot.sendPhoto(channelId, imageUrl, {
+          caption: '📊 BitVault Pro Investment Update - Latest Performance Report'
+        });
+        console.log('📸 Image sent to Telegram channel successfully');
+        
+        // Wait a moment before sending text update
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (imageError) {
+        console.error('❌ Failed to send image to Telegram:', imageError);
+        // Continue with text update even if image fails
+      }
+    }
     
     // Always send for testing - remove the 30% chance temporarily
     // if (Math.random() > 0.3) {
