@@ -39,7 +39,10 @@ export class DatabaseHealthMonitor {
         this.isHealthy = true;
         this.lastHealthCheck = new Date();
         
-        console.log('💓 Database health check passed');
+        // Reduced health check logging - only log failures or every 10th success
+        if (this.failureCount > 0 || Math.random() < 0.1) {
+          console.log('💓 Database health check passed');
+        }
       } else {
         this.handleHealthCheckFailure('Connection test failed');
       }

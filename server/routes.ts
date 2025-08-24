@@ -432,7 +432,10 @@ async function fetchBitcoinPrice() {
     };
   }
 
-  console.log(`🚀 [Backend] Fetching Bitcoin price (${apiCallCount + 1}/${MAX_API_CALLS_PER_HOUR} calls)...`);
+  // Reduced price fetch logging
+  if (apiCallCount % 5 === 0) { // Only log every 5th call
+    console.log(`🚀 [Backend] Fetching Bitcoin price (${apiCallCount + 1}/${MAX_API_CALLS_PER_HOUR} calls)...`);
+  }
 
   // Try each API source
   for (const source of API_SOURCES) {
@@ -468,11 +471,10 @@ async function fetchBitcoinPrice() {
       priceCache = result;
       lastPriceFetch = now;
 
-      console.log('✅ [Backend] Bitcoin price fetched successfully from', source.name, ':', {
-        usd: `$${result.usd.price.toLocaleString()}`,
-        gbp: `£${result.gbp.price.toLocaleString()}`,
-        eur: `€${result.eur.price.toLocaleString()}`
-      });
+      // Reduced success logging
+      if (apiCallCount % 10 === 0) { // Only log every 10th success
+        console.log('✅ [Backend] Bitcoin price fetched from', source.name);
+      }
 
       return result;
 
@@ -519,14 +521,20 @@ async function fetchBitcoinPrice() {
 // Advanced investment growth system
 async function processAutomaticUpdates(): Promise<void> {
   try {
-    console.log(`Processing automatic investment updates...`);
+    // Reduced processing logging
+    if (Math.random() < 0.2) { // Only log 20% of processing cycles
+      console.log(`Processing automatic investment updates...`);
+    }
 
     // Send daily motivational notifications (randomly to avoid spam)
     await sendDailyMotivationalNotifications();
 
     // Process individual investments first
     const activeInvestments = await storage.getActiveInvestments();
-    console.log(`Found ${activeInvestments.length} active investments to process`);
+    // Only log investment count occasionally
+    if (activeInvestments.length === 0 || Math.random() < 0.1) {
+      console.log(`Found ${activeInvestments.length} active investments to process`);
+    }
 
     for (const investment of activeInvestments) {
       const plan = await storage.getInvestmentPlan(investment.planId);
@@ -618,7 +626,10 @@ Your investment strategy is working! 🎉`,
             });
           }
 
-          console.log(`Investment #${investment.id} earned +${profitIncrease.toFixed(8)} BTC for user ${investment.userId} (Total profit: ${newProfit.toFixed(8)} BTC)`);
+          // Reduced logging for performance
+          if (Math.random() < 0.1) { // Only log 10% of updates
+            console.log(`Investment #${investment.id} earned +${profitIncrease.toFixed(8)} BTC for user ${investment.userId}`);
+          }
         }
       }
     }
@@ -682,7 +693,10 @@ Keep growing with BitVault VIP! 🚀`,
             });
           }
 
-          console.log(`User ${user.id} earned +${increase.toFixed(8)} BTC from plan ${plan.name}`);
+          // Reduced logging for performance
+          if (Math.random() < 0.05) { // Only log 5% of plan updates
+            console.log(`User ${user.id} earned +${increase.toFixed(8)} BTC from plan ${plan.name}`);
+          }
         }
       }
     }

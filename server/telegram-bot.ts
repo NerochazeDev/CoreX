@@ -134,7 +134,7 @@ export async function sendDailyStatsToChannel(): Promise<void> {
       disable_web_page_preview: true 
     });
     
-    console.log('📱 Daily stats sent to Telegram channel');
+    console.log('📱 Daily stats sent to Telegram');
   } catch (error) {
     console.error('❌ Failed to send daily stats:', error);
   }
@@ -323,7 +323,7 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
       }
     }
 
-    console.log(`✅ Sent professional investment update to Telegram channel: ${channelId}`);
+    console.log(`✅ Sent investment update to Telegram`);
 
     // Clear the batches
     batchedUpdates = [];
