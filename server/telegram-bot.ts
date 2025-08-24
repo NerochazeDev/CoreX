@@ -11,10 +11,12 @@ let isInitializing = false;
 async function cleanupBot(): Promise<void> {
   if (bot) {
     try {
-      await bot.stopPolling();
+      await bot.stopPolling({ cancel: true, reason: 'Reinitializing bot' });
       console.log('🧹 Previous bot instance cleaned up');
-    } catch (error) {
-      // Ignore cleanup errors
+      // Wait a bit longer to ensure cleanup is complete
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } catch (error: any) {
+      console.log('⚠️ Cleanup error (expected):', error.message);
     }
     bot = null;
   }
@@ -44,11 +46,11 @@ async function initializeTelegramBot(): Promise<void> {
     await bot.startPolling({
       restart: false, // Don't auto-restart to avoid conflicts
       polling: {
-        interval: 2000, // Slower polling to reduce conflicts
+        interval: 3000, // Even slower polling to reduce conflicts
         autoStart: false,
         params: {
-          timeout: 20,
-          allowed_updates: ['message', 'callback_query', 'chat_member']
+          timeout: 30,
+          allowed_updates: ['message', 'callback_query', 'new_chat_members', 'chat_member']
         }
       }
     });
@@ -57,18 +59,26 @@ async function initializeTelegramBot(): Promise<void> {
     isInitializing = false;
     
     // Handle polling errors gracefully
-    bot.on('polling_error', (error) => {
+    bot.on('polling_error', (error: any) => {
       console.log('🔄 Telegram polling error:', error.code);
       
-      // If it's a conflict error, reinitialize the bot completely
+      // If it's a conflict error, wait longer before reinitializing
       if (error.code === 'ETELEGRAM' && error.message.includes('409 Conflict')) {
-        console.log('🔄 Conflict detected, reinitializing bot in 10 seconds...');
+        console.log('🔄 Conflict detected, stopping bot and waiting 30 seconds before reinitializing...');
+        
+        // Stop current bot instance immediately
+        if (bot) {
+          bot.stopPolling({ cancel: true, reason: 'Conflict resolution' }).catch(() => {});
+          bot = null;
+        }
+        
         isInitializing = false; // Reset flag
         setTimeout(() => {
+          console.log('🔄 Attempting bot reinitialization after conflict...');
           initializeTelegramBot().catch(err => {
-            console.log('❌ Failed to reinitialize bot:', err.message);
+            console.log('❌ Failed to reinitialize bot after conflict:', err.message);
           });
-        }, 10000);
+        }, 30000); // Wait 30 seconds instead of 10
       }
     });
     
