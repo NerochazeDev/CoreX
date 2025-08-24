@@ -3208,10 +3208,56 @@ const { planId, dailyReturnRate } = z.object({
     } catch (error: any) {
       console.error('❌ Test update failed:', error);
       res.status(500).json({ 
-        success: false, 
-        message: 'Failed to send test update', 
+        success: false,
         error: error.message 
       });
+    }
+  });
+
+  // Test image files availability
+  app.get("/api/test-images", async (req, res) => {
+    const fs = require('fs').promises;
+    const path = require('path');
+
+    try {
+      const updateBannerPath = './attached_assets/generated_images/BitVault_Pro_investment_update_banner_faf1b1f8.png';
+      const welcomeBannerPath = './attached_assets/generated_images/Professional_BitVault_Pro_welcome_banner_96ebe0cb.png';
+
+      const results = {
+        updateBanner: {
+          path: updateBannerPath,
+          exists: false,
+          size: 0,
+          error: null
+        },
+        welcomeBanner: {
+          path: welcomeBannerPath, 
+          exists: false,
+          size: 0,
+          error: null
+        }
+      };
+
+      try {
+        const updateStats = await fs.stat(updateBannerPath);
+        results.updateBanner.exists = true;
+        results.updateBanner.size = updateStats.size;
+      } catch (error: any) {
+        results.updateBanner.error = error.message;
+      }
+
+      try {
+        const welcomeStats = await fs.stat(welcomeBannerPath);
+        results.welcomeBanner.exists = true;
+        results.welcomeBanner.size = welcomeStats.size;
+      } catch (error: any) {
+        results.welcomeBanner.error = error.message;
+      }
+
+      res.json(results);
+    } catch (error: any) {
+      console.error('❌ Image test failed:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 

@@ -229,12 +229,34 @@ export async function sendDailyStatsToChannel(): Promise<void> {
   }
 
   try {
-    // First send the cool banner
-    const bannerPath = 'attached_assets/generated_images/BitVault_Pro_investment_update_banner_faf1b1f8.png';
+    // Try to send banner with fallback options
+    const bannerPaths = [
+      './attached_assets/generated_images/BitVault_Pro_investment_update_banner_faf1b1f8.png',
+      './attached_assets/generated_images/Advanced_BitVault_Pro_themed_banner_5a7ca930.png',
+      './attached_assets/generated_images/Perfect_BitVault_Pro_themed_banner_2214a6e2.png',
+      './attached_assets/generated_images/Clean_BitVault_Pro_banner_no_hashtags_a51cc271.png'
+    ];
     
-    await bot.sendPhoto(channelId, bannerPath, {
-      caption: `📊 **BITVAULT PRO INVESTMENT UPDATE** 📊`
-    });
+    let bannerSent = false;
+    for (const bannerPath of bannerPaths) {
+      try {
+        console.log(`📷 Attempting to send banner: ${bannerPath}`);
+        await bot.sendPhoto(channelId, bannerPath, {
+          caption: `📊 **BITVAULT PRO INVESTMENT UPDATE** 📊`,
+          parse_mode: 'Markdown'
+        });
+        console.log('✅ Investment update banner sent successfully');
+        bannerSent = true;
+        break;
+      } catch (bannerError: any) {
+        console.log(`⚠️ Failed to send banner ${bannerPath}:`, bannerError.message);
+        continue;
+      }
+    }
+    
+    if (!bannerSent) {
+      console.log('📝 All banner attempts failed, continuing with text-only update...');
+    }
     
     // Small delay then send the update message
     await new Promise(resolve => setTimeout(resolve, 1000));
