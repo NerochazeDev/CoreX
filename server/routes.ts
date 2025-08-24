@@ -3030,21 +3030,7 @@ const { planId, dailyReturnRate } = z.object({
 
       console.log('🔍 Testing Telegram bot with Channel ID:', channelId);
       
-      // Send a simple test message first
-      try {
-        await bot.sendMessage(channelId, '🧪 **BitVault Pro Test Message**\n\nThis is a test message from your admin panel.\n\nIf you see this, your Telegram bot is working correctly!', { 
-          parse_mode: 'Markdown',
-          disable_web_page_preview: true 
-        });
-        console.log('✅ Simple test message sent successfully');
-      } catch (testError: any) {
-        console.error('❌ Simple test message failed:', testError);
-        return res.status(500).json({ 
-          error: `Test message failed: ${testError.message}` 
-        });
-      }
-      
-      // Now send the full update
+      // Send the professional investment update
       await sendBatchedUpdatesToChannel();
       res.json({ 
         message: "Telegram test completed successfully!",
