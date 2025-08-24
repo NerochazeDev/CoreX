@@ -129,13 +129,24 @@ async function initializeTelegramBot(): Promise<void> {
 }
 
 // Initialize the bot if credentials are available
-if (botToken && channelId) {
-  initializeTelegramBot().catch(error => {
-    console.error('❌ Bot initialization failed:', error.message);
-  });
-} else {
-  console.warn('⚠️ Telegram bot credentials not found. Telegram notifications will be disabled.');
-}
+// TEMPORARILY DISABLED - Competing deployment detected
+console.log('🚨 MAIN TELEGRAM BOT TEMPORARILY DISABLED');
+console.log('🔍 Reason: Another deployment is using the same bot tokens'); 
+console.log('📝 To fix this:');
+console.log('   1. Check Railway.app dashboard for active deployments');
+console.log('   2. Check Render.com dashboard for running services');
+console.log('   3. Check any other cloud platforms you have deployed to');
+console.log('   4. Stop competing deployments that use the same bot tokens');
+console.log('   5. Run: curl -X POST http://localhost:5000/api/enable-bots');
+
+// Uncomment this to re-enable after fixing conflicts:
+// if (botToken && channelId) {
+//   initializeTelegramBot().catch(error => {
+//     console.error('❌ Bot initialization failed:', error.message);
+//   });
+// } else {
+//   console.warn('⚠️ Telegram bot credentials not found. Telegram notifications will be disabled.');
+// }
 
 // Batch system for investment updates
 interface BatchedInvestmentUpdate {
