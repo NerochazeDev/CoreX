@@ -72,16 +72,58 @@ export function addNewInvestmentToBatch(investment: any): void {
 export async function sendDailyStatsToChannel(): Promise<void> {
   console.log('📊 Sending daily stats to Telegram...');
   
-  const message = `🏆 BITVAULT PRO • Daily Update
+  try {
+    // Import storage here to avoid circular dependencies
+    const { storage } = await import('./storage');
+    
+    // Calculate platform statistics
+    const allUsers = await storage.getAllUsers();
+    const allInvestments = await storage.getAllInvestments();
+    
+    // Calculate total balance across all users
+    const totalBalance = allUsers.reduce((sum, user) => {
+      return sum + parseFloat(user.balance);
+    }, 0);
+    
+    // Calculate total profit from all investments
+    const totalProfit = allInvestments.reduce((sum, investment) => {
+      return sum + parseFloat(investment.currentProfit || '0');
+    }, 0);
+    
+    // Calculate active investments
+    const activeInvestments = allInvestments.filter(inv => inv.isActive);
+    
+    // Get current Bitcoin price for USD conversions
+    let bitcoinPrice = 67000; // Default fallback
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+      if (response.ok) {
+        const data = await response.json();
+        bitcoinPrice = data.bitcoin.usd;
+      }
+    } catch (error) {
+      console.log('Using fallback Bitcoin price for stats');
+    }
+    
+    const totalBalanceUSD = totalBalance * bitcoinPrice;
+    const totalProfitUSD = totalProfit * bitcoinPrice;
+    
+    const message = `🏆 BITVAULT PRO • Daily Update
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📅 ${new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    month: 'long', 
-    day: 'numeric',
-    year: 'numeric'
-  })}
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric',
+      year: 'numeric'
+    })}
+
+💰 *Platform Statistics*
+👥 Total Users: *${allUsers.length.toLocaleString()}*
+💎 Active Investments: *${activeInvestments.length.toLocaleString()}*
+💰 Total Balance: *${totalBalance.toFixed(6)} BTC* ($${totalBalanceUSD.toLocaleString()})
+🚀 Total Profit Generated: *${totalProfit.toFixed(6)} BTC* ($${totalProfitUSD.toLocaleString()})
 
 🚀 *Platform Status*
 ⚡ Automated returns: *ACTIVE*
@@ -101,11 +143,29 @@ export async function sendDailyStatsToChannel(): Promise<void> {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 💼 INSTITUTIONAL-GRADE BITCOIN INVESTING`;
 
-  const success = await sendToChannel(message);
-  if (success) {
-    console.log('✅ Daily stats sent to Telegram');
-  } else {
-    console.log('❌ Failed to send daily stats');
+    const success = await sendToChannel(message);
+    if (success) {
+      console.log('✅ Daily stats sent to Telegram');
+    } else {
+      console.log('❌ Failed to send daily stats');
+    }
+  } catch (error: any) {
+    console.error('❌ Failed to calculate platform stats:', error.message);
+    // Send basic message if stats calculation fails
+    const fallbackMessage = `🏆 BITVAULT PRO • Daily Update
+
+📅 ${new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric',
+      year: 'numeric'
+    })}
+
+🚀 Platform operating at full capacity
+💎 All investment plans active
+✨ Generating consistent returns for investors`;
+    
+    await sendToChannel(fallbackMessage);
   }
 }
 
@@ -121,9 +181,50 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
     if (bannerSent) {
       console.log('✅ Investment banner sent');
       
-      // Wait a moment then send update message
+      // Wait a moment then send update message with platform stats
       setTimeout(async () => {
-        const message = `🚀 *BITVAULT PRO - LIVE UPDATE*
+        try {
+          // Import storage here to avoid circular dependencies
+          const { storage } = await import('./storage');
+          
+          // Calculate platform statistics
+          const allUsers = await storage.getAllUsers();
+          const allInvestments = await storage.getAllInvestments();
+          
+          // Calculate total balance and profit
+          const totalBalance = allUsers.reduce((sum, user) => {
+            return sum + parseFloat(user.balance);
+          }, 0);
+          
+          const totalProfit = allInvestments.reduce((sum, investment) => {
+            return sum + parseFloat(investment.currentProfit || '0');
+          }, 0);
+          
+          const activeInvestments = allInvestments.filter(inv => inv.isActive);
+          
+          // Get Bitcoin price
+          let bitcoinPrice = 67000;
+          try {
+            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+            if (response.ok) {
+              const data = await response.json();
+              bitcoinPrice = data.bitcoin.usd;
+            }
+          } catch (error) {
+            console.log('Using fallback price for update');
+          }
+          
+          const totalBalanceUSD = totalBalance * bitcoinPrice;
+          const totalProfitUSD = totalProfit * bitcoinPrice;
+          
+          const message = `🚀 *BITVAULT PRO - LIVE UPDATE*
+
+💰 *Real-Time Platform Stats*
+👥 Total Users: *${allUsers.length.toLocaleString()}*
+📊 Active Investments: *${activeInvestments.length.toLocaleString()}*
+💎 Platform Balance: *${totalBalance.toFixed(6)} BTC* ($${totalBalanceUSD.toLocaleString()})
+🚀 Total Profit: *${totalProfit.toFixed(6)} BTC* ($${totalProfitUSD.toLocaleString()})
+₿ Bitcoin Price: *$${bitcoinPrice.toLocaleString()}*
 
 📊 *Platform Performance*
 • Active investors earning consistent returns
@@ -140,27 +241,66 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
 🏆 *Join the financial revolution with BitVault Pro*
 
 ⏰ Update: ${new Date().toLocaleString('en-US', { 
-          timeZone: 'UTC',
-          dateStyle: 'full', 
-          timeStyle: 'short'
-        })} UTC`;
+            timeZone: 'UTC',
+            dateStyle: 'full', 
+            timeStyle: 'short'
+          })} UTC`;
 
-        const success = await sendToChannel(message);
-        if (success) {
-          console.log('✅ Investment update sent to Telegram');
+          const success = await sendToChannel(message);
+          if (success) {
+            console.log('✅ Investment update with platform stats sent to Telegram');
+          }
+        } catch (error: any) {
+          console.error('❌ Failed to calculate stats for update:', error.message);
+          // Send basic update if stats fail
+          const fallbackMessage = `🚀 *BITVAULT PRO - LIVE UPDATE*
+
+📊 *Platform Performance*
+• Active investors earning consistent returns
+• 24/7 automated profit distribution  
+• Real-time Bitcoin market analysis
+
+💎 All investment plans generating returns
+🏆 Join thousands of successful Bitcoin investors`;
+          
+          await sendToChannel(fallbackMessage);
         }
       }, 2000);
     } else {
-      console.log('⚠️ Banner failed, sending text-only update');
-      const message = `🚀 BITVAULT PRO - Investment Update
+      console.log('⚠️ Banner failed, sending text-only update with stats');
+      
+      try {
+        const { storage } = await import('./storage');
+        const allUsers = await storage.getAllUsers();
+        const allInvestments = await storage.getAllInvestments();
+        
+        const totalBalance = allUsers.reduce((sum, user) => sum + parseFloat(user.balance), 0);
+        const totalProfit = allInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
+        
+        const message = `🚀 BITVAULT PRO - Investment Update
+
+💰 Platform Stats:
+👥 Users: ${allUsers.length}
+💎 Total Balance: ${totalBalance.toFixed(6)} BTC
+🚀 Total Profit: ${totalProfit.toFixed(6)} BTC
+
+Platform operating at full capacity
+All investment plans generating consistent returns
+
+${new Date().toLocaleString()}`;
+        
+        await sendToChannel(message);
+      } catch (error) {
+        const message = `🚀 BITVAULT PRO - Investment Update
 
 Platform operating at full capacity
 All investment plans generating consistent returns
 Join thousands of successful Bitcoin investors
 
 ${new Date().toLocaleString()}`;
-      
-      await sendToChannel(message);
+        
+        await sendToChannel(message);
+      }
     }
     
   } catch (error: any) {
