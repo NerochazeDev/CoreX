@@ -732,7 +732,6 @@ export default function Management() {
           </div>
         </CardContent>
       </Card>
-      </div>
     </div>
   );
 
