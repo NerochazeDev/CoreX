@@ -385,20 +385,25 @@ async function sendWelcomeMessage(chatId: number, member: any): Promise<void> {
 
 💎 **INSTITUTIONAL-GRADE INVESTMENT PLANS:**
 
-🟠 **Starter Plan**
-• Daily Returns: **0.2%** (73% Annual APY)
-• Duration: 30 Days | Min: 0.001 BTC
-• Monthly ROI: 5%
-
-⚫ **Growth Plan** 
+🔷 **Foundation Plan**
 • Daily Returns: **0.5%** (182% Annual APY)
-• Duration: 60 Days | Min: 0.01 BTC  
-• Monthly ROI: 15%
+• Duration: 30 Days | Min: 0.001 BTC
+• Total ROI: 15%
 
-🟡 **Premium Plan**
-• Daily Returns: **0.8%** (292% Annual APY)
-• Duration: 90 Days | Min: 0.1 BTC
-• Monthly ROI: 25%
+🔶 **Growth Plan** 
+• Daily Returns: **0.83%** (302% Annual APY)
+• Duration: 60 Days | Min: 0.01 BTC  
+• Total ROI: 25%
+
+🔸 **Premium Plan**
+• Daily Returns: **1.16%** (423% Annual APY)
+• Duration: 90 Days | Min: 0.05 BTC
+• Total ROI: 35%
+
+💎 **Institutional Plan**
+• Daily Returns: **1.94%** (708% Annual APY)
+• Duration: 180 Days | Min: 0.1 BTC
+• Total ROI: 50%
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -465,20 +470,25 @@ async function sendFAQMessage(chatId: number, userId: number): Promise<void> {
 
 **💰 INVESTMENT PLANS**
 
-🟠 **Starter Plan**
+🔷 **Foundation Plan**
 • Min Investment: **0.001 BTC**
-• Daily Returns: **0.2%** | Monthly ROI: **5%**
-• Duration: **30 Days** | Total Return: **6%**
+• Daily Returns: **0.5%** | Total ROI: **15%**
+• Duration: **30 Days** | Annual APY: **182%**
 
-⚫ **Growth Plan**
+🔶 **Growth Plan**
 • Min Investment: **0.01 BTC**
-• Daily Returns: **0.5%** | Monthly ROI: **15%**
-• Duration: **60 Days** | Total Return: **30%**
+• Daily Returns: **0.83%** | Total ROI: **25%**
+• Duration: **60 Days** | Annual APY: **302%**
 
-🟡 **Premium Plan**
+🔸 **Premium Plan**
+• Min Investment: **0.05 BTC**
+• Daily Returns: **1.16%** | Total ROI: **35%**
+• Duration: **90 Days** | Annual APY: **423%**
+
+💎 **Institutional Plan**
 • Min Investment: **0.1 BTC**
-• Daily Returns: **0.8%** | Monthly ROI: **25%**
-• Duration: **90 Days** | Total Return: **72%**
+• Daily Returns: **1.94%** | Total ROI: **50%**
+• Duration: **180 Days** | Annual APY: **708%**
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

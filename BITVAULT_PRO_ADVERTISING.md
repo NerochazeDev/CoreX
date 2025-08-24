@@ -20,9 +20,10 @@ BitVault Pro is a **premium Bitcoin investment platform** designed for sophistic
 - **Secure Bitcoin address generation** with BIP39 seed phrase backup
 
 ### **📈 Professional Investment Plans**
-- **Starter Plan**: 0.2% daily returns (5% monthly ROI, 30-day duration)
-- **Growth Plan**: 0.5% daily returns (15% monthly ROI, 60-day duration)  
-- **Premium Plan**: 0.8% daily returns (25% monthly ROI, 90-day duration)
+- **Foundation Plan**: 0.5% daily returns (15% total ROI, 30-day duration)
+- **Growth Plan**: 0.83% daily returns (25% total ROI, 60-day duration)  
+- **Premium Plan**: 1.16% daily returns (35% total ROI, 90-day duration)
+- **Institutional Plan**: 1.94% daily returns (50% total ROI, 180-day duration)
 - **Automated profit distribution** every 10 minutes
 - **Compound interest calculations** for maximum growth
 - **Real-time portfolio tracking** with advanced analytics
@@ -140,8 +141,8 @@ Unlike traditional Bitcoin wallets that simply store cryptocurrency, BitVault Pr
 ## 📊 **Platform Statistics & Performance**
 
 ### **Investment Performance:**
-- **Average Daily Returns**: 0.2% - 0.8%
-- **Monthly ROI Range**: 5% - 25%
+- **Average Daily Returns**: 0.5% - 1.94%
+- **Total ROI Range**: 15% - 50%
 - **User Satisfaction Rate**: 98.5%
 - **Platform Uptime**: 99.9%
 - **Average Withdrawal Time**: Under 30 minutes

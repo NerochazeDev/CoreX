@@ -727,35 +727,46 @@ async function initializeDefaultPlans(): Promise<void> {
       console.log('Creating default investment plans...');
 
       await storage.createInvestmentPlan({
-        name: "Starter Plan",
+        name: "Foundation Plan",
         minAmount: "0.001",
-        roiPercentage: 5,
+        roiPercentage: 15,
         durationDays: 30,
         color: "#3B82F6",
-        updateIntervalMinutes: 10,
-        dailyReturnRate: "0.0020",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: "0.0050",
         isActive: true,
       });
 
       await storage.createInvestmentPlan({
         name: "Growth Plan",
         minAmount: "0.01",
-        roiPercentage: 15,
+        roiPercentage: 25,
         durationDays: 60,
         color: "#10B981",
-        updateIntervalMinutes: 10,
-        dailyReturnRate: "0.0050",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: "0.0083",
         isActive: true,
       });
 
       await storage.createInvestmentPlan({
         name: "Premium Plan",
-        minAmount: "0.1",
-        roiPercentage: 25,
+        minAmount: "0.05",
+        roiPercentage: 35,
         durationDays: 90,
         color: "#F59E0B",
-        updateIntervalMinutes: 10,
-        dailyReturnRate: "0.0080",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: "0.0116",
+        isActive: true,
+      });
+
+      await storage.createInvestmentPlan({
+        name: "Institutional Plan",
+        minAmount: "0.1",
+        roiPercentage: 50,
+        durationDays: 180,
+        color: "#EF4444",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: "0.0194",
         isActive: true,
       });
 
