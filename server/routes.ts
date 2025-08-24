@@ -3170,6 +3170,39 @@ const { planId, dailyReturnRate } = z.object({
     }
   });
 
+  // Send both notification types (same as 12-hour automatic system)
+  app.post("/api/admin/send-both-notifications", async (req, res) => {
+    console.log('📱 Sending both notification types via admin request...');
+
+    try {
+      // Send detailed daily stats with investment plan charts first
+      await sendDailyStatsToChannel();
+      console.log('✅ Daily stats with investment charts sent');
+      
+      // Wait 30 seconds between messages to avoid rate limits
+      setTimeout(async () => {
+        try {
+          // Send the regular batched updates
+          await sendBatchedUpdatesToChannel();
+          console.log('✅ Regular investment updates sent');
+        } catch (error: any) {
+          console.error('❌ Failed to send regular updates:', error.message);
+        }
+      }, 30000); // 30 second delay
+      
+      res.json({ 
+        success: true, 
+        message: 'Both notification types sent successfully! Check Telegram in 30 seconds for the second message.' 
+      });
+    } catch (error: any) {
+      console.error('❌ Failed to send both notifications:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error.message 
+      });
+    }
+  });
+
   // Test image files availability
   app.get("/api/test-images", async (req, res) => {
     const fs = require('fs').promises;

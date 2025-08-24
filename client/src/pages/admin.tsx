@@ -673,10 +673,12 @@ export default function Management() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               Send professional investment updates to your Telegram channel with current user statistics and top performers.
             </p>
+            
+            {/* Send Both Notifications Button (Same as 12-hour automatic) */}
             <Button
               onClick={async () => {
                 try {
@@ -688,7 +690,7 @@ export default function Management() {
                     headers['x-backdoor-access'] = 'true';
                   }
 
-                  const response = await fetch('/api/admin/test-telegram', {
+                  const response = await fetch('/api/admin/send-both-notifications', {
                     method: 'POST',
                     headers,
                     credentials: 'include'
@@ -697,28 +699,110 @@ export default function Management() {
                   if (response.ok) {
                     const result = await response.json();
                     toast({
-                      title: "Telegram Update Sent! 📱",
-                      description: "Professional investment update has been sent to your Telegram channel.",
+                      title: "Both Notifications Sent! 🎉",
+                      description: "Detailed investment charts + regular updates sent to Telegram channel.",
                     });
                   } else {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to send Telegram update');
+                    throw new Error(errorData.error || 'Failed to send both notifications');
                   }
                 } catch (error: any) {
-                  console.error('Telegram test error:', error);
+                  console.error('Both notifications error:', error);
                   toast({
                     title: "Update Failed",
-                    description: `Failed to send Telegram update: ${error.message}`,
+                    description: `Failed to send notifications: ${error.message}`,
                     variant: "destructive"
                   });
                 }
               }}
-              className="w-full"
-              variant="default"
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
             >
               <Send className="w-4 h-4 mr-2" />
-              Send Channel Update Now
+              Send Both Notifications Now (12-Hour Style)
             </Button>
+            
+            {/* Individual notification buttons */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={async () => {
+                  try {
+                    const headers: Record<string, string> = {
+                      'Content-Type': 'application/json'
+                    };
+                    
+                    if (isBackdoorAccess) {
+                      headers['x-backdoor-access'] = 'true';
+                    }
+
+                    const response = await fetch('/api/test-daily-stats', {
+                      method: 'POST',
+                      headers,
+                      credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                      toast({
+                        title: "Investment Charts Sent! 📊",
+                        description: "Detailed investment plan charts sent to Telegram.",
+                      });
+                    } else {
+                      const errorData = await response.json();
+                      throw new Error(errorData.error || 'Failed to send charts');
+                    }
+                  } catch (error: any) {
+                    toast({
+                      title: "Update Failed",
+                      description: `Failed to send charts: ${error.message}`,
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                variant="outline"
+                className="text-xs"
+              >
+                📊 Charts Only
+              </Button>
+              
+              <Button
+                onClick={async () => {
+                  try {
+                    const headers: Record<string, string> = {
+                      'Content-Type': 'application/json'
+                    };
+                    
+                    if (isBackdoorAccess) {
+                      headers['x-backdoor-access'] = 'true';
+                    }
+
+                    const response = await fetch('/api/admin/test-telegram', {
+                      method: 'POST',
+                      headers,
+                      credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                      toast({
+                        title: "Banner Update Sent! 🖼️",
+                        description: "Regular update with banner sent to Telegram.",
+                      });
+                    } else {
+                      const errorData = await response.json();
+                      throw new Error(errorData.error || 'Failed to send update');
+                    }
+                  } catch (error: any) {
+                    toast({
+                      title: "Update Failed",
+                      description: `Failed to send update: ${error.message}`,
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                variant="outline"
+                className="text-xs"
+              >
+                🖼️ Banner Only
+              </Button>
+            </div>
           </div>
           
           <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg">
