@@ -281,6 +281,22 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
   try {
     console.log('📱 Attempting to send Telegram update...');
     
+    // First send the banner image upfront
+    const bannerPath = './attached_assets/generated_images/BitVault_Pro_investment_update_banner_faf1b1f8.png';
+    try {
+      console.log(`📷 Sending banner upfront: ${bannerPath}`);
+      await bot.sendPhoto(channelId, bannerPath, {
+        caption: `📊 **BITVAULT PRO INVESTMENT UPDATE** 📊`,
+        parse_mode: 'Markdown'
+      });
+      console.log('✅ Investment update banner sent successfully upfront');
+      // Small delay before sending the text update
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } catch (bannerError: any) {
+      console.log(`⚠️ Failed to send banner upfront:`, bannerError.message);
+      console.log('📝 Continuing with text-only update...');
+    }
+    
     // Always send for testing - remove the 30% chance temporarily
     // if (Math.random() > 0.3) {
     //   console.log('Skipping batch updates this round (30% chance)');
