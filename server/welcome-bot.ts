@@ -9,6 +9,13 @@ let isWelcomeBotActive = false;
 
 // Initialize dedicated welcome bot with separate token
 async function initializeWelcomeBot(): Promise<void> {
+  console.log('🔍 Welcome bot debug:');
+  console.log('- Welcome bot token exists:', !!welcomeBotToken);
+  console.log('- Main bot token exists:', !!process.env.TELEGRAM_BOT_TOKEN);
+  console.log('- Tokens are different:', welcomeBotToken !== process.env.TELEGRAM_BOT_TOKEN);
+  console.log('- Channel ID exists:', !!channelId);
+  console.log('- Welcome bot active:', isWelcomeBotActive);
+
   if (isWelcomeBotActive || !welcomeBotToken || !channelId) {
     console.log('⚠️ Welcome bot skipped - missing dedicated token or channel ID');
     return;
@@ -16,7 +23,8 @@ async function initializeWelcomeBot(): Promise<void> {
 
   // Don't start if using same token as main bot
   if (welcomeBotToken === process.env.TELEGRAM_BOT_TOKEN) {
-    console.log('⚠️ Welcome bot skipped - same token as main bot (would cause conflicts)');
+    console.log('⚠️ Welcome bot skipped - IDENTICAL TOKENS detected (would cause conflicts)');
+    console.log('- Please use different bot tokens for main bot and welcome bot');
     return;
   }
 

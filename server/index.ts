@@ -7,7 +7,7 @@ import { testConnection } from "./db";
 import { runSafeMigrations } from "./migrations";
 import { SESSION_SECRET, PORT } from "./config";
 import { databaseHealthMonitor } from "./database-health";
-import "./welcome-bot"; // Import welcome bot with separate token
+// import "./welcome-bot"; // Temporarily disabled to avoid conflicts
 
 const MemStore = MemoryStore(session);
 
