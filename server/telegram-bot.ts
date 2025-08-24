@@ -15,7 +15,7 @@ if (botToken && channelId) {
     const chatId = msg.chat.id;
     const newMembers = msg.new_chat_members;
     
-    if (newMembers) {
+    if (newMembers && bot) {
       newMembers.forEach((member) => {
         if (!member.is_bot) {
           sendWelcomeMessage(chatId, member);
@@ -29,12 +29,12 @@ if (botToken && channelId) {
     const msg = callbackQuery.message;
     const data = callbackQuery.data;
     
-    if (data === 'register_now') {
+    if (data === 'register_now' && bot) {
       bot.answerCallbackQuery(callbackQuery.id, {
         text: 'Redirecting to registration...',
         show_alert: false
       });
-    } else if (data === 'faq') {
+    } else if (data === 'faq' && bot) {
       sendFAQMessage(msg!.chat.id, callbackQuery.from.id);
       bot.answerCallbackQuery(callbackQuery.id);
     }
