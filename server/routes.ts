@@ -3122,6 +3122,25 @@ const { planId, dailyReturnRate } = z.object({
     }
   });
 
+  // Test daily stats with investment plan charts
+  app.post("/api/test-daily-stats", async (req, res) => {
+    console.log('📊 Testing daily stats with investment plan charts...');
+
+    try {
+      await sendDailyStatsToChannel();
+      res.json({ 
+        success: true, 
+        message: 'Daily stats with investment plan charts sent to Telegram successfully' 
+      });
+    } catch (error: any) {
+      console.error('❌ Daily stats test failed:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error.message 
+      });
+    }
+  });
+
   // Test image files availability
   app.get("/api/test-images", async (req, res) => {
     const fs = require('fs').promises;

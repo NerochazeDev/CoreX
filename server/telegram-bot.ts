@@ -344,16 +344,26 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
         const totalBalance = allUsers.reduce((sum, user) => sum + parseFloat(user.balance), 0);
         const totalProfit = allInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
         
-        // Calculate quick plan stats for fallback
+        // Calculate detailed plan stats with charts for fallback
         const investmentPlans = await storage.getInvestmentPlans();
         const planStats = investmentPlans.map(plan => {
           const planInvestments = allInvestments.filter(inv => inv.planId === plan.id && inv.isActive);
+          const planTotalAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+          const planTotalProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
+          const activityPercent = Math.min(100, (planInvestments.length / Math.max(1, activeInvestments.length)) * 100);
+          
           return {
-            name: plan.name,
-            count: planInvestments.length,
-            amount: planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0)
+            plan,
+            activeCount: planInvestments.length,
+            totalAmount: planTotalAmount,
+            totalProfit: planTotalProfit,
+            activityPercent,
+            chart: generateActivityChart(activityPercent)
           };
         });
+        
+        // Sort plans by activity level
+        planStats.sort((a, b) => b.activityPercent - a.activityPercent);
         
         let message = `🚀 BITVAULT PRO - Investment Update
 
@@ -362,14 +372,20 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
 💎 Total Balance: ${totalBalance.toFixed(6)} BTC
 🚀 Total Profit: ${totalProfit.toFixed(6)} BTC
 
-📊 Investment Plans Activity:
+📊 Investment Plans Activity Chart:
 `;
         
-        planStats.forEach(stat => {
-          message += `\u2022 ${stat.name}: ${stat.count} active (${stat.amount.toFixed(4)} BTC)\n`;
+        // Add plan statistics with activity charts
+        planStats.forEach((stat, index) => {
+          const planEmoji = ['🔷', '🔶', '🔸', '💎'][index] || '💵';
+          message += `\n${planEmoji} *${stat.plan.name}* (${stat.plan.roiPercentage}% ROI)\n`;
+          message += `   ${stat.chart} ${stat.activityPercent.toFixed(1)}%\n`;
+          message += `   📋 Active: ${stat.activeCount} | 💰 Amount: ${stat.totalAmount.toFixed(4)} BTC\n`;
+          message += `   🚀 Profit: ${stat.totalProfit.toFixed(6)} BTC\n`;
         });
         
         message += `
+
 Platform operating at full capacity
 All investment plans generating consistent returns
 
