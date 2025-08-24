@@ -7,7 +7,7 @@ import { testConnection } from "./db";
 import { runSafeMigrations } from "./migrations";
 import { SESSION_SECRET, PORT } from "./config";
 import { databaseHealthMonitor } from "./database-health";
-import "./welcome-bot"; // Re-enabled now that conflicts are resolved
+// Welcome bot removed - using only main telegram bot for channel updates
 
 const MemStore = MemoryStore(session);
 
@@ -16,9 +16,9 @@ const app = express();
 // CORS configuration to allow credentials for cross-origin requests
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
+
   res.header('Access-Control-Allow-Credentials', 'true');
-  
+
   // Allow Replit, Railway domains and localhost for development
   if (origin && (
     origin.includes('replit.dev') || 
@@ -31,10 +31,10 @@ app.use((req, res, next) => {
     // Fallback to localhost if no origin header
     res.header('Access-Control-Allow-Origin', 'http://localhost:5000');
   }
-  
+
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
@@ -100,12 +100,12 @@ process.on('uncaughtException', (error) => {
   let dbInitialized = false;
   let initAttempts = 0;
   const maxInitAttempts = 5;
-  
+
   while (!dbInitialized && initAttempts < maxInitAttempts) {
     try {
       initAttempts++;
       console.log(`🔄 Database initialization attempt ${initAttempts}/${maxInitAttempts}...`);
-      
+
       const connected = await testConnection();
       if (connected) {
         await runSafeMigrations();
@@ -116,7 +116,7 @@ process.on('uncaughtException', (error) => {
       }
     } catch (error) {
       console.warn(`⚠️  Database initialization attempt ${initAttempts} failed:`, error instanceof Error ? error.message : 'Unknown error');
-      
+
       if (initAttempts < maxInitAttempts) {
         const delay = 2000 * initAttempts; // Increasing delay
         console.log(`🕐 Retrying database initialization in ${delay}ms...`);
@@ -127,7 +127,7 @@ process.on('uncaughtException', (error) => {
       }
     }
   }
-  
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
