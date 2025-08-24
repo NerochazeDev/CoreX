@@ -60,12 +60,18 @@ async function sendPhotoToChannel(photoPath: string, caption?: string): Promise<
 // Investment update functions (simplified)
 export function addInvestmentUpdateToBatch(update: any): void {
   // Store update for batch processing (memory-based)
-  console.log('📊 Investment update queued:', update.investmentId);
+  // Reduced logging frequency - only log every 50th update
+  if (update.investmentId % 50 === 0) {
+    console.log('📊 Investment updates processed (last:', update.investmentId + ')');
+  }
 }
 
 export function addNewInvestmentToBatch(investment: any): void {
   // Store new investment for batch processing
-  console.log('💰 New investment queued:', investment.investmentId);
+  // Only log significant new investments
+  if (parseFloat(investment.amount || '0') > 0.01) {
+    console.log('💰 Significant new investment:', investment.investmentId);
+  }
 }
 
 // Generate activity chart for investment plan
@@ -343,6 +349,7 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
         
         const totalBalance = allUsers.reduce((sum, user) => sum + parseFloat(user.balance), 0);
         const totalProfit = allInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
+        const activeInvestments = allInvestments.filter(inv => inv.isActive);
         
         // Calculate detailed plan stats with charts for fallback
         const investmentPlans = await storage.getInvestmentPlans();

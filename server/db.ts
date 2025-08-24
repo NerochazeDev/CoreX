@@ -63,6 +63,8 @@ const baseRetryDelay = 2000; // 2 second base delay
 let lastEndpointError: Date | null = null;
 let isEndpointDisabled = false;
 let keepAliveInterval: NodeJS.Timeout | null = null;
+let lastHealthLogTime: number = 0;
+let lastKeepAliveLogTime: number = 0;
 
 // Initialize connection with endpoint failure protection
 async function initializeConnection(): Promise<void> {
@@ -166,9 +168,14 @@ function setupConnectionMonitoring(): void {
           new Promise((_, reject) => setTimeout(() => reject(new Error('Health check timeout - possible endpoint issue')), 15000))
         ]);
         
-        // Log connection details for monitoring
+        // Log connection details for monitoring (reduced frequency)
         if (Array.isArray(result) && result[0]) {
-          console.log(`💓 Database health check passed - PID: ${result[0].pid}, Port: ${result[0].port}, Endpoint: Active`);
+          // Only log health checks every 5 minutes instead of every 20 seconds
+          const now = Date.now();
+          if (!lastHealthLogTime || (now - lastHealthLogTime) > 300000) {
+            console.log(`💓 Database healthy - PID: ${result[0].pid}, Port: ${result[0].port}`);
+            lastHealthLogTime = now;
+          }
           
           // Reset endpoint failure state on successful health check
           if (isEndpointDisabled) {
@@ -211,7 +218,12 @@ function setupEndpointKeepAlive(): void {
           new Promise((_, reject) => setTimeout(() => reject(new Error('Keep-alive timeout')), 8000))
         ]);
         
-        console.log('🔄 Endpoint keep-alive successful');
+        // Reduced logging for keep-alive (only every 10 minutes)
+        const now = Date.now();
+        if (!lastKeepAliveLogTime || (now - lastKeepAliveLogTime) > 600000) {
+          console.log('🔄 Database endpoint active');
+          lastKeepAliveLogTime = now;
+        }
       }
     } catch (error: any) {
       const isEndpointError = error.message?.includes('endpoint') || 
