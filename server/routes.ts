@@ -1027,8 +1027,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const investment = await storage.createInvestment({
         userId: userId,
         planId: planId,
-        amount: amount,
-        transactionHash: transactionHash || crypto.randomBytes(32).toString('hex') // Use provided or generated hash
+        amount: amount
       });
 
       // Get current Bitcoin price for USD equivalent

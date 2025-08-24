@@ -1,8 +1,7 @@
-// Welcome bot functionality removed - all functionality moved to main telegram-bot.ts
-// This file is kept for backwards compatibility with imports
+// Welcome bot functionality removed - using main telegram-bot.ts for all notifications
 
 export async function sendTestWelcomeMessage(): Promise<void> {
-  throw new Error('Welcome bot has been removed - all functionality moved to main telegram-bot.ts');
+  console.log('ℹ️ Welcome bot functionality integrated into main telegram bot');
 }
 
 export const welcomeBot = null;
