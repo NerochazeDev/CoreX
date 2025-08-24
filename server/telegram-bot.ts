@@ -7,8 +7,39 @@ const channelId = process.env.TELEGRAM_CHANNEL_ID;
 let bot: TelegramBot | null = null;
 
 if (botToken && channelId) {
-  bot = new TelegramBot(botToken, { polling: false });
+  bot = new TelegramBot(botToken, { polling: true });
   console.log('✅ Telegram bot initialized successfully');
+  
+  // Handle new members joining the group/channel
+  bot.on('new_chat_members', (msg) => {
+    const chatId = msg.chat.id;
+    const newMembers = msg.new_chat_members;
+    
+    if (newMembers) {
+      newMembers.forEach((member) => {
+        if (!member.is_bot) {
+          sendWelcomeMessage(chatId, member);
+        }
+      });
+    }
+  });
+  
+  // Handle callback queries for inline keyboard buttons
+  bot.on('callback_query', (callbackQuery) => {
+    const msg = callbackQuery.message;
+    const data = callbackQuery.data;
+    
+    if (data === 'register_now') {
+      bot.answerCallbackQuery(callbackQuery.id, {
+        text: 'Redirecting to registration...',
+        show_alert: false
+      });
+    } else if (data === 'faq') {
+      sendFAQMessage(msg!.chat.id, callbackQuery.from.id);
+      bot.answerCallbackQuery(callbackQuery.id);
+    }
+  });
+  
 } else {
   console.warn('⚠️ Telegram bot credentials not found. Telegram notifications will be disabled.');
 }
@@ -336,6 +367,103 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
       code: error.code,
       response: error.response?.body
     });
+  }
+}
+
+// Send professional welcome message to new members
+async function sendWelcomeMessage(chatId: number, member: any): Promise<void> {
+  if (!bot) return;
+  
+  try {
+    const welcomeMessage = `🎉 **Welcome to BitVault Pro!** 
+
+🔥 **${member.first_name || 'New Member'}**, you've joined the most exclusive Bitcoin investment community!
+
+💎 **What BitVault Pro Offers:**
+⚡ Automated daily returns (0.2% - 0.8%)
+🏆 Professional portfolio management
+🔐 Bank-grade security & compliance
+📈 Real-time profit tracking
+🌍 24/7 global trading algorithms
+
+**Ready to start building wealth?** 👇`;
+
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { 
+            text: '🚀 Register Now', 
+            url: 'https://bitvault-pro.onrender.com/register'
+          }
+        ],
+        [
+          { 
+            text: '❓ Frequently Asked Questions', 
+            callback_data: 'faq' 
+          }
+        ]
+      ]
+    };
+
+    await bot.sendMessage(chatId, welcomeMessage, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+      disable_web_page_preview: true
+    });
+    
+    console.log(`✅ Welcome message sent to ${member.first_name || 'new member'}`);
+  } catch (error) {
+    console.error('❌ Failed to send welcome message:', error);
+  }
+}
+
+// Send FAQ message
+async function sendFAQMessage(chatId: number, userId: number): Promise<void> {
+  if (!bot) return;
+  
+  try {
+    const faqMessage = `❓ **Frequently Asked Questions**
+
+**🔹 How does BitVault Pro work?**
+Our automated trading algorithms generate consistent daily returns by executing thousands of micro-trades across global exchanges.
+
+**🔹 What are the investment plans?**
+• **Starter:** 0.2% daily (30 days) - Min: 0.005 BTC
+• **Growth:** 0.5% daily (60 days) - Min: 0.01 BTC  
+• **Premium:** 0.8% daily (90 days) - Min: 0.05 BTC
+
+**🔹 How do I withdraw profits?**
+Profits are automatically added to your wallet. Withdraw anytime through your dashboard.
+
+**🔹 Is my investment secure?**
+Yes! We use institutional-grade security with multi-signature wallets and cold storage protection.
+
+**🔹 When do I receive returns?**
+Returns are calculated and distributed every 10 minutes, 24/7.
+
+**🔹 Support contact?**
+Contact our 24/7 support team through the platform for instant assistance.`;
+
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { 
+            text: '🚀 Start Investing Now', 
+            url: 'https://bitvault-pro.onrender.com/register'
+          }
+        ]
+      ]
+    };
+
+    await bot.sendMessage(chatId, faqMessage, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+      disable_web_page_preview: true
+    });
+    
+    console.log(`✅ FAQ message sent to user ${userId}`);
+  } catch (error) {
+    console.error('❌ Failed to send FAQ message:', error);
   }
 }
 

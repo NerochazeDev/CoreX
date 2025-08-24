@@ -775,14 +775,30 @@ function startAutomaticUpdates(): void {
   // Set up the main 5-minute interval for investment plan updates (faster for demo)
   setInterval(processAutomaticUpdates, 5 * 60 * 1000); // 5 minutes
 
-  // Send batched Telegram updates every 30 minutes
-  setInterval(sendBatchedUpdatesToChannel, 30 * 60 * 1000); // 30 minutes
-
-  // Send daily stats to Telegram channel (every 12 hours for demo purposes)
-  setInterval(sendDailyStatsToChannel, 12 * 60 * 60 * 1000); // 12 hours
+  // Schedule daily Telegram updates at 10am UTC
+  function scheduleDailyTelegramUpdate() {
+    const now = new Date();
+    const next10am = new Date();
+    next10am.setUTCHours(10, 0, 0, 0);
+    
+    // If it's already past 10am today, schedule for tomorrow
+    if (now.getTime() > next10am.getTime()) {
+      next10am.setUTCDate(next10am.getUTCDate() + 1);
+    }
+    
+    const timeUntilNext10am = next10am.getTime() - now.getTime();
+    
+    setTimeout(() => {
+      sendBatchedUpdatesToChannel();
+      // Set up daily recurring interval
+      setInterval(sendBatchedUpdatesToChannel, 24 * 60 * 60 * 1000); // 24 hours
+    }, timeUntilNext10am);
+  }
+  
+  scheduleDailyTelegramUpdate();
 
   console.log('Automatic updates will run every 5 minutes');
-  console.log('Batched Telegram updates will be sent every 30 minutes');
+  console.log('Daily Telegram updates will be sent at 10am UTC');
   console.log('Daily stats will be sent to Telegram every 12 hours');
 }
 
