@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import { addInvestmentUpdateToBatch, addNewInvestmentToBatch, sendDailyStatsToChannel, sendBatchedUpdatesToChannel } from "./telegram-bot";
 import { createDemoUsers } from "./create-demo-users";
+import { sendTestWelcomeMessage } from "./welcome-bot";
 
 // Extend Express Request type to include session
 declare module 'express-session' {
@@ -3186,6 +3187,20 @@ const { planId, dailyReturnRate } = z.object({
     }));
   });
 
+  // Test welcome bot endpoint
+  app.post("/api/test-welcome-bot", async (req, res) => {
+    try {
+      console.log('🧪 Testing welcome bot message...');
+      await sendTestWelcomeMessage();
+      res.json({ 
+        message: "Test welcome message sent successfully!",
+        note: "Check your Telegram channel to see the welcome message."
+      });
+    } catch (error: any) {
+      console.error('Error testing welcome bot:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
 
   // Initialize default investment plans if they don't exist
   await initializeDefaultPlans();
