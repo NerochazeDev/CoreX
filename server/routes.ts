@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import { addInvestmentUpdateToBatch, addNewInvestmentToBatch, sendDailyStatsToChannel, sendBatchedUpdatesToChannel } from "./telegram-bot";
 import { createDemoUsers } from "./create-demo-users";
-import { sendTestWelcomeMessage } from "./welcome-bot"; // Re-enabled
+// Welcome bot removed - all functionality moved to main bot
 
 // Extend Express Request type to include session
 declare module 'express-session' {
@@ -787,31 +787,18 @@ function startAutomaticUpdates(): void {
   // Set up the main 5-minute interval for investment plan updates (faster for demo)
   setInterval(processAutomaticUpdates, 5 * 60 * 1000); // 5 minutes
 
-  // Schedule daily Telegram updates at 10am UTC
-  function scheduleDailyTelegramUpdate() {
-    const now = new Date();
-    const next10am = new Date();
-    next10am.setUTCHours(10, 0, 0, 0);
-    
-    // If it's already past 10am today, schedule for tomorrow
-    if (now.getTime() > next10am.getTime()) {
-      next10am.setUTCDate(next10am.getUTCDate() + 1);
-    }
-    
-    const timeUntilNext10am = next10am.getTime() - now.getTime();
-    
-    setTimeout(() => {
-      sendBatchedUpdatesToChannel();
-      // Set up daily recurring interval
-      setInterval(sendBatchedUpdatesToChannel, 24 * 60 * 60 * 1000); // 24 hours
-    }, timeUntilNext10am);
+  // Schedule Telegram updates every 8 hours
+  function scheduleEightHourlyTelegramUpdate() {
+    // Start immediately, then every 8 hours
+    sendBatchedUpdatesToChannel();
+    setInterval(sendBatchedUpdatesToChannel, 8 * 60 * 60 * 1000); // 8 hours
   }
   
-  scheduleDailyTelegramUpdate();
+  scheduleEightHourlyTelegramUpdate();
 
   console.log('Automatic updates will run every 5 minutes');
-  console.log('Daily Telegram updates will be sent at 10am UTC');
-  console.log('Daily stats will be sent to Telegram every 12 hours');
+  console.log('Telegram updates will be sent every 8 hours with cool banner');
+  console.log('Next update will be sent immediately');
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -3187,14 +3174,14 @@ const { planId, dailyReturnRate } = z.object({
     }));
   });
 
-  // Test welcome bot endpoint
-  app.post("/api/test-welcome-bot", async (req, res) => {
+  // Test update bot endpoint  
+  app.post("/api/test-update-bot", async (req, res) => {
     try {
-      console.log('🧪 Testing welcome bot message...');
-      await sendTestWelcomeMessage();
+      console.log('🧪 Testing update bot message...');
+      await sendBatchedUpdatesToChannel();
       res.json({ 
-        message: "Test welcome message sent successfully!",
-        note: "Check your Telegram channel to see the welcome message."
+        message: "Test update message with banner sent successfully!",
+        note: "Check your Telegram channel to see the update with cool banner."
       });
     } catch (error: any) {
       console.error('Error testing welcome bot:', error);

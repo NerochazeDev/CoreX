@@ -310,14 +310,9 @@ Real-time dashboard with live profit tracking and investment progress
   }
 }
 
-// Initialize if dedicated token is provided
-if (welcomeBotToken && channelId) {
-  initializeWelcomeBot().catch(error => {
-    console.error('❌ Welcome bot initialization failed:', error.message);
-  });
-} else {
-  console.warn('⚠️ Welcome bot needs dedicated TELEGRAM_WELCOME_BOT_TOKEN');
-}
+// WELCOME BOT DISABLED - Functionality moved to main bot
+console.log('🔕 Welcome bot disabled by user request');
+console.log('📢 All functionality moved to main update bot');
 
 export async function sendTestWelcomeMessage(): Promise<void> {
   console.log('🔍 Debug sendTestWelcomeMessage:');

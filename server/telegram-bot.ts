@@ -219,49 +219,62 @@ export function addNewInvestmentToBatch(investment: NewInvestment): void {
 }
 
 export async function sendDailyStatsToChannel(): Promise<void> {
-  console.log('📊 Attempting to send daily stats to Telegram...');
+  console.log('📊 Attempting to send 8-hour update to Telegram...');
   
   if (!bot || !channelId) {
-    console.log('❌ Telegram bot not configured for daily stats');
+    console.log('❌ Telegram bot not configured for updates');
     console.log('Bot token present:', !!botToken);
     console.log('Channel ID present:', !!channelId);
     return;
   }
 
   try {
-    const message = `📊 *BITVAULT PRO DAILY REPORT*
+    // First send the cool banner
+    const bannerPath = 'attached_assets/generated_images/BitVault_Pro_investment_update_banner_faf1b1f8.png';
+    
+    await bot.sendPhoto(channelId, bannerPath, {
+      caption: `📊 **BITVAULT PRO INVESTMENT UPDATE** 📊`
+    });
+    
+    // Small delay then send the update message
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-🔥 *Platform Statistics*
-⚡ Automated returns: *Active*
-🎯 Investment plans: *4 Available*
-💎 Returns frequency: *Every 10 minutes*
+    const message = `🚀 *BITVAULT PRO - 8 HOUR UPDATE*
+
+🔥 *Platform Status*
+⚡ Automated returns: *ACTIVE*
+🎯 Investment plans: *4 AVAILABLE*
+💎 Profit distribution: *Every 10 minutes*
 🚀 Success rate: *99.9%*
+📈 Bitcoin performance: *Tracking live*
 
-📈 *Available Plans:*
-• *Foundation:* 0.5% daily (30 days)
-• *Growth:* 0.83% daily (60 days)  
-• *Premium:* 1.16% daily (90 days)
-• *Institutional:* 1.94% daily (180 days)
+💰 *Investment Opportunities:*
+🔷 *Foundation:* 0.5% daily (15% total in 30 days)
+🔶 *Growth:* 0.83% daily (25% total in 60 days)  
+🔸 *Premium:* 1.16% daily (35% total in 90 days)
+💎 *Institutional:* 1.94% daily (50% total in 180 days)
 
-💰 *Join thousands of successful investors*
-🔐 *Bank-grade security guaranteed*
+✨ *Join thousands of successful investors earning passive Bitcoin income*
+🔐 *Military-grade security & instant withdrawals*
 
-⏰ ${new Date().toLocaleString('en-US', { 
+⏰ Update Time: ${new Date().toLocaleString('en-US', { 
   timeZone: 'UTC',
   dateStyle: 'full',
   timeStyle: 'short'
 })} UTC
 
-\`#BitVaultPro #DailyReport #Bitcoin #Investing\``;
+🚀 **Ready to multiply your Bitcoin holdings?**
+
+\`#BitVaultPro #Bitcoin #PassiveIncome #InvestmentUpdate\``;
 
     await bot.sendMessage(channelId, message, { 
       parse_mode: 'Markdown',
       disable_web_page_preview: true 
     });
     
-    console.log('📱 Daily stats sent to Telegram');
+    console.log('📱 8-hour update with banner sent to Telegram');
   } catch (error) {
-    console.error('❌ Failed to send daily stats:', error);
+    console.error('❌ Failed to send update:', error);
   }
 }
 
