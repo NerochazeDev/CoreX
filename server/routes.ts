@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import { addInvestmentUpdateToBatch, addNewInvestmentToBatch, sendDailyStatsToChannel, sendBatchedUpdatesToChannel } from "./telegram-bot";
+import { welcomeBot } from "./welcome-bot"; // Import dedicated welcome bot
 import { createDemoUsers } from "./create-demo-users";
 
 // Extend Express Request type to include session
