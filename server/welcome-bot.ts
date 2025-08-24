@@ -157,9 +157,12 @@ async function sendWelcomeMessage(chatId: number, member: any): Promise<void> {
   }
 }
 
-// Initialize the welcome bot
+// Initialize the welcome bot immediately when module is imported
+console.log('🚀 Starting dedicated welcome bot...');
+console.log('Welcome bot token available:', !!welcomeBotToken);
+console.log('Channel ID available:', !!channelId);
+
 if (welcomeBotToken && channelId) {
-  console.log('🚀 Starting dedicated welcome bot...');
   initializeWelcomeBot().catch(error => {
     console.error('❌ Welcome bot initialization failed:', error.message);
   });
