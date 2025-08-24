@@ -5,6 +5,7 @@ const botToken = process.env.TELEGRAM_BOT_TOKEN;
 const channelId = process.env.TELEGRAM_CHANNEL_ID;
 
 let bot: TelegramBot | null = null;
+let isInitializing = false;
 
 // Function to cleanup existing bot instance
 async function cleanupBot(): Promise<void> {
@@ -19,46 +20,55 @@ async function cleanupBot(): Promise<void> {
   }
 }
 
-if (botToken && channelId) {
+// Function to initialize bot with proper error handling
+async function initializeTelegramBot(): Promise<void> {
+  if (isInitializing || bot) {
+    return; // Prevent multiple initializations
+  }
+  
+  isInitializing = true;
+  
   try {
     // Cleanup any existing bot instance first
     await cleanupBot();
     
-    // Initialize bot with better error handling and conflict resolution
-    bot = new TelegramBot(botToken, { 
+    // Add a small delay to ensure cleanup is complete
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Initialize bot with webhook mode to avoid polling conflicts
+    bot = new TelegramBot(botToken!, { 
+      polling: false // Start with polling disabled
+    });
+    
+    // Start polling manually with better error handling
+    await bot.startPolling({
+      restart: false, // Don't auto-restart to avoid conflicts
       polling: {
-        interval: 1000,
-        autoStart: true,
+        interval: 2000, // Slower polling to reduce conflicts
+        autoStart: false,
         params: {
-          timeout: 10
+          timeout: 20,
+          allowed_updates: ['message', 'callback_query', 'chat_member']
         }
       }
     });
     
     console.log('✅ Telegram bot initialized successfully');
+    isInitializing = false;
     
     // Handle polling errors gracefully
     bot.on('polling_error', (error) => {
-      console.log('🔄 Telegram polling error (will retry):', error.code);
+      console.log('🔄 Telegram polling error:', error.code);
       
-      // If it's a conflict error, try to restart polling after a delay
+      // If it's a conflict error, reinitialize the bot completely
       if (error.code === 'ETELEGRAM' && error.message.includes('409 Conflict')) {
-        console.log('🔄 Resolving bot conflict, restarting in 5 seconds...');
+        console.log('🔄 Conflict detected, reinitializing bot in 10 seconds...');
+        isInitializing = false; // Reset flag
         setTimeout(() => {
-          if (bot) {
-            bot.stopPolling().then(() => {
-              setTimeout(() => {
-                if (bot) {
-                  bot.startPolling().catch(err => {
-                    console.log('❌ Failed to restart polling:', err.message);
-                  });
-                }
-              }, 2000);
-            }).catch(() => {
-              // Ignore stop polling errors
-            });
-          }
-        }, 5000);
+          initializeTelegramBot().catch(err => {
+            console.log('❌ Failed to reinitialize bot:', err.message);
+          });
+        }, 10000);
       }
     });
     
@@ -103,8 +113,16 @@ if (botToken && channelId) {
     
   } catch (error: any) {
     console.error('❌ Failed to initialize Telegram bot:', error.message);
+    isInitializing = false;
     bot = null;
   }
+}
+
+// Initialize the bot if credentials are available
+if (botToken && channelId) {
+  initializeTelegramBot().catch(error => {
+    console.error('❌ Bot initialization failed:', error.message);
+  });
 } else {
   console.warn('⚠️ Telegram bot credentials not found. Telegram notifications will be disabled.');
 }
