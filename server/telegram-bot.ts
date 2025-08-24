@@ -199,10 +199,10 @@ export async function sendDailyStatsToChannel(): Promise<void> {
   try {
     // Try to send banner with fallback options
     const bannerPaths = [
+      './attached_assets/IMG_6814_1756042561574.jpeg',
       './attached_assets/generated_images/BitVault_Pro_investment_update_banner_faf1b1f8.png',
       './attached_assets/generated_images/Advanced_BitVault_Pro_themed_banner_5a7ca930.png',
-      './attached_assets/generated_images/Perfect_BitVault_Pro_themed_banner_2214a6e2.png',
-      './attached_assets/generated_images/Clean_BitVault_Pro_banner_no_hashtags_a51cc271.png'
+      './attached_assets/generated_images/Perfect_BitVault_Pro_themed_banner_2214a6e2.png'
     ];
     
     let bannerSent = false;
@@ -282,7 +282,7 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
     console.log('📱 Attempting to send Telegram update...');
     
     // First send the banner image upfront
-    const bannerPath = './attached_assets/generated_images/BitVault_Pro_investment_update_banner_faf1b1f8.png';
+    const bannerPath = './attached_assets/IMG_6814_1756042561574.jpeg';
     try {
       console.log(`📷 Sending banner upfront: ${bannerPath}`);
       await bot.sendPhoto(channelId, bannerPath, {
