@@ -687,7 +687,7 @@ Your membership plan continues generating excellent returns!
 Transaction ID: ${transactionId.substring(0, 16)}...
 Updated Balance: ${newBalance.toFixed(8)} BTC
 
-Keep growing with BitVault VIP! 🚀`,
+Keep growing with BitVault Pro! 🚀`,
               type: 'success',
               isRead: false,
             });

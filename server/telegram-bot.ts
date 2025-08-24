@@ -140,14 +140,15 @@ export async function sendDailyStatsToChannel(): Promise<void> {
 
 🔥 *Platform Statistics*
 ⚡ Automated returns: *Active*
-🎯 Investment plans: *3 Available*
+🎯 Investment plans: *4 Available*
 💎 Returns frequency: *Every 10 minutes*
 🚀 Success rate: *99.9%*
 
 📈 *Available Plans:*
-• *Starter:* 0.2% daily (30 days)
-• *Growth:* 0.5% daily (60 days)  
-• *Premium:* 0.8% daily (90 days)
+• *Foundation:* 0.5% daily (30 days)
+• *Growth:* 0.83% daily (60 days)  
+• *Premium:* 1.16% daily (90 days)
+• *Institutional:* 1.94% daily (180 days)
 
 💰 *Join thousands of successful investors*
 🔐 *Bank-grade security guaranteed*
