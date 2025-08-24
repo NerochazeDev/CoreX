@@ -170,4 +170,22 @@ if (welcomeBotToken && channelId) {
   console.warn('⚠️ Welcome bot credentials not found. Welcome messages will be disabled.');
 }
 
+// Test function to send sample welcome message
+export async function sendTestWelcomeMessage(): Promise<void> {
+  if (!welcomeBot || !channelId) {
+    console.log('❌ Welcome bot not available for testing');
+    return;
+  }
+
+  const testMember = {
+    first_name: 'Test User',
+    last_name: 'Demo',
+    id: 123456789,
+    is_bot: false
+  };
+
+  console.log('🧪 Sending test welcome message...');
+  await sendWelcomeMessage(parseInt(channelId), testMember);
+}
+
 export { welcomeBot };
