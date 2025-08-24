@@ -42,15 +42,15 @@ async function initializeTelegramBot(): Promise<void> {
       polling: false // Start with polling disabled
     });
     
-    // Start polling manually with better error handling
+    // Start polling manually with optimized settings
     await bot.startPolling({
       restart: false, // Don't auto-restart to avoid conflicts
       polling: {
-        interval: 3000, // Even slower polling to reduce conflicts
+        interval: 5000, // Main bot polls every 5 seconds
         autoStart: false,
         params: {
-          timeout: 30,
-          allowed_updates: ['message', 'callback_query', 'new_chat_members', 'chat_member']
+          timeout: 20, // Shorter timeout to prevent conflicts
+          allowed_updates: ['message', 'callback_query'] // Only handle messages and callbacks
         }
       }
     });
@@ -129,24 +129,13 @@ async function initializeTelegramBot(): Promise<void> {
 }
 
 // Initialize the bot if credentials are available
-// TEMPORARILY DISABLED - Competing deployment detected
-console.log('🚨 MAIN TELEGRAM BOT TEMPORARILY DISABLED');
-console.log('🔍 Reason: Another deployment is using the same bot tokens'); 
-console.log('📝 To fix this:');
-console.log('   1. Check Railway.app dashboard for active deployments');
-console.log('   2. Check Render.com dashboard for running services');
-console.log('   3. Check any other cloud platforms you have deployed to');
-console.log('   4. Stop competing deployments that use the same bot tokens');
-console.log('   5. Run: curl -X POST http://localhost:5000/api/enable-bots');
-
-// Uncomment this to re-enable after fixing conflicts:
-// if (botToken && channelId) {
-//   initializeTelegramBot().catch(error => {
-//     console.error('❌ Bot initialization failed:', error.message);
-//   });
-// } else {
-//   console.warn('⚠️ Telegram bot credentials not found. Telegram notifications will be disabled.');
-// }
+if (botToken && channelId) {
+  initializeTelegramBot().catch(error => {
+    console.error('❌ Bot initialization failed:', error.message);
+  });
+} else {
+  console.warn('⚠️ Telegram bot credentials not found. Telegram notifications will be disabled.');
+}
 
 // Batch system for investment updates
 interface BatchedInvestmentUpdate {

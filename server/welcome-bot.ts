@@ -35,11 +35,11 @@ async function initializeWelcomeBot(): Promise<void> {
     
     welcomeBot = new TelegramBot(welcomeBotToken, { 
       polling: {
-        interval: 3000,
+        interval: 7000, // Welcome bot polls every 7 seconds (different from main bot)
         autoStart: true,
         params: {
-          timeout: 10,
-          allowed_updates: ['new_chat_members', 'callback_query']
+          timeout: 15, // Different timeout from main bot
+          allowed_updates: ['new_chat_members', 'callback_query'] // Only handle new members and callbacks
         }
       }
     });
@@ -310,24 +310,14 @@ Real-time dashboard with live profit tracking and investment progress
   }
 }
 
-// TEMPORARILY DISABLED - Competing deployment detected
-console.log('🚨 WELCOME BOT TEMPORARILY DISABLED');
-console.log('🔍 Reason: Another deployment is using the same bot tokens');
-console.log('📝 To fix this:');
-console.log('   1. Check Railway.app dashboard for active deployments');
-console.log('   2. Check Render.com dashboard for running services');  
-console.log('   3. Check any other cloud platforms you have deployed to');
-console.log('   4. Stop competing deployments that use the same bot tokens');
-console.log('   5. Run: curl -X POST http://localhost:5000/api/enable-bots');
-
-// Uncomment this to re-enable after fixing conflicts:
-// if (welcomeBotToken && channelId) {
-//   initializeWelcomeBot().catch(error => {
-//     console.error('❌ Welcome bot initialization failed:', error.message);
-//   });
-// } else {
-//   console.warn('⚠️ Welcome bot needs dedicated TELEGRAM_WELCOME_BOT_TOKEN');
-// }
+// Initialize if dedicated token is provided
+if (welcomeBotToken && channelId) {
+  initializeWelcomeBot().catch(error => {
+    console.error('❌ Welcome bot initialization failed:', error.message);
+  });
+} else {
+  console.warn('⚠️ Welcome bot needs dedicated TELEGRAM_WELCOME_BOT_TOKEN');
+}
 
 export async function sendTestWelcomeMessage(): Promise<void> {
   console.log('🔍 Debug sendTestWelcomeMessage:');
