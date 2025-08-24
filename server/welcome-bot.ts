@@ -106,61 +106,91 @@ async function sendWelcomeMessage(chatId: number, member: any): Promise<void> {
   try {
     const memberName = member.first_name || 'Distinguished Investor';
     
-    const welcomeMessage = `🏆 **Welcome to BitVault Pro** 🏆
+    // First send the professional welcome banner
+    try {
+      const bannerPath = 'attached_assets/generated_images/Professional_BitVault_Pro_welcome_banner_96ebe0cb.png';
+      console.log(`📷 Sending welcome banner to ${memberName}...`);
+      
+      await welcomeBot.sendPhoto(chatId, bannerPath, {
+        caption: `Welcome to BitVault Pro, ${memberName}! 🏆`
+      });
+      
+      console.log('✅ Welcome banner sent successfully');
+      // Brief delay to ensure proper message order
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (bannerError: any) {
+      console.log('⚠️ Banner send failed, continuing with text message:', bannerError.message);
+    }
+    
+    const welcomeMessage = `Dear **${memberName}**,
 
-👋 **${memberName}**, congratulations on joining the world's most sophisticated Bitcoin investment platform.
+Welcome to **BitVault Pro** — the premier institutional-grade Bitcoin investment platform trusted by sophisticated investors worldwide.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💎 **INSTITUTIONAL-GRADE INVESTMENT PLANS:**
+**🎯 INVESTMENT EXCELLENCE THROUGH INNOVATION**
 
-🔷 **Foundation Plan**
-• Daily Returns: **0.5%** (182% Annual APY)
-• Duration: 30 Days | Min: 0.001 BTC
-• Total ROI: 15%
+BitVault Pro represents the convergence of traditional financial expertise with cutting-edge blockchain technology. Our platform is designed for discerning investors who demand institutional-quality returns with uncompromising security standards.
 
-🔶 **Growth Plan** 
-• Daily Returns: **0.83%** (302% Annual APY)
-• Duration: 60 Days | Min: 0.01 BTC  
-• Total ROI: 25%
+**📊 TIERED INVESTMENT ARCHITECTURE**
 
-🔸 **Premium Plan**
-• Daily Returns: **1.16%** (423% Annual APY)
-• Duration: 90 Days | Min: 0.05 BTC
-• Total ROI: 35%
+Our scientifically-designed investment tiers optimize returns while managing risk exposure:
 
-💎 **Institutional Plan**
-• Daily Returns: **1.94%** (708% Annual APY)
-• Duration: 180 Days | Min: 0.1 BTC
-• Total ROI: 50%
+**🔷 Foundation Tier** — *Conservative Growth*
+• **0.5% Daily Yield** (182.5% APY) | 30-Day Term
+• Minimum Allocation: 0.001 BTC
+• Target Demographic: Conservative institutional portfolios
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**🔶 Growth Tier** — *Balanced Performance* 
+• **0.83% Daily Yield** (302.95% APY) | 60-Day Term
+• Minimum Allocation: 0.01 BTC  
+• Strategic Focus: Long-term wealth accumulation
 
-🔐 **ENTERPRISE SECURITY:**
-• 256-bit AES Military Encryption
-• Cold Storage + Multi-Factor Authentication
-• Real-time Fraud Monitoring
-• BIP39 Secure Wallet Generation
+**🔸 Premium Tier** — *Advanced Returns*
+• **1.16% Daily Yield** (423.4% APY) | 90-Day Term
+• Minimum Allocation: 0.05 BTC
+• Portfolio Strategy: Aggressive capital appreciation
 
-📊 **PROFESSIONAL FEATURES:**
-• Automated Profit Distribution (Every 10 min)
-• Real-time Investment Tracking
-• Instant Withdrawal Processing
-• 24/7 Portfolio Management
+**💎 Institutional Tier** — *Elite Performance*
+• **1.94% Daily Yield** (708.1% APY) | 180-Day Term
+• Minimum Allocation: 0.1 BTC
+• Exclusive Access: Ultra-high-net-worth strategies
 
-**Your wealth-building journey starts here.** 👇`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**🛡️ INSTITUTIONAL-GRADE SECURITY FRAMEWORK**
+
+• **Military-Grade Encryption**: 256-bit AES cryptographic protection
+• **Cold Storage Architecture**: 95% offline asset segregation
+• **Multi-Signature Protocols**: Advanced transaction authorization
+• **Regulatory Compliance**: Full adherence to financial regulations
+• **Real-Time Monitoring**: 24/7 threat detection systems
+
+**⚙️ AUTOMATED WEALTH GENERATION**
+
+Our proprietary algorithmic trading systems execute sophisticated market strategies, delivering consistent returns through:
+• High-frequency arbitrage opportunities
+• Market-neutral positioning strategies  
+• Volatility harvesting protocols
+• Cross-exchange liquidity optimization
+
+**Returns are automatically distributed every 10 minutes, ensuring optimal compound growth.**
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your journey toward financial independence through institutional Bitcoin investment begins now.`;
 
     const keyboard = {
       inline_keyboard: [
         [
           { 
-            text: '🚀 Start Investing Now', 
+            text: '🚀 Begin Investment Journey', 
             url: 'https://bitvault-pro.onrender.com/register'
           }
         ],
         [
           { 
-            text: '📋 Complete Investment Guide', 
+            text: '📚 Comprehensive Investment Guide', 
             callback_data: 'faq' 
           }
         ]
@@ -173,7 +203,7 @@ async function sendWelcomeMessage(chatId: number, member: any): Promise<void> {
       disable_web_page_preview: true
     });
     
-    console.log(`✅ Professional welcome sent to ${memberName}`);
+    console.log(`✅ Professional educational welcome sent to ${memberName}`);
   } catch (error: any) {
     console.error('❌ Failed to send welcome message:', error.message);
   }
