@@ -248,7 +248,7 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
     });
     
     // Investment tiers for variety
-    const tiers = ['Starter', 'Premium', 'VIP', 'Elite', 'Diamond'];
+    const tiers = ['Starter', 'Professional', 'VIP', 'Elite'];
     
     let message = `🏆 BITVAULT PRO • Investment Update\n`;
     message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
