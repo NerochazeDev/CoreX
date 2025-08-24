@@ -6,79 +6,151 @@ const channelId = process.env.TELEGRAM_CHANNEL_ID;
 
 let bot: TelegramBot | null = null;
 let isInitializing = false;
+let isShuttingDown = false;
+let instanceId = Math.random().toString(36).substring(7);
+
+// Global bot registry to prevent multiple instances
+const GLOBAL_BOT_KEY = 'TELEGRAM_BOT_INSTANCE';
+if (!(global as any)[GLOBAL_BOT_KEY]) {
+  (global as any)[GLOBAL_BOT_KEY] = null;
+}
+
+function setGlobalBot(botInstance: TelegramBot | null) {
+  (global as any)[GLOBAL_BOT_KEY] = botInstance;
+}
+
+function getGlobalBot(): TelegramBot | null {
+  return (global as any)[GLOBAL_BOT_KEY];
+}
 
 // Function to cleanup existing bot instance
 async function cleanupBot(): Promise<void> {
+  const currentGlobalBot = getGlobalBot();
+  
+  // Clean up local instance
   if (bot) {
     try {
-      await bot.stopPolling({ cancel: true, reason: 'Reinitializing bot' });
-      console.log('🧹 Previous bot instance cleaned up');
-      // Wait a bit longer to ensure cleanup is complete
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await bot.stopPolling({ cancel: true, reason: 'Cleaning up instance' });
+      console.log(`🧹 Local bot instance ${instanceId} cleaned up`);
+      await new Promise(resolve => setTimeout(resolve, 1500));
     } catch (error: any) {
-      console.log('⚠️ Cleanup error (expected):', error.message);
+      console.log('⚠️ Local cleanup error (expected):', error.message);
     }
     bot = null;
   }
+  
+  // Clean up global instance if it exists and is different
+  if (currentGlobalBot && currentGlobalBot !== bot) {
+    try {
+      await currentGlobalBot.stopPolling({ cancel: true, reason: 'Global cleanup' });
+      console.log('🧹 Global bot instance cleaned up');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    } catch (error: any) {
+      console.log('⚠️ Global cleanup error (expected):', error.message);
+    }
+  }
+  
+  setGlobalBot(null);
 }
 
 // Function to initialize bot with proper error handling
 async function initializeTelegramBot(): Promise<void> {
-  if (isInitializing || bot) {
-    return; // Prevent multiple initializations
+  if (isInitializing || isShuttingDown) {
+    console.log('⏸️ Bot initialization skipped - already initializing or shutting down');
+    return;
+  }
+  
+  // Check if there's already a global instance running
+  const existingGlobalBot = getGlobalBot();
+  if (existingGlobalBot) {
+    console.log('♻️ Using existing global bot instance');
+    bot = existingGlobalBot;
+    return;
   }
   
   isInitializing = true;
   
   try {
-    // Cleanup any existing bot instance first
+    console.log(`🤖 Initializing bot instance ${instanceId}...`);
+    
+    // Cleanup any existing bot instances
     await cleanupBot();
     
-    // Add a small delay to ensure cleanup is complete
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Wait longer to ensure Telegram API clears the polling lock
+    await new Promise(resolve => setTimeout(resolve, 3000));
     
-    // Initialize bot with webhook mode to avoid polling conflicts
+    // Create bot instance with no polling initially
     bot = new TelegramBot(botToken!, { 
-      polling: false // Start with polling disabled
+      polling: false
     });
     
-    // Start polling manually with optimized settings
+    // Set as global instance immediately
+    setGlobalBot(bot);
+    
+    // Start polling with safer settings
     await bot.startPolling({
-      restart: false, // Don't auto-restart to avoid conflicts
+      restart: false,
       polling: {
-        interval: 5000, // Main bot polls every 5 seconds
+        interval: 8000, // Longer interval to reduce conflicts
         autoStart: false,
         params: {
-          timeout: 20, // Shorter timeout to prevent conflicts
-          allowed_updates: ['message', 'callback_query'] // Only handle messages and callbacks
+          timeout: 15, // Shorter timeout
+          allowed_updates: [] // No specific updates to reduce traffic
         }
       }
     });
     
-    console.log('✅ Telegram bot initialized successfully');
+    console.log(`✅ Telegram bot ${instanceId} initialized and polling started`);
     isInitializing = false;
     
-    // Handle polling errors gracefully
+    // Handle polling errors gracefully with exponential backoff
+    let conflictRetries = 0;
+    const maxConflictRetries = 3;
+    
     bot.on('polling_error', (error: any) => {
       console.log('🔄 Telegram polling error:', error.code);
       
-      // If it's a conflict error, wait longer before reinitializing
+      // If it's a conflict error, use exponential backoff
       if (error.code === 'ETELEGRAM' && error.message.includes('409 Conflict')) {
-        console.log('🔄 Conflict detected, stopping bot and waiting 30 seconds before reinitializing...');
+        conflictRetries++;
         
-        // Stop current bot instance immediately
+        if (conflictRetries > maxConflictRetries) {
+          console.log('⛔ Max conflict retries reached. Stopping bot initialization.');
+          if (bot) {
+            bot.stopPolling({ cancel: true, reason: 'Max retries exceeded' }).catch(() => {});
+            bot = null;
+            setGlobalBot(null);
+          }
+          isInitializing = false;
+          return;
+        }
+        
+        console.log(`🔄 Conflict detected (retry ${conflictRetries}/${maxConflictRetries}), stopping bot...`);
+        
+        // Stop current bot instance
         if (bot) {
           bot.stopPolling({ cancel: true, reason: 'Conflict resolution' }).catch(() => {});
           bot = null;
+          setGlobalBot(null);
         }
         
-        isInitializing = false; // Reset flag
+        isInitializing = false;
+        
+        // Exponential backoff: 45s, 90s, 180s
+        const backoffDelay = 45000 * Math.pow(2, conflictRetries - 1);
+        console.log(`⏳ Waiting ${backoffDelay/1000} seconds before retry...`);
+        
         setTimeout(() => {
-          console.log('🔄 Attempting bot reinitialization after conflict...');
-          initializeTelegramBot().catch(err => {
-            console.log('❌ Failed to reinitialize bot after conflict:', err.message);
-          });
-        }, 30000); // Wait 30 seconds instead of 10
+          if (!isShuttingDown) {
+            console.log('🔄 Attempting bot reinitialization after backoff...');
+            initializeTelegramBot().catch(err => {
+              console.log('❌ Failed to reinitialize bot:', err.message);
+            });
+          }
+        }, backoffDelay);
+      } else {
+        // For non-conflict errors, just log them
+        console.log('⚠️ Non-conflict polling error:', error.message);
       }
     });
     
@@ -96,11 +168,31 @@ async function initializeTelegramBot(): Promise<void> {
   }
 }
 
-// Initialize the bot if credentials are available
+// Process cleanup handlers
+process.on('SIGTERM', async () => {
+  console.log('🛑 SIGTERM received, shutting down bot gracefully...');
+  isShuttingDown = true;
+  await cleanupBot();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('🛑 SIGINT received, shutting down bot gracefully...');
+  isShuttingDown = true;
+  await cleanupBot();
+  process.exit(0);
+});
+
+// Delayed initialization to avoid conflicts on startup
 if (botToken && channelId) {
-  initializeTelegramBot().catch(error => {
-    console.error('❌ Bot initialization failed:', error.message);
-  });
+  // Wait a bit before initializing to let any existing instances clean up
+  setTimeout(() => {
+    if (!isShuttingDown) {
+      initializeTelegramBot().catch(error => {
+        console.error('❌ Bot initialization failed:', error.message);
+      });
+    }
+  }, 5000); // 5-second delay
 } else {
   console.warn('⚠️ Telegram bot credentials not found. Telegram notifications will be disabled.');
 }
