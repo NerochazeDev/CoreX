@@ -99,40 +99,71 @@ async function initializeWelcomeBot(): Promise<void> {
   }
 }
 
-// Send welcome message to new members
+// Send welcome message to new members  
 async function sendWelcomeMessage(chatId: number, member: any): Promise<void> {
   if (!welcomeBot) return;
   
   try {
-    const memberName = member.first_name || 'New Member';
+    const memberName = member.first_name || 'Distinguished Investor';
     
-    const welcomeMessage = `🎉 **Welcome to BitVault Pro, ${memberName}!**
+    const welcomeMessage = `🏆 **Welcome to BitVault Pro** 🏆
 
-🏆 You've joined the world's most sophisticated Bitcoin investment platform.
+👋 **${memberName}**, congratulations on joining the world's most sophisticated Bitcoin investment platform.
 
-💎 **INVESTMENT PLANS:**
-🔷 Foundation: 0.5% daily (15% total ROI)
-🔶 Growth: 0.83% daily (25% total ROI) 
-🔸 Premium: 1.16% daily (35% total ROI)
-💎 Institutional: 1.94% daily (50% total ROI)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💎 **INSTITUTIONAL-GRADE INVESTMENT PLANS:**
+
+🔷 **Foundation Plan**
+• Daily Returns: **0.5%** (182% Annual APY)
+• Duration: 30 Days | Min: 0.001 BTC
+• Total ROI: 15%
+
+🔶 **Growth Plan** 
+• Daily Returns: **0.83%** (302% Annual APY)
+• Duration: 60 Days | Min: 0.01 BTC  
+• Total ROI: 25%
+
+🔸 **Premium Plan**
+• Daily Returns: **1.16%** (423% Annual APY)
+• Duration: 90 Days | Min: 0.05 BTC
+• Total ROI: 35%
+
+💎 **Institutional Plan**
+• Daily Returns: **1.94%** (708% Annual APY)
+• Duration: 180 Days | Min: 0.1 BTC
+• Total ROI: 50%
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔐 **ENTERPRISE SECURITY:**
-• Military-grade encryption
-• Cold storage protection
-• Real-time monitoring
+• 256-bit AES Military Encryption
+• Cold Storage + Multi-Factor Authentication
+• Real-time Fraud Monitoring
+• BIP39 Secure Wallet Generation
 
-📊 **FEATURES:**
-• Automated returns every 10 minutes
-• Real-time tracking
-• Instant withdrawals
-• 24/7 support
+📊 **PROFESSIONAL FEATURES:**
+• Automated Profit Distribution (Every 10 min)
+• Real-time Investment Tracking
+• Instant Withdrawal Processing
+• 24/7 Portfolio Management
 
-Your wealth-building journey starts now! 🚀`;
+**Your wealth-building journey starts here.** 👇`;
 
     const keyboard = {
       inline_keyboard: [
-        [{ text: '🚀 Start Investing', url: 'https://bitvault-pro.onrender.com/register' }],
-        [{ text: '📋 Investment Guide', callback_data: 'faq' }]
+        [
+          { 
+            text: '🚀 Start Investing Now', 
+            url: 'https://bitvault-pro.onrender.com/register'
+          }
+        ],
+        [
+          { 
+            text: '📋 Complete Investment Guide', 
+            callback_data: 'faq' 
+          }
+        ]
       ]
     };
 
@@ -142,9 +173,9 @@ Your wealth-building journey starts now! 🚀`;
       disable_web_page_preview: true
     });
     
-    console.log(`✅ Welcome message sent to ${memberName}`);
+    console.log(`✅ Professional welcome sent to ${memberName}`);
   } catch (error: any) {
-    console.error('❌ Welcome message failed:', error.message);
+    console.error('❌ Failed to send welcome message:', error.message);
   }
 }
 
@@ -155,30 +186,83 @@ async function sendFAQMessage(chatId: number, userId: number): Promise<void> {
   try {
     const faqMessage = `📋 **BitVault Pro Investment Guide**
 
-**🔐 SECURITY**
-• 256-bit AES encryption
-• Multi-factor authentication  
-• Cold storage protection
-• BIP39 wallet generation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**💰 HOW IT WORKS**
-1. Complete registration
-2. Deposit Bitcoin to secure wallet
-3. Choose investment plan
-4. Receive automated returns every 10 minutes
-5. Withdraw after completion
+**🔐 SECURITY & COMPLIANCE**
+
+• **Bank-Grade Protection:** 256-bit AES encryption, cold storage, multi-factor authentication
+• **Regulatory Compliance:** Real-time fraud monitoring and suspicious activity detection
+• **Wallet Security:** BIP39 seed phrase backup with professional Bitcoin address generation
+• **Account Protection:** Custom captcha verification and session-based authentication
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**💰 INVESTMENT PLANS**
+
+🔷 **Foundation Plan**
+• Min Investment: **0.001 BTC**
+• Daily Returns: **0.5%** | Total ROI: **15%**
+• Duration: **30 Days** | Annual APY: **182%**
+
+🔶 **Growth Plan**
+• Min Investment: **0.01 BTC**
+• Daily Returns: **0.83%** | Total ROI: **25%**
+• Duration: **60 Days** | Annual APY: **302%**
+
+🔸 **Premium Plan**
+• Min Investment: **0.05 BTC**
+• Daily Returns: **1.16%** | Total ROI: **35%**
+• Duration: **90 Days** | Annual APY: **423%**
+
+💎 **Institutional Plan**
+• Min Investment: **0.1 BTC**
+• Daily Returns: **1.94%** | Total ROI: **50%**
+• Duration: **180 Days** | Annual APY: **708%**
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**⚡ HOW IT WORKS**
+
+1️⃣ **Registration:** Complete secure account verification with email confirmation
+2️⃣ **Deposit:** Transfer Bitcoin to your secure wallet address
+3️⃣ **Invest:** Choose your preferred plan and activate investment
+4️⃣ **Earn:** Receive automated returns every 10 minutes, 24/7
+5️⃣ **Withdraw:** Process withdrawals instantly after investment completion
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 **❓ COMMON QUESTIONS**
-• **When are profits paid?** Every 10 minutes, 24/7
-• **Can I withdraw early?** After investment completion
-• **Minimum investment?** 0.001 BTC (Foundation Plan)
-• **How to track progress?** Real-time dashboard
 
-🎯 **Join thousands building wealth with institutional-grade Bitcoin investing.**`;
+**When are profits distributed?**
+Every 10 minutes, 24/7 with real-time notifications
+
+**Can I withdraw during active investments?**
+Withdrawals are protected until investment terms complete for maximum returns
+
+**Is there a minimum withdrawal?**
+No minimum - withdraw any amount after investment completion
+
+**How do I track my portfolio?**
+Real-time dashboard with live profit tracking and investment progress
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**🎯 Join thousands of successful investors building wealth with BitVault Pro's institutional-grade platform.**`;
 
     const keyboard = {
       inline_keyboard: [
-        [{ text: '🚀 Create Account', url: 'https://bitvault-pro.onrender.com/register' }]
+        [
+          { 
+            text: '🚀 Create Account Now', 
+            url: 'https://bitvault-pro.onrender.com/register'
+          }
+        ],
+        [
+          { 
+            text: '🔄 Back to Welcome', 
+            callback_data: 'welcome_back'
+          }
+        ]
       ]
     };
 
@@ -188,9 +272,9 @@ async function sendFAQMessage(chatId: number, userId: number): Promise<void> {
       disable_web_page_preview: true
     });
     
-    console.log(`✅ FAQ sent to user ${userId}`);
+    console.log(`✅ Investment guide sent to user ${userId}`);
   } catch (error: any) {
-    console.error('❌ FAQ message failed:', error.message);
+    console.error('❌ Failed to send investment guide:', error.message);
   }
 }
 
