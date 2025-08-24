@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
-import { sendInvestmentUpdateToChannel, sendNewInvestmentToChannel, sendDailyStatsToChannel } from "./telegram-bot";
+import { addInvestmentUpdateToBatch, addNewInvestmentToBatch, sendDailyStatsToChannel, sendBatchedUpdatesToChannel } from "./telegram-bot";
 
 // Extend Express Request type to include session
 declare module 'express-session' {
@@ -602,21 +602,19 @@ Your investment strategy is working! 🎉`,
               isRead: false,
             });
 
-            // Send Telegram notification to channel (30% chance to avoid spam)
-            if (Math.random() < 0.3) {
-              await sendInvestmentUpdateToChannel({
-                investmentId: investment.id,
-                userId: investment.userId,
-                userFirstName: user.firstName || undefined,
-                userLastName: user.lastName || undefined,
-                planName: plan.name,
-                profit: profitIncrease.toFixed(8),
-                totalProfit: newProfit.toFixed(8),
-                marketSource: randomSource,
-                transactionHash: transactionId,
-                timestamp: new Date().toISOString()
-              });
-            }
+            // Add to batch for Telegram notifications
+            addInvestmentUpdateToBatch({
+              investmentId: investment.id,
+              userId: investment.userId,
+              userFirstName: user.firstName || undefined,
+              userLastName: user.lastName || undefined,
+              planName: plan.name,
+              profit: profitIncrease.toFixed(8),
+              totalProfit: newProfit.toFixed(8),
+              marketSource: randomSource,
+              transactionHash: transactionId,
+              timestamp: new Date().toISOString()
+            });
           }
 
           console.log(`Investment #${investment.id} earned +${profitIncrease.toFixed(8)} BTC for user ${investment.userId} (Total profit: ${newProfit.toFixed(8)} BTC)`);
@@ -762,10 +760,14 @@ function startAutomaticUpdates(): void {
   // Set up the main 5-minute interval for investment plan updates (faster for demo)
   setInterval(processAutomaticUpdates, 5 * 60 * 1000); // 5 minutes
 
+  // Send batched Telegram updates every 30 minutes
+  setInterval(sendBatchedUpdatesToChannel, 30 * 60 * 1000); // 30 minutes
+
   // Send daily stats to Telegram channel (every 12 hours for demo purposes)
   setInterval(sendDailyStatsToChannel, 12 * 60 * 60 * 1000); // 12 hours
 
   console.log('Automatic updates will run every 5 minutes');
+  console.log('Batched Telegram updates will be sent every 30 minutes');
   console.log('Daily stats will be sent to Telegram every 12 hours');
 }
 
@@ -1026,8 +1028,8 @@ You will receive a notification once your deposit is confirmed and added to your
         isRead: false,
       });
 
-      // Send new investment notification to Telegram channel
-      await sendNewInvestmentToChannel({
+      // Add new investment to batch for Telegram notifications
+      addNewInvestmentToBatch({
         investmentId: investment.id,
         userId: userId,
         userFirstName: user.firstName || undefined,
@@ -1788,8 +1790,8 @@ Your investment journey starts here!`,
 
       const investment = await storage.createInvestment(investmentData);
 
-      // Send new investment notification to Telegram channel
-      await sendNewInvestmentToChannel({
+      // Add new investment to batch for Telegram notifications
+      addNewInvestmentToBatch({
         investmentId: investment.id,
         userId: investmentData.userId,
         userFirstName: user.firstName || undefined,
