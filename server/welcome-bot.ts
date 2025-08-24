@@ -110,6 +110,8 @@ async function sendWelcomeMessage(chatId: number, member: any): Promise<void> {
     try {
       const bannerPath = 'attached_assets/generated_images/Professional_BitVault_Pro_welcome_banner_96ebe0cb.png';
       console.log(`📷 Sending welcome banner to ${memberName}...`);
+      console.log(`📡 Sending to chat ID: ${chatId}`);
+      console.log(`🖼️ Using banner path: ${bannerPath}`);
       
       await welcomeBot.sendPhoto(chatId, bannerPath, {
         caption: `Welcome to BitVault Pro, ${memberName}! 🏆`
@@ -318,16 +320,23 @@ if (welcomeBotToken && channelId) {
 }
 
 export async function sendTestWelcomeMessage(): Promise<void> {
+  console.log('🔍 Debug sendTestWelcomeMessage:');
+  console.log('- welcomeBot exists:', !!welcomeBot);
+  console.log('- channelId exists:', !!channelId);
+  console.log('- channelId value:', channelId);
+  
   if (!welcomeBot) {
+    console.log('❌ Welcome bot not available - need TELEGRAM_WELCOME_BOT_TOKEN');
     throw new Error('Welcome bot not available - need TELEGRAM_WELCOME_BOT_TOKEN');
   }
 
   const testMember = {
-    first_name: 'Test User',
+    first_name: 'Test User', 
     id: 123456789,
     is_bot: false
   };
 
+  console.log('🧪 Calling sendWelcomeMessage with welcome bot...');
   await sendWelcomeMessage(parseInt(channelId!), testMember);
 }
 
