@@ -787,18 +787,47 @@ function startAutomaticUpdates(): void {
   // Set up the main 5-minute interval for investment plan updates (faster for demo)
   setInterval(processAutomaticUpdates, 5 * 60 * 1000); // 5 minutes
 
-  // Schedule Telegram updates every 8 hours
-  function scheduleEightHourlyTelegramUpdate() {
-    // Start immediately, then every 8 hours
-    sendBatchedUpdatesToChannel();
-    setInterval(sendBatchedUpdatesToChannel, 8 * 60 * 60 * 1000); // 8 hours
+  // Schedule Telegram updates every 12 hours
+  function scheduleTwelveHourlyTelegramUpdates() {
+    console.log('📊 Scheduling automatic telegram updates every 12 hours...');
+    
+    // Send both types of notifications every 12 hours
+    const sendBothNotifications = async () => {
+      console.log('📱 Sending scheduled 12-hour telegram notifications...');
+      
+      try {
+        // Send detailed daily stats with investment plan charts first
+        await sendDailyStatsToChannel();
+        console.log('✅ Daily stats with investment charts sent');
+        
+        // Wait 30 seconds between messages to avoid rate limits
+        setTimeout(async () => {
+          try {
+            // Send the regular batched updates
+            await sendBatchedUpdatesToChannel();
+            console.log('✅ Regular investment updates sent');
+          } catch (error: any) {
+            console.error('❌ Failed to send regular updates:', error.message);
+          }
+        }, 30000); // 30 second delay
+        
+      } catch (error: any) {
+        console.error('❌ Failed to send daily stats:', error.message);
+      }
+    };
+    
+    // Send both notifications every 12 hours
+    setInterval(sendBothNotifications, 12 * 60 * 60 * 1000); // 12 hours
+    
+    // Send initial notifications after 1 minute
+    setTimeout(sendBothNotifications, 60000);
   }
 
-  scheduleEightHourlyTelegramUpdate();
+  scheduleTwelveHourlyTelegramUpdates();
 
   console.log('Automatic updates will run every 5 minutes');
-  console.log('Telegram updates will be sent every 8 hours with cool banner');
-  console.log('Next update will be sent immediately');
+  console.log('Telegram updates will be sent every 12 hours with detailed charts and banners');
+  console.log('Both notification types will be sent together every 12 hours');
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
