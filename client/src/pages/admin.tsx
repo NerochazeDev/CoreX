@@ -197,6 +197,68 @@ export default function Management() {
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to fetch private key", variant: "destructive" });
+
+
+        {/* Telegram Channel Updates */}
+        <Card className="dark-card dark-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 dark-text">
+              <Send className="w-5 h-5" />
+              Telegram Channel Updates
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Send professional investment updates to your Telegram channel with current user statistics and top performers.
+              </p>
+              <Button
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/admin/test-telegram', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-backdoor-access': 'true'
+                      }
+                    });
+                    
+                    if (response.ok) {
+                      toast({
+                        title: "Telegram Update Sent! 📱",
+                        description: "Professional investment update has been sent to your Telegram channel.",
+                      });
+                    } else {
+                      throw new Error('Failed to send Telegram update');
+                    }
+                  } catch (error) {
+                    toast({
+                      title: "Update Failed",
+                      description: "Failed to send Telegram update. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                className="w-full"
+                variant="default"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Send Channel Update Now
+              </Button>
+            </div>
+            
+            <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg">
+              <p><strong>What gets sent:</strong></p>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li>Current Bitcoin price and market data</li>
+                <li>Top 30 performing investors with portfolio stats</li>
+                <li>Platform statistics and metrics</li>
+                <li>Professional branding and messaging</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
     },
   });
 
