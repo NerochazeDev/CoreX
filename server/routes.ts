@@ -2998,9 +2998,44 @@ const { planId, dailyReturnRate } = z.object({
       }
 
       // Import and trigger the Telegram bot update
-      const { sendBatchedUpdatesToChannel } = await import('./telegram-bot');
+      const { sendBatchedUpdatesToChannel, bot } = await import('./telegram-bot');
+      
+      // Check if bot is configured
+      if (!bot) {
+        return res.status(500).json({ 
+          error: "Telegram bot not initialized. Check TELEGRAM_BOT_TOKEN environment variable." 
+        });
+      }
+
+      const channelId = process.env.TELEGRAM_CHANNEL_ID;
+      if (!channelId) {
+        return res.status(500).json({ 
+          error: "Telegram channel not configured. Check TELEGRAM_CHANNEL_ID environment variable." 
+        });
+      }
+
+      console.log('🔍 Testing Telegram bot with Channel ID:', channelId);
+      
+      // Send a simple test message first
+      try {
+        await bot.sendMessage(channelId, '🧪 **BitVault Pro Test Message**\n\nThis is a test message from your admin panel.\n\nIf you see this, your Telegram bot is working correctly!', { 
+          parse_mode: 'Markdown',
+          disable_web_page_preview: true 
+        });
+        console.log('✅ Simple test message sent successfully');
+      } catch (testError: any) {
+        console.error('❌ Simple test message failed:', testError);
+        return res.status(500).json({ 
+          error: `Test message failed: ${testError.message}` 
+        });
+      }
+      
+      // Now send the full update
       await sendBatchedUpdatesToChannel();
-      res.json({ message: "Professional Telegram update sent successfully!" });
+      res.json({ 
+        message: "Telegram test completed successfully!",
+        channelId: channelId.replace(/\d/g, '*') // Mask the channel ID for security
+      });
     } catch (error: any) {
       console.error('Error sending Telegram test:', error);
       res.status(500).json({ error: error.message });

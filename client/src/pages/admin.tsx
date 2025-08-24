@@ -224,17 +224,20 @@ export default function Management() {
                     });
                     
                     if (response.ok) {
+                      const result = await response.json();
                       toast({
                         title: "Telegram Update Sent! 📱",
                         description: "Professional investment update has been sent to your Telegram channel.",
                       });
                     } else {
-                      throw new Error('Failed to send Telegram update');
+                      const errorData = await response.json();
+                      throw new Error(errorData.error || 'Failed to send Telegram update');
                     }
-                  } catch (error) {
+                  } catch (error: any) {
+                    console.error('Telegram test error:', error);
                     toast({
                       title: "Update Failed",
-                      description: "Failed to send Telegram update. Please try again.",
+                      description: `Failed to send Telegram update: ${error.message}`,
                       variant: "destructive"
                     });
                   }

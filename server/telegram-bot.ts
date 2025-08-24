@@ -95,8 +95,12 @@ export function addNewInvestmentToBatch(investment: NewInvestment): void {
 }
 
 export async function sendDailyStatsToChannel(): Promise<void> {
+  console.log('📊 Attempting to send daily stats to Telegram...');
+  
   if (!bot || !channelId) {
-    console.log('Telegram bot not configured, skipping daily stats');
+    console.log('❌ Telegram bot not configured for daily stats');
+    console.log('Bot token present:', !!botToken);
+    console.log('Channel ID present:', !!channelId);
     return;
   }
 
@@ -137,17 +141,23 @@ export async function sendDailyStatsToChannel(): Promise<void> {
 }
 
 export async function sendBatchedUpdatesToChannel(): Promise<void> {
+  console.log('🔍 Telegram Debug - Bot configured:', !!bot, 'Channel ID:', channelId);
+  
   if (!bot || !channelId) {
-    console.log('Telegram bot not configured, skipping batch updates');
+    console.log('❌ Telegram bot not configured, skipping batch updates');
+    console.log('Bot token present:', !!botToken);
+    console.log('Channel ID present:', !!channelId);
     return;
   }
 
   try {
-    // 30% chance to send batch notifications (to avoid spam)
-    if (Math.random() > 0.3) {
-      console.log('Skipping batch updates this round (30% chance)');
-      return;
-    }
+    console.log('📱 Attempting to send Telegram update...');
+    
+    // Always send for testing - remove the 30% chance temporarily
+    // if (Math.random() > 0.3) {
+    //   console.log('Skipping batch updates this round (30% chance)');
+    //   return;
+    // }
 
     // Get current Bitcoin price and platform stats
     const { storage } = await import('./storage');
@@ -313,14 +323,19 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
       }
     }
 
-    console.log(`✅ Sent professional investment update to Telegram channel`);
+    console.log(`✅ Sent professional investment update to Telegram channel: ${channelId}`);
 
     // Clear the batches
     batchedUpdates = [];
     batchedNewInvestments = [];
     
-  } catch (error) {
-    console.error('❌ Failed to send batch updates:', error);
+  } catch (error: any) {
+    console.error('❌ Failed to send batch updates to Telegram:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      response: error.response?.body
+    });
   }
 }
 
