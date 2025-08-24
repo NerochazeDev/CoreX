@@ -6,40 +6,105 @@ const channelId = process.env.TELEGRAM_CHANNEL_ID;
 
 let bot: TelegramBot | null = null;
 
+// Function to cleanup existing bot instance
+async function cleanupBot(): Promise<void> {
+  if (bot) {
+    try {
+      await bot.stopPolling();
+      console.log('🧹 Previous bot instance cleaned up');
+    } catch (error) {
+      // Ignore cleanup errors
+    }
+    bot = null;
+  }
+}
+
 if (botToken && channelId) {
-  bot = new TelegramBot(botToken, { polling: true });
-  console.log('✅ Telegram bot initialized successfully');
-  
-  // Handle new members joining the group/channel
-  bot.on('new_chat_members', (msg) => {
-    const chatId = msg.chat.id;
-    const newMembers = msg.new_chat_members;
+  try {
+    // Cleanup any existing bot instance first
+    await cleanupBot();
     
-    if (newMembers && bot) {
-      newMembers.forEach((member) => {
-        if (!member.is_bot) {
-          sendWelcomeMessage(chatId, member);
+    // Initialize bot with better error handling and conflict resolution
+    bot = new TelegramBot(botToken, { 
+      polling: {
+        interval: 1000,
+        autoStart: true,
+        params: {
+          timeout: 10
         }
-      });
-    }
-  });
-  
-  // Handle callback queries for inline keyboard buttons
-  bot.on('callback_query', (callbackQuery) => {
-    const msg = callbackQuery.message;
-    const data = callbackQuery.data;
+      }
+    });
     
-    if (data === 'register_now' && bot) {
-      bot.answerCallbackQuery(callbackQuery.id, {
-        text: 'Redirecting to registration...',
-        show_alert: false
-      });
-    } else if (data === 'faq' && bot) {
-      sendFAQMessage(msg!.chat.id, callbackQuery.from.id);
-      bot.answerCallbackQuery(callbackQuery.id);
-    }
-  });
-  
+    console.log('✅ Telegram bot initialized successfully');
+    
+    // Handle polling errors gracefully
+    bot.on('polling_error', (error) => {
+      console.log('🔄 Telegram polling error (will retry):', error.code);
+      
+      // If it's a conflict error, try to restart polling after a delay
+      if (error.code === 'ETELEGRAM' && error.message.includes('409 Conflict')) {
+        console.log('🔄 Resolving bot conflict, restarting in 5 seconds...');
+        setTimeout(() => {
+          if (bot) {
+            bot.stopPolling().then(() => {
+              setTimeout(() => {
+                if (bot) {
+                  bot.startPolling().catch(err => {
+                    console.log('❌ Failed to restart polling:', err.message);
+                  });
+                }
+              }, 2000);
+            }).catch(() => {
+              // Ignore stop polling errors
+            });
+          }
+        }, 5000);
+      }
+    });
+    
+    // Handle new members joining the group/channel
+    bot.on('new_chat_members', (msg) => {
+      console.log('👋 New member(s) detected in chat:', msg.chat.id);
+      const chatId = msg.chat.id;
+      const newMembers = msg.new_chat_members;
+      
+      if (newMembers && bot) {
+        newMembers.forEach((member) => {
+          if (!member.is_bot) {
+            console.log(`📨 Sending welcome message to: ${member.first_name} ${member.last_name || ''}`);
+            sendWelcomeMessage(chatId, member);
+          }
+        });
+      }
+    });
+    
+    // Handle callback queries for inline keyboard buttons
+    bot.on('callback_query', (callbackQuery) => {
+      const msg = callbackQuery.message;
+      const data = callbackQuery.data;
+      
+      console.log('🔘 Callback query received:', data);
+      
+      if (data === 'register_now' && bot) {
+        bot.answerCallbackQuery(callbackQuery.id, {
+          text: 'Redirecting to registration...',
+          show_alert: false
+        });
+      } else if (data === 'faq' && bot) {
+        sendFAQMessage(msg!.chat.id, callbackQuery.from.id);
+        bot.answerCallbackQuery(callbackQuery.id);
+      }
+    });
+    
+    // Handle general errors
+    bot.on('error', (error) => {
+      console.log('❌ Telegram bot error:', error.message);
+    });
+    
+  } catch (error: any) {
+    console.error('❌ Failed to initialize Telegram bot:', error.message);
+    bot = null;
+  }
 } else {
   console.warn('⚠️ Telegram bot credentials not found. Telegram notifications will be disabled.');
 }
