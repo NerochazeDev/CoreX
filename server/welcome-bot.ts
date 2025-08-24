@@ -84,9 +84,19 @@ async function sendWelcomeMessage(chatId: number, member: any): Promise<void> {
   try {
     const memberName = member.first_name || 'Distinguished Investor';
     
-    const welcomeMessage = `🏆 **Welcome to BitVault Pro** 🏆
-
-👋 **${memberName}**, congratulations on joining the world's most sophisticated Bitcoin investment platform.
+    // First send the welcome banner
+    try {
+      await welcomeBot.sendPhoto(chatId, './attached_assets/generated_images/BitVault_Pro_welcome_banner_9742c70c.png', {
+        caption: `🏆 Welcome to BitVault Pro, ${memberName}! 🏆`
+      });
+      
+      // Small delay to ensure proper message order
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } catch (bannerError: any) {
+      console.log('⚠️ Banner send failed, continuing with text message:', bannerError.message);
+    }
+    
+    const welcomeMessage = `👋 **${memberName}**, congratulations on joining the world's most sophisticated Bitcoin investment platform.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -151,7 +161,7 @@ async function sendWelcomeMessage(chatId: number, member: any): Promise<void> {
       disable_web_page_preview: true
     });
     
-    console.log(`✅ Welcome message sent successfully to ${memberName}`);
+    console.log(`✅ Welcome message with banner sent successfully to ${memberName}`);
   } catch (error: any) {
     console.error('❌ Failed to send welcome message:', error.message);
   }
