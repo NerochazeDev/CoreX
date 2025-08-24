@@ -1,10 +1,11 @@
+
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import { BottomNavigation } from "@/components/bottom-navigation";
-import {
-  Copy, User, Bitcoin, Key, ExternalLink, Shield, ArrowLeft, TrendingUp,
+import { 
+  Copy, User, Bitcoin, Key, ExternalLink, Shield, ArrowLeft, TrendingUp, 
   Activity, Calendar, Mail, Hash, Award, Wallet, Eye, EyeOff, Settings,
   BarChart3, PieChart, LineChart, DollarSign, Clock, CheckCircle,
   AlertTriangle, Star, Trophy, Target, Zap, Lock, Globe, Smartphone,
@@ -35,7 +36,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 function ProfileContent() {
-  const { user, logout, setUser } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const { currency } = useCurrency();
   const { data: price } = useBitcoinPrice();
@@ -111,12 +112,12 @@ function ProfileContent() {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
-
+      
       img.onload = () => {
         // Calculate new dimensions (max 400x400 while maintaining aspect ratio)
         const maxSize = 400;
         let { width, height } = img;
-
+        
         if (width > height) {
           if (width > maxSize) {
             height = (height * maxSize) / width;
@@ -128,18 +129,18 @@ function ProfileContent() {
             height = maxSize;
           }
         }
-
+        
         canvas.width = width;
         canvas.height = height;
-
+        
         // Draw and compress
         ctx?.drawImage(img, 0, 0, width, height);
-
+        
         // Convert to base64 with compression (0.8 quality)
         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
         resolve(compressedDataUrl);
       };
-
+      
       img.src = URL.createObjectURL(file);
     });
   };
@@ -162,10 +163,10 @@ function ProfileContent() {
           title: "Processing image...",
           description: "Compressing your image for faster upload.",
         });
-
+        
         const compressedImage = await compressImage(file);
         setUploadedImage(compressedImage);
-
+        
         toast({
           title: "Image ready",
           description: "Your image has been processed and is ready to save.",
@@ -183,48 +184,27 @@ function ProfileContent() {
   };
 
   const handleAvatarSave = async () => {
-    if (!uploadedImage || !user) return;
-
+    if (!uploadedImage) return;
+    
+    setIsUploadingAvatar(true);
+    
     try {
-      setIsUploadingAvatar(true);
-
-      toast({
-        title: "💾 Saving image...",
-        description: "Uploading your new profile picture.",
-      });
-
-      const response = await fetch(`/api/me/profile`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': localStorage.getItem('authToken') ? `Bearer ${localStorage.getItem('authToken')}` : ''
-        },
-        credentials: 'include',
-        body: JSON.stringify({ avatar: uploadedImage })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to save avatar');
-      }
-
-      const result = await response.json();
-      setUser(result.user);
+      // Update profile with new avatar using the correct mutation
+      const result = await updateProfileMutation.mutateAsync({ avatar: uploadedImage });
+      
+      setProfileData(prev => ({ ...prev, avatar: uploadedImage }));
+      setAvatarDialogOpen(false);
       setUploadedImage(null);
-
+      
       toast({
-        title: "🎉 Avatar updated!",
-        description: "Your profile picture has been saved successfully.",
+        title: "Profile Picture Updated",
+        description: "Your new profile picture has been saved successfully.",
       });
-
-      // Wait a moment before allowing new uploads
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
     } catch (error: any) {
-      console.error('Avatar save error:', error);
+      console.error('Avatar upload error:', error);
       toast({
-        title: "❌ Save failed",
-        description: error.message || "Failed to save your profile picture. Please try again.",
+        title: "Upload Failed",
+        description: error?.message || "Failed to update profile picture. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -235,7 +215,7 @@ function ProfileContent() {
   const handleAvatarRemove = async () => {
     try {
       await updateProfileMutation.mutateAsync({ avatar: '' });
-
+      
       setProfileData(prev => ({ ...prev, avatar: '' }));
       setUploadedImage(null);
       toast({
@@ -263,15 +243,15 @@ function ProfileContent() {
     ];
     const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
     const gradientAvatar = `gradient-${randomGradient}`;
-
+    
     try {
       await updateProfileMutation.mutateAsync({ avatar: gradientAvatar });
-
-      setProfileData(prev => ({
-        ...prev,
+      
+      setProfileData(prev => ({ 
+        ...prev, 
         avatar: gradientAvatar
       }));
-
+      
       toast({
         title: "Avatar Generated",
         description: "A new gradient avatar has been created for you.",
@@ -338,10 +318,10 @@ function ProfileContent() {
     try {
       const { notifications, privacy, ...profileUpdateData } = profileData;
       await updateProfileMutation.mutateAsync(profileUpdateData);
-
+      
       // Close dialog and show success feedback
       setIsEditDialogOpen(false);
-
+      
       // Force a page reload to show updated data
       setTimeout(() => {
         window.location.reload();
@@ -393,16 +373,16 @@ function ProfileContent() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName">First Name</Label>
-                        <Input
-                          id="firstName"
+                        <Input 
+                          id="firstName" 
                           value={profileData.firstName}
                           onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
                         />
                       </div>
                       <div>
                         <Label htmlFor="lastName">Last Name</Label>
-                        <Input
-                          id="lastName"
+                        <Input 
+                          id="lastName" 
                           value={profileData.lastName}
                           onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
                         />
@@ -410,8 +390,8 @@ function ProfileContent() {
                     </div>
                     <div>
                       <Label htmlFor="bio">Bio</Label>
-                      <Textarea
-                        id="bio"
+                      <Textarea 
+                        id="bio" 
                         placeholder="Tell us about yourself..."
                         value={profileData.bio}
                         onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
@@ -420,8 +400,8 @@ function ProfileContent() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="location">Location</Label>
-                        <Input
-                          id="location"
+                        <Input 
+                          id="location" 
                           placeholder="City, Country"
                           value={profileData.location}
                           onChange={(e) => setProfileData({...profileData, location: e.target.value})}
@@ -429,8 +409,8 @@ function ProfileContent() {
                       </div>
                       <div>
                         <Label htmlFor="website">Website</Label>
-                        <Input
-                          id="website"
+                        <Input 
+                          id="website" 
                           placeholder="https://"
                           value={profileData.website}
                           onChange={(e) => setProfileData({...profileData, website: e.target.value})}
@@ -438,8 +418,8 @@ function ProfileContent() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        onClick={handleProfileUpdate}
+                      <Button 
+                        onClick={handleProfileUpdate} 
                         className="flex-1"
                         disabled={updateProfileMutation.isPending}
                       >
@@ -455,8 +435,8 @@ function ProfileContent() {
                           </>
                         )}
                       </Button>
-                      <Button
-                        variant="outline"
+                      <Button 
+                        variant="outline" 
                         onClick={() => setIsEditDialogOpen(false)}
                         disabled={updateProfileMutation.isPending}
                       >
@@ -466,10 +446,10 @@ function ProfileContent() {
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button
+              <Button 
                 onClick={logout}
-                variant="destructive"
-                size="sm"
+                variant="destructive" 
+                size="sm" 
                 className="gap-2"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -486,7 +466,7 @@ function ProfileContent() {
           <div className="absolute inset-0 bg-black/20"></div>
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
-
+          
           <CardContent className="p-8 relative z-10">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <div className="relative group">
@@ -558,9 +538,9 @@ function ProfileContent() {
                               className="hidden"
                               disabled={isUploadingAvatar}
                             />
-                            <Button
-                              variant="outline"
-                              className="w-full gap-2 cursor-pointer"
+                            <Button 
+                              variant="outline" 
+                              className="w-full gap-2 cursor-pointer" 
                               asChild
                               disabled={isUploadingAvatar}
                             >
@@ -632,11 +612,11 @@ function ProfileContent() {
                   </DialogContent>
                 </Dialog>
               </div>
-
+              
               <div className="flex-1 space-y-3">
                 <div>
                   <h2 className="text-3xl font-bold text-white mb-1">
-                    {profileData.firstName || profileData.lastName
+                    {profileData.firstName || profileData.lastName 
                       ? `${profileData.firstName} ${profileData.lastName}`.trim()
                       : user.email.split('@')[0]
                     }
@@ -1143,11 +1123,11 @@ function ProfileContent() {
                       <p className="font-medium">Email Notifications</p>
                       <p className="text-sm text-muted-foreground">Investment updates and alerts</p>
                     </div>
-                    <Switch
+                    <Switch 
                       checked={profileData.notifications.email}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={(checked) => 
                         setProfileData({
-                          ...profileData,
+                          ...profileData, 
                           notifications: {...profileData.notifications, email: checked}
                         })
                       }
@@ -1158,11 +1138,11 @@ function ProfileContent() {
                       <p className="font-medium">Push Notifications</p>
                       <p className="text-sm text-muted-foreground">Browser notifications</p>
                     </div>
-                    <Switch
+                    <Switch 
                       checked={profileData.notifications.push}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={(checked) => 
                         setProfileData({
-                          ...profileData,
+                          ...profileData, 
                           notifications: {...profileData.notifications, push: checked}
                         })
                       }
@@ -1173,11 +1153,11 @@ function ProfileContent() {
                       <p className="font-medium">SMS Notifications</p>
                       <p className="text-sm text-muted-foreground">Important security alerts</p>
                     </div>
-                    <Switch
+                    <Switch 
                       checked={profileData.notifications.sms}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={(checked) => 
                         setProfileData({
-                          ...profileData,
+                          ...profileData, 
                           notifications: {...profileData.notifications, sms: checked}
                         })
                       }
@@ -1199,11 +1179,11 @@ function ProfileContent() {
                       <p className="font-medium">Profile Visibility</p>
                       <p className="text-sm text-muted-foreground">Show profile to other users</p>
                     </div>
-                    <Switch
+                    <Switch 
                       checked={profileData.privacy.profileVisible}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={(checked) => 
                         setProfileData({
-                          ...profileData,
+                          ...profileData, 
                           privacy: {...profileData.privacy, profileVisible: checked}
                         })
                       }
@@ -1214,11 +1194,11 @@ function ProfileContent() {
                       <p className="font-medium">Show Balance</p>
                       <p className="text-sm text-muted-foreground">Display balance publicly</p>
                     </div>
-                    <Switch
+                    <Switch 
                       checked={profileData.privacy.showBalance}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={(checked) => 
                         setProfileData({
-                          ...profileData,
+                          ...profileData, 
                           privacy: {...profileData.privacy, showBalance: checked}
                         })
                       }
@@ -1229,11 +1209,11 @@ function ProfileContent() {
                       <p className="font-medium">Show Investments</p>
                       <p className="text-sm text-muted-foreground">Display investment activity</p>
                     </div>
-                    <Switch
+                    <Switch 
                       checked={profileData.privacy.showInvestments}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={(checked) => 
                         setProfileData({
-                          ...profileData,
+                          ...profileData, 
                           privacy: {...profileData.privacy, showInvestments: checked}
                         })
                       }
@@ -1287,8 +1267,8 @@ function ProfileContent() {
               <span>Invest</span>
             </Button>
           </Link>
-          <Button
-            variant="outline"
+          <Button 
+            variant="outline" 
             className="w-full h-14 gap-2"
             onClick={() => copyToClipboard(user.email, 'Email')}
           >
