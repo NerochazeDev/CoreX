@@ -68,6 +68,15 @@ export function addNewInvestmentToBatch(investment: any): void {
   console.log('💰 New investment queued:', investment.investmentId);
 }
 
+// Generate activity chart for investment plan
+function generateActivityChart(activityPercent: number): string {
+  const maxBars = 10;
+  const filledBars = Math.round((activityPercent / 100) * maxBars);
+  const emptyBars = maxBars - filledBars;
+  
+  return '█'.repeat(filledBars) + '░'.repeat(emptyBars);
+}
+
 // Send daily stats to channel
 export async function sendDailyStatsToChannel(): Promise<void> {
   console.log('📊 Sending daily stats to Telegram...');
@@ -79,6 +88,7 @@ export async function sendDailyStatsToChannel(): Promise<void> {
     // Calculate platform statistics
     const allUsers = await storage.getAllUsers();
     const allInvestments = await storage.getAllInvestments();
+    const investmentPlans = await storage.getInvestmentPlans();
     
     // Calculate total balance across all users
     const totalBalance = allUsers.reduce((sum, user) => {
@@ -108,7 +118,27 @@ export async function sendDailyStatsToChannel(): Promise<void> {
     const totalBalanceUSD = totalBalance * bitcoinPrice;
     const totalProfitUSD = totalProfit * bitcoinPrice;
     
-    const message = `🏆 BITVAULT PRO • Daily Update
+    // Calculate plan-specific statistics
+    const planStats = investmentPlans.map(plan => {
+      const planInvestments = allInvestments.filter(inv => inv.planId === plan.id && inv.isActive);
+      const planTotalAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+      const planTotalProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
+      const activityPercent = Math.min(100, (planInvestments.length / Math.max(1, activeInvestments.length)) * 100);
+      
+      return {
+        plan,
+        activeCount: planInvestments.length,
+        totalAmount: planTotalAmount,
+        totalProfit: planTotalProfit,
+        activityPercent,
+        chart: generateActivityChart(activityPercent)
+      };
+    });
+    
+    // Sort plans by activity level
+    planStats.sort((a, b) => b.activityPercent - a.activityPercent);
+    
+    let message = `🏆 BITVAULT PRO • Daily Update
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -125,17 +155,26 @@ export async function sendDailyStatsToChannel(): Promise<void> {
 💰 Total Balance: *${totalBalance.toFixed(6)} BTC* ($${totalBalanceUSD.toLocaleString()})
 🚀 Total Profit Generated: *${totalProfit.toFixed(6)} BTC* ($${totalProfitUSD.toLocaleString()})
 
+📊 *Investment Plans Activity Chart*
+`;
+
+    // Add plan statistics with activity charts
+    planStats.forEach((stat, index) => {
+      const planEmoji = ['\ud83d\udd37', '\ud83d\udd36', '\ud83d\udd38', '\ud83d\udc8e'][index] || '\ud83d\udcb5';
+      message += `\n${planEmoji} *${stat.plan.name}* (${stat.plan.roiPercentage}% ROI)
+`;
+      message += `   ${stat.chart} ${stat.activityPercent.toFixed(1)}%\n`;
+      message += `   📋 Active: ${stat.activeCount} | 💰 Amount: ${stat.totalAmount.toFixed(4)} BTC\n`;
+      message += `   🚀 Profit: ${stat.totalProfit.toFixed(6)} BTC ($${(stat.totalProfit * bitcoinPrice).toLocaleString()})\n`;
+    });
+    
+    message += `
+
 🚀 *Platform Status*
 ⚡ Automated returns: *ACTIVE*
-🎯 Investment plans: *4 AVAILABLE*  
+🎯 Investment plans: *${investmentPlans.length} AVAILABLE*  
 💎 Profit distribution: *Every 10 minutes*
 📈 Success rate: *99.9%*
-
-💰 *Investment Opportunities:*
-🔷 *Foundation:* 0.5% daily (15% total in 30 days)
-🔶 *Growth:* 0.83% daily (25% total in 60 days)
-🔸 *Premium:* 1.16% daily (35% total in 90 days)  
-💎 *Institutional:* 1.94% daily (50% total in 180 days)
 
 ✨ *Join thousands earning passive Bitcoin income*
 🔐 *Military-grade security & instant withdrawals*
@@ -145,7 +184,7 @@ export async function sendDailyStatsToChannel(): Promise<void> {
 
     const success = await sendToChannel(message);
     if (success) {
-      console.log('✅ Daily stats sent to Telegram');
+      console.log('✅ Daily stats with investment plan charts sent to Telegram');
     } else {
       console.log('❌ Failed to send daily stats');
     }
@@ -217,7 +256,28 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           const totalBalanceUSD = totalBalance * bitcoinPrice;
           const totalProfitUSD = totalProfit * bitcoinPrice;
           
-          const message = `🚀 *BITVAULT PRO - LIVE UPDATE*
+          // Calculate plan-specific statistics for live update
+          const investmentPlans = await storage.getInvestmentPlans();
+          const planStats = investmentPlans.map(plan => {
+            const planInvestments = allInvestments.filter(inv => inv.planId === plan.id && inv.isActive);
+            const planTotalAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+            const planTotalProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
+            const activityPercent = Math.min(100, (planInvestments.length / Math.max(1, activeInvestments.length)) * 100);
+            
+            return {
+              plan,
+              activeCount: planInvestments.length,
+              totalAmount: planTotalAmount,
+              totalProfit: planTotalProfit,
+              activityPercent,
+              chart: generateActivityChart(activityPercent)
+            };
+          });
+          
+          // Sort plans by activity level
+          planStats.sort((a, b) => b.activityPercent - a.activityPercent);
+          
+          let message = `🚀 *BITVAULT PRO - LIVE UPDATE*
 
 💰 *Real-Time Platform Stats*
 👥 Total Users: *${allUsers.length.toLocaleString()}*
@@ -226,17 +286,24 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
 🚀 Total Profit: *${totalProfit.toFixed(6)} BTC* ($${totalProfitUSD.toLocaleString()})
 ₿ Bitcoin Price: *$${bitcoinPrice.toLocaleString()}*
 
+📊 *Live Investment Plans Activity*
+`;
+
+          // Add plan statistics with activity charts
+          planStats.forEach((stat, index) => {
+            const planEmoji = ['\ud83d\udd37', '\ud83d\udd36', '\ud83d\udd38', '\ud83d\udc8e'][index] || '\ud83d\udcb5';
+            message += `\n${planEmoji} *${stat.plan.name}*\n`;
+            message += `   ${stat.chart} ${stat.activityPercent.toFixed(1)}%\n`;
+            message += `   📋 ${stat.activeCount} active | 💰 ${stat.totalAmount.toFixed(4)} BTC\n`;
+          });
+          
+          message += `
+
 📊 *Platform Performance*
 • Active investors earning consistent returns
 • 24/7 automated profit distribution  
 • Real-time Bitcoin market analysis
 • Institutional-grade security protocols
-
-💎 *Investment Plans Active:*
-🔷 Foundation: 15% total return (30 days)
-🔶 Growth: 25% total return (60 days)  
-🔸 Premium: 35% total return (90 days)
-💎 Institutional: 50% total return (180 days)
 
 🏆 *Join the financial revolution with BitVault Pro*
 
@@ -277,13 +344,32 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
         const totalBalance = allUsers.reduce((sum, user) => sum + parseFloat(user.balance), 0);
         const totalProfit = allInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
         
-        const message = `🚀 BITVAULT PRO - Investment Update
+        // Calculate quick plan stats for fallback
+        const investmentPlans = await storage.getInvestmentPlans();
+        const planStats = investmentPlans.map(plan => {
+          const planInvestments = allInvestments.filter(inv => inv.planId === plan.id && inv.isActive);
+          return {
+            name: plan.name,
+            count: planInvestments.length,
+            amount: planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0)
+          };
+        });
+        
+        let message = `🚀 BITVAULT PRO - Investment Update
 
 💰 Platform Stats:
 👥 Users: ${allUsers.length}
 💎 Total Balance: ${totalBalance.toFixed(6)} BTC
 🚀 Total Profit: ${totalProfit.toFixed(6)} BTC
 
+📊 Investment Plans Activity:
+`;
+        
+        planStats.forEach(stat => {
+          message += `\u2022 ${stat.name}: ${stat.count} active (${stat.amount.toFixed(4)} BTC)\n`;
+        });
+        
+        message += `
 Platform operating at full capacity
 All investment plans generating consistent returns
 
@@ -293,9 +379,9 @@ ${new Date().toLocaleString()}`;
       } catch (error) {
         const message = `🚀 BITVAULT PRO - Investment Update
 
-Platform operating at full capacity
-All investment plans generating consistent returns
-Join thousands of successful Bitcoin investors
+📊 All investment plans active and generating returns
+💎 Platform operating at full capacity  
+🏆 Join thousands of successful Bitcoin investors
 
 ${new Date().toLocaleString()}`;
         
