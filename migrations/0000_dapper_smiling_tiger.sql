@@ -3,7 +3,23 @@ CREATE TABLE "admin_config" (
 	"vault_address" text NOT NULL,
 	"deposit_address" text NOT NULL,
 	"free_plan_rate" numeric(8, 6) DEFAULT '0.0001' NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"baseline_users" integer DEFAULT 420 NOT NULL,
+	"baseline_active_investments" integer DEFAULT 804 NOT NULL,
+	"baseline_total_balance" numeric(18, 8) DEFAULT '70275.171605' NOT NULL,
+	"baseline_total_profit" numeric(18, 8) DEFAULT '460.347340' NOT NULL,
+	"growth_plan_active" integer DEFAULT 227 NOT NULL,
+	"growth_plan_amount" numeric(18, 8) DEFAULT '11004.9901' NOT NULL,
+	"growth_plan_profit" numeric(18, 8) DEFAULT '101.649889' NOT NULL,
+	"institutional_plan_active" integer DEFAULT 210 NOT NULL,
+	"institutional_plan_amount" numeric(18, 8) DEFAULT '9228.4977' NOT NULL,
+	"institutional_plan_profit" numeric(18, 8) DEFAULT '205.248890' NOT NULL,
+	"premium_plan_active" integer DEFAULT 198 NOT NULL,
+	"premium_plan_amount" numeric(18, 8) DEFAULT '9274.8974' NOT NULL,
+	"premium_plan_profit" numeric(18, 8) DEFAULT '114.419514' NOT NULL,
+	"foundation_plan_active" integer DEFAULT 169 NOT NULL,
+	"foundation_plan_amount" numeric(18, 8) DEFAULT '7436.5081' NOT NULL,
+	"foundation_plan_profit" numeric(18, 8) DEFAULT '39.029047' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "investment_plans" (

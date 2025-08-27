@@ -82,5 +82,26 @@ args = "sleep 3"
 task = "shell.exec"
 args = "npm run dev"
 
+[[workflows.workflow]]
+name = "Restart App Clean"
+author = 46938142
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"tsx server/index.ts\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node.*server\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sleep 3"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
 [agent]
 integrations = ["javascript_database==1.0.0"]
