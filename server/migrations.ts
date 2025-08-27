@@ -31,6 +31,24 @@ async function tablesExist(): Promise<boolean> {
   }
 }
 
+// Add missing columns to existing tables
+async function addMissingColumns(): Promise<void> {
+  try {
+    // Add missing columns to users table
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS website TEXT`);
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT`);
+    
+    // Add missing columns to investments table
+    await db.execute(sql`ALTER TABLE investments ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE`);
+    
+    console.log('✅ Missing columns added successfully');
+  } catch (error) {
+    console.warn('⚠️ Error adding missing columns:', error);
+    // Continue execution - some columns might already exist
+  }
+}
+
 // Run safe schema updates that won't break existing data
 export async function runSafeMigrations() {
   try {
@@ -40,6 +58,9 @@ export async function runSafeMigrations() {
     if (isEmpty) {
       console.log('🆕 New database detected - setting up complete schema...');
     } else if (hasCoreTables) {
+      console.log('📦 Database tables exist, checking for missing columns...');
+      // Add missing columns to existing tables
+      await addMissingColumns();
       console.log('✅ Database schema is up to date');
       return;
     } else {
@@ -67,6 +88,9 @@ export async function runSafeMigrations() {
         current_plan_id INTEGER,
         has_wallet BOOLEAN DEFAULT FALSE,
         accept_marketing BOOLEAN DEFAULT FALSE,
+        bio TEXT,
+        website TEXT,
+        avatar TEXT,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
@@ -100,6 +124,7 @@ export async function runSafeMigrations() {
         end_date TIMESTAMP,
         current_profit DECIMAL(20, 8) DEFAULT 0,
         status VARCHAR(50) DEFAULT 'active',
+        is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
