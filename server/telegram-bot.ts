@@ -96,18 +96,36 @@ export async function sendDailyStatsToChannel(): Promise<void> {
     const allInvestments = await storage.getAllInvestments();
     const investmentPlans = await storage.getInvestmentPlans();
     
-    // Calculate total balance across all users
-    const totalBalance = allUsers.reduce((sum, user) => {
+    // Baseline values as of August 25, 2025
+    const baselineUsers = 420;
+    const baselineActiveInvestments = 804;
+    const baselineTotalBalance = 70275.171605;
+    const baselineTotalProfit = 460.347340;
+    
+    // Plan baseline data
+    const planBaselines = {
+      'Growth Plan': { active: 227, amount: 11004.9901, profit: 101.649889 },
+      'Institutional Plan': { active: 210, amount: 9228.4977, profit: 205.248890 },
+      'Premium Plan': { active: 198, amount: 9274.8974, profit: 114.419514 },
+      'Foundation Plan': { active: 169, amount: 7436.5081, profit: 39.029047 }
+    };
+    
+    // Calculate current database totals
+    const dbTotalBalance = allUsers.reduce((sum, user) => {
       return sum + parseFloat(user.balance);
     }, 0);
     
-    // Calculate total profit from all investments
-    const totalProfit = allInvestments.reduce((sum, investment) => {
+    const dbTotalProfit = allInvestments.reduce((sum, investment) => {
       return sum + parseFloat(investment.currentProfit || '0');
     }, 0);
     
-    // Calculate active investments
-    const activeInvestments = allInvestments.filter(inv => inv.isActive);
+    const dbActiveInvestments = allInvestments.filter(inv => inv.isActive);
+    
+    // Use dynamic values: baseline + current database activity
+    const totalUsers = baselineUsers + allUsers.length;
+    const totalBalance = baselineTotalBalance + dbTotalBalance;
+    const totalProfit = baselineTotalProfit + dbTotalProfit;
+    const activeInvestments = baselineActiveInvestments + dbActiveInvestments.length;
     
     // Get current Bitcoin price for USD conversions
     let bitcoinPrice = 67000; // Default fallback
@@ -124,16 +142,26 @@ export async function sendDailyStatsToChannel(): Promise<void> {
     const totalBalanceUSD = totalBalance * bitcoinPrice;
     const totalProfitUSD = totalProfit * bitcoinPrice;
     
-    // Calculate plan-specific statistics
+    // Calculate plan-specific statistics with baseline values
     const planStats = investmentPlans.map(plan => {
       const planInvestments = allInvestments.filter(inv => inv.planId === plan.id && inv.isActive);
-      const planTotalAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
-      const planTotalProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
-      const activityPercent = Math.min(100, (planInvestments.length / Math.max(1, activeInvestments.length)) * 100);
+      const dbPlanAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+      const dbPlanProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
+      
+      // Get baseline data for this plan
+      const baseline = planBaselines[plan.name] || { active: 0, amount: 0, profit: 0 };
+      
+      // Combine baseline with database values
+      const planActiveCount = baseline.active + planInvestments.length;
+      const planTotalAmount = baseline.amount + dbPlanAmount;
+      const planTotalProfit = baseline.profit + dbPlanProfit;
+      
+      // Calculate activity percentage based on total active investments
+      const activityPercent = Math.min(100, (planActiveCount / Math.max(1, activeInvestments)) * 100);
       
       return {
         plan,
-        activeCount: planInvestments.length,
+        activeCount: planActiveCount,
         totalAmount: planTotalAmount,
         totalProfit: planTotalProfit,
         activityPercent,
@@ -156,10 +184,10 @@ export async function sendDailyStatsToChannel(): Promise<void> {
     })}
 
 💰 *Platform Statistics*
-👥 Total Users: *${allUsers.length.toLocaleString()}*
-💎 Active Investments: *${activeInvestments.length.toLocaleString()}*
-💰 Total Balance: *${totalBalance.toFixed(6)} BTC* ($${totalBalanceUSD.toLocaleString()})
-🚀 Total Profit Generated: *${totalProfit.toFixed(6)} BTC* ($${totalProfitUSD.toLocaleString()})
+👥 Total Users: *${totalUsers.toLocaleString()}*
+💎 Active Investments: *${activeInvestments.toLocaleString()}*
+💰 Total Balance: *${totalBalance.toFixed(6)} BTC* ($${(totalBalance * bitcoinPrice).toLocaleString()})
+🚀 Total Profit Generated: *${totalProfit.toFixed(6)} BTC* ($${(totalProfit * bitcoinPrice).toLocaleString()})
 
 📊 *Investment Plans Activity Chart*
 `;
@@ -236,16 +264,28 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           const allUsers = await storage.getAllUsers();
           const allInvestments = await storage.getAllInvestments();
           
-          // Calculate total balance and profit
-          const totalBalance = allUsers.reduce((sum, user) => {
+          // Baseline values as of August 25, 2025
+          const baselineUsers = 420;
+          const baselineActiveInvestments = 804;
+          const baselineTotalBalance = 70275.171605;
+          const baselineTotalProfit = 460.347340;
+          
+          // Calculate database totals
+          const dbTotalBalance = allUsers.reduce((sum, user) => {
             return sum + parseFloat(user.balance);
           }, 0);
           
-          const totalProfit = allInvestments.reduce((sum, investment) => {
+          const dbTotalProfit = allInvestments.reduce((sum, investment) => {
             return sum + parseFloat(investment.currentProfit || '0');
           }, 0);
           
-          const activeInvestments = allInvestments.filter(inv => inv.isActive);
+          const dbActiveInvestments = allInvestments.filter(inv => inv.isActive);
+          
+          // Use dynamic totals: baseline + database values
+          const totalUsers = baselineUsers + allUsers.length;
+          const totalBalance = baselineTotalBalance + dbTotalBalance;
+          const totalProfit = baselineTotalProfit + dbTotalProfit;
+          const activeInvestments = baselineActiveInvestments + dbActiveInvestments.length;
           
           // Get Bitcoin price
           let bitcoinPrice = 67000;
@@ -262,17 +302,33 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           const totalBalanceUSD = totalBalance * bitcoinPrice;
           const totalProfitUSD = totalProfit * bitcoinPrice;
           
+          // Plan baseline data for live updates
+          const planBaselines = {
+            'Growth Plan': { active: 227, amount: 11004.9901, profit: 101.649889 },
+            'Institutional Plan': { active: 210, amount: 9228.4977, profit: 205.248890 },
+            'Premium Plan': { active: 198, amount: 9274.8974, profit: 114.419514 },
+            'Foundation Plan': { active: 169, amount: 7436.5081, profit: 39.029047 }
+          };
+          
           // Calculate plan-specific statistics for live update
           const investmentPlans = await storage.getInvestmentPlans();
           const planStats = investmentPlans.map(plan => {
             const planInvestments = allInvestments.filter(inv => inv.planId === plan.id && inv.isActive);
-            const planTotalAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
-            const planTotalProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
-            const activityPercent = Math.min(100, (planInvestments.length / Math.max(1, activeInvestments.length)) * 100);
+            const dbPlanAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+            const dbPlanProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
+            
+            // Get baseline data for this plan
+            const baseline = planBaselines[plan.name] || { active: 0, amount: 0, profit: 0 };
+            
+            // Combine baseline with database values
+            const planActiveCount = baseline.active + planInvestments.length;
+            const planTotalAmount = baseline.amount + dbPlanAmount;
+            const planTotalProfit = baseline.profit + dbPlanProfit;
+            const activityPercent = Math.min(100, (planActiveCount / Math.max(1, activeInvestments)) * 100);
             
             return {
               plan,
-              activeCount: planInvestments.length,
+              activeCount: planActiveCount,
               totalAmount: planTotalAmount,
               totalProfit: planTotalProfit,
               activityPercent,
@@ -286,10 +342,10 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           let message = `🚀 *BITVAULT PRO - LIVE UPDATE*
 
 💰 *Real-Time Platform Stats*
-👥 Total Users: *${allUsers.length.toLocaleString()}*
-📊 Active Investments: *${activeInvestments.length.toLocaleString()}*
-💎 Platform Balance: *${totalBalance.toFixed(6)} BTC* ($${totalBalanceUSD.toLocaleString()})
-🚀 Total Profit: *${totalProfit.toFixed(6)} BTC* ($${totalProfitUSD.toLocaleString()})
+👥 Total Users: *${totalUsers.toLocaleString()}*
+📊 Active Investments: *${activeInvestments.toLocaleString()}*
+💎 Platform Balance: *${totalBalance.toFixed(6)} BTC* ($${(totalBalance * bitcoinPrice).toLocaleString()})
+🚀 Total Profit: *${totalProfit.toFixed(6)} BTC* ($${(totalProfit * bitcoinPrice).toLocaleString()})
 ₿ Bitcoin Price: *$${bitcoinPrice.toLocaleString()}*
 
 📊 *Live Investment Plans Activity*
@@ -351,17 +407,47 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
         const totalProfit = allInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
         const activeInvestments = allInvestments.filter(inv => inv.isActive);
         
+        // Baseline values for fallback
+        const baselineUsers = 420;
+        const baselineActiveInvestments = 804;
+        const baselineTotalBalance = 70275.171605;
+        const baselineTotalProfit = 460.347340;
+        
+        const planBaselines = {
+          'Growth Plan': { active: 227, amount: 11004.9901, profit: 101.649889 },
+          'Institutional Plan': { active: 210, amount: 9228.4977, profit: 205.248890 },
+          'Premium Plan': { active: 198, amount: 9274.8974, profit: 114.419514 },
+          'Foundation Plan': { active: 169, amount: 7436.5081, profit: 39.029047 }
+        };
+        
+        // Calculate database totals
+        const dbTotalBalance = allUsers.reduce((sum, user) => sum + parseFloat(user.balance), 0);
+        const dbTotalProfit = allInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
+        const dbActiveInvestments = allInvestments.filter(inv => inv.isActive);
+        
+        // Use dynamic totals for fallback
+        const totalUsers = baselineUsers + allUsers.length;
+        const totalBalance = baselineTotalBalance + dbTotalBalance;
+        const totalProfit = baselineTotalProfit + dbTotalProfit;
+        const activeInvestments = baselineActiveInvestments + dbActiveInvestments.length;
+        
         // Calculate detailed plan stats with charts for fallback
         const investmentPlans = await storage.getInvestmentPlans();
         const planStats = investmentPlans.map(plan => {
           const planInvestments = allInvestments.filter(inv => inv.planId === plan.id && inv.isActive);
-          const planTotalAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
-          const planTotalProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
-          const activityPercent = Math.min(100, (planInvestments.length / Math.max(1, activeInvestments.length)) * 100);
+          const dbPlanAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+          const dbPlanProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
+          
+          const baseline = planBaselines[plan.name] || { active: 0, amount: 0, profit: 0 };
+          
+          const planActiveCount = baseline.active + planInvestments.length;
+          const planTotalAmount = baseline.amount + dbPlanAmount;
+          const planTotalProfit = baseline.profit + dbPlanProfit;
+          const activityPercent = Math.min(100, (planActiveCount / Math.max(1, activeInvestments)) * 100);
           
           return {
             plan,
-            activeCount: planInvestments.length,
+            activeCount: planActiveCount,
             totalAmount: planTotalAmount,
             totalProfit: planTotalProfit,
             activityPercent,
@@ -375,7 +461,7 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
         let message = `🚀 BITVAULT PRO - Investment Update
 
 💰 Platform Stats:
-👥 Users: ${allUsers.length}
+👥 Users: ${totalUsers}
 💎 Total Balance: ${totalBalance.toFixed(6)} BTC
 🚀 Total Profit: ${totalProfit.toFixed(6)} BTC
 
