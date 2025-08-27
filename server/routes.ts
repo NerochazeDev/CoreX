@@ -866,6 +866,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin configuration routes
   app.get("/api/admin/config", async (req, res) => {
     try {
+      // Ensure baseline columns exist (fallback creation)
+      try {
+        await db.execute(sql`
+          DO $$ 
+          BEGIN 
+            -- Add baseline columns if they don't exist
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'admin_config' AND column_name = 'baseline_users') THEN
+              ALTER TABLE admin_config 
+              ADD COLUMN baseline_users INTEGER DEFAULT 420,
+              ADD COLUMN baseline_active_investments INTEGER DEFAULT 804,
+              ADD COLUMN baseline_total_balance VARCHAR(50) DEFAULT '70275.171605',
+              ADD COLUMN baseline_total_profit VARCHAR(50) DEFAULT '460.347340',
+              ADD COLUMN growth_plan_active INTEGER DEFAULT 227,
+              ADD COLUMN growth_plan_amount VARCHAR(50) DEFAULT '11004.9901',
+              ADD COLUMN growth_plan_profit VARCHAR(50) DEFAULT '101.649889',
+              ADD COLUMN institutional_plan_active INTEGER DEFAULT 210,
+              ADD COLUMN institutional_plan_amount VARCHAR(50) DEFAULT '9228.4977',
+              ADD COLUMN institutional_plan_profit VARCHAR(50) DEFAULT '205.248890',
+              ADD COLUMN premium_plan_active INTEGER DEFAULT 198,
+              ADD COLUMN premium_plan_amount VARCHAR(50) DEFAULT '9274.8974',
+              ADD COLUMN premium_plan_profit VARCHAR(50) DEFAULT '114.419514',
+              ADD COLUMN foundation_plan_active INTEGER DEFAULT 169,
+              ADD COLUMN foundation_plan_amount VARCHAR(50) DEFAULT '7436.5081',
+              ADD COLUMN foundation_plan_profit VARCHAR(50) DEFAULT '39.029047';
+            END IF;
+          END 
+          $$;
+        `);
+      } catch (error) {
+        console.log('Baseline columns already exist or creation failed:', error);
+      }
+
       const config = await storage.getAdminConfig();
       if (!config) {
         // Return hardcoded Bitcoin addresses if no config exists
