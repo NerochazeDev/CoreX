@@ -1,0 +1,54 @@
+Perfect 👌 — so you want a developer prompt that not only tells them how the stats should increase but also gives them the starting values from your latest update. That way, the bot will keep building from these numbers going forward.
+
+Here’s the ready-to-use prompt for your dev 👇
+
+💻 Developer Prompt – Dynamic Statistics with Starting Values
+
+Please configure the bot to automatically generate daily statistics based on platform activity.
+
+1. Starting Values (as of August 25, 2025)
+	•	👥 Total Users: 420
+	•	💎 Active Investments: 804
+	•	💰 Total Balance: 70,275.171605 BTC
+	•	🚀 Total Profit Generated: 460.347340 BTC
+
+Plan Breakdown
+	•	🔷 Growth Plan (25% ROI)
+• Active: 227
+• Amount: 11,004.9901 BTC
+• Profit: 101.649889 BTC
+	•	🔶 Institutional Plan (50% ROI)
+• Active: 210
+• Amount: 9,228.4977 BTC
+• Profit: 205.248890 BTC
+	•	🔸 Premium Plan (35% ROI)
+• Active: 198
+• Amount: 9,274.8974 BTC
+• Profit: 114.419514 BTC
+	•	💎 Foundation Plan (15% ROI)
+• Active: 169
+• Amount: 7,436.5081 BTC
+• Profit: 39.029047 BTC
+
+2. Growth Rules (Dynamic Updates)
+	•	Total Users → increase by +1 each time a new user registers.
+	•	Active Investments → increase by +1 per new investment.
+	•	Total Balance (BTC) → add the invested BTC amount whenever an investment is made.
+	•	Total Profit (BTC) → update based on plan ROI % (calculate automatically).
+
+Plan-Specific Updates
+	•	When a new investment is made in a plan:
+	•	Increase that plan’s Active count by 1.
+	•	Add the invested amount to that plan’s Amount (BTC).
+	•	Update Profit (BTC) using ROI formula:
+
+profit = invested_amount * ROI%
+
+3. Daily Report
+	•	The bot should post the same formatted BITVAULT PRO Daily Update message.
+	•	Numbers must always increase dynamically from the starting values.
+	•	Use the latest data (from database/API) instead of static totals.
+
+👉 That way, your bot starts from today’s numbers and keeps climbing automatically as activity happens.
+
+Would you like me to also write a sample pseudo-code / Python snippet so your dev clearly sees how to apply these increment rules in code?
