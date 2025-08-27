@@ -318,6 +318,73 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async incrementBaselineStatistics(type: 'user' | 'investment' | 'balance' | 'profit', amount?: number, planName?: string): Promise<void> {
+    const existing = await this.getAdminConfig();
+    if (!existing) return;
+
+    const updates: any = { updatedAt: new Date() };
+
+    switch (type) {
+      case 'user':
+        updates.baselineUsers = existing.baselineUsers + 1;
+        break;
+      case 'investment':
+        updates.baselineActiveInvestments = existing.baselineActiveInvestments + 1;
+        if (planName && amount) {
+          switch (planName) {
+            case 'Growth Plan':
+              updates.growthPlanActive = existing.growthPlanActive + 1;
+              updates.growthPlanAmount = (parseFloat(existing.growthPlanAmount) + amount).toFixed(8);
+              break;
+            case 'Institutional Plan':
+              updates.institutionalPlanActive = existing.institutionalPlanActive + 1;
+              updates.institutionalPlanAmount = (parseFloat(existing.institutionalPlanAmount) + amount).toFixed(8);
+              break;
+            case 'Premium Plan':
+              updates.premiumPlanActive = existing.premiumPlanActive + 1;
+              updates.premiumPlanAmount = (parseFloat(existing.premiumPlanAmount) + amount).toFixed(8);
+              break;
+            case 'Foundation Plan':
+              updates.foundationPlanActive = existing.foundationPlanActive + 1;
+              updates.foundationPlanAmount = (parseFloat(existing.foundationPlanAmount) + amount).toFixed(8);
+              break;
+          }
+        }
+        break;
+      case 'balance':
+        if (amount) {
+          updates.baselineTotalBalance = (parseFloat(existing.baselineTotalBalance) + amount).toFixed(8);
+        }
+        break;
+      case 'profit':
+        if (amount) {
+          updates.baselineTotalProfit = (parseFloat(existing.baselineTotalProfit) + amount).toFixed(8);
+          if (planName) {
+            switch (planName) {
+              case 'Growth Plan':
+                updates.growthPlanProfit = (parseFloat(existing.growthPlanProfit) + amount).toFixed(8);
+                break;
+              case 'Institutional Plan':
+                updates.institutionalPlanProfit = (parseFloat(existing.institutionalPlanProfit) + amount).toFixed(8);
+                break;
+              case 'Premium Plan':
+                updates.premiumPlanProfit = (parseFloat(existing.premiumPlanProfit) + amount).toFixed(8);
+                break;
+              case 'Foundation Plan':
+                updates.foundationPlanProfit = (parseFloat(existing.foundationPlanProfit) + amount).toFixed(8);
+                break;
+            }
+          }
+        }
+        break;
+    }
+
+    await db
+      .update(adminConfig)
+      .set(updates)
+      .where(eq(adminConfig.id, existing.id));
+  }
+
   async updateFreePlanRate(rate: string): Promise<AdminConfig> {
     const existing = await this.getAdminConfig();
 

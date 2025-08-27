@@ -62,6 +62,24 @@ export const adminConfig = pgTable("admin_config", {
   vaultAddress: text("vault_address").notNull(),
   depositAddress: text("deposit_address").notNull(),
   freePlanRate: decimal("free_plan_rate", { precision: 8, scale: 6 }).notNull().default("0.0001"), // Free plan earning rate per 10 minutes
+  // Platform baseline statistics
+  baselineUsers: integer("baseline_users").notNull().default(420),
+  baselineActiveInvestments: integer("baseline_active_investments").notNull().default(804),
+  baselineTotalBalance: decimal("baseline_total_balance", { precision: 18, scale: 8 }).notNull().default("70275.171605"),
+  baselineTotalProfit: decimal("baseline_total_profit", { precision: 18, scale: 8 }).notNull().default("460.347340"),
+  // Plan baseline data
+  growthPlanActive: integer("growth_plan_active").notNull().default(227),
+  growthPlanAmount: decimal("growth_plan_amount", { precision: 18, scale: 8 }).notNull().default("11004.9901"),
+  growthPlanProfit: decimal("growth_plan_profit", { precision: 18, scale: 8 }).notNull().default("101.649889"),
+  institutionalPlanActive: integer("institutional_plan_active").notNull().default(210),
+  institutionalPlanAmount: decimal("institutional_plan_amount", { precision: 18, scale: 8 }).notNull().default("9228.4977"),
+  institutionalPlanProfit: decimal("institutional_plan_profit", { precision: 18, scale: 8 }).notNull().default("205.248890"),
+  premiumPlanActive: integer("premium_plan_active").notNull().default(198),
+  premiumPlanAmount: decimal("premium_plan_amount", { precision: 18, scale: 8 }).notNull().default("9274.8974"),
+  premiumPlanProfit: decimal("premium_plan_profit", { precision: 18, scale: 8 }).notNull().default("114.419514"),
+  foundationPlanActive: integer("foundation_plan_active").notNull().default(169),
+  foundationPlanAmount: decimal("foundation_plan_amount", { precision: 18, scale: 8 }).notNull().default("7436.5081"),
+  foundationPlanProfit: decimal("foundation_plan_profit", { precision: 18, scale: 8 }).notNull().default("39.029047"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
