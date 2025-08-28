@@ -13,7 +13,7 @@ interface SyncResult {
 export class BackupSyncService {
   private createBackupConnection(connectionString: string) {
     const sql = postgres(connectionString, {
-      ssl: connectionString.includes('sslmode=require') ? 'require' : { rejectUnauthorized: false },
+      ssl: 'prefer',
       max: 5,
       idle_timeout: 20,
       connect_timeout: 10,
@@ -31,12 +31,7 @@ export class BackupSyncService {
       backupDb = this.createBackupConnection(connectionString);
 
       // Test connection
-      const sql = postgres(connectionString, {
-        ssl: connectionString.includes('sslmode=require') ? 'require' : { rejectUnauthorized: false },
-        max: 5,
-        idle_timeout: 20,
-        connect_timeout: 10,
-      });
+      const sql = postgres(connectionString);
       await sql`SELECT 1`;
 
       // Create tables in backup database
@@ -145,22 +140,6 @@ export class BackupSyncService {
         vault_address TEXT NOT NULL,
         deposit_address TEXT NOT NULL,
         free_plan_rate DECIMAL(8, 6) NOT NULL DEFAULT 0.0001,
-        baseline_users INTEGER NOT NULL DEFAULT 420,
-        baseline_active_investments INTEGER NOT NULL DEFAULT 804,
-        baseline_total_balance DECIMAL(18, 8) NOT NULL DEFAULT 70275.171605,
-        baseline_total_profit DECIMAL(18, 8) NOT NULL DEFAULT 460.347340,
-        growth_plan_active INTEGER NOT NULL DEFAULT 227,
-        growth_plan_amount DECIMAL(18, 8) NOT NULL DEFAULT 11004.9901,
-        growth_plan_profit DECIMAL(18, 8) NOT NULL DEFAULT 101.649889,
-        institutional_plan_active INTEGER NOT NULL DEFAULT 210,
-        institutional_plan_amount DECIMAL(18, 8) NOT NULL DEFAULT 9228.4977,
-        institutional_plan_profit DECIMAL(18, 8) NOT NULL DEFAULT 205.248890,
-        premium_plan_active INTEGER NOT NULL DEFAULT 198,
-        premium_plan_amount DECIMAL(18, 8) NOT NULL DEFAULT 9274.8974,
-        premium_plan_profit DECIMAL(18, 8) NOT NULL DEFAULT 114.419514,
-        foundation_plan_active INTEGER NOT NULL DEFAULT 169,
-        foundation_plan_amount DECIMAL(18, 8) NOT NULL DEFAULT 7436.5081,
-        foundation_plan_profit DECIMAL(18, 8) NOT NULL DEFAULT 39.029047,
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `;
@@ -286,12 +265,7 @@ export class BackupSyncService {
     totalSize: string;
   }> {
     try {
-      const sql = postgres(connectionString, {
-        ssl: connectionString.includes('sslmode=require') ? 'require' : { rejectUnauthorized: false },
-        max: 5,
-        idle_timeout: 20,
-        connect_timeout: 10,
-      });
+      const sql = postgres(connectionString);
       
       // Get table information
       const tableInfo = await sql`
