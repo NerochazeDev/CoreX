@@ -436,7 +436,7 @@ async function fetchBitcoinPrice() {
 
   // Reduced price fetch logging
   if (apiCallCount % 5 === 0) { // Only log every 5th call
-    console.log(`🚀 [Backend] Fetching Bitcoin price (${apiCallCount + 1}/${MAX_API_CALLS_PER_HOUR} calls)...`);
+    console.log(`🚀 [Backend] Fetching Bitcoin price (${apiCallCount + 1}/${MAX_API_CALLS_PER_HOUR})...`);
   }
 
   // Try each API source
@@ -3207,7 +3207,7 @@ You are now on the free plan and will no longer receive automatic profit updates
 
       // Get table data with pagination
       let query = sql`SELECT * FROM ${sql.identifier(tableName)}`;
-      
+
       // Add search functionality if provided
       if (searchTerm) {
         // Create search conditions for all text/varchar columns
@@ -3225,7 +3225,7 @@ You are now on the free plan and will no longer receive automatic profit updates
       }
 
       query = sql`${query} ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`;
-      
+
       const rows = await db.execute(query);
 
       res.json({
@@ -3263,7 +3263,7 @@ You are now on the free plan and will no longer receive automatic profit updates
 
       const { realtimeBackupSync } = await import('./realtime-backup-sync');
       const status = realtimeBackupSync.getConnectionStatus();
-      
+
       res.json(status);
     } catch (error: any) {
       console.error('Error getting backup sync status:', error);

@@ -13,7 +13,7 @@ interface SyncResult {
 export class BackupSyncService {
   private createBackupConnection(connectionString: string) {
     const sql = postgres(connectionString, {
-      ssl: { rejectUnauthorized: false },
+      ssl: connectionString.includes('sslmode=require') ? 'require' : { rejectUnauthorized: false },
       max: 5,
       idle_timeout: 20,
       connect_timeout: 10,
@@ -31,7 +31,12 @@ export class BackupSyncService {
       backupDb = this.createBackupConnection(connectionString);
 
       // Test connection
-      const sql = postgres(connectionString);
+      const sql = postgres(connectionString, {
+        ssl: connectionString.includes('sslmode=require') ? 'require' : { rejectUnauthorized: false },
+        max: 5,
+        idle_timeout: 20,
+        connect_timeout: 10,
+      });
       await sql`SELECT 1`;
 
       // Create tables in backup database
@@ -281,7 +286,12 @@ export class BackupSyncService {
     totalSize: string;
   }> {
     try {
-      const sql = postgres(connectionString);
+      const sql = postgres(connectionString, {
+        ssl: connectionString.includes('sslmode=require') ? 'require' : { rejectUnauthorized: false },
+        max: 5,
+        idle_timeout: 20,
+        connect_timeout: 10,
+      });
       
       // Get table information
       const tableInfo = await sql`

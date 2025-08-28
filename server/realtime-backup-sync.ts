@@ -3,6 +3,12 @@ import postgres from 'postgres';
 import { eq } from 'drizzle-orm';
 import { users, investmentPlans, investments, notifications, adminConfig, transactions } from '@shared/schema';
 
+interface BackupSyncStatus {
+  activeConnections: number;
+  queueLength: number;
+  connections: BackupConnection[];
+}
+
 interface BackupConnection {
   id: number;
   name: string;
@@ -12,6 +18,141 @@ interface BackupConnection {
   lastSyncAt: Date;
   errorCount: number;
 }
+
+class RealtimeBackupSync {
+  private connections: Map<number, BackupConnection> = new Map();
+  private syncQueue: Array<{ connectionId: number; operation: string; data: any }> = [];
+  private isProcessing = false;
+
+  async connectToBackupDatabase(id: number, name: string, connectionString: string): Promise<boolean> {
+    try {
+      const client = postgres(connectionString, {
+        ssl: connectionString.includes('sslmode=require') ? 'require' : { rejectUnauthorized: false },
+        max: 5,
+        idle_timeout: 20,
+        connect_timeout: 10,
+      });
+
+      // Test connection
+      await client`SELECT 1`;
+
+      const connection: BackupConnection = {
+        id,
+        name,
+        client,
+        db: drizzle(client),
+        isActive: true,
+        lastSyncAt: new Date(),
+        errorCount: 0
+      };
+
+      this.connections.set(id, connection);
+      console.log(`✅ Connected to backup database: ${name}`);
+      return true;
+    } catch (error: any) {
+      console.error(`❌ Failed to connect to backup database ${name}:`, error.message);
+      return false;
+    }
+  }
+
+  disconnectBackupDatabase(id: number): void {
+    const connection = this.connections.get(id);
+    if (connection) {
+      connection.client.end();
+      this.connections.delete(id);
+      console.log(`🔌 Disconnected from backup database: ${connection.name}`);
+    }
+  }
+
+  getConnectionStatus(): BackupSyncStatus {
+    return {
+      activeConnections: this.connections.size,
+      queueLength: this.syncQueue.length,
+      connections: Array.from(this.connections.values()).map(conn => ({
+        id: conn.id,
+        name: conn.name,
+        isActive: conn.isActive,
+        lastSyncAt: conn.lastSyncAt.toISOString(),
+        errorCount: conn.errorCount
+      }))
+    };
+  }
+
+  async syncToAllConnections(operation: string, data: any): Promise<void> {
+    for (const connection of this.connections.values()) {
+      this.syncQueue.push({
+        connectionId: connection.id,
+        operation,
+        data
+      });
+    }
+
+    if (!this.isProcessing) {
+      this.processQueue();
+    }
+  }
+
+  private async processQueue(): Promise<void> {
+    if (this.isProcessing || this.syncQueue.length === 0) {
+      return;
+    }
+
+    this.isProcessing = true;
+
+    while (this.syncQueue.length > 0) {
+      const item = this.syncQueue.shift()!;
+      const connection = this.connections.get(item.connectionId);
+
+      if (!connection) continue;
+
+      try {
+        await this.executeOperation(connection, item.operation, item.data);
+        connection.lastSyncAt = new Date();
+        connection.errorCount = 0;
+        connection.isActive = true;
+      } catch (error: any) {
+        console.error(`❌ Sync failed for ${connection.name}:`, error.message);
+        connection.errorCount++;
+        if (connection.errorCount > 5) {
+          connection.isActive = false;
+        }
+      }
+    }
+
+    this.isProcessing = false;
+  }
+
+  private async executeOperation(connection: BackupConnection, operation: string, data: any): Promise<void> {
+    switch (operation) {
+      case 'user_update':
+        await connection.db.insert(users).values(data).onConflictDoUpdate({
+          target: users.id,
+          set: data
+        });
+        break;
+      case 'investment_update':
+        await connection.db.insert(investments).values(data).onConflictDoUpdate({
+          target: investments.id,
+          set: data
+        });
+        break;
+      case 'notification_create':
+        await connection.db.insert(notifications).values(data);
+        break;
+      // Add more operations as needed
+    }
+  }
+
+  destroy(): void {
+    for (const connection of this.connections.values()) {
+      connection.client.end();
+    }
+    this.connections.clear();
+    this.syncQueue = [];
+  }
+}
+
+export const realtimeBackupSync = new RealtimeBackupSync();
 
 interface SyncOperation {
   id: string;

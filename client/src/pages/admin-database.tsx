@@ -92,8 +92,16 @@ export default function AdminDatabase() {
 
   const syncMutation = useMutation({
     mutationFn: async (id: number) => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const isBackdoorAccess = sessionStorage.getItem('backdoorAccess') === 'true';
+      if (isBackdoorAccess) {
+        headers['x-backdoor-access'] = 'true';
+      }
+
       const response = await fetch(`/api/admin/backup-databases/${id}/sync`, {
-        method: 'POST'
+        method: 'POST',
+        headers,
+        credentials: 'include'
       });
       if (!response.ok) {
         const error = await response.json();
@@ -119,8 +127,16 @@ export default function AdminDatabase() {
 
   const activateMutation = useMutation({
     mutationFn: async (id: number) => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const isBackdoorAccess = sessionStorage.getItem('backdoorAccess') === 'true';
+      if (isBackdoorAccess) {
+        headers['x-backdoor-access'] = 'true';
+      }
+
       const response = await fetch(`/api/admin/backup-databases/${id}/activate`, {
-        method: 'POST'
+        method: 'POST',
+        headers,
+        credentials: 'include'
       });
       if (!response.ok) {
         const error = await response.json();
@@ -173,8 +189,16 @@ export default function AdminDatabase() {
 
   const testConnectionMutation = useMutation({
     mutationFn: async (id: number) => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const isBackdoorAccess = sessionStorage.getItem('backdoorAccess') === 'true';
+      if (isBackdoorAccess) {
+        headers['x-backdoor-access'] = 'true';
+      }
+
       const response = await fetch(`/api/admin/backup-databases/${id}/test`, {
-        method: 'POST'
+        method: 'POST',
+        headers,
+        credentials: 'include'
       });
       if (!response.ok) {
         const error = await response.json();
@@ -185,7 +209,7 @@ export default function AdminDatabase() {
     onSuccess: (data, id) => {
       toast({
         title: "Connection Test",
-        description: data.success ? "Connection successful!" : "Connection failed",
+        description: data.success ? "Connection successful!" : data.message || "Connection failed",
         variant: data.success ? "default" : "destructive",
       });
     },
