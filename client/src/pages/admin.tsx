@@ -65,21 +65,7 @@ export default function Management() {
     isLoading: isLoading
   });
 
-  // Show loading spinner while auth is being determined
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-bitcoin border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  // Allow access if user is admin OR using backdoor
-  if (!user?.isAdmin && !isBackdoorAccess) {
-    console.log('Access denied - not admin and not backdoor access');
-    setLocation('/');
-    return null;
-  }
+  // No authentication required - allow unrestricted access
 
   const { data: stats } = useQuery<AdminStats>({
     queryKey: ['/api/admin/stats'],
