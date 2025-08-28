@@ -450,21 +450,80 @@ export default function AdminDatabase() {
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Current Database Configuration</CardTitle>
+          <CardTitle>Database Tables</CardTitle>
           <CardDescription>
-            Current DATABASE_URL environment variable
+            View and manage all database tables and their data
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="p-3 bg-muted rounded font-mono text-sm break-all">
-            {process.env.DATABASE_URL ? 
-              process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@') : 
-              'DATABASE_URL not configured'
-            }
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <Button
+              variant="outline"
+              className="p-4 h-auto flex flex-col items-start gap-2"
+              onClick={() => setLocation('/admin/table/users')}
+            >
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                <span className="font-medium">Users</span>
+              </div>
+              <span className="text-xs text-muted-foreground">User accounts and profiles</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="p-4 h-auto flex flex-col items-start gap-2"
+              onClick={() => setLocation('/admin/table/investments')}
+            >
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                <span className="font-medium">Investments</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Active user investments</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="p-4 h-auto flex flex-col items-start gap-2"
+              onClick={() => setLocation('/admin/table/transactions')}
+            >
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                <span className="font-medium">Transactions</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Deposits and withdrawals</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="p-4 h-auto flex flex-col items-start gap-2"
+              onClick={() => setLocation('/admin/table/investment_plans')}
+            >
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                <span className="font-medium">Investment Plans</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Available investment plans</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="p-4 h-auto flex flex-col items-start gap-2"
+              onClick={() => setLocation('/admin/table/notifications')}
+            >
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                <span className="font-medium">Notifications</span>
+              </div>
+              <span className="text-xs text-muted-foreground">User notifications</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="p-4 h-auto flex flex-col items-start gap-2"
+              onClick={() => setLocation('/admin/table/admin_config')}
+            >
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                <span className="font-medium">Admin Config</span>
+              </div>
+              <span className="text-xs text-muted-foreground">System configuration</span>
+            </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            This is your current primary database. Use backup databases below for redundancy.
-          </p>
         </CardContent>
       </Card>
 

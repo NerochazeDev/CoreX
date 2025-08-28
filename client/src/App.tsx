@@ -26,6 +26,7 @@ import WalletSetup from "@/pages/wallet-setup";
 import NotFound from "@/pages/not-found";
 import NotificationDetail from "@/pages/notification-detail";
 import TransactionDetail from "@/pages/transaction-detail";
+import AdminTableViewer from "@/pages/admin-table-viewer";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/admin-transactions" component={ManagementTransactions} />
       <Route path="/admin-notifications" component={ManagementNotifications} />
       <Route path="/admin-database" component={AdminDatabase} />
+      <Route path="/admin/table/:tableName" component={AdminTableViewer} />
       <Route path="/Hello10122" component={Management} />
       <Route path="/investment" component={Investment} />
       <Route path="/history" component={History} />
