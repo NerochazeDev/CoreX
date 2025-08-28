@@ -27,7 +27,7 @@ interface AdminStats {
 }
 
 export default function Management() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -57,7 +57,26 @@ export default function Management() {
     sessionStorage.setItem('backdoorAccess', 'true');
   }
 
+  // Debug logging for admin access
+  console.log('Admin access check:', {
+    userIsAdmin: user?.isAdmin,
+    isBackdoorAccess,
+    userEmail: user?.email,
+    isLoading: isLoading
+  });
+
+  // Show loading spinner while auth is being determined
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-bitcoin border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Allow access if user is admin OR using backdoor
   if (!user?.isAdmin && !isBackdoorAccess) {
+    console.log('Access denied - not admin and not backdoor access');
     setLocation('/');
     return null;
   }
@@ -677,7 +696,7 @@ export default function Management() {
             <p className="text-sm text-muted-foreground">
               Send professional investment updates to your Telegram channel with current user statistics and top performers.
             </p>
-            
+
             {/* Send Both Notifications Button (Same as 12-hour automatic) */}
             <Button
               onClick={async () => {
@@ -685,7 +704,7 @@ export default function Management() {
                   const headers: Record<string, string> = {
                     'Content-Type': 'application/json'
                   };
-                  
+
                   if (isBackdoorAccess) {
                     headers['x-backdoor-access'] = 'true';
                   }
@@ -695,7 +714,7 @@ export default function Management() {
                     headers,
                     credentials: 'include'
                   });
-                  
+
                   if (response.ok) {
                     const result = await response.json();
                     toast({
@@ -720,7 +739,7 @@ export default function Management() {
               <Send className="w-4 h-4 mr-2" />
               Send Both Notifications Now (12-Hour Style)
             </Button>
-            
+
             {/* Individual notification buttons */}
             <div className="grid grid-cols-2 gap-2">
               <Button
@@ -729,7 +748,7 @@ export default function Management() {
                     const headers: Record<string, string> = {
                       'Content-Type': 'application/json'
                     };
-                    
+
                     if (isBackdoorAccess) {
                       headers['x-backdoor-access'] = 'true';
                     }
@@ -739,7 +758,7 @@ export default function Management() {
                       headers,
                       credentials: 'include'
                     });
-                    
+
                     if (response.ok) {
                       toast({
                         title: "Investment Charts Sent! 📊",
@@ -762,14 +781,14 @@ export default function Management() {
               >
                 📊 Charts Only
               </Button>
-              
+
               <Button
                 onClick={async () => {
                   try {
                     const headers: Record<string, string> = {
                       'Content-Type': 'application/json'
                     };
-                    
+
                     if (isBackdoorAccess) {
                       headers['x-backdoor-access'] = 'true';
                     }
@@ -779,7 +798,7 @@ export default function Management() {
                       headers,
                       credentials: 'include'
                     });
-                    
+
                     if (response.ok) {
                       toast({
                         title: "Banner Update Sent! 🖼️",
@@ -804,7 +823,7 @@ export default function Management() {
               </Button>
             </div>
           </div>
-          
+
           <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg">
             <p><strong>What gets sent:</strong></p>
             <ul className="list-disc list-inside mt-1 space-y-1">
