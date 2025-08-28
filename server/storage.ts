@@ -2,6 +2,18 @@ import { users, investmentPlans, investments, notifications, adminConfig, transa
 import { db, executeQuery } from "./db";
 import { eq, desc, and, isNotNull, inArray } from "drizzle-orm";
 
+// Import the real-time backup sync service
+let realtimeBackupSync: any = null;
+
+// Lazy load to prevent circular dependencies
+async function getRealtimeSync() {
+  if (!realtimeBackupSync) {
+    const { realtimeBackupSync: syncService } = await import('./realtime-backup-sync');
+    realtimeBackupSync = syncService;
+  }
+  return realtimeBackupSync;
+}
+
 export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
@@ -91,6 +103,19 @@ export class DatabaseStorage implements IStorage {
           isAdmin: false,
         })
         .returning();
+      
+      // Trigger real-time backup sync
+      try {
+        const sync = await getRealtimeSync();
+        await sync.syncDataChange('users', 'INSERT', {
+          ...insertUser,
+          balance: "0",
+          isAdmin: false,
+        });
+      } catch (error) {
+        console.log('⚠️ Backup sync warning (user creation):', error);
+      }
+      
       return user;
     });
   }
@@ -102,6 +127,18 @@ export class DatabaseStorage implements IStorage {
         .set({ balance })
         .where(eq(users.id, userId))
         .returning();
+      
+      // Trigger real-time backup sync
+      try {
+        const sync = await getRealtimeSync();
+        await sync.syncDataChange('users', 'UPDATE', {
+          id: userId,
+          updates: { balance }
+        });
+      } catch (error) {
+        console.log('⚠️ Backup sync warning (balance update):', error);
+      }
+      
       return user || undefined;
     });
   }
@@ -207,16 +244,27 @@ export class DatabaseStorage implements IStorage {
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
 
+    const investmentData = {
+      ...insertInvestment,
+      startDate,
+      endDate,
+      currentProfit: "0",
+      isActive: true,
+    };
+
     const [investment] = await db
       .insert(investments)
-      .values({
-        ...insertInvestment,
-        startDate,
-        endDate,
-        currentProfit: "0",
-        isActive: true,
-      })
+      .values(investmentData)
       .returning();
+    
+    // Trigger real-time backup sync
+    try {
+      const sync = await getRealtimeSync();
+      await sync.syncDataChange('investments', 'INSERT', investmentData);
+    } catch (error) {
+      console.log('⚠️ Backup sync warning (investment creation):', error);
+    }
+    
     return investment;
   }
 
@@ -465,6 +513,15 @@ export class DatabaseStorage implements IStorage {
 
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     const created = await db.insert(transactions).values(transaction).returning();
+    
+    // Trigger real-time backup sync
+    try {
+      const sync = await getRealtimeSync();
+      await sync.syncDataChange('transactions', 'INSERT', transaction);
+    } catch (error) {
+      console.log('⚠️ Backup sync warning (transaction creation):', error);
+    }
+    
     return created[0];
   }
 
