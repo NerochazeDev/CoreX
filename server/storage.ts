@@ -1,6 +1,6 @@
-import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase, type UpdateUserProfile } from "@shared/schema";
+import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, depositSessions, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase, type UpdateUserProfile, type DepositSession, type InsertDepositSession } from "@shared/schema";
 import { db, executeQuery } from "./db";
-import { eq, desc, and, isNotNull, inArray } from "drizzle-orm";
+import { eq, desc, and, isNotNull, inArray, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -64,6 +64,16 @@ export interface IStorage {
   toggleInvestmentStatus(id: number): Promise<Investment | null>;
   cancelInvestment(id: number): Promise<boolean>;
   getAllInvestments(): Promise<Investment[]>;
+
+  // Deposit session operations
+  createDepositSession(session: InsertDepositSession): Promise<DepositSession>;
+  getDepositSession(sessionToken: string): Promise<DepositSession | undefined>;
+  getUserDepositSessions(userId: number): Promise<DepositSession[]>;
+  updateDepositSessionStatus(sessionToken: string, status: string, completedAt?: Date): Promise<DepositSession | undefined>;
+  updateDepositSessionBlockchain(sessionToken: string, txHash: string, confirmations: number, amountReceived: string): Promise<DepositSession | undefined>;
+  markUserConfirmedSent(sessionToken: string): Promise<DepositSession | undefined>;
+  expireDepositSessions(): Promise<void>;
+  getActivePendingDepositSessions(): Promise<DepositSession[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -231,10 +241,6 @@ export class DatabaseStorage implements IStorage {
 
   async getActiveInvestments(): Promise<Investment[]> {
     return await db.select().from(investments).where(eq(investments.isActive, true));
-  }
-
-  async getAllInvestments(): Promise<Investment[]> {
-    return await db.select().from(investments).orderBy(desc(investments.id));
   }
 
   async getUserNotifications(userId: number): Promise<Notification[]> {
@@ -727,6 +733,117 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
+
+  async getAllInvestments(): Promise<Investment[]> {
+    try {
+      return await db.select().from(investments).orderBy(desc(investments.startDate));
+    } catch (error) {
+      console.error('Error getting all investments:', error);
+      return [];
+    }
+  }
+
+  // Deposit session operations
+  async createDepositSession(session: InsertDepositSession): Promise<DepositSession> {
+    return await executeQuery(async () => {
+      const sessionToken = `dep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+      
+      const [created] = await db.insert(depositSessions).values({
+        ...session,
+        sessionToken,
+        expiresAt,
+      }).returning();
+      return created;
+    });
+  }
+
+  async getDepositSession(sessionToken: string): Promise<DepositSession | undefined> {
+    return await executeQuery(async () => {
+      const [session] = await db.select().from(depositSessions).where(eq(depositSessions.sessionToken, sessionToken));
+      return session || undefined;
+    });
+  }
+
+  async getUserDepositSessions(userId: number): Promise<DepositSession[]> {
+    return await executeQuery(async () => {
+      return await db
+        .select()
+        .from(depositSessions)
+        .where(eq(depositSessions.userId, userId))
+        .orderBy(desc(depositSessions.createdAt));
+    });
+  }
+
+  async updateDepositSessionStatus(sessionToken: string, status: string, completedAt?: Date): Promise<DepositSession | undefined> {
+    return await executeQuery(async () => {
+      const updateData: any = { status };
+      if (completedAt) {
+        updateData.completedAt = completedAt;
+      }
+      
+      const [updated] = await db
+        .update(depositSessions)
+        .set(updateData)
+        .where(eq(depositSessions.sessionToken, sessionToken))
+        .returning();
+      return updated || undefined;
+    });
+  }
+
+  async updateDepositSessionBlockchain(sessionToken: string, txHash: string, confirmations: number, amountReceived: string): Promise<DepositSession | undefined> {
+    return await executeQuery(async () => {
+      const [updated] = await db
+        .update(depositSessions)
+        .set({
+          blockchainTxHash: txHash,
+          confirmations,
+          amountReceived,
+          lastCheckedAt: new Date(),
+        })
+        .where(eq(depositSessions.sessionToken, sessionToken))
+        .returning();
+      return updated || undefined;
+    });
+  }
+
+  async markUserConfirmedSent(sessionToken: string): Promise<DepositSession | undefined> {
+    return await executeQuery(async () => {
+      const [updated] = await db
+        .update(depositSessions)
+        .set({ userConfirmedSent: true })
+        .where(eq(depositSessions.sessionToken, sessionToken))
+        .returning();
+      return updated || undefined;
+    });
+  }
+
+  async expireDepositSessions(): Promise<void> {
+    await executeQuery(async () => {
+      const now = new Date();
+      await db
+        .update(depositSessions)
+        .set({ status: 'expired' })
+        .where(and(
+          eq(depositSessions.status, 'pending'),
+          sql`expires_at < NOW()`
+        ));
+    });
+  }
+
+  async getActivePendingDepositSessions(): Promise<DepositSession[]> {
+    return await executeQuery(async () => {
+      return await db
+        .select()
+        .from(depositSessions)
+        .where(and(
+          eq(depositSessions.status, 'pending'),
+          eq(depositSessions.userConfirmedSent, true)
+        ))
+        .orderBy(desc(depositSessions.createdAt));
+    });
+  }
 }
+
 
 export const storage = new DatabaseStorage();

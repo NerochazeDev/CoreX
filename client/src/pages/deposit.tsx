@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BottomNavigation } from "@/components/bottom-navigation";
-import { ArrowLeft, Copy, Check, QrCode, Wallet, Send, Info, Zap, Shield, Clock } from "lucide-react";
+import { ArrowLeft, Copy, Check, QrCode, Wallet, Send, Info, Zap, Shield, Clock, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -160,6 +160,35 @@ export default function Deposit() {
       </header>
 
       <div className="p-4 pb-20 space-y-6">
+        {/* Automated Deposit Promotion */}
+        <Card className="neo-card rounded-2xl border-gradient-to-r from-orange-500/20 to-yellow-500/20 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-950/10 dark:to-yellow-950/10">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-orange-600 dark:text-orange-400 mb-1">
+                  🚀 New: Automated Deposit System
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Send Bitcoin and get instant verification when confirmed on the blockchain. 
+                  No waiting for manual approval - completely automated with 30-minute sessions!
+                </p>
+                <Button 
+                  onClick={() => setLocation('/deposit/automated')}
+                  className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white border-0"
+                  size="sm"
+                  data-testid="button-automated-deposit"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Try Automated Deposit
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Deposit Instructions */}
         <Card className="neo-card rounded-2xl p-6 mb-6 bg-gradient-to-br from-bitcoin/10 to-emerald/10 border-bitcoin/20">
           <div className="flex items-center gap-3 mb-4">

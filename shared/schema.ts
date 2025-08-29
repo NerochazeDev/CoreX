@@ -111,6 +111,24 @@ export const backupDatabases = pgTable("backup_databases", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const depositSessions = pgTable("deposit_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  depositAddress: text("deposit_address").notNull(), // User's unique deposit address
+  amount: decimal("amount", { precision: 18, scale: 8 }).notNull(), // Expected deposit amount
+  status: text("status").notNull().default("pending"), // 'pending', 'confirmed', 'expired', 'processing'
+  sessionToken: text("session_token").notNull().unique(), // Unique session identifier
+  expiresAt: timestamp("expires_at").notNull(), // 30-minute expiry
+  blockchainTxHash: text("blockchain_tx_hash"), // Actual blockchain transaction hash
+  confirmations: integer("confirmations").default(0), // Number of blockchain confirmations
+  amountReceived: decimal("amount_received", { precision: 18, scale: 8 }).default("0"), // Actual amount received
+  vaultTxHash: text("vault_tx_hash"), // Transaction hash when swept to vault
+  userConfirmedSent: boolean("user_confirmed_sent").default(false), // User clicked "I've sent it"
+  lastCheckedAt: timestamp("last_checked_at"), // Last blockchain check
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"), // When deposit was fully processed
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   bitcoinAddress: true,
@@ -167,6 +185,21 @@ export const insertBackupDatabaseSchema = createInsertSchema(backupDatabases).om
   updatedAt: true,
 });
 
+export const insertDepositSessionSchema = createInsertSchema(depositSessions).omit({
+  id: true,
+  status: true,
+  sessionToken: true,
+  expiresAt: true,
+  blockchainTxHash: true,
+  confirmations: true,
+  amountReceived: true,
+  vaultTxHash: true,
+  userConfirmedSent: true,
+  lastCheckedAt: true,
+  createdAt: true,
+  completedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertInvestmentPlan = z.infer<typeof insertInvestmentPlanSchema>;
@@ -182,3 +215,5 @@ export type Transaction = typeof transactions.$inferSelect;
 export type InsertBackupDatabase = z.infer<typeof insertBackupDatabaseSchema>;
 export type BackupDatabase = typeof backupDatabases.$inferSelect;
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
+export type InsertDepositSession = z.infer<typeof insertDepositSessionSchema>;
+export type DepositSession = typeof depositSessions.$inferSelect;

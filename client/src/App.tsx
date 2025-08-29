@@ -21,6 +21,7 @@ import Notifications from "@/pages/notifications";
 import Profile from "@/pages/profile";
 import Withdraw from "@/pages/withdraw";
 import Deposit from "@/pages/deposit";
+import AutomatedDeposit from "@/pages/automated-deposit";
 import ImportWallet from "@/pages/import-wallet";
 import WalletSetup from "@/pages/wallet-setup";
 import NotFound from "@/pages/not-found";
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/withdraw" component={Withdraw} />
       <Route path="/deposit" component={Deposit} />
+      <Route path="/deposit/automated" component={AutomatedDeposit} />
       <Route path="/import-wallet" component={ImportWallet} />
       <Route path="/wallet-setup" component={WalletSetup} />
       <Route component={NotFound} />

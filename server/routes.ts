@@ -13,7 +13,8 @@ declare module 'express-session' {
   }
 }
 import { storage } from "./storage";
-import { insertUserSchema, insertInvestmentSchema, insertAdminConfigSchema, insertTransactionSchema, insertBackupDatabaseSchema, updateUserProfileSchema } from "@shared/schema";
+import { insertUserSchema, insertInvestmentSchema, insertAdminConfigSchema, insertTransactionSchema, insertBackupDatabaseSchema, updateUserProfileSchema, insertDepositSessionSchema } from "@shared/schema";
+import { blockchainMonitor } from './blockchain-monitor';
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import * as bitcoin from "bitcoinjs-lib";
@@ -53,6 +54,14 @@ const updatePlanSchema = z.object({
 const depositSchema = z.object({
   amount: z.string(),
   transactionHash: z.string().optional(),
+});
+
+const createDepositSessionSchema = z.object({
+  amount: z.string(),
+});
+
+const confirmDepositSchema = z.object({
+  sessionToken: z.string(),
 });
 
 // Helper function to get userId from session or auth token
@@ -1045,6 +1054,198 @@ You will receive a notification once your deposit is confirmed and added to your
     }
   });
 
+  // Automated Deposit Session Endpoints
+  app.post("/api/deposit/session", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required. Please log in again." });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || !user.bitcoinAddress) {
+        return res.status(400).json({ error: "Bitcoin wallet not set up. Please set up your wallet first." });
+      }
+
+      const { amount } = createDepositSessionSchema.parse(req.body);
+
+      // Validate amount
+      const amountNum = parseFloat(amount);
+      if (isNaN(amountNum) || amountNum <= 0) {
+        return res.status(400).json({ error: "Invalid amount. Amount must be greater than 0." });
+      }
+
+      if (amountNum < 0.001) {
+        return res.status(400).json({ error: "Minimum deposit amount is 0.001 BTC." });
+      }
+
+      // Create deposit session
+      const session = await storage.createDepositSession({
+        userId,
+        depositAddress: user.bitcoinAddress,
+        amount: amount
+      });
+
+      res.json({
+        sessionToken: session.sessionToken,
+        depositAddress: session.depositAddress,
+        amount: session.amount,
+        expiresAt: session.expiresAt,
+        status: session.status,
+        timeRemaining: Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000))
+      });
+
+    } catch (error: any) {
+      console.error('Create deposit session error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          error: "Invalid input data. Please check your amount and try again.",
+          details: error.issues
+        });
+      }
+      res.status(500).json({
+        error: "Failed to create deposit session. Please try again.",
+        details: error.message
+      });
+    }
+  });
+
+  app.get("/api/deposit/session/:token", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const { token } = req.params;
+      const session = await storage.getDepositSession(token);
+
+      if (!session || session.userId !== userId) {
+        return res.status(404).json({ error: "Deposit session not found" });
+      }
+
+      // Check if session has expired
+      const now = new Date();
+      const isExpired = now > new Date(session.expiresAt);
+
+      if (isExpired && session.status === 'pending') {
+        await storage.updateDepositSessionStatus(token, 'expired');
+        session.status = 'expired';
+      }
+
+      res.json({
+        sessionToken: session.sessionToken,
+        depositAddress: session.depositAddress,
+        amount: session.amount,
+        status: session.status,
+        expiresAt: session.expiresAt,
+        timeRemaining: Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000)),
+        userConfirmedSent: session.userConfirmedSent,
+        blockchainTxHash: session.blockchainTxHash,
+        confirmations: session.confirmations,
+        amountReceived: session.amountReceived,
+        createdAt: session.createdAt,
+        completedAt: session.completedAt
+      });
+
+    } catch (error: any) {
+      console.error('Get deposit session error:', error);
+      res.status(500).json({
+        error: "Failed to get deposit session details",
+        details: error.message
+      });
+    }
+  });
+
+  app.post("/api/deposit/session/:token/confirm", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const { token } = req.params;
+      const session = await storage.getDepositSession(token);
+
+      if (!session || session.userId !== userId) {
+        return res.status(404).json({ error: "Deposit session not found" });
+      }
+
+      if (session.status !== 'pending') {
+        return res.status(400).json({ error: "Session is not in pending status" });
+      }
+
+      // Check if session has expired
+      const now = new Date();
+      if (now > new Date(session.expiresAt)) {
+        await storage.updateDepositSessionStatus(token, 'expired');
+        return res.status(400).json({ error: "Deposit session has expired" });
+      }
+
+      // Mark user as confirmed sent
+      const updatedSession = await storage.markUserConfirmedSent(token);
+
+      if (!updatedSession) {
+        return res.status(500).json({ error: "Failed to update session" });
+      }
+
+      // Create notification for user
+      await storage.createNotification({
+        userId,
+        title: "🔍 Payment Confirmation Received",
+        message: `We're now monitoring the blockchain for your ${session.amount} BTC deposit. You'll be notified once your transaction is confirmed.`,
+        type: "info"
+      });
+
+      res.json({
+        message: "Payment confirmation received. We're now monitoring the blockchain for your transaction.",
+        status: "monitoring"
+      });
+
+    } catch (error: any) {
+      console.error('Confirm deposit session error:', error);
+      res.status(500).json({
+        error: "Failed to confirm payment",
+        details: error.message
+      });
+    }
+  });
+
+  app.get("/api/deposit/sessions", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const sessions = await storage.getUserDepositSessions(userId);
+
+      const formattedSessions = sessions.map(session => ({
+        sessionToken: session.sessionToken,
+        amount: session.amount,
+        status: session.status,
+        depositAddress: session.depositAddress,
+        expiresAt: session.expiresAt,
+        userConfirmedSent: session.userConfirmedSent,
+        blockchainTxHash: session.blockchainTxHash,
+        confirmations: session.confirmations,
+        amountReceived: session.amountReceived,
+        createdAt: session.createdAt,
+        completedAt: session.completedAt,
+        timeRemaining: session.status === 'pending' ? Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000)) : 0
+      }));
+
+      res.json(formattedSessions);
+
+    } catch (error: any) {
+      console.error('Get user deposit sessions error:', error);
+      res.status(500).json({
+        error: "Failed to get deposit sessions",
+        details: error.message
+      });
+    }
+  });
+
   app.post("/api/invest", async (req, res) => {
     try {
       const userId = getUserIdFromRequest(req);
@@ -1096,8 +1297,8 @@ You will receive a notification once your deposit is confirmed and added to your
       let bitcoinPrice = 67000; // Default fallback
       try {
         const priceResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-        if (response.ok) {
-          const priceData = await response.json();
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
           bitcoinPrice = priceData.bitcoin.usd;
         }
       } catch (error) {
@@ -3299,6 +3500,14 @@ You are now on the free plan and will no longer receive automatic profit updates
 
   // Start the automatic price update system
   startAutomaticUpdates();
+
+  // Initialize blockchain monitoring for automated deposits
+  try {
+    await blockchainMonitor.startMonitoring();
+    console.log('🔗 Blockchain monitoring system initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize blockchain monitoring:', error);
+  }
 
   return httpServer;
 }
