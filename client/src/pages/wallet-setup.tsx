@@ -43,7 +43,6 @@ export default function WalletSetup() {
       </div>
     );
   }
-  }
 
   // If user already has a wallet, redirect to home
   if (user.hasWallet) {
