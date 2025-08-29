@@ -51,6 +51,28 @@ export default function Home() {
   const { currency } = useCurrency();
   const { data: bitcoinPrice } = useBitcoinPrice();
 
+  // Check for Google login success parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('google_login') === 'success') {
+      toast({
+        title: "🎉 Welcome to BitVault Pro!",
+        description: "You've successfully signed in with Google. Your dashboard is ready!",
+        variant: "default",
+      });
+      // Clean up URL parameter
+      window.history.replaceState({}, '', '/');
+    } else if (urlParams.get('login') === 'success') {
+      toast({
+        title: "🎉 Welcome Back!",
+        description: "You've successfully signed in to BitVault Pro!",
+        variant: "default",
+      });
+      // Clean up URL parameter
+      window.history.replaceState({}, '', '/');
+    }
+  }, [toast]);
+
   // Redirect to login if not authenticated
   if (!user) {
     setLocation('/login');

@@ -114,8 +114,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set user state
     setUser(userData);
 
-
-
     // Force a re-render by updating loading state
     setIsLoading(false);
   };

@@ -8,11 +8,40 @@ import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export default function WalletSetup() {
   const { user, refreshUser } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSeedPhrase, setShowSeedPhrase] = useState(false);
+  const [seedPhrase, setSeedPhrase] = useState<string>("");
+
+  // Check for Google login success parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('google_login') === 'success') {
+      toast({
+        title: "🎉 Welcome to BitVault Pro!",
+        description: "Your Google account is connected. Now set up your Bitcoin wallet to start investing!",
+        variant: "default",
+      });
+      // Clean up URL parameter
+      window.history.replaceState({}, '', '/wallet-setup');
+    }
+  }, [toast]);
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    setLocation('/login');
+    return null;
+  }
+
+  // If user already has a wallet, redirect to home
+  if (user.hasWallet) {
+    setLocation('/');
+  }
 
   const createWalletMutation = useMutation({
     mutationFn: async () => {
@@ -35,18 +64,6 @@ export default function WalletSetup() {
       });
     },
   });
-
-  useEffect(() => {
-    if (!user) {
-      setLocation('/login');
-      return;
-    }
-    
-    // If user already has a wallet, redirect to home
-    if (user.hasWallet) {
-      setLocation('/');
-    }
-  }, [user, setLocation]);
 
   if (!user) {
     return <div>Redirecting to login...</div>;
@@ -100,7 +117,7 @@ export default function WalletSetup() {
               <p className="text-sm text-muted-foreground">
                 Generate a new Bitcoin wallet with a fresh address and secure private key. Perfect for new users.
               </p>
-              
+
               <div className="space-y-2 text-xs text-muted-foreground">
                 <p>• Generates a unique Bitcoin address</p>
                 <p>• Creates secure private key automatically</p>
@@ -132,7 +149,7 @@ export default function WalletSetup() {
               <p className="text-sm text-muted-foreground">
                 Already have a Bitcoin wallet? Import it using your private key or seed phrase to access your existing funds.
               </p>
-              
+
               <div className="space-y-2 text-xs text-muted-foreground">
                 <p>• Supports private keys and seed phrases</p>
                 <p>• Compatible with most Bitcoin wallets</p>
