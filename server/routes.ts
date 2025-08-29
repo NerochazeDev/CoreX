@@ -895,16 +895,7 @@ function startAutomaticUpdates(): void {
       console.log('🔄 Daily 10 AM Telegram updates now running every 24 hours');
     }, initialDelay);
 
-    // Only send test notification if delay is more than 1 hour (to avoid conflicts)
-    if (initialDelay > 3600000) {
-      console.log('⏰ Scheduling test notification in 2 minutes (initial delay > 1 hour)');
-      setTimeout(() => {
-        console.log('📱 Sending initial test notification...');
-        sendBothNotifications();
-      }, 120000); // 2 minutes instead of 1
-    } else {
-      console.log('⏰ Skipping test notification - next scheduled update is soon');
-    }
+    // Note: Test notifications removed to prevent duplicates
   }
 
   scheduleDailyTelegramUpdates();
