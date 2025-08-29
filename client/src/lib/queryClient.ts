@@ -7,29 +7,30 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
-  
-  // Add auth token if available
-  const authToken = localStorage.getItem('bitvault_auth_token');
+export async function apiRequest(method: string, endpoint: string, data?: any) {
+  const options: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include', // Include cookies for session-based auth
+  };
+
+  // Add auth token from localStorage if available
+  const authToken = localStorage.getItem('authToken');
   if (authToken) {
-    headers.Authorization = `Bearer ${authToken}`;
+    options.headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${authToken}`,
+    };
   }
 
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include", // This ensures cookies are sent with every request
-    mode: "cors", // Enable CORS with credentials
-  });
+  if (data) {
+    options.body = JSON.stringify(data);
+  }
 
-  await throwIfResNotOk(res);
-  return res;
+  const response = await fetch(endpoint, options);
+  return response;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -39,7 +40,7 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const headers: Record<string, string> = {};
-    
+
     // Add auth token if available
     const authToken = localStorage.getItem('bitvault_auth_token');
     if (authToken) {

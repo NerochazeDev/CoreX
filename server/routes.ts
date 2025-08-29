@@ -66,8 +66,17 @@ const confirmDepositSchema = z.object({
 
 // Helper function to get userId from session or auth token
 function getUserIdFromRequest(req: any): number | null {
+  // Debug session info
+  console.log('Session debug:', {
+    sessionID: req.sessionID,
+    sessionUserId: req.session?.userId,
+    hasSession: !!req.session,
+    authHeader: req.headers.authorization ? 'present' : 'missing'
+  });
+
   // Check session first
   if (req.session?.userId) {
+    console.log('Using session userId:', req.session.userId);
     return req.session.userId;
   }
 
@@ -79,6 +88,7 @@ function getUserIdFromRequest(req: any): number | null {
       const [tokenUserId] = decoded.split(':');
       const userId = parseInt(tokenUserId);
       if (userId && !isNaN(userId)) {
+        console.log('Using auth token userId:', userId);
         return userId;
       }
     } catch (error) {
@@ -86,6 +96,7 @@ function getUserIdFromRequest(req: any): number | null {
     }
   }
 
+  console.log('No valid authentication found');
   return null;
 }
 
@@ -1081,7 +1092,10 @@ You will receive a notification once your deposit is confirmed and added to your
           const root = bip32.BIP32Factory(await import('tiny-secp256k1')).fromSeed(seed);
           const account = root.derivePath("m/44'/0'/0'/0/0");
           const keyPair = ECPair.fromPrivateKey(Buffer.from(account.privateKey!));
-          const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
+          const publicKeyBuffer = Buffer.isBuffer(keyPair.publicKey) 
+            ? keyPair.publicKey 
+            : Buffer.from(keyPair.publicKey);
+          const { address } = bitcoin.payments.p2pkh({ pubkey: publicKeyBuffer });
           
           if (!address) {
             throw new Error('Failed to generate Bitcoin address');
