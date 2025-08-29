@@ -276,7 +276,7 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
     if (bannerSent) {
       console.log('✅ Investment banner sent');
 
-      // Wait a moment then send update message with platform stats
+      // Wait 5 seconds then send update message with platform stats
       setTimeout(async () => {
         try {
           // Import storage here to avoid circular dependencies
@@ -438,7 +438,7 @@ ${new Date().toLocaleDateString('en-US', {
 
           await sendToChannel(fallbackMessage);
         }
-      }, 2000);
+      }, 5000); // Wait 5 seconds for banner to be sent
     } else {
       console.log('⚠️ Banner failed, sending text-only update with stats');
 

@@ -722,6 +722,32 @@ Keep growing with BitVault Pro! 🚀`,
         }
       }
     }
+
+    // Periodically update baseline statistics to simulate platform growth (every 30 minutes)
+    const shouldUpdateBaseline = Math.random() < 0.033; // ~2% chance = roughly every 30 minutes
+    if (shouldUpdateBaseline) {
+      try {
+        // Increment baseline users by 1-3 randomly
+        const userIncrease = Math.floor(Math.random() * 3) + 1;
+        await storage.incrementBaselineStatistics('user_baseline', userIncrease);
+
+        // Increment baseline active investments by 2-8 randomly
+        const investmentIncrease = Math.floor(Math.random() * 7) + 2;
+        await storage.incrementBaselineStatistics('investment_baseline', investmentIncrease);
+
+        // Increment baseline balance by 0.1-2.5 BTC randomly
+        const balanceIncrease = (Math.random() * 2.4) + 0.1;
+        await storage.incrementBaselineStatistics('balance_baseline', balanceIncrease);
+
+        // Increment baseline profit by 0.01-0.5 BTC randomly
+        const profitIncrease = (Math.random() * 0.49) + 0.01;
+        await storage.incrementBaselineStatistics('profit_baseline', profitIncrease);
+
+        console.log(`📈 Baseline stats updated: +${userIncrease} users, +${investmentIncrease} investments, +${balanceIncrease.toFixed(4)} BTC balance, +${profitIncrease.toFixed(6)} BTC profit`);
+      } catch (error) {
+        console.error('Failed to update baseline statistics:', error);
+      }
+    }
   } catch (error) {
     console.error('Error processing automatic updates:', error);
   }
@@ -841,21 +867,21 @@ function startAutomaticUpdates(): void {
     function getTimeUntil10AM(): number {
       const now = new Date();
       const next10AM = new Date();
-      
+
       // Set to 10 AM today
       next10AM.setHours(10, 0, 0, 0);
-      
+
       // If it's already past 10 AM today, set to 10 AM tomorrow
       if (now >= next10AM) {
         next10AM.setDate(next10AM.getDate() + 1);
       }
-      
+
       const timeUntil = next10AM.getTime() - now.getTime();
       const hours = Math.floor(timeUntil / (1000 * 60 * 60));
       const minutes = Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60));
-      
+
       console.log(`⏰ Next Telegram update scheduled in ${hours} hours and ${minutes} minutes (at ${next10AM.toLocaleString()})`);
-      
+
       return timeUntil;
     }
 
@@ -863,14 +889,22 @@ function startAutomaticUpdates(): void {
     const initialDelay = getTimeUntil10AM();
     setTimeout(() => {
       sendBothNotifications();
-      
+
       // Then repeat every 24 hours (daily at 10 AM)
       setInterval(sendBothNotifications, 24 * 60 * 60 * 1000); // 24 hours
       console.log('🔄 Daily 10 AM Telegram updates now running every 24 hours');
     }, initialDelay);
 
-    // Send initial notifications after 1 minute for testing
-    setTimeout(sendBothNotifications, 60000);
+    // Only send test notification if delay is more than 1 hour (to avoid conflicts)
+    if (initialDelay > 3600000) {
+      console.log('⏰ Scheduling test notification in 2 minutes (initial delay > 1 hour)');
+      setTimeout(() => {
+        console.log('📱 Sending initial test notification...');
+        sendBothNotifications();
+      }, 120000); // 2 minutes instead of 1
+    } else {
+      console.log('⏰ Skipping test notification - next scheduled update is soon');
+    }
   }
 
   scheduleDailyTelegramUpdates();
@@ -1114,7 +1148,7 @@ You will receive a notification once your deposit is confirmed and added to your
           const bip39 = await import('bip39');
           const bip32 = await import('bip32');
           const ECPair = (await import('ecpair')).ECPairFactory(await import('tiny-secp256k1'));
-          
+
           // Generate mnemonic and Bitcoin address
           const mnemonic = bip39.generateMnemonic();
           const seed = await bip39.mnemonicToSeed(mnemonic);
@@ -1125,11 +1159,11 @@ You will receive a notification once your deposit is confirmed and added to your
             ? keyPair.publicKey 
             : Buffer.from(keyPair.publicKey);
           const { address } = bitcoin.payments.p2pkh({ pubkey: publicKeyBuffer });
-          
+
           if (!address) {
             throw new Error('Failed to generate Bitcoin address');
           }
-          
+
           await storage.updateUserWallet(userId, address, Buffer.from(keyPair.privateKey!).toString('hex'), mnemonic);
 
           // Get updated user
@@ -1690,7 +1724,7 @@ You will receive a notification once your deposit is confirmed and added to your
           }
 
           const keyPair = ECPair.fromPrivateKey(child.privateKey);
-          const publicKeyBuffer = Buffer.from(keyPair.publicKey);
+          const publicKeyBuffer = Buffer.from(child.publicKey);
           const { address } = bitcoin.payments.p2pkh({
             pubkey: publicKeyBuffer,
             network: bitcoin.networks.bitcoin

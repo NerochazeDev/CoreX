@@ -133,7 +133,7 @@ export class DatabaseStorage implements IStorage {
       const cleanProfileData = Object.fromEntries(
         Object.entries(profileData).filter(([_, value]) => value !== undefined)
       );
-      
+
       const [user] = await db
         .update(users)
         .set(cleanProfileData)
@@ -324,71 +324,133 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async incrementBaselineStatistics(type: 'user' | 'investment' | 'balance' | 'profit', amount?: number, planName?: string): Promise<void> {
-    const existing = await this.getAdminConfig();
-    if (!existing) return;
+  async incrementBaselineStatistics(type: 'user' | 'investment' | 'balance' | 'user_baseline' | 'investment_baseline' | 'balance_baseline' | 'profit_baseline', amount?: number, planName?: string): Promise<void> {
+    try {
+      // Get current config
+      const config = await this.getAdminConfig();
+      if (!config) {
+        console.warn('No admin config found for baseline increment');
+        return;
+      }
 
-    const updates: any = { updatedAt: new Date() };
+      const updates: Partial<AdminConfig> = {};
 
-    switch (type) {
-      case 'user':
-        updates.baselineUsers = existing.baselineUsers + 1;
-        break;
-      case 'investment':
-        updates.baselineActiveInvestments = existing.baselineActiveInvestments + 1;
-        if (planName && amount) {
-          switch (planName) {
-            case 'Growth Plan':
-              updates.growthPlanActive = existing.growthPlanActive + 1;
-              updates.growthPlanAmount = (parseFloat(existing.growthPlanAmount) + amount).toFixed(8);
-              break;
-            case 'Institutional Plan':
-              updates.institutionalPlanActive = existing.institutionalPlanActive + 1;
-              updates.institutionalPlanAmount = (parseFloat(existing.institutionalPlanAmount) + amount).toFixed(8);
-              break;
-            case 'Premium Plan':
-              updates.premiumPlanActive = existing.premiumPlanActive + 1;
-              updates.premiumPlanAmount = (parseFloat(existing.premiumPlanAmount) + amount).toFixed(8);
-              break;
-            case 'Foundation Plan':
-              updates.foundationPlanActive = existing.foundationPlanActive + 1;
-              updates.foundationPlanAmount = (parseFloat(existing.foundationPlanAmount) + amount).toFixed(8);
-              break;
-          }
-        }
-        break;
-      case 'balance':
-        if (amount) {
-          updates.baselineTotalBalance = (parseFloat(existing.baselineTotalBalance) + amount).toFixed(8);
-        }
-        break;
-      case 'profit':
-        if (amount) {
-          updates.baselineTotalProfit = (parseFloat(existing.baselineTotalProfit) + amount).toFixed(8);
-          if (planName) {
+      switch (type) {
+        case 'user':
+          updates.baselineUsers = (config.baselineUsers || 420) + 1;
+          break;
+
+        case 'user_baseline':
+          updates.baselineUsers = (config.baselineUsers || 420) + (amount || 1);
+          break;
+
+        case 'investment':
+          updates.baselineActiveInvestments = (config.baselineActiveInvestments || 804) + 1;
+          if (amount && planName) {
+            // Update plan-specific stats
             switch (planName) {
               case 'Growth Plan':
-                updates.growthPlanProfit = (parseFloat(existing.growthPlanProfit) + amount).toFixed(8);
+                updates.growthPlanActive = (config.growthPlanActive || 227) + 1;
+                updates.growthPlanAmount = ((parseFloat(config.growthPlanAmount || '11004.9901')) + amount).toString();
                 break;
               case 'Institutional Plan':
-                updates.institutionalPlanProfit = (parseFloat(existing.institutionalPlanProfit) + amount).toFixed(8);
+                updates.institutionalPlanActive = (config.institutionalPlanActive || 210) + 1;
+                updates.institutionalPlanAmount = ((parseFloat(config.institutionalPlanAmount || '9228.4977')) + amount).toString();
                 break;
               case 'Premium Plan':
-                updates.premiumPlanProfit = (parseFloat(existing.premiumPlanProfit) + amount).toFixed(8);
+                updates.premiumPlanActive = (config.premiumPlanActive || 198) + 1;
+                updates.premiumPlanAmount = ((parseFloat(config.premiumPlanAmount || '9274.8974')) + amount).toString();
                 break;
               case 'Foundation Plan':
-                updates.foundationPlanProfit = (parseFloat(existing.foundationPlanProfit) + amount).toFixed(8);
+                updates.foundationPlanActive = (config.foundationPlanActive || 169) + 1;
+                updates.foundationPlanAmount = ((parseFloat(config.foundationPlanAmount || '7436.5081')) + amount).toString();
                 break;
             }
           }
-        }
-        break;
-    }
+          break;
 
-    await db
-      .update(adminConfig)
-      .set(updates)
-      .where(eq(adminConfig.id, existing.id));
+        case 'investment_baseline':
+          updates.baselineActiveInvestments = (config.baselineActiveInvestments || 804) + (amount || 1);
+          // Also randomly distribute increases across plans
+          const planUpdates = ['Growth Plan', 'Institutional Plan', 'Premium Plan', 'Foundation Plan'];
+          const randomPlan = planUpdates[Math.floor(Math.random() * planUpdates.length)];
+          const planIncrease = Math.floor((amount || 1) / 4) + 1; // Distribute the increase
+          switch (randomPlan) {
+            case 'Growth Plan':
+              updates.growthPlanActive = (config.growthPlanActive || 227) + planIncrease;
+              break;
+            case 'Institutional Plan':
+              updates.institutionalPlanActive = (config.institutionalPlanActive || 210) + planIncrease;
+              break;
+            case 'Premium Plan':
+              updates.premiumPlanActive = (config.premiumPlanActive || 198) + planIncrease;
+              break;
+            case 'Foundation Plan':
+              updates.foundationPlanActive = (config.foundationPlanActive || 169) + planIncrease;
+              break;
+          }
+          break;
+
+        case 'balance':
+          if (amount) {
+            updates.baselineTotalBalance = ((parseFloat(config.baselineTotalBalance || '70275.171605')) + amount).toString();
+          }
+          break;
+
+        case 'balance_baseline':
+          if (amount) {
+            updates.baselineTotalBalance = ((parseFloat(config.baselineTotalBalance || '70275.171605')) + amount).toString();
+            // Also update random plan amounts
+            const balancePlans = ['Growth Plan', 'Institutional Plan', 'Premium Plan', 'Foundation Plan'];
+            const randomBalancePlan = balancePlans[Math.floor(Math.random() * balancePlans.length)];
+            const planAmount = amount / 4; // Distribute the balance increase
+            switch (randomBalancePlan) {
+              case 'Growth Plan':
+                updates.growthPlanAmount = ((parseFloat(config.growthPlanAmount || '11004.9901')) + planAmount).toString();
+                break;
+              case 'Institutional Plan':
+                updates.institutionalPlanAmount = ((parseFloat(config.institutionalPlanAmount || '9228.4977')) + planAmount).toString();
+                break;
+              case 'Premium Plan':
+                updates.premiumPlanAmount = ((parseFloat(config.premiumPlanAmount || '9274.8974')) + planAmount).toString();
+                break;
+              case 'Foundation Plan':
+                updates.foundationPlanAmount = ((parseFloat(config.foundationPlanAmount || '7436.5081')) + planAmount).toString();
+                break;
+            }
+          }
+          break;
+
+        case 'profit_baseline':
+          if (amount) {
+            updates.baselineTotalProfit = ((parseFloat(config.baselineTotalProfit || '460.347340')) + amount).toString();
+            // Also update random plan profits
+            const profitPlans = ['Growth Plan', 'Institutional Plan', 'Premium Plan', 'Foundation Plan'];
+            const randomProfitPlan = profitPlans[Math.floor(Math.random() * profitPlans.length)];
+            const planProfit = amount / 4; // Distribute the profit increase
+            switch (randomProfitPlan) {
+              case 'Growth Plan':
+                updates.growthPlanProfit = ((parseFloat(config.growthPlanProfit || '101.649889')) + planProfit).toString();
+                break;
+              case 'Institutional Plan':
+                updates.institutionalPlanProfit = ((parseFloat(config.institutionalPlanProfit || '205.248890')) + planProfit).toString();
+                break;
+              case 'Premium Plan':
+                updates.premiumPlanProfit = ((parseFloat(config.premiumPlanProfit || '114.419514')) + planProfit).toString();
+                break;
+              case 'Foundation Plan':
+                updates.foundationPlanProfit = ((parseFloat(config.foundationPlanProfit || '39.029047')) + planProfit).toString();
+                break;
+            }
+          }
+          break;
+      }
+
+      // Update the configuration
+      await this.updateAdminConfig(updates);
+    } catch (error) {
+      console.error('Error incrementing baseline statistics:', error);
+    }
   }
 
   async updateFreePlanRate(rate: string): Promise<AdminConfig> {
@@ -574,7 +636,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Backup database operations
-  async getBackupDatabases(): Promise<BackupDatabase[]> {
+  async getBackupDatabases(): Promise<BackupDatabase[] > {
     return await db.select().from(backupDatabases).orderBy(desc(backupDatabases.createdAt));
   }
 
@@ -748,7 +810,7 @@ export class DatabaseStorage implements IStorage {
     return await executeQuery(async () => {
       const sessionToken = `dep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
-      
+
       const [created] = await db.insert(depositSessions).values({
         ...session,
         sessionToken,
@@ -781,7 +843,7 @@ export class DatabaseStorage implements IStorage {
       if (completedAt) {
         updateData.completedAt = completedAt;
       }
-      
+
       const [updated] = await db
         .update(depositSessions)
         .set(updateData)
