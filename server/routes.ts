@@ -927,7 +927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || 'dummy-client-id',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy-client-secret',
-    callbackURL: "https://workspace.bolashame960.repl.co/api/auth/google/callback"
+    callbackURL: "https://bitvault-pro.onrender.com/api/auth/google/callback"
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user already exists with Google ID
