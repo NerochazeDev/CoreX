@@ -55,6 +55,7 @@ export default function Home() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('google_login') === 'success') {
+      console.log('Google OAuth success detected, user:', user);
       // Check if user needs wallet setup
       if (user && !user.hasWallet) {
         toast({

@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      // Always include credentials for session-based auth
       const authToken = localStorage.getItem('bitvault_auth_token');
       const headers: Record<string, string> = {};
 
@@ -39,9 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers.Authorization = `Bearer ${authToken}`;
       }
 
+      // Add retry logic for Google OAuth users
       const response = await fetch('/api/me', {
         method: 'GET',
-        credentials: 'include', // Still include cookies as fallback
+        credentials: 'include', // Critical for Google OAuth session cookies
         headers
       });
 

@@ -927,7 +927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || 'dummy-client-id',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy-client-secret',
-    callbackURL: process.env.GOOGLE_CALLBACK_URL
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback'
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user already exists with Google ID
@@ -2124,11 +2124,16 @@ Your investment journey starts here!`,
 
             console.log(`Google OAuth session saved for user ${user.id}, Session ID: ${req.sessionID}`);
             
-            // Always redirect to home page after successful Google OAuth
-            // The frontend will handle wallet setup redirection if needed
-            res.redirect('/?google_login=success');
+            // Get home URL from environment or use default
+            const homeUrl = process.env.REPLIT_DEV_DOMAIN 
+              ? `https://${process.env.REPLIT_DEV_DOMAIN}/?google_login=success`
+              : '/?google_login=success';
+            
+            console.log(`Redirecting Google OAuth user to: ${homeUrl}`);
+            res.redirect(homeUrl);
           });
         } else {
+          console.error('Google OAuth: No user data received');
           res.redirect('/login?error=no_user_data');
         }
       } catch (error) {
