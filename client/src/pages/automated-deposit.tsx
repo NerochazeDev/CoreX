@@ -208,9 +208,9 @@ export default function AutomatedDeposit() {
   return (
     <div className="container mx-auto p-4 max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-orange-500 mb-2">🚀 Automated Bitcoin Deposit</h1>
+        <h1 className="text-3xl font-bold text-orange-500 mb-2">💰 Deposit Bitcoin</h1>
         <p className="text-muted-foreground">
-          Send Bitcoin and get instant verification when your transaction is confirmed on the blockchain
+          Send Bitcoin to your personal wallet address and get instant verification when confirmed on the blockchain
         </p>
       </div>
 
@@ -250,9 +250,8 @@ export default function AutomatedDeposit() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Automated Process:</strong> This creates a 30-minute deposit session. 
-                  Send the exact amount to the provided address and confirm when sent. 
-                  Your balance will be updated automatically when the transaction is confirmed.
+                  <strong>Your Personal Address:</strong> This creates a 30-minute deposit session using your personal Bitcoin wallet address. 
+                  Send the exact amount and confirm when sent. Your balance will be updated automatically when the transaction is confirmed on the blockchain.
                 </AlertDescription>
               </Alert>
 
@@ -285,12 +284,12 @@ export default function AutomatedDeposit() {
                 Send Bitcoin Payment
               </CardTitle>
               <CardDescription>
-                Send exactly {currentSession.amount} BTC to the address below within {formatTimeRemaining(timeRemaining)}
+                Send exactly {currentSession.amount} BTC to your personal wallet address below within {formatTimeRemaining(timeRemaining)}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Deposit Address</Label>
+                <Label>Your Personal Bitcoin Address</Label>
                 <div className="flex gap-2">
                   <Input 
                     value={currentSession.depositAddress} 
@@ -351,8 +350,8 @@ export default function AutomatedDeposit() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Important:</strong> Send exactly {currentSession.amount} BTC to this address. 
-                  Any other amount may not be recognized automatically.
+                  <strong>Important:</strong> Send exactly {currentSession.amount} BTC to your personal address above. 
+                  Any other amount may not be recognized automatically. This is your secure wallet address managed by BitVault Pro.
                 </AlertDescription>
               </Alert>
 
