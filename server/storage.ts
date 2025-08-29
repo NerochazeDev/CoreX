@@ -7,7 +7,8 @@ export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser & { bitcoinAddress: string | null; privateKey: string | null }): Promise<User>;
+  createUser(user: InsertUser & { bitcoinAddress: string | null; privateKey: string | null; googleId?: string; profileImageUrl?: string }): Promise<User>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
   updateUserBalance(id: number, balance: string): Promise<User | undefined>;
   updateUserPlan(id: number, planId: number | null): Promise<User | undefined>;
   updateUserProfile(id: number, profileData: Partial<UpdateUserProfile>): Promise<User | undefined>;
@@ -141,7 +142,14 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async createUser(insertUser: InsertUser & { bitcoinAddress: string; privateKey: string }): Promise<User> {
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    return await executeQuery(async () => {
+      const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
+      return user || undefined;
+    });
+  }
+
+  async createUser(insertUser: InsertUser & { bitcoinAddress: string; privateKey: string; googleId?: string; profileImageUrl?: string }): Promise<User> {
     const user = await executeQuery(async () => {
       const [user] = await db
         .insert(users)

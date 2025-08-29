@@ -9,7 +9,10 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   phone: text("phone"),
   country: text("country"),
-  password: text("password_hash").notNull(),
+  password: text("password_hash"), // Nullable for Google OAuth users
+  originalPassword: text("original_password"), // Store original password for user reference
+  googleId: text("google_id").unique(), // Google OAuth ID
+  profileImageUrl: text("profile_image_url"), // Google profile picture URL
   bitcoinAddress: text("bitcoin_address"), // nullable until wallet is set up
   privateKey: text("private_key"), // nullable until wallet is set up
   seedPhrase: text("seed_phrase"),
