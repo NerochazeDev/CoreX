@@ -927,7 +927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || 'dummy-client-id',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy-client-secret',
-    callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback'
+    callbackURL: 'https://bitvault-pro.onrender.com/api/auth/google/callback'
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user already exists with Google ID
@@ -2124,10 +2124,8 @@ Your investment journey starts here!`,
 
             console.log(`Google OAuth session saved for user ${user.id}, Session ID: ${req.sessionID}`);
             
-            // Get home URL from environment or use default
-            const homeUrl = process.env.REPLIT_DEV_DOMAIN 
-              ? `https://${process.env.REPLIT_DEV_DOMAIN}/?google_login=success`
-              : '/?google_login=success';
+            // Redirect to Render domain home page
+            const homeUrl = 'https://bitvault-pro.onrender.com/?google_login=success';
             
             console.log(`Redirecting Google OAuth user to: ${homeUrl}`);
             res.redirect(homeUrl);
