@@ -1,0 +1,64 @@
+📌 Bitcoin Deposit System Proposal
+
+We want to implement a secure and automated Bitcoin deposit system for our platform. The goal is to replace the current manual approval process with a fully automated, blockchain-verified workflow.
+
+🔹 1. User Account Creation
+	•	When a user creates an account, the system automatically generates a unique Bitcoin address assigned only to that user.
+	•	This address remains tied to the user for all deposits.
+
+🔹 2. Deposit Initialization
+	•	When a user taps the Deposit Page, they are first asked to input the amount they want to deposit.
+	•	After confirming the amount, the system creates a deposit session for that user.
+
+🔹 3. Deposit Address Display
+	•	The deposit page then loads and shows the following:
+	•	The user’s assigned Bitcoin deposit address
+	•	The deposit amount they must send
+	•	A 30-minute countdown timer (validity window for this session)
+
+🔹 4. User Action
+	•	The user sends BTC to the deposit address.
+	•	After sending, they tap a button labeled “Confirm I’ve Sent It”.
+
+🔹 5. System Verification
+	•	Once the button is tapped (or even automatically during the session), the system checks the blockchain to confirm:
+	•	That the deposit address has received the specified amount.
+	•	That the transaction has at least 1–3 confirmations on the blockchain.
+
+🔹 6. Post-Confirmation Actions
+	•	If the transaction is verified:
+	1.	The deposit amount is automatically credited to the user’s balance on their dashboard.
+	2.	The funds are automatically swept from the deposit address to the platform’s main vault address for safekeeping.
+	3.	The system displays a popup or page stating “Payment Successful”.
+
+🔹 7. Timeout Handling
+	•	If no payment is detected within 30 minutes, the deposit session expires.
+	•	The system marks the session as failed/expired, and the user must create a new deposit attempt.
+
+🔹 8. Benefits of This System
+	•	✅ No fake deposits – only on-chain verified transactions are credited.
+	•	✅ Fully automated – no manual approval needed.
+	•	✅ Secure – funds are swept into the vault address after confirmation.
+	•	✅ Transparent – every deposit is tied to a unique user address.
+	•	✅ User-friendly – clear steps, countdown timer, and instant success confirmation.
+
+🔹 9. Requirements for Implementation
+	•	Blockchain monitoring (via Bitcoin node or third-party API like BlockCypher, Blockstream, or BitGo).
+	•	Database structure to store:
+	•	User accounts and assigned BTC addresses
+	•	Deposit sessions (amount, status, timer, confirmations)
+	•	Vault transactions
+	•	Frontend flow:
+	•	Deposit form (enter amount)
+	•	Address + countdown display
+	•	Confirm button + success popup
+	•	Backend flow:
+	•	Generate deposit session
+	•	Monitor blockchain
+	•	Confirm transactions
+	•	Update user balance + sweep to vault
+
+⚡ Instruction for Replit AI Agent:
+Please generate the backend logic, database schema, blockchain monitoring, and frontend UI for this deposit flow. Ensure that the system is secure, automated, and scalable.
+
+This way, the proposal covers everything from account creation → deposit session → blockchain verification → balance update → vault transfer → timeout handling.
