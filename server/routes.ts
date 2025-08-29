@@ -954,9 +954,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const seed = bip39.mnemonicToSeedSync(mnemonic);
         const root = bip32.fromSeed(seed);
         const child = root.derivePath("m/44'/0'/0'/0/0");
-        const keyPair = ECPair.fromPrivateKey(child.privateKey!);
         const bitcoinAddress = bitcoin.payments.p2pkh({ 
-          pubkey: keyPair.publicKey,
+          pubkey: child.publicKey!,
           network: bitcoin.networks.bitcoin 
         }).address!;
 
