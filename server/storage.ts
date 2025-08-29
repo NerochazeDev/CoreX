@@ -81,43 +81,11 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   private backupSyncService = new BackupSyncService();
 
-  // Real-time backup synchronization
+  // Real-time backup synchronization - disabled for Replit environment
   private async syncToBackupDatabases(): Promise<void> {
-    try {
-      const backupDbs = await this.getActiveBackupDatabases();
-      
-      for (const backupDb of backupDbs) {
-        if (backupDb.isActive && backupDb.connectionString) {
-          try {
-            await this.backupSyncService.syncDataToBackup(backupDb.connectionString);
-            
-            // Update last sync time
-            await db
-              .update(backupDatabases)
-              .set({ 
-                lastSyncAt: new Date(),
-                status: 'connected',
-                errorMessage: null 
-              })
-              .where(eq(backupDatabases.id, backupDb.id));
-              
-          } catch (error) {
-            console.error(`❌ Sync failed for backup database ${backupDb.name}:`, error);
-            
-            // Update error status
-            await db
-              .update(backupDatabases)
-              .set({ 
-                status: 'error',
-                errorMessage: error instanceof Error ? error.message : 'Unknown sync error'
-              })
-              .where(eq(backupDatabases.id, backupDb.id));
-          }
-        }
-      }
-    } catch (error) {
-      console.error('❌ Real-time backup sync error:', error);
-    }
+    // Backup sync disabled for Replit environment to prevent connection errors
+    // Only using the primary Replit database
+    return;
   }
 
   private async getActiveBackupDatabases(): Promise<BackupDatabase[]> {
@@ -162,10 +130,7 @@ export class DatabaseStorage implements IStorage {
       return user;
     });
     
-    // Real-time sync to backup databases
-    this.syncToBackupDatabases().catch(err => 
-      console.error('❌ Backup sync failed after user creation:', err)
-    );
+    // Real-time sync to backup databases - disabled for Replit environment
     
     return user;
   }
@@ -180,10 +145,7 @@ export class DatabaseStorage implements IStorage {
       return user || undefined;
     });
     
-    // Real-time sync to backup databases
-    this.syncToBackupDatabases().catch(err => 
-      console.error('❌ Backup sync failed after balance update:', err)
-    );
+    // Real-time sync to backup databases - disabled for Replit environment
     
     return user;
   }
@@ -300,10 +262,7 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     
-    // Real-time sync to backup databases
-    this.syncToBackupDatabases().catch(err => 
-      console.error('❌ Backup sync failed after investment creation:', err)
-    );
+    // Real-time sync to backup databases - disabled for Replit environment
     
     return investment;
   }
@@ -612,10 +571,7 @@ export class DatabaseStorage implements IStorage {
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     const created = await db.insert(transactions).values(transaction).returning();
     
-    // Real-time sync to backup databases
-    this.syncToBackupDatabases().catch(err => 
-      console.error('❌ Backup sync failed after transaction creation:', err)
-    );
+    // Real-time sync to backup databases - disabled for Replit environment
     
     return created[0];
   }
