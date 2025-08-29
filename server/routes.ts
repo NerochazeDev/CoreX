@@ -808,25 +808,25 @@ function startAutomaticUpdates(): void {
   // Set up the main 5-minute interval for investment plan updates (faster for demo)
   setInterval(processAutomaticUpdates, 5 * 60 * 1000); // 5 minutes
 
-  // Schedule Telegram updates every 12 hours
-  function scheduleTwelveHourlyTelegramUpdates() {
-    console.log('📊 Scheduling automatic telegram updates every 12 hours...');
+  // Schedule Telegram updates to end at 10 AM daily
+  function scheduleDailyTelegramUpdates() {
+    console.log('📊 Scheduling automatic telegram updates to end at 10 AM daily...');
 
-    // Send both types of notifications every 12 hours
+    // Send both types of notifications daily at 10 AM
     const sendBothNotifications = async () => {
-      console.log('📱 Sending scheduled 12-hour telegram notifications...');
+      console.log('📱 Sending scheduled daily telegram notifications at 10 AM...');
 
       try {
         // Send detailed daily stats with investment plan charts first
         await sendDailyStatsToChannel();
-        console.log('✅ Daily stats with investment charts sent');
+        console.log('✅ Daily stats with investment charts sent at 10 AM');
 
         // Wait 30 seconds between messages to avoid rate limits
         setTimeout(async () => {
           try {
             // Send the regular batched updates
             await sendBatchedUpdatesToChannel();
-            console.log('✅ Regular investment updates sent');
+            console.log('✅ Regular investment updates sent at 10 AM');
           } catch (error: any) {
             console.error('❌ Failed to send regular updates:', error.message);
           }
@@ -837,18 +837,47 @@ function startAutomaticUpdates(): void {
       }
     };
 
-    // Send both notifications every 12 hours
-    setInterval(sendBothNotifications, 12 * 60 * 60 * 1000); // 12 hours
+    // Calculate time until next 10 AM
+    function getTimeUntil10AM(): number {
+      const now = new Date();
+      const next10AM = new Date();
+      
+      // Set to 10 AM today
+      next10AM.setHours(10, 0, 0, 0);
+      
+      // If it's already past 10 AM today, set to 10 AM tomorrow
+      if (now >= next10AM) {
+        next10AM.setDate(next10AM.getDate() + 1);
+      }
+      
+      const timeUntil = next10AM.getTime() - now.getTime();
+      const hours = Math.floor(timeUntil / (1000 * 60 * 60));
+      const minutes = Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60));
+      
+      console.log(`⏰ Next Telegram update scheduled in ${hours} hours and ${minutes} minutes (at ${next10AM.toLocaleString()})`);
+      
+      return timeUntil;
+    }
 
-    // Send initial notifications after 1 minute
+    // Schedule the first update at next 10 AM
+    const initialDelay = getTimeUntil10AM();
+    setTimeout(() => {
+      sendBothNotifications();
+      
+      // Then repeat every 24 hours (daily at 10 AM)
+      setInterval(sendBothNotifications, 24 * 60 * 60 * 1000); // 24 hours
+      console.log('🔄 Daily 10 AM Telegram updates now running every 24 hours');
+    }, initialDelay);
+
+    // Send initial notifications after 1 minute for testing
     setTimeout(sendBothNotifications, 60000);
   }
 
-  scheduleTwelveHourlyTelegramUpdates();
+  scheduleDailyTelegramUpdates();
 
   console.log('Automatic updates will run every 5 minutes');
-  console.log('Telegram updates will be sent every 12 hours with detailed charts and banners');
-  console.log('Both notification types will be sent together every 12 hours');
+  console.log('Telegram updates will be sent daily at 10 AM with detailed charts and banners');
+  console.log('Both notification types will be sent together daily at 10 AM');
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
