@@ -459,7 +459,7 @@ async function fetchBitcoinPrice() {
 
   // Reduced price fetch logging
   if (apiCallCount % 5 === 0) { // Only log every 5th call
-    console.log(`🚀 [Backend] Fetching Bitcoin price (${apiCallCount + 1}/${MAX_API_CALLS_PER_HOUR} calls)...`);
+    console.log(`🚀 [Backend] Fetching Bitcoin price (${apiCallCount + 1}/${MAX_API_CALLS_PER_HOUR})...`);
   }
 
   // Try each API source
@@ -932,11 +932,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check if user already exists with Google ID
       let user = await storage.getUserByGoogleId(profile.id);
-      
+
       if (user) {
         return done(null, user);
       }
-      
+
       // Check if user exists with the same email
       const email = profile.emails?.[0]?.value;
       if (email) {
@@ -949,15 +949,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create new user with Google account
       if (email) {
-        // Generate Bitcoin wallet for new user
-        const mnemonic = bip39.generateMnemonic();
-        const seed = bip39.mnemonicToSeedSync(mnemonic);
-        const root = bip32.fromSeed(seed);
-        const child = root.derivePath("m/44'/0'/0'/0/0");
-        const bitcoinAddress = bitcoin.payments.p2pkh({ 
-          pubkey: child.publicKey!,
-          network: bitcoin.networks.bitcoin 
-        }).address!;
+        // Generate Bitcoin wallet for new user using the same method as the main function
+        const wallet = generateBitcoinWallet();
 
         user = await storage.createUser({
           firstName: profile.name?.givenName || 'Google',
@@ -967,9 +960,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           country: '',
           password: '', // No password for Google OAuth users
           originalPassword: '', // No original password for Google OAuth users
-          bitcoinAddress: bitcoinAddress,
-          privateKey: child.privateKey!.toString('hex'),
-          seedPhrase: mnemonic,
+          bitcoinAddress: wallet.address,
+          privateKey: wallet.privateKey,
+          seedPhrase: wallet.seedPhrase,
           acceptMarketing: false,
           googleId: profile.id,
           profileImageUrl: profile.photos?.[0]?.value || null
@@ -977,7 +970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return done(null, user);
       }
-      
+
       return done(new Error('No email provided by Google'), null);
     } catch (error) {
       console.error('Google OAuth Strategy error:', error);
@@ -2121,14 +2114,14 @@ Your investment journey starts here!`,
         const user = req.user as any;
         if (user) {
           req.session.userId = user.id;
-          
+
           // Force session save
           req.session.save((err) => {
             if (err) {
               console.error('Session save error:', err);
               return res.redirect('/login?error=session_save_failed');
             }
-            
+
             console.log(`Google OAuth session saved for user ${user.id}, Session ID: ${req.sessionID}`);
             // Redirect to home page after successful login
             res.redirect('/?login=success');
