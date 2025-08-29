@@ -51,8 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Update localStorage for offline reference
         localStorage.setItem('bitvault_user', JSON.stringify(userData));
         localStorage.setItem('bitvault_last_activity', Date.now().toString());
-      } else {
-        // Clear any stale localStorage data
+      } else if (response.status === 401) {
+        // Clear any stale localStorage data only on auth failure
         localStorage.removeItem('bitvault_user');
         localStorage.removeItem('bitvault_auth_token');
         localStorage.removeItem('bitvault_last_activity');

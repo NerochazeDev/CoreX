@@ -32,10 +32,17 @@ export default function WalletSetup() {
     }
   }, [toast]);
 
-  // Redirect to login if not authenticated
+  // Show loading while checking authentication
   if (!user) {
-    setLocation('/login');
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-bitcoin border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your account...</p>
+        </div>
+      </div>
+    );
+  }
   }
 
   // If user already has a wallet, redirect to home

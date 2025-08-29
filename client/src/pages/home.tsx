@@ -51,15 +51,28 @@ export default function Home() {
   const { currency } = useCurrency();
   const { data: bitcoinPrice } = useBitcoinPrice();
 
-  // Check for Google login success parameter
+  // Check for Google login success parameter and wallet setup
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('google_login') === 'success') {
-      toast({
-        title: "🎉 Welcome to BitVault Pro!",
-        description: "You've successfully signed in with Google. Your dashboard is ready!",
-        variant: "default",
-      });
+      // Check if user needs wallet setup
+      if (user && !user.hasWallet) {
+        toast({
+          title: "🎉 Welcome to BitVault Pro!",
+          description: "Your Google account is connected. Set up your Bitcoin wallet to start investing!",
+          variant: "default",
+        });
+        // Redirect to wallet setup
+        setTimeout(() => {
+          setLocation('/wallet-setup?google_login=success');
+        }, 1000);
+      } else {
+        toast({
+          title: "🎉 Welcome Back!",
+          description: "You've successfully signed in with Google. Your dashboard is ready!",
+          variant: "default",
+        });
+      }
       // Clean up URL parameter
       window.history.replaceState({}, '', '/');
     } else if (urlParams.get('login') === 'success') {
@@ -71,7 +84,7 @@ export default function Home() {
       // Clean up URL parameter
       window.history.replaceState({}, '', '/');
     }
-  }, [toast]);
+  }, [toast, user, setLocation]);
 
   // Redirect to login if not authenticated
   if (!user) {

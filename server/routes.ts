@@ -2124,14 +2124,9 @@ Your investment journey starts here!`,
 
             console.log(`Google OAuth session saved for user ${user.id}, Session ID: ${req.sessionID}`);
             
-            // Check if user has a wallet and redirect accordingly
-            if (user.hasWallet) {
-              // User has wallet, redirect to dashboard
-              res.redirect('/?google_login=success');
-            } else {
-              // User needs to set up wallet, redirect to wallet setup
-              res.redirect('/wallet-setup?google_login=success');
-            }
+            // Always redirect to home page after successful Google OAuth
+            // The frontend will handle wallet setup redirection if needed
+            res.redirect('/?google_login=success');
           });
         } else {
           res.redirect('/login?error=no_user_data');
