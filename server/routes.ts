@@ -981,7 +981,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return done(new Error('No email provided by Google'), null);
     } catch (error) {
-      console.error('Google OAuth error:', error);
+      console.error('Google OAuth Strategy error:', error);
+      console.error('Profile data:', JSON.stringify(profile, null, 2));
       return done(error, null);
     }
   }));
@@ -2111,7 +2112,10 @@ Your investment journey starts here!`,
   }));
 
   app.get('/api/auth/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/login?error=google_auth_failed' }),
+    passport.authenticate('google', { 
+      failureRedirect: '/login?error=google_auth_failed',
+      failureFlash: true 
+    }),
     async (req, res) => {
       try {
         // Set session userId for authentication
