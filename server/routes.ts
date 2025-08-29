@@ -1063,8 +1063,42 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       const user = await storage.getUser(userId);
-      if (!user || !user.bitcoinAddress) {
-        return res.status(400).json({ error: "Bitcoin wallet not set up. Please set up your wallet first." });
+      if (!user) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      // Create Bitcoin address automatically if user doesn't have one
+      if (!user.bitcoinAddress) {
+        try {
+          const bitcoin = await import('bitcoinjs-lib');
+          const bip39 = await import('bip39');
+          const bip32 = await import('bip32');
+          const ECPair = (await import('ecpair')).ECPairFactory(await import('tiny-secp256k1'));
+          
+          // Generate mnemonic and Bitcoin address
+          const mnemonic = bip39.generateMnemonic();
+          const seed = await bip39.mnemonicToSeed(mnemonic);
+          const root = bip32.BIP32Factory(await import('tiny-secp256k1')).fromSeed(seed);
+          const account = root.derivePath("m/44'/0'/0'/0/0");
+          const keyPair = ECPair.fromPrivateKey(Buffer.from(account.privateKey!));
+          const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
+          
+          if (!address) {
+            throw new Error('Failed to generate Bitcoin address');
+          }
+          
+          await storage.updateUserWallet(userId, address, Buffer.from(keyPair.privateKey!).toString('hex'), mnemonic);
+
+          // Get updated user
+          const updatedUser = await storage.getUser(userId);
+          if (!updatedUser?.bitcoinAddress) {
+            return res.status(500).json({ error: "Failed to create Bitcoin wallet. Please try again." });
+          }
+          user.bitcoinAddress = updatedUser.bitcoinAddress;
+        } catch (error) {
+          console.error('Error creating Bitcoin wallet:', error);
+          return res.status(500).json({ error: "Failed to create Bitcoin wallet. Please try again." });
+        }
       }
 
       const { amount } = createDepositSessionSchema.parse(req.body);

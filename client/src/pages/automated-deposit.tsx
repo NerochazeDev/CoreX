@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { Copy, CheckCircle, Clock, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Copy, CheckCircle, Clock, Loader2, AlertTriangle, RefreshCw, ArrowUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -28,6 +28,8 @@ interface DepositSession {
 
 export default function AutomatedDeposit() {
   const [amount, setAmount] = useState("");
+  const [inputMode, setInputMode] = useState<'BTC' | 'USD'>('BTC');
+  const [fiatAmount, setFiatAmount] = useState("");
   const [currentSession, setCurrentSession] = useState<DepositSession | null>(null);
   const [step, setStep] = useState<"input" | "session" | "monitoring" | "completed">("input");
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -171,11 +173,55 @@ export default function AutomatedDeposit() {
     return `≈ $${usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  // Convert between BTC and USD
+  const convertBtcToUsd = (btcAmount: string): string => {
+    if (!bitcoinPrice?.usd?.price || !btcAmount) return "";
+    const usd = parseFloat(btcAmount) * bitcoinPrice.usd.price;
+    return usd.toFixed(2);
+  };
+
+  const convertUsdToBtc = (usdAmount: string): string => {
+    if (!bitcoinPrice?.usd?.price || !usdAmount) return "";
+    const btc = parseFloat(usdAmount) / bitcoinPrice.usd.price;
+    return btc.toFixed(8);
+  };
+
+  // Handle input mode change
+  const handleInputModeToggle = () => {
+    if (inputMode === 'BTC') {
+      // Convert current BTC amount to USD
+      if (amount) {
+        setFiatAmount(convertBtcToUsd(amount));
+      }
+      setInputMode('USD');
+    } else {
+      // Convert current USD amount to BTC
+      if (fiatAmount) {
+        setAmount(convertUsdToBtc(fiatAmount));
+      }
+      setInputMode('BTC');
+    }
+  };
+
+  // Handle amount changes
+  const handleAmountChange = (value: string) => {
+    if (inputMode === 'BTC') {
+      setAmount(value);
+      setFiatAmount(convertBtcToUsd(value));
+    } else {
+      setFiatAmount(value);
+      setAmount(convertUsdToBtc(value));
+    }
+  };
+
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const amountNum = parseFloat(amount);
+    // Always use the BTC amount for validation and submission
+    const btcAmount = inputMode === 'BTC' ? amount : convertUsdToBtc(fiatAmount);
+    const amountNum = parseFloat(btcAmount);
+    
     if (isNaN(amountNum) || amountNum <= 0) {
       toast({
         title: "❌ Invalid Amount",
@@ -194,7 +240,7 @@ export default function AutomatedDeposit() {
       return;
     }
 
-    createSessionMutation.mutate(amount);
+    createSessionMutation.mutate(btcAmount);
   };
 
   // Start new session
@@ -202,6 +248,7 @@ export default function AutomatedDeposit() {
     setStep("input");
     setCurrentSession(null);
     setAmount("");
+    setFiatAmount("");
     setTimeRemaining(0);
   };
 
@@ -228,23 +275,62 @@ export default function AutomatedDeposit() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount (BTC)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.00000001"
-                  min="0.001"
-                  placeholder="0.001"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  disabled={createSessionMutation.isPending}
-                  data-testid="input-deposit-amount"
-                />
-                {amount && (
-                  <p className="text-sm text-muted-foreground">
-                    {getUsdEquivalent(amount)}
-                  </p>
-                )}
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="amount">Deposit Amount</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleInputModeToggle}
+                    className="h-8 px-3"
+                    data-testid="button-toggle-currency"
+                  >
+                    <ArrowUpDown className="h-3 w-3 mr-1" />
+                    {inputMode}
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  {inputMode === 'BTC' ? (
+                    <div>
+                      <Input
+                        id="amount"
+                        type="number"
+                        step="0.00000001"
+                        min="0.001"
+                        placeholder="0.001"
+                        value={amount}
+                        onChange={(e) => handleAmountChange(e.target.value)}
+                        disabled={createSessionMutation.isPending}
+                        data-testid="input-deposit-amount-btc"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {fiatAmount && `≈ $${parseFloat(fiatAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
+                        <Input
+                          id="amount-usd"
+                          type="number"
+                          step="0.01"
+                          min="100"
+                          placeholder="100.00"
+                          value={fiatAmount}
+                          onChange={(e) => handleAmountChange(e.target.value)}
+                          disabled={createSessionMutation.isPending}
+                          className="pl-8"
+                          data-testid="input-deposit-amount-usd"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {amount && `≈ ${parseFloat(amount).toFixed(8)} BTC`}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
               
               <Alert>
