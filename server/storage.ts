@@ -1,6 +1,7 @@
 import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, depositSessions, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase, type UpdateUserProfile, type DepositSession, type InsertDepositSession } from "@shared/schema";
 import { db, executeQuery } from "./db";
 import { eq, desc, and, isNotNull, inArray, sql } from "drizzle-orm";
+import { BackupSyncService } from './backup-sync';
 
 export interface IStorage {
   // User operations
@@ -77,6 +78,55 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private backupSyncService = new BackupSyncService();
+
+  // Real-time backup synchronization
+  private async syncToBackupDatabases(): Promise<void> {
+    try {
+      const backupDbs = await this.getActiveBackupDatabases();
+      
+      for (const backupDb of backupDbs) {
+        if (backupDb.isActive && backupDb.connectionString) {
+          try {
+            await this.backupSyncService.syncDataToBackup(backupDb.connectionString);
+            
+            // Update last sync time
+            await db
+              .update(backupDatabases)
+              .set({ 
+                lastSyncAt: new Date(),
+                status: 'connected',
+                errorMessage: null 
+              })
+              .where(eq(backupDatabases.id, backupDb.id));
+              
+          } catch (error) {
+            console.error(`❌ Sync failed for backup database ${backupDb.name}:`, error);
+            
+            // Update error status
+            await db
+              .update(backupDatabases)
+              .set({ 
+                status: 'error',
+                errorMessage: error instanceof Error ? error.message : 'Unknown sync error'
+              })
+              .where(eq(backupDatabases.id, backupDb.id));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Real-time backup sync error:', error);
+    }
+  }
+
+  private async getActiveBackupDatabases(): Promise<BackupDatabase[]> {
+    return await executeQuery(async () => {
+      return await db
+        .select()
+        .from(backupDatabases)
+        .where(eq(backupDatabases.isActive, true));
+    });
+  }
   async getUser(id: number): Promise<User | undefined> {
     return await executeQuery(async () => {
       const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -92,7 +142,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser & { bitcoinAddress: string; privateKey: string }): Promise<User> {
-    return await executeQuery(async () => {
+    const user = await executeQuery(async () => {
       const [user] = await db
         .insert(users)
         .values({
@@ -103,10 +153,17 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return user;
     });
+    
+    // Real-time sync to backup databases
+    this.syncToBackupDatabases().catch(err => 
+      console.error('❌ Backup sync failed after user creation:', err)
+    );
+    
+    return user;
   }
 
   async updateUserBalance(userId: number, balance: string): Promise<User | undefined> {
-    return await executeQuery(async () => {
+    const user = await executeQuery(async () => {
       const [user] = await db
         .update(users)
         .set({ balance })
@@ -114,6 +171,13 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return user || undefined;
     });
+    
+    // Real-time sync to backup databases
+    this.syncToBackupDatabases().catch(err => 
+      console.error('❌ Backup sync failed after balance update:', err)
+    );
+    
+    return user;
   }
 
   async updateUserPlan(userId: number, planId: number | null): Promise<User | undefined> {
@@ -227,6 +291,12 @@ export class DatabaseStorage implements IStorage {
         isActive: true,
       })
       .returning();
+    
+    // Real-time sync to backup databases
+    this.syncToBackupDatabases().catch(err => 
+      console.error('❌ Backup sync failed after investment creation:', err)
+    );
+    
     return investment;
   }
 
@@ -533,6 +603,12 @@ export class DatabaseStorage implements IStorage {
 
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     const created = await db.insert(transactions).values(transaction).returning();
+    
+    // Real-time sync to backup databases
+    this.syncToBackupDatabases().catch(err => 
+      console.error('❌ Backup sync failed after transaction creation:', err)
+    );
+    
     return created[0];
   }
 

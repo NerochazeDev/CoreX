@@ -12,11 +12,25 @@ interface SyncResult {
 
 export class BackupSyncService {
   private createBackupConnection(connectionString: string) {
-    const sql = postgres(connectionString, {
-      ssl: 'prefer',
+    // Ensure proper SSL mode for backup databases
+    let finalConnectionString = connectionString;
+    if (!finalConnectionString.includes('sslmode=') && !finalConnectionString.includes('localhost')) {
+      finalConnectionString += finalConnectionString.includes('?') ? '&sslmode=require' : '?sslmode=require';
+    }
+
+    const sql = postgres(finalConnectionString, {
+      ssl: finalConnectionString.includes('sslmode=require') ? { 
+        rejectUnauthorized: false,
+        checkServerIdentity: () => undefined,
+        secureProtocol: 'TLSv1_2_method',
+        ciphers: 'ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS'
+      } : 'prefer',
       max: 5,
       idle_timeout: 20,
-      connect_timeout: 10,
+      connect_timeout: 30,
+      prepare: false,
+      no_prepare: true,
+      fetch_types: false
     });
     return drizzle(sql);
   }
@@ -26,12 +40,28 @@ export class BackupSyncService {
     let recordsSynced = 0;
     const tablesCreated: string[] = [];
 
+    // Ensure proper SSL mode for backup databases
+    let finalConnectionString = connectionString;
+    if (!finalConnectionString.includes('sslmode=') && !finalConnectionString.includes('localhost')) {
+      finalConnectionString += finalConnectionString.includes('?') ? '&sslmode=require' : '?sslmode=require';
+    }
+
     try {
       // Create connection to backup database
       backupDb = this.createBackupConnection(connectionString);
 
       // Test connection
-      const sql = postgres(connectionString);
+      const sql = postgres(finalConnectionString, {
+        ssl: finalConnectionString.includes('sslmode=require') ? { 
+          rejectUnauthorized: false,
+          checkServerIdentity: () => undefined,
+          secureProtocol: 'TLSv1_2_method',
+          ciphers: 'ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS'
+        } : 'prefer',
+        prepare: false,
+        no_prepare: true,
+        fetch_types: false
+      });
       await sql`SELECT 1`;
 
       // Create tables in backup database

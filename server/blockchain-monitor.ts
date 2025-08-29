@@ -217,9 +217,43 @@ export class BlockchainMonitor {
         if (result.confirmations >= 1) {
           await this.processConfirmedDeposit(session, result.actualAmountBTC || session.amount, result.transaction.hash);
         }
+      } else {
+        // Check if user confirmed they sent Bitcoin but no transaction found after timeout
+        await this.checkForUnconfirmedClaims(session);
       }
     } catch (error) {
       console.error(`❌ Error verifying deposit session ${session.sessionToken}:`, error);
+    }
+  }
+
+  // Check for sessions where user claimed to send Bitcoin but no transaction detected after timeout
+  private async checkForUnconfirmedClaims(session: DepositSession): Promise<void> {
+    try {
+      // If user confirmed they sent Bitcoin but no transaction found
+      if (session.userConfirmedSent) {
+        const timeSinceClaim = new Date().getTime() - new Date(session.createdAt).getTime();
+        const timeoutMinutes = 10; // 10 minutes after user claims they sent Bitcoin
+        
+        // If more than 10 minutes have passed since user claimed they sent Bitcoin
+        if (timeSinceClaim > timeoutMinutes * 60 * 1000) {
+          console.log(`⏰ No transaction found for ${session.sessionToken} after ${timeoutMinutes} minutes, declining...`);
+          
+          // Mark session as declined
+          await storage.updateDepositSessionStatus(session.sessionToken, 'declined', new Date());
+          
+          // Create notification to user
+          await storage.createNotification({
+            userId: session.userId,
+            title: '❌ Deposit Declined',
+            message: `Your deposit session has been declined. No Bitcoin transaction was detected at the provided address after ${timeoutMinutes} minutes. Please ensure you sent the exact amount to the correct address and try again.`,
+            type: 'error'
+          });
+          
+          console.log(`❌ Deposit session ${session.sessionToken} declined - no transaction detected`);
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Error checking unconfirmed claims for session ${session.sessionToken}:`, error);
     }
   }
 

@@ -1951,9 +1951,9 @@ Your investment journey starts here!`,
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Hash the provided password to compare with stored hash
-      const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-      if (user.password !== hashedPassword) {
+      // Compare the provided password with stored bcrypt hash
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
