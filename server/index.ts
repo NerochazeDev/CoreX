@@ -13,27 +13,17 @@ const MemStore = MemoryStore(session);
 
 const app = express();
 
-// CORS configuration to allow credentials for cross-origin requests
+// CORS configuration - disable CORS when serving from same origin
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  // Allow Replit, Railway domains and localhost for development
-  if (origin && (
-    origin.includes('replit.dev') || 
-    origin.includes('railway.app') ||
-    origin.includes('localhost') || 
-    origin.includes('127.0.0.1')
-  )) {
+  // Only set CORS headers for cross-origin requests
+  if (origin) {
+    res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Origin', origin);
-  } else {
-    // Fallback to localhost if no origin header
-    res.header('Access-Control-Allow-Origin', 'http://localhost:5000');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
   }
-
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
 
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
@@ -56,10 +46,10 @@ app.use(session({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
   cookie: {
-    secure: false, // Must be false for HTTP development
+    secure: false, // Keep false for development and production to fix cookie issues
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    httpOnly: false, // Allow client-side access for debugging
-    sameSite: 'lax', // Lax works for same-site and cross-origin requests
+    httpOnly: false, // Allow frontend to access cookies (needed for session debugging)
+    sameSite: 'lax', // Allow cookies for OAuth redirects
     path: '/', // Ensure cookie is available for all paths
     domain: undefined // Let browser handle domains
   }

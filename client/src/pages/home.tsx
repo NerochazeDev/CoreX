@@ -55,6 +55,19 @@ export default function Home() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('google_login') === 'success') {
+      console.log('Google OAuth success detected, checking for auth token...');
+      
+      // Handle auth token from Google OAuth
+      const authToken = urlParams.get('auth_token');
+      if (authToken) {
+        console.log('Auth token received, storing in localStorage');
+        localStorage.setItem('bitvault_auth_token', authToken);
+        
+        // Force refresh auth status to get user data with new token
+        window.location.reload();
+        return;
+      }
+      
       console.log('Google OAuth success detected, user:', user);
       // Check if user needs wallet setup
       if (user && !user.hasWallet) {

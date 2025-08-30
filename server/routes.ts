@@ -911,13 +911,7 @@ function startAutomaticUpdates(): void {
 export async function registerRoutes(app: Express): Promise<Server> {
   // PostgreSQL storage doesn't need initialization
 
-  // Configure session middleware
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'dev-session-secret-key-change-in-production',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
-  }));
+  // Session middleware is already configured in index.ts
 
   // Initialize Passport and session support
   app.use(passport.initialize());
@@ -2135,10 +2129,18 @@ Your investment journey starts here!`,
     },
     async (req, res) => {
       try {
+        console.log('=== GOOGLE OAUTH CALLBACK DEBUG ===');
+        console.log('Session ID:', req.sessionID);
+        console.log('User object:', req.user);
+        console.log('Session before setting userId:', req.session);
+        
         // Set session userId for authentication
         const user = req.user as any;
         if (user) {
+          console.log('Setting session userId to:', user.id);
           req.session.userId = user.id;
+          
+          console.log('Session after setting userId:', req.session);
 
           // Force session save
           req.session.save((err) => {
@@ -2148,19 +2150,28 @@ Your investment journey starts here!`,
             }
 
             console.log(`Google OAuth session saved for user ${user.id}, Session ID: ${req.sessionID}`);
+            console.log('Final session state:', req.session);
             
-            // Redirect to current domain home page (works on any platform)
-            const homeUrl = `/?google_login=success`;
+            // Create auth token for Google OAuth users (more reliable than session cookies)
+            const authToken = Buffer.from(`${user.id}:${user.email}:${Date.now()}`).toString('base64');
+            
+            // Redirect with auth token as URL parameter for Google OAuth users
+            const homeUrl = `/?google_login=success&auth_token=${authToken}`;
             
             console.log(`Redirecting Google OAuth user to: ${homeUrl}`);
+            console.log('Auth token created for cookie-less authentication');
+            console.log('================================');
             res.redirect(homeUrl);
           });
         } else {
           console.error('Google OAuth: No user data received');
+          console.log('req.user is:', req.user);
+          console.log('================================');
           res.redirect(`/login?error=no_user_data`);
         }
       } catch (error) {
         console.error('Google OAuth callback error:', error);
+        console.log('================================');
         res.redirect(`/login?error=callback_error`);
       }
     }
@@ -2177,11 +2188,41 @@ Your investment journey starts here!`,
     });
   });
 
+  // Test endpoint to verify session functionality
+  app.post("/api/debug/test-session", (req, res) => {
+    console.log('=== TEST SESSION DEBUG ===');
+    console.log('Before setting test value:', req.session);
+    
+    req.session.testValue = 'session-works';
+    req.session.userId = 123; // Test userId
+    
+    console.log('After setting test values:', req.session);
+    
+    req.session.save((err) => {
+      if (err) {
+        console.error('Test session save error:', err);
+        return res.status(500).json({ error: 'Session save failed' });
+      }
+      
+      console.log('Test session saved successfully');
+      console.log('========================');
+      res.json({ message: 'Test session created', sessionID: req.sessionID });
+    });
+  });
+
   // Get current user with session validation or auth token
   app.get("/api/me", async (req, res) => {
     try {
-      let userId = req.session?.userId;
+      // Debug session information
+      console.log('=== /api/me DEBUG ===');
+      console.log('Session ID:', req.sessionID);
+      console.log('Session data:', req.session);
+      console.log('Session userId:', req.session?.userId);
+      console.log('Cookies:', req.headers.cookie);
+      console.log('User Agent:', req.headers['user-agent']?.slice(0, 50));
+      console.log('====================');
 
+      let userId = req.session?.userId;
 
       // If no session, check for auth token header
       if (!userId) {
@@ -2191,15 +2232,15 @@ Your investment journey starts here!`,
             const decoded = Buffer.from(authToken, 'base64').toString();
             const [tokenUserId] = decoded.split(':');
             userId = parseInt(tokenUserId);
-
+            console.log('Using auth token userId:', userId);
           } catch (error) {
-
+            console.log('Auth token decode error:', error);
           }
         }
       }
 
       if (!userId) {
-
+        console.log('No authentication found, returning 401');
         return res.status(401).json({ message: "Authentication required" });
       }
 
