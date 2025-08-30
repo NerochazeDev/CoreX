@@ -44,7 +44,7 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 
 export default function Home() {
-  const { user, isLoading, refreshUser } = useAuth();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -54,83 +54,56 @@ export default function Home() {
   // Check for Google login success parameter and wallet setup
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    
-    // Handle Google OAuth success with auth token
     if (urlParams.get('google_login') === 'success') {
+      console.log('Google OAuth success detected, checking for auth token...');
+      
+      // Handle auth token from Google OAuth
       const authToken = urlParams.get('auth_token');
-      if (authToken && !localStorage.getItem('bitvault_auth_token')) {
-        console.log('Google OAuth success: storing auth token');
+      if (authToken) {
+        console.log('Auth token received, storing in localStorage');
         localStorage.setItem('bitvault_auth_token', authToken);
         
-        // Clean up URL and refresh auth
-        window.history.replaceState({}, '', '/');
-        refreshUser().then(() => {
-          toast({
-            title: "🎉 Welcome to BitVault Pro!",
-            description: "Successfully signed in with Google!",
-            variant: "default",
-          });
-        });
+        // Force refresh auth status to get user data with new token
+        window.location.reload();
         return;
       }
       
-      // If user is already loaded, handle wallet setup
-      if (user) {
-        if (!user.hasWallet) {
-          toast({
-            title: "🎉 Welcome to BitVault Pro!",
-            description: "Set up your Bitcoin wallet to start investing!",
-            variant: "default",
-          });
-          setTimeout(() => setLocation('/wallet-setup?google_login=success'), 1000);
-        } else {
-          toast({
-            title: "🎉 Welcome Back!",
-            description: "Your dashboard is ready!",
-            variant: "default",
-          });
-        }
-        window.history.replaceState({}, '', '/');
+      console.log('Google OAuth success detected, user:', user);
+      // Check if user needs wallet setup
+      if (user && !user.hasWallet) {
+        toast({
+          title: "🎉 Welcome to BitVault Pro!",
+          description: "Your Google account is connected. Set up your Bitcoin wallet to start investing!",
+          variant: "default",
+        });
+        // Redirect to wallet setup
+        setTimeout(() => {
+          setLocation('/wallet-setup?google_login=success');
+        }, 1000);
+      } else {
+        toast({
+          title: "🎉 Welcome Back!",
+          description: "You've successfully signed in with Google. Your dashboard is ready!",
+          variant: "default",
+        });
       }
+      // Clean up URL parameter
+      window.history.replaceState({}, '', '/');
     } else if (urlParams.get('login') === 'success') {
       toast({
         title: "🎉 Welcome Back!",
-        description: "Successfully signed in to BitVault Pro!",
+        description: "You've successfully signed in to BitVault Pro!",
         variant: "default",
       });
+      // Clean up URL parameter
       window.history.replaceState({}, '', '/');
     }
-  }, [toast, user, setLocation, refreshUser]);
+  }, [toast, user, setLocation]);
 
-  // Handle authentication redirect outside of render
-  useEffect(() => {
-    if (!isLoading && !user) {
-      setLocation('/login');
-    }
-  }, [isLoading, user, setLocation]);
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading while redirecting if not authenticated
+  // Redirect to login if not authenticated
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
-          <p className="text-muted-foreground">Redirecting to login...</p>
-        </div>
-      </div>
-    );
+    setLocation('/login');
+    return null;
   }
 
   const { data: unreadCount } = useQuery<{ count: number }>({

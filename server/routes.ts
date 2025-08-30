@@ -980,17 +980,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           seedPhrase: wallet.seedPhrase,
           acceptMarketing: false,
           googleId: profile.id,
-          profileImageUrl: profile.photos?.[0]?.value || undefined
+          profileImageUrl: profile.photos?.[0]?.value || null
         });
 
         return done(null, user);
       }
 
-      return done(new Error('No email provided by Google'), undefined);
+      return done(new Error('No email provided by Google'), null);
     } catch (error) {
       console.error('Google OAuth Strategy error:', error);
       console.error('Profile data:', JSON.stringify(profile, null, 2));
-      return done(error, undefined);
+      return done(error, null);
     }
   }));
 
@@ -2196,7 +2196,7 @@ Your investment journey starts here!`,
     console.log('=== TEST SESSION DEBUG ===');
     console.log('Before setting test value:', req.session);
     
-    (req.session as any).testValue = 'session-works';
+    req.session.testValue = 'session-works';
     req.session.userId = 123; // Test userId
     
     console.log('After setting test values:', req.session);

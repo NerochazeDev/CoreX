@@ -46,10 +46,10 @@ app.use(session({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
   cookie: {
-    secure: false, // Keep false for HTTP in Replit environment
+    secure: false, // Keep false for development and production to fix cookie issues
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    httpOnly: false, // Allow frontend access to cookies
-    sameSite: 'none', // Allow cross-origin cookies for OAuth in Replit
+    httpOnly: false, // Allow frontend to access cookies (needed for session debugging)
+    sameSite: 'lax', // Allow cookies for OAuth redirects
     path: '/', // Ensure cookie is available for all paths
     domain: undefined // Let browser handle domains
   }
