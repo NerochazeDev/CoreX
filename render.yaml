@@ -1,21 +1,21 @@
 services:
   - type: web
-    name: corex-app
+    name: bitvault-pro
     env: node
     plan: free
-    buildCommand: npm ci && npx vite build && npx esbuild server/index.ts --platform=node --target=node18 --packages=external --bundle --format=esm --outfile=dist/index.js --external:pg-native --external:@neondatabase/serverless
-    startCommand: node dist/index.js
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: corex-database
+          name: bitvault-database
           property: connectionString
     autoDeploy: false
 
 databases:
-  - name: corex-database
-    databaseName: corex
-    user: corex_user
+  - name: bitvault-database
+    databaseName: bitvault_pro
+    user: bitvault_user
     plan: free

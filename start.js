@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
-// Production starter for Plus500 VIP Bitcoin Investment Platform
-const { existsSync } = require('fs');
-const path = require('path');
+// Production starter for BitVault Pro Bitcoin Investment Platform
+import { existsSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distPath = path.join(__dirname, 'dist', 'index.js');
 
-console.log('Starting Plus500 VIP Bitcoin Investment Platform...');
+console.log('Starting BitVault Pro Bitcoin Investment Platform...');
 console.log('Environment:', process.env.NODE_ENV || 'production');
 console.log('Port:', process.env.PORT || 5000);
 
@@ -22,7 +24,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
 // Import and start the server
 try {
-  require(distPath);
+  await import(distPath);
 } catch (error) {
   console.error('Failed to start server:', error);
   process.exit(1);
