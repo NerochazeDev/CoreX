@@ -27,6 +27,7 @@ import WalletSetup from "@/pages/wallet-setup";
 import NotFound from "@/pages/not-found";
 import NotificationDetail from "@/pages/notification-detail";
 import TransactionDetail from "@/pages/transaction-detail";
+import OAuthSuccess from "@/pages/oauth-success";
 
 function Router() {
   return (
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/oauth-success" component={OAuthSuccess} />
       <Route path="/admin" component={Management} />
       <Route path="/admin-transactions" component={ManagementTransactions} />
       <Route path="/admin-notifications" component={ManagementNotifications} />

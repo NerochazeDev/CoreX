@@ -2149,22 +2149,20 @@ Your investment journey starts here!`,
           req.session.save((err) => {
             if (err) {
               console.error('Session save error:', err);
-              return res.redirect(`/login?error=session_save_failed`);
+              return res.status(500).json({ message: "Session save error" });
             }
 
             console.log(`Google OAuth session saved for user ${user.id}, Session ID: ${req.sessionID}`);
             console.log('Final session state:', req.session);
             
-            // Create auth token for Google OAuth users (more reliable than session cookies)
-            const authToken = Buffer.from(`${user.id}:${user.email}:${Date.now()}`).toString('base64');
+            // Create auth token for Google OAuth users (same as regular login)
+            const authToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
             
-            // Redirect with auth token as URL parameter for Google OAuth users
-            const homeUrl = `/?google_login=success&auth_token=${authToken}`;
-            
-            console.log(`Redirecting Google OAuth user to: ${homeUrl}`);
-            console.log('Auth token created for cookie-less authentication');
+            console.log('Auth token created for Google OAuth user');
             console.log('================================');
-            res.redirect(homeUrl);
+            
+            // Redirect to success page that handles login (like regular login form)
+            res.redirect(`/oauth-success?token=${authToken}&user=${encodeURIComponent(JSON.stringify(user))}`);
           });
         } else {
           console.error('Google OAuth: No user data received');

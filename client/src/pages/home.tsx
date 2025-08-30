@@ -51,56 +51,11 @@ export default function Home() {
   const { currency } = useCurrency();
   const { data: bitcoinPrice } = useBitcoinPrice();
 
-  // Handle Google OAuth token extraction (MUST happen first, before any other effects)
+  // Handle regular login success messages
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // Handle auth token from Google OAuth - this MUST happen before any other UI updates
-    if (urlParams.get('google_login') === 'success') {
-      const authToken = urlParams.get('auth_token');
-      if (authToken) {
-        console.log('Auth token received, storing in localStorage');
-        localStorage.setItem('bitvault_auth_token', authToken);
-        
-        // Clean up URL and force refresh to authenticate with new token
-        window.history.replaceState({}, '', '/');
-        window.location.reload();
-        return;
-      }
-    }
-  }, []); // No dependencies - this must run once on mount
-
-  // Handle success messages after authentication is complete
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.get('google_login') === 'success' && user) {
-      console.log('Google OAuth success detected, user:', user);
-      
-      // Schedule UI updates for next tick to avoid render conflicts
-      setTimeout(() => {
-        if (user && !user.hasWallet) {
-          toast({
-            title: "🎉 Welcome to BitVault Pro!",
-            description: "Your Google account is connected. Set up your Bitcoin wallet to start investing!",
-            variant: "default",
-          });
-          // Navigate to wallet setup
-          setTimeout(() => {
-            setLocation('/wallet-setup?google_login=success');
-          }, 1000);
-        } else {
-          toast({
-            title: "🎉 Welcome Back!",
-            description: "You've successfully signed in with Google. Your dashboard is ready!",
-            variant: "default",
-          });
-        }
-        
-        // Clean up URL parameter
-        window.history.replaceState({}, '', '/');
-      }, 100);
-    } else if (urlParams.get('login') === 'success' && user) {
+    if (urlParams.get('login') === 'success' && user) {
       setTimeout(() => {
         toast({
           title: "🎉 Welcome Back!",
@@ -111,7 +66,7 @@ export default function Home() {
         window.history.replaceState({}, '', '/');
       }, 100);
     }
-  }, [user, toast, setLocation]); // Depend on user being available
+  }, [user, toast]); // Regular login success handling
 
   // Redirect to login if not authenticated
   if (!user) {
