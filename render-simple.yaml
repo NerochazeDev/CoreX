@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: bitvault-pro-app
+    env: node
+    plan: starter
+    buildCommand: npm install && vite build && esbuild server/index.ts --platform=node --target=node18 --packages=external --bundle --format=esm --outfile=dist/index.js --external:pg-native --external:@neondatabase/serverless --external:canvas
+    startCommand: node dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    # Add your DATABASE_URL manually in Render dashboard
