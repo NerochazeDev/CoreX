@@ -923,16 +923,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Google OAuth Strategy - Dynamic callback URL
+  // Google OAuth Strategy - Automatic domain detection
   const getCallbackURL = () => {
-    if (process.env.NODE_ENV === 'production') {
-      return 'https://bitvault-pro.onrender.com/api/auth/google/callback';
-    }
-    // For development, use Replit domain if available, otherwise localhost
-    const replitDomain = process.env.REPLIT_DEV_DOMAIN;
+    // Use Replit domain if available (for Replit environment)
+    const replitDomain = process.env.REPLIT_DOMAINS;
     if (replitDomain) {
       return `https://${replitDomain}/api/auth/google/callback`;
     }
+    
+    // For production deployment (like Render)
+    if (process.env.NODE_ENV === 'production') {
+      return 'https://bitvault-pro.onrender.com/api/auth/google/callback';
+    }
+    
+    // Fallback to localhost for local development
     return 'http://localhost:5000/api/auth/google/callback';
   };
 
