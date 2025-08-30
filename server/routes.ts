@@ -923,27 +923,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Google OAuth Strategy - Automatic domain detection
-  const getCallbackURL = () => {
-    // Use Replit domain if available (for Replit environment)
-    const replitDomain = process.env.REPLIT_DOMAINS;
-    if (replitDomain) {
-      return `https://${replitDomain}/api/auth/google/callback`;
-    }
-    
-    // For production deployment (like Render)
-    if (process.env.NODE_ENV === 'production') {
-      return 'https://bitvault-pro.onrender.com/api/auth/google/callback';
-    }
-    
-    // Fallback to localhost for local development
-    return 'http://localhost:5000/api/auth/google/callback';
-  };
+  // Store the app reference for dynamic callback URL
+  let appInstance: Express;
 
+  // Google OAuth Strategy with dynamic callback URL
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || 'dummy-client-id',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy-client-secret',
-    callbackURL: getCallbackURL()
+    callbackURL: '/api/auth/google/callback' // Use relative URL for automatic domain detection
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user already exists with Google ID
@@ -2121,9 +2108,7 @@ Your investment journey starts here!`,
 
   app.get('/api/auth/google/callback', 
     (req, res, next) => {
-      const protocol = req.secure ? 'https' : 'http';
-      const host = req.get('host');
-      const failureRedirect = `${protocol}://${host}/login?error=google_auth_failed`;
+      const failureRedirect = `/login?error=google_auth_failed`;
       
       passport.authenticate('google', { 
         failureRedirect,
@@ -2141,32 +2126,24 @@ Your investment journey starts here!`,
           req.session.save((err) => {
             if (err) {
               console.error('Session save error:', err);
-              const protocol = req.secure ? 'https' : 'http';
-              const host = req.get('host');
-              return res.redirect(`${protocol}://${host}/login?error=session_save_failed`);
+              return res.redirect(`/login?error=session_save_failed`);
             }
 
             console.log(`Google OAuth session saved for user ${user.id}, Session ID: ${req.sessionID}`);
             
-            // Redirect to current domain home page
-            const protocol = req.secure ? 'https' : 'http';
-            const host = req.get('host');
-            const homeUrl = `${protocol}://${host}/?google_login=success`;
+            // Redirect to current domain home page (works on any platform)
+            const homeUrl = `/?google_login=success`;
             
             console.log(`Redirecting Google OAuth user to: ${homeUrl}`);
             res.redirect(homeUrl);
           });
         } else {
           console.error('Google OAuth: No user data received');
-          const protocol = req.secure ? 'https' : 'http';
-          const host = req.get('host');
-          res.redirect(`${protocol}://${host}/login?error=no_user_data`);
+          res.redirect(`/login?error=no_user_data`);
         }
       } catch (error) {
         console.error('Google OAuth callback error:', error);
-        const protocol = req.secure ? 'https' : 'http';
-        const host = req.get('host');
-        res.redirect(`${protocol}://${host}/login?error=callback_error`);
+        res.redirect(`/login?error=callback_error`);
       }
     }
   );
