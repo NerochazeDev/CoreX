@@ -51,54 +51,67 @@ export default function Home() {
   const { currency } = useCurrency();
   const { data: bitcoinPrice } = useBitcoinPrice();
 
-  // Check for Google login success parameter and wallet setup
+  // Handle Google OAuth token extraction (MUST happen first, before any other effects)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+    
+    // Handle auth token from Google OAuth - this MUST happen before any other UI updates
     if (urlParams.get('google_login') === 'success') {
-      console.log('Google OAuth success detected, checking for auth token...');
-      
-      // Handle auth token from Google OAuth
       const authToken = urlParams.get('auth_token');
       if (authToken) {
         console.log('Auth token received, storing in localStorage');
         localStorage.setItem('bitvault_auth_token', authToken);
         
-        // Force refresh auth status to get user data with new token
+        // Clean up URL and force refresh to authenticate with new token
+        window.history.replaceState({}, '', '/');
         window.location.reload();
         return;
       }
-      
+    }
+  }, []); // No dependencies - this must run once on mount
+
+  // Handle success messages after authentication is complete
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.get('google_login') === 'success' && user) {
       console.log('Google OAuth success detected, user:', user);
-      // Check if user needs wallet setup
-      if (user && !user.hasWallet) {
-        toast({
-          title: "🎉 Welcome to BitVault Pro!",
-          description: "Your Google account is connected. Set up your Bitcoin wallet to start investing!",
-          variant: "default",
-        });
-        // Redirect to wallet setup
-        setTimeout(() => {
-          setLocation('/wallet-setup?google_login=success');
-        }, 1000);
-      } else {
+      
+      // Schedule UI updates for next tick to avoid render conflicts
+      setTimeout(() => {
+        if (user && !user.hasWallet) {
+          toast({
+            title: "🎉 Welcome to BitVault Pro!",
+            description: "Your Google account is connected. Set up your Bitcoin wallet to start investing!",
+            variant: "default",
+          });
+          // Navigate to wallet setup
+          setTimeout(() => {
+            setLocation('/wallet-setup?google_login=success');
+          }, 1000);
+        } else {
+          toast({
+            title: "🎉 Welcome Back!",
+            description: "You've successfully signed in with Google. Your dashboard is ready!",
+            variant: "default",
+          });
+        }
+        
+        // Clean up URL parameter
+        window.history.replaceState({}, '', '/');
+      }, 100);
+    } else if (urlParams.get('login') === 'success' && user) {
+      setTimeout(() => {
         toast({
           title: "🎉 Welcome Back!",
-          description: "You've successfully signed in with Google. Your dashboard is ready!",
+          description: "You've successfully signed in to BitVault Pro!",
           variant: "default",
         });
-      }
-      // Clean up URL parameter
-      window.history.replaceState({}, '', '/');
-    } else if (urlParams.get('login') === 'success') {
-      toast({
-        title: "🎉 Welcome Back!",
-        description: "You've successfully signed in to BitVault Pro!",
-        variant: "default",
-      });
-      // Clean up URL parameter
-      window.history.replaceState({}, '', '/');
+        // Clean up URL parameter
+        window.history.replaceState({}, '', '/');
+      }, 100);
     }
-  }, [toast, user, setLocation]);
+  }, [user, toast, setLocation]); // Depend on user being available
 
   // Redirect to login if not authenticated
   if (!user) {
