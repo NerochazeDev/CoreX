@@ -511,22 +511,19 @@ export default function Home() {
                       <div className="h-64">
                         {investmentDistribution.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
-                            <RechartsPieChart data={investmentDistribution}>
+                            <RechartsPieChart 
+                              data={investmentDistribution}
+                              cx="50%" 
+                              cy="50%" 
+                              outerRadius={80}
+                              dataKey="value"
+                            >
                               <Tooltip 
                                 formatter={(value: any) => [`${parseFloat(value).toFixed(6)} BTC`, 'Investment']}
                               />
-                              <RechartsPieChart 
-                                data={investmentDistribution}
-                                cx="50%" 
-                                cy="50%" 
-                                outerRadius={80} 
-                                fill="#8884d8" 
-                                dataKey="value"
-                              >
-                                {investmentDistribution.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                              </RechartsPieChart>
+                              {investmentDistribution.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
                             </RechartsPieChart>
                           </ResponsiveContainer>
                         ) : (

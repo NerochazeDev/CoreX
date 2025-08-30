@@ -2054,6 +2054,9 @@ Your investment journey starts here!`,
       }
 
       // Compare the provided password with stored bcrypt hash
+      if (!user.password) {
+        return res.status(401).json({ message: "Account uses Google login - please sign in with Google" });
+      }
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
