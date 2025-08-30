@@ -44,7 +44,7 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 
 export default function Home() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, refreshUser } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -63,8 +63,10 @@ export default function Home() {
         console.log('Auth token received, storing in localStorage');
         localStorage.setItem('bitvault_auth_token', authToken);
         
-        // Force refresh auth status to get user data with new token
-        window.location.reload();
+        // Refresh auth status to get user data with new token (without page reload)
+        refreshUser();
+        // Clean up URL parameter immediately
+        window.history.replaceState({}, '', '/');
         return;
       }
       
@@ -98,7 +100,7 @@ export default function Home() {
       // Clean up URL parameter
       window.history.replaceState({}, '', '/');
     }
-  }, [toast, user, setLocation]);
+  }, [toast, user, setLocation, refreshUser]);
 
   // Show loading state while checking authentication
   if (isLoading) {
