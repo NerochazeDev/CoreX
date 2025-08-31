@@ -117,7 +117,7 @@ class BroadcastQueue {
       
       if (message.type === 'photo' && message.photoPath) {
         // Use the actual function from the telegram-bot module
-        const TelegramBot = require('node-telegram-bot-api');
+        const TelegramBot = (await import('node-telegram-bot-api')).default;
         const botToken = process.env.TELEGRAM_BOT_TOKEN;
         const channelId = process.env.TELEGRAM_CHANNEL_ID;
         
@@ -145,7 +145,7 @@ class BroadcastQueue {
         }
       } else {
         // Send text message
-        const TelegramBot = require('node-telegram-bot-api');
+        const TelegramBot = (await import('node-telegram-bot-api')).default;
         const botToken = process.env.TELEGRAM_BOT_TOKEN;
         const channelId = process.env.TELEGRAM_CHANNEL_ID;
         

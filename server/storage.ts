@@ -490,6 +490,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Update baseline statistics with 0.9% growth (for telegram bot)
+  async updateBaselineStatistics(updates: {
+    baselineUsers?: number;
+    baselineActiveInvestments?: number;
+    baselineTotalBalance?: string;
+    baselineTotalProfit?: string;
+  }): Promise<void> {
+    try {
+      await this.updateAdminConfig(updates);
+      console.log('✅ Baseline statistics updated with 0.9% growth');
+    } catch (error) {
+      console.error('Error updating baseline statistics:', error);
+    }
+  }
+
   async updateFreePlanRate(rate: string): Promise<AdminConfig> {
     const existing = await this.getAdminConfig();
 

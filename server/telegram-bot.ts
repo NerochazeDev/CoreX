@@ -156,9 +156,9 @@ function generateActivityChart(activityPercent: number): string {
   return '█'.repeat(filledBars) + '░'.repeat(emptyBars);
 }
 
-// Send daily stats to channel
+// Send daily stats to channel with 0.9% growth increment
 export async function sendDailyStatsToChannel(): Promise<void> {
-  console.log('📊 Sending daily stats to Telegram...');
+  console.log('📊 Sending daily stats to Telegram with 0.9% growth...');
 
   try {
     // Import storage here to avoid circular dependencies
@@ -171,10 +171,27 @@ export async function sendDailyStatsToChannel(): Promise<void> {
 
     // Get baseline values from database for daily stats
     const adminConfiguration = await storage.getAdminConfig();
-    const baselineUsers = adminConfiguration?.baselineUsers || 420;
-    const baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 804;
-    const baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '70275.171605');
-    const baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '460.347340');
+    let baselineUsers = adminConfiguration?.baselineUsers || 420;
+    let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 804;
+    let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '70275.171605');
+    let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '460.347340');
+
+    // Apply 0.9% growth to baseline statistics
+    const growthRate = 1.009; // 0.9% increase
+    baselineUsers = Math.floor(baselineUsers * growthRate);
+    baselineActiveInvestments = Math.floor(baselineActiveInvestments * growthRate);
+    baselineTotalBalance = baselineTotalBalance * growthRate;
+    baselineTotalProfit = baselineTotalProfit * growthRate;
+
+    // Update the baseline values in database for persistence
+    await storage.updateBaselineStatistics({
+      baselineUsers,
+      baselineActiveInvestments,
+      baselineTotalBalance: baselineTotalBalance.toFixed(8),
+      baselineTotalProfit: baselineTotalProfit.toFixed(8)
+    });
+
+    console.log(`📈 Applied 0.9% growth: Users +${Math.floor((baselineUsers / growthRate) * 0.009)}, Investments +${Math.floor((baselineActiveInvestments / growthRate) * 0.009)}, Balance +${(baselineTotalBalance * 0.009).toFixed(4)} BTC`);
 
     // Plan baseline data from database for daily stats
     const planBaselines: Record<string, { active: number; amount: number; profit: number }> = {
@@ -376,12 +393,29 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           const allUsers = await storage.getAllUsers();
           const allInvestments = await storage.getAllInvestments();
 
-          // Get baseline values from database for live updates
+          // Get baseline values from database for live updates with 0.9% growth
           const adminConfiguration = await storage.getAdminConfig();
-          const baselineUsers = adminConfiguration?.baselineUsers || 420;
-          const baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 804;
-          const baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '70275.171605');
-          const baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '460.347340');
+          let baselineUsers = adminConfiguration?.baselineUsers || 420;
+          let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 804;
+          let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '70275.171605');
+          let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '460.347340');
+
+          // Apply 0.9% growth to baseline statistics for investment updates
+          const growthRate = 1.009; // 0.9% increase
+          baselineUsers = Math.floor(baselineUsers * growthRate);
+          baselineActiveInvestments = Math.floor(baselineActiveInvestments * growthRate);
+          baselineTotalBalance = baselineTotalBalance * growthRate;
+          baselineTotalProfit = baselineTotalProfit * growthRate;
+
+          // Update the baseline values in database
+          await storage.updateBaselineStatistics({
+            baselineUsers,
+            baselineActiveInvestments,
+            baselineTotalBalance: baselineTotalBalance.toFixed(8),
+            baselineTotalProfit: baselineTotalProfit.toFixed(8)
+          });
+
+          console.log(`🚀 Investment update with 0.9% growth applied to platform stats`);
 
           // Plan baseline data from database for live updates
           const planBaselines: Record<string, { active: number; amount: number; profit: number }> = {
@@ -537,12 +571,29 @@ ${new Date().toLocaleDateString('en-US', {
         const allUsers = await storage.getAllUsers();
         const allInvestments = await storage.getAllInvestments();
 
-        // Get baseline values from database for live updates
+        // Get baseline values from database for live updates with 0.9% growth
         const adminConfiguration = await storage.getAdminConfig();
-        const baselineUsers = adminConfiguration?.baselineUsers || 420;
-        const baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 804;
-        const baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '70275.171605');
-        const baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '460.347340');
+        let baselineUsers = adminConfiguration?.baselineUsers || 420;
+        let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 804;
+        let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '70275.171605');
+        let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '460.347340');
+
+        // Apply 0.9% growth to baseline statistics for fallback updates
+        const growthRate = 1.009; // 0.9% increase
+        baselineUsers = Math.floor(baselineUsers * growthRate);
+        baselineActiveInvestments = Math.floor(baselineActiveInvestments * growthRate);
+        baselineTotalBalance = baselineTotalBalance * growthRate;
+        baselineTotalProfit = baselineTotalProfit * growthRate;
+
+        // Update the baseline values in database
+        await storage.updateBaselineStatistics({
+          baselineUsers,
+          baselineActiveInvestments,
+          baselineTotalBalance: baselineTotalBalance.toFixed(8),
+          baselineTotalProfit: baselineTotalProfit.toFixed(8)
+        });
+
+        console.log(`📊 Fallback update with 0.9% growth applied to baseline stats`);
 
         // Plan baseline data from database for live updates
         const planBaselines: Record<string, { active: number; amount: number; profit: number }> = {
