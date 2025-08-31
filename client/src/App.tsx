@@ -40,6 +40,7 @@ function Router() {
       <Route path="/admin-transactions" component={ManagementTransactions} />
       <Route path="/admin-notifications" component={ManagementNotifications} />
       <Route path="/admin-database" component={AdminDatabase} />
+      <Route path="/Hello10122" component={Management} />
       <Route path="/investment" component={Investment} />
       <Route path="/history" component={History} />
       <Route path="/transactions" component={Transactions} />
