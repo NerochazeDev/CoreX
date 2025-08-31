@@ -60,7 +60,7 @@ app.use((req, res, next) => {
   const path = req.path;
 
   // Debug session information for API requests (development only)
-  if (process.env.NODE_ENV === 'development' && path.startsWith("/api")) {
+  if (process.env.NODE_ENV === 'development' && path.startsWith("/api") && !path.includes('/bitcoin/price')) {
     console.log(`${req.method} ${path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
   }
 
@@ -78,11 +78,18 @@ app.use((req, res, next) => {
 
 // Global error handlers for unhandled rejections
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Promise Rejection at:', promise, 'reason:', reason);
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Unhandled Promise Rejection at:', promise, 'reason:', reason);
+  } else {
+    console.error('Unhandled Promise Rejection:', reason instanceof Error ? reason.message : reason);
+  }
 });
 
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+  console.error('Uncaught Exception:', error.message);
+  if (process.env.NODE_ENV === 'development') {
+    console.error(error.stack);
+  }
 });
 
 (async () => {

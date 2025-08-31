@@ -4,7 +4,9 @@ export function useBitcoinPrice() {
   return useQuery({
     queryKey: ['bitcoin-price'],
     queryFn: async () => {
-      console.log('🚀 Fetching Bitcoin price from CoinGecko API...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🚀 Fetching Bitcoin price from CoinGecko API...');
+      }
       
       try {
         // Use our backend as a proxy to avoid CORS issues
@@ -14,7 +16,9 @@ export function useBitcoinPrice() {
         });
 
         if (!response.ok) {
-          console.log('Backend API failed, trying direct CoinGecko...');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Backend API failed, trying direct CoinGecko...');
+          }
           // Fallback to direct CoinGecko API
           const directResponse = await fetch(
             'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,gbp,eur&include_24hr_change=true',
@@ -48,12 +52,16 @@ export function useBitcoinPrice() {
             }
           };
           
-          console.log('✅ Bitcoin price fetched directly from CoinGecko:', result);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ Bitcoin price fetched directly from CoinGecko:', result);
+          }
           return result;
         }
 
         const data = await response.json();
-        console.log('✅ Bitcoin price fetched from backend:', data);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ Bitcoin price fetched from backend:', data);
+        }
         return data;
       } catch (error) {
         console.error('❌ All Bitcoin price fetch attempts failed:', error);

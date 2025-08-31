@@ -61,18 +61,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error checking auth status:', error);
+      }
       // On network error, check localStorage as fallback
       const storedUser = localStorage.getItem('bitvault_user');
-      if (storedUser) {
+      const lastActivity = localStorage.getItem('bitvault_last_activity');
+      
+      // Only use localStorage if recent (within 1 hour)
+      if (storedUser && lastActivity && (Date.now() - parseInt(lastActivity)) < 3600000) {
         try {
           const userData = JSON.parse(storedUser);
           setUser(userData);
         } catch (e) {
+          // Clean up corrupted localStorage data
           localStorage.removeItem('bitvault_user');
           localStorage.removeItem('bitvault_auth_token');
           localStorage.removeItem('bitvault_last_activity');
         }
+      } else {
+        // Clear expired localStorage data
+        localStorage.removeItem('bitvault_user');
+        localStorage.removeItem('bitvault_auth_token');
+        localStorage.removeItem('bitvault_last_activity');
       }
     } finally {
       setIsLoading(false);

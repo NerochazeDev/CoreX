@@ -89,27 +89,37 @@ export function useRealtimeUpdates() {
             queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id, 'unread-count'] });
           }
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error parsing WebSocket message:', error);
+          }
         }
       };
 
       wsRef.current.onclose = () => {
-        console.log('WebSocket disconnected');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('WebSocket disconnected');
+        }
         setIsConnected(false);
         
         // Attempt to reconnect after 5 seconds
         reconnectTimeoutRef.current = setTimeout(() => {
-          console.log('Attempting to reconnect WebSocket...');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Attempting to reconnect WebSocket...');
+          }
           connect();
         }, 5000);
       };
 
       wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('WebSocket error:', error);
+        }
         setIsConnected(false);
       };
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to create WebSocket connection:', error);
+      }
       setIsConnected(false);
     }
   };

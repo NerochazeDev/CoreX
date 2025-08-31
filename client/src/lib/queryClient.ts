@@ -17,7 +17,7 @@ export async function apiRequest(method: string, endpoint: string, data?: any) {
   };
 
   // Add auth token from localStorage if available
-  const authToken = localStorage.getItem('authToken');
+  const authToken = localStorage.getItem('bitvault_auth_token');
   if (authToken) {
     options.headers = {
       ...options.headers,
@@ -69,11 +69,21 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      retry: 1,
-      retryDelay: 1000,
+      retry: (failureCount, error: any) => {
+        // Don't retry on 401 errors or network errors
+        if (error?.message?.includes('401') || error?.message?.includes('Network')) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
     },
     mutations: {
       retry: false,
+      onError: (error) => {
+        // Silently handle errors for mutations to prevent unhandled rejections
+        console.warn('Mutation error:', error);
+      },
     },
   },
 });

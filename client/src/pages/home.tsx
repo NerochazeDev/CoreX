@@ -90,11 +90,16 @@ export default function Home() {
   const { data: activeInvestments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user.id],
     queryFn: () => fetch(`/api/investments/user/${user.id}`, {
+      credentials: 'include',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+        'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
       }
     }).then(res => {
       if (!res.ok) {
+        if (res.status === 401) {
+          // Silently handle auth errors to prevent unhandled rejections
+          return [];
+        }
         throw new Error('Failed to fetch investments');
       }
       return res.json();
@@ -108,11 +113,16 @@ export default function Home() {
   const { data: investmentPlans } = useQuery<InvestmentPlan[]>({
     queryKey: ['/api/investment-plans'],
     queryFn: () => fetch('/api/investment-plans', {
+      credentials: 'include',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+        'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
       }
     }).then(res => {
       if (!res.ok) {
+        if (res.status === 401) {
+          // Silently handle auth errors to prevent unhandled rejections
+          return [];
+        }
         throw new Error('Failed to fetch investment plans');
       }
       return res.json();
