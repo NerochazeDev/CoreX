@@ -3794,6 +3794,62 @@ You are now on the free plan and will no longer receive automatic profit updates
     }
   });
 
+  // Enhanced Telegram Bot Queue API Routes
+  app.get('/api/telegram/queue/stats', async (req, res) => {
+    try {
+      const { queueDailyStats, getBroadcastStatus, getBatchStatistics } = await import('./telegram-bot');
+      const messageId = await queueDailyStats();
+      const queueStatus = getBroadcastStatus();
+      const batchStats = getBatchStatistics();
+      
+      res.json({ 
+        success: true, 
+        messageId,
+        queueStatus,
+        batchStats,
+        message: 'Daily stats queued for broadcast' 
+      });
+    } catch (error: any) {
+      console.error('Queue stats error:', error);
+      res.status(500).json({ error: 'Failed to queue daily stats', details: error.message });
+    }
+  });
+
+  app.get('/api/telegram/queue/investment', async (req, res) => {
+    try {
+      const { queueInvestmentUpdate, getBroadcastStatus } = await import('./telegram-bot');
+      const messageIds = await queueInvestmentUpdate();
+      const queueStatus = getBroadcastStatus();
+      
+      res.json({ 
+        success: true, 
+        messageIds,
+        queueStatus,
+        message: 'Investment update queued for broadcast' 
+      });
+    } catch (error: any) {
+      console.error('Queue investment error:', error);
+      res.status(500).json({ error: 'Failed to queue investment update', details: error.message });
+    }
+  });
+
+  app.get('/api/telegram/queue/status', async (req, res) => {
+    try {
+      const { getBroadcastStatus, getBatchStatistics } = await import('./telegram-bot');
+      const queueStatus = getBroadcastStatus();
+      const batchStats = getBatchStatistics();
+      
+      res.json({ 
+        success: true, 
+        queueStatus,
+        batchStats
+      });
+    } catch (error: any) {
+      console.error('Queue status error:', error);
+      res.status(500).json({ error: 'Failed to get queue status', details: error.message });
+    }
+  });
+
   // Initialize default investment plans if they don't exist
   await initializeDefaultPlans();
 
