@@ -66,7 +66,7 @@ export function useBitcoinPrice() {
     refetchInterval: 60000, // Refresh every 60 seconds (reduced frequency)
     staleTime: 50000, // Consider data stale after 50 seconds
     retry: 2, // Reduce retry attempts
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backofftries
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
   });
 }
 
