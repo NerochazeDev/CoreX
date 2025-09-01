@@ -1046,6 +1046,18 @@ export class DatabaseStorage implements IStorage {
         .orderBy(desc(supportMessages.createdAt));
     });
   }
+
+  // Admin user management operations
+  async updateUserAdminStatus(userId: number, isAdmin: boolean): Promise<User | undefined> {
+    return await executeQuery(async () => {
+      const [updated] = await db
+        .update(users)
+        .set({ isAdmin })
+        .where(eq(users.id, userId))
+        .returning();
+      return updated || undefined;
+    });
+  }
 }
 
 
