@@ -51,25 +51,17 @@ const supportMessageSchema = z.object({
 
 type SupportMessageForm = z.infer<typeof supportMessageSchema>;
 
-function SupportMessageDialog({ children }: { children: React.ReactNode }) {
+function WhatsAppStyleChat({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [currentMessage, setCurrentMessage] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<SupportMessageForm>({
-    resolver: zodResolver(supportMessageSchema),
-    defaultValues: {
-      subject: "",
-      message: "",
-      priority: "normal",
-      imageUrl: "",
-    },
-  });
-
-  const sendSupportMessage = useMutation({
-    mutationFn: async (data: SupportMessageForm) => {
+  const sendMessage = useMutation({
+    mutationFn: async (messageText: string) => {
       let imageUrl = "";
       
       // Handle image upload if there's a file
@@ -82,38 +74,79 @@ function SupportMessageDialog({ children }: { children: React.ReactNode }) {
         imageUrl = imageData;
       }
 
-      return apiRequest('/api/support/messages', {
+      return await fetch('/api/support/messages', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        },
         body: JSON.stringify({
-          ...data,
+          subject: messageText.slice(0, 50) + (messageText.length > 50 ? '...' : ''),
+          message: messageText,
+          priority: "normal",
           imageUrl: imageUrl || undefined,
         }),
+      }).then(res => {
+        if (!res.ok) throw new Error('Failed to send message');
+        return res.json();
       });
     },
     onSuccess: () => {
-      toast({
-        title: "Message Sent",
-        description: "Your support message has been sent successfully. We'll get back to you soon!",
-      });
-      form.reset();
+      // Add message to local state immediately for instant UI feedback
+      const newMessage = {
+        id: Date.now(),
+        message: currentMessage,
+        imageUrl: imagePreview,
+        createdAt: new Date().toISOString(),
+        isUser: true,
+      };
+      setMessages(prev => [...prev, newMessage]);
+      
+      setCurrentMessage("");
       setImageFile(null);
       setImagePreview(null);
-      setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/support/messages'] });
+      
+      toast({
+        title: "Message Sent",
+        description: "Your message has been sent to our support team!",
+      });
+
+      // Add auto-reply after a short delay
+      setTimeout(() => {
+        const autoReply = {
+          id: Date.now() + 1,
+          message: "Thank you for contacting BitVault Pro support! We've received your message and will get back to you within 15-30 minutes. Our team is reviewing your request.",
+          createdAt: new Date().toISOString(),
+          isUser: false,
+        };
+        setMessages(prev => [...prev, autoReply]);
+      }, 2000);
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to send support message. Please try again.",
+        description: error.message || "Failed to send message. Please try again.",
         variant: "destructive",
       });
     },
   });
 
+  const handleSendMessage = () => {
+    if (currentMessage.trim() || imageFile) {
+      sendMessage.mutate(currentMessage);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -135,143 +168,130 @@ function SupportMessageDialog({ children }: { children: React.ReactNode }) {
     setImagePreview(null);
   };
 
-  const onSubmit = (data: SupportMessageForm) => {
-    sendSupportMessage.mutate(data);
-  };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-primary" />
-            Contact Support
-          </DialogTitle>
-        </DialogHeader>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="subject"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subject</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Brief description of your issue"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      <DialogContent className="sm:max-w-[420px] h-[600px] p-0 gap-0">
+        {/* Header */}
+        <div className="flex items-center gap-3 p-4 bg-primary text-primary-foreground">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+            <MessageSquare className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold">BitVault Pro Support</h3>
+            <p className="text-xs opacity-90">Online • Responds within minutes</p>
+          </div>
+        </div>
 
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Priority</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority level" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Message</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Please describe your issue in detail..."
-                      className="min-h-[120px] resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Attach Image (Optional)
-              </label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
-                />
-                {imagePreview && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={removeImage}
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
-              {imagePreview && (
-                <div className="mt-2">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="max-w-full h-32 object-cover rounded-lg border"
-                  />
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+          <div className="space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <MessageSquare className="w-8 h-8 text-primary" />
                 </div>
-              )}
-            </div>
+                <p className="text-muted-foreground text-sm">
+                  Welcome to BitVault Pro Support!<br />
+                  How can we help you today?
+                </p>
+              </div>
+            )}
+            
+            {messages.map((msg) => (
+              <div key={msg.id} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[280px] rounded-2xl px-4 py-2 ${
+                  msg.isUser 
+                    ? 'bg-primary text-primary-foreground rounded-br-md' 
+                    : 'bg-white dark:bg-gray-700 text-foreground rounded-bl-md shadow-sm'
+                }`}>
+                  {msg.imageUrl && (
+                    <img 
+                      src={msg.imageUrl} 
+                      alt="Attached" 
+                      className="rounded-lg mb-2 max-w-full h-auto"
+                    />
+                  )}
+                  <p className="text-sm leading-relaxed">{msg.message}</p>
+                  <p className={`text-xs mt-1 ${
+                    msg.isUser ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                  }`}>
+                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                className="flex-1"
+        {/* Image Preview */}
+        {imagePreview && (
+          <div className="px-4 py-2 bg-muted/50 border-t">
+            <div className="flex items-center gap-2">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="w-12 h-12 object-cover rounded-lg"
+              />
+              <span className="text-sm text-muted-foreground flex-1">Image attached</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={removeImage}
+                className="h-8 w-8 p-0"
               >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={sendSupportMessage.isPending}
-                className="flex-1"
-              >
-                {sendSupportMessage.isPending ? (
-                  <>Sending...</>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Message
-                  </>
-                )}
+                ×
               </Button>
             </div>
-          </form>
-        </Form>
+          </div>
+        )}
+
+        {/* Input Area */}
+        <div className="p-4 bg-background border-t">
+          <div className="flex items-end gap-2">
+            <div className="flex-1 relative">
+              <Textarea
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type a message..."
+                className="min-h-[44px] max-h-32 resize-none rounded-full px-4 py-3 pr-12 border-2 focus:border-primary"
+                rows={1}
+                style={{ 
+                  height: 'auto',
+                  minHeight: '44px'
+                }}
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+                id="image-upload"
+              />
+              <label
+                htmlFor="image-upload"
+                className="absolute right-3 top-3 cursor-pointer text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Upload className="w-5 h-5" />
+              </label>
+            </div>
+            <Button
+              onClick={handleSendMessage}
+              disabled={(!currentMessage.trim() && !imageFile) || sendMessage.isPending}
+              className="h-11 w-11 rounded-full p-0"
+              data-testid="button-send-support-message"
+            >
+              {sendMessage.isPending ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -524,7 +544,7 @@ function SettingsContent() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   {/* Contact Support */}
-                  <SupportMessageDialog>
+                  <WhatsAppStyleChat>
                     <Button 
                       variant="outline" 
                       className="w-full justify-start h-auto p-4 border-primary/20 hover:bg-primary/5"
@@ -539,7 +559,7 @@ function SettingsContent() {
                       </div>
                       <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     </Button>
-                  </SupportMessageDialog>
+                  </WhatsAppStyleChat>
 
                   {/* Quick Help Topics */}
                   <div className="space-y-3">
@@ -622,7 +642,7 @@ function SettingsContent() {
         {/* Help Section */}
         <Card className="mt-8 border-0 shadow-lg">
           <CardContent className="p-0">
-            <SupportMessageDialog>
+            <WhatsAppStyleChat>
               <Button 
                 variant="ghost" 
                 className="w-full h-auto p-4 justify-start gap-3 hover:bg-primary/5 rounded-xl"
@@ -637,7 +657,7 @@ function SettingsContent() {
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </Button>
-            </SupportMessageDialog>
+            </WhatsAppStyleChat>
           </CardContent>
         </Card>
 
