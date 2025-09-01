@@ -220,6 +220,7 @@ export const insertDepositSessionSchema = createInsertSchema(depositSessions).om
 
 export const insertSupportMessageSchema = createInsertSchema(supportMessages).omit({
   id: true,
+  userId: true, // Added this to fix validation error - userId is added from session
   status: true,
   adminResponse: true,
   respondedBy: true,

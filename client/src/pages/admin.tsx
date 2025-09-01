@@ -14,7 +14,7 @@ import type { User, InvestmentPlan } from "@shared/schema";
 import { formatBitcoin } from "@/lib/utils";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
-import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2 } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, MessageSquare, Reply } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -451,6 +451,7 @@ export default function Management() {
     { id: "investments", label: "Investment Control", icon: Activity },
     { id: "plans", label: "Investment Plans", icon: TrendingUp },
     { id: "transactions", label: "Transactions", icon: Clock },
+    { id: "support", label: "Support Messages", icon: MessageSquare },
     { id: "security", label: "Security", icon: Shield },
     { id: "database", label: "Database Management", icon: Database },
     { id: "config", label: "Configuration", icon: Settings },
@@ -1796,6 +1797,213 @@ export default function Management() {
     </div>
   );
 
+  const renderSupportTab = () => {
+    const { data: supportMessages, isLoading: messagesLoading } = useQuery({
+      queryKey: ['/api/admin/support/messages'],
+      enabled: activeTab === 'support',
+    });
+
+    const [selectedMessage, setSelectedMessage] = useState<any>(null);
+    const [responseText, setResponseText] = useState("");
+
+    const respondMutation = useMutation({
+      mutationFn: async ({ messageId, response, status }: { messageId: number; response: string; status: string }) => {
+        return await fetch(`/api/admin/support/messages/${messageId}/respond`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-backdoor-access': 'true',
+          },
+          body: JSON.stringify({ response, status }),
+        }).then(res => {
+          if (!res.ok) throw new Error('Failed to send response');
+          return res.json();
+        });
+      },
+      onSuccess: () => {
+        toast({
+          title: "Response Sent",
+          description: "Your response has been sent to the user successfully.",
+        });
+        setSelectedMessage(null);
+        setResponseText("");
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/support/messages'] });
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to send response",
+          variant: "destructive",
+        });
+      },
+    });
+
+    const getStatusBadge = (status: string) => {
+      const colors = {
+        open: "bg-green-100 text-green-800",
+        in_progress: "bg-yellow-100 text-yellow-800",
+        resolved: "bg-blue-100 text-blue-800",
+        closed: "bg-gray-100 text-gray-800",
+      };
+      return colors[status as keyof typeof colors] || colors.open;
+    };
+
+    const getPriorityBadge = (priority: string) => {
+      const colors = {
+        low: "bg-gray-100 text-gray-600",
+        normal: "bg-blue-100 text-blue-600",
+        high: "bg-orange-100 text-orange-600",
+        urgent: "bg-red-100 text-red-600",
+      };
+      return colors[priority as keyof typeof colors] || colors.normal;
+    };
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Support Messages Dashboard
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {messagesLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-20 bg-gray-200 rounded-lg"></div>
+                  </div>
+                ))}
+              </div>
+            ) : supportMessages?.length === 0 ? (
+              <div className="text-center py-12">
+                <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Support Messages</h3>
+                <p className="text-gray-500">All support requests have been handled.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {supportMessages?.map((message: any) => (
+                  <Card key={message.id} className="border-l-4 border-l-primary">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold text-lg">{message.subject}</h4>
+                            <Badge className={getPriorityBadge(message.priority)}>
+                              {message.priority}
+                            </Badge>
+                            <Badge className={getStatusBadge(message.status)}>
+                              {message.status.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                            <span className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              {message.user ? 
+                                `${message.user.firstName || ''} ${message.user.lastName || ''}`.trim() || message.user.email :
+                                'Unknown User'
+                              }
+                            </span>
+                            <span>{new Date(message.createdAt).toLocaleString()}</span>
+                          </div>
+                          <p className="text-gray-700 mb-3 line-clamp-2">{message.message}</p>
+                          {message.imageUrl && (
+                            <div className="mb-3">
+                              <img 
+                                src={message.imageUrl} 
+                                alt="Support attachment" 
+                                className="max-w-xs h-32 object-cover rounded-lg border"
+                              />
+                            </div>
+                          )}
+                          {message.adminResponse && (
+                            <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                              <p className="text-sm font-medium text-blue-900 mb-1">Admin Response:</p>
+                              <p className="text-blue-800">{message.adminResponse}</p>
+                              <p className="text-xs text-blue-600 mt-1">
+                                Responded: {new Date(message.respondedAt).toLocaleString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 ml-4">
+                          {!message.adminResponse && (
+                            <Button
+                              size="sm"
+                              onClick={() => setSelectedMessage(message)}
+                              className="bg-primary hover:bg-primary/90"
+                            >
+                              <Reply className="w-4 h-4 mr-1" />
+                              Respond
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Response Dialog */}
+        <Dialog open={!!selectedMessage} onOpenChange={() => setSelectedMessage(null)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Respond to Support Message</DialogTitle>
+            </DialogHeader>
+            
+            {selectedMessage && (
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold mb-2">{selectedMessage.subject}</h4>
+                  <p className="text-gray-700 mb-2">{selectedMessage.message}</p>
+                  <p className="text-sm text-gray-500">
+                    From: {selectedMessage.user?.email} • {new Date(selectedMessage.createdAt).toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Your Response</label>
+                  <Textarea
+                    value={responseText}
+                    onChange={(e) => setResponseText(e.target.value)}
+                    placeholder="Type your response to the user..."
+                    className="min-h-[120px]"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedMessage(null)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => respondMutation.mutate({
+                      messageId: selectedMessage.id,
+                      response: responseText,
+                      status: "resolved"
+                    })}
+                    disabled={!responseText.trim() || respondMutation.isPending}
+                    className="flex-1"
+                  >
+                    {respondMutation.isPending ? "Sending..." : "Send Response"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "overview":
@@ -1808,6 +2016,8 @@ export default function Management() {
         return renderPlansTab();
       case "transactions":
         return renderTransactionsTab();
+      case "support":
+        return renderSupportTab();
       case "security":
         return renderSecurityTab();
       case "config":
