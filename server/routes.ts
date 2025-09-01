@@ -3889,8 +3889,8 @@ You are now on the free plan and will no longer receive automatic profit updates
     }
   });
 
-  // Admin endpoint to toggle user admin status
-  app.post("/api/admin/toggle-user-admin", async (req, res) => {
+  // Admin endpoint to toggle user support admin status (message support only)
+  app.post("/api/admin/toggle-user-support-admin", async (req, res) => {
     try {
       // Allow backdoor access or require admin authentication
       const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
@@ -3903,18 +3903,18 @@ You are now on the free plan and will no longer receive automatic profit updates
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
+          return res.status(403).json({ error: "Full admin access required" });
         }
       }
 
-      const { userId, isAdmin } = req.body;
+      const { userId, isSupportAdmin } = req.body;
 
-      if (!userId || typeof isAdmin !== 'boolean') {
-        return res.status(400).json({ error: "userId and isAdmin (boolean) are required" });
+      if (!userId || typeof isSupportAdmin !== 'boolean') {
+        return res.status(400).json({ error: "userId and isSupportAdmin (boolean) are required" });
       }
 
-      // Update user admin status
-      const updatedUser = await storage.updateUserAdminStatus(userId, isAdmin);
+      // Update user support admin status
+      const updatedUser = await storage.updateUserSupportAdminStatus(userId, isSupportAdmin);
 
       if (!updatedUser) {
         return res.status(404).json({ error: "User not found" });
@@ -3923,19 +3923,19 @@ You are now on the free plan and will no longer receive automatic profit updates
       // Create notification for the user
       await storage.createNotification({
         userId: userId,
-        title: isAdmin ? "Admin Access Granted" : "Admin Access Removed",
-        message: isAdmin 
-          ? "You have been granted admin access to the support message dashboard. You can now respond to customer inquiries."
-          : "Your admin access has been removed. You no longer have access to the admin dashboard.",
-        type: isAdmin ? "success" : "info"
+        title: isSupportAdmin ? "Support Admin Access Granted" : "Support Admin Access Removed",
+        message: isSupportAdmin 
+          ? "You have been granted support admin access. You can now respond to customer messages in the support dashboard."
+          : "Your support admin access has been removed. You no longer have access to the support message dashboard.",
+        type: isSupportAdmin ? "success" : "info"
       });
 
       res.json({ 
-        message: `User admin status ${isAdmin ? 'granted' : 'removed'} successfully`, 
+        message: `User support admin status ${isSupportAdmin ? 'granted' : 'removed'} successfully`, 
         user: updatedUser 
       });
     } catch (error: any) {
-      console.error('Toggle user admin error:', error);
+      console.error('Toggle user support admin error:', error);
       res.status(500).json({ error: error.message });
     }
   });

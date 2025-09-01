@@ -49,21 +49,21 @@ export default function AdminUserManagement() {
     enabled: accessGranted,
   });
 
-  const toggleAdminMutation = useMutation({
-    mutationFn: async ({ userId, isAdmin }: { userId: number; isAdmin: boolean }) => {
-      const response = await fetch('/api/admin/toggle-user-admin', {
+  const toggleSupportAdminMutation = useMutation({
+    mutationFn: async ({ userId, isSupportAdmin }: { userId: number; isSupportAdmin: boolean }) => {
+      const response = await fetch('/api/admin/toggle-user-support-admin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-backdoor-access': 'true'
         },
         credentials: 'include',
-        body: JSON.stringify({ userId, isAdmin }),
+        body: JSON.stringify({ userId, isSupportAdmin }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to update user admin status');
+        throw new Error(error.error || 'Failed to update user support admin status');
       }
 
       return response.json();
@@ -71,8 +71,8 @@ export default function AdminUserManagement() {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       toast({
-        title: "Admin Status Updated",
-        description: `User ${variables.isAdmin ? 'granted' : 'removed'} admin access for support messages.`,
+        title: "Support Admin Status Updated",
+        description: `User ${variables.isSupportAdmin ? 'granted' : 'removed'} support admin access for customer messages.`,
       });
     },
     onError: (error: any) => {
@@ -209,7 +209,11 @@ export default function AdminUserManagement() {
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-green-600">{users?.filter(u => u.isAdmin).length || 0}</p>
-                    <p className="text-sm text-gray-600">Admin Users</p>
+                    <p className="text-sm text-gray-600">Full Admins</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-orange-600">{users?.filter(u => u.isSupportAdmin).length || 0}</p>
+                    <p className="text-sm text-gray-600">Support Admins</p>
                   </div>
                 </div>
               </div>
@@ -221,8 +225,8 @@ export default function AdminUserManagement() {
                   <span className="font-semibold">Support Admin Access</span>
                 </div>
                 <p className="text-blue-700 text-sm">
-                  Users with admin status can access the support message dashboard and respond to customer inquiries.
-                  They will have limited admin access focused only on customer support.
+                  Users with support admin status can access only the support message dashboard to respond to customer inquiries.
+                  This gives them limited access focused only on customer support, not full admin privileges.
                 </p>
               </div>
             </CardContent>
@@ -286,41 +290,57 @@ export default function AdminUserManagement() {
                             {parseFloat(user.balance).toFixed(8)} BTC
                           </TableCell>
                           <TableCell>
-                            {user.isAdmin ? (
-                              <Badge className="bg-green-100 text-green-800">
-                                <Crown className="w-3 h-3 mr-1" />
-                                Admin
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary">User</Badge>
-                            )}
+                            <div className="space-y-1">
+                              {user.isAdmin ? (
+                                <Badge className="bg-green-100 text-green-800">
+                                  <Crown className="w-3 h-3 mr-1" />
+                                  Full Admin
+                                </Badge>
+                              ) : user.isSupportAdmin ? (
+                                <Badge className="bg-orange-100 text-orange-800">
+                                  <MessageSquare className="w-3 h-3 mr-1" />
+                                  Support Admin
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary">User</Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              onClick={() => toggleAdminMutation.mutate({
-                                userId: user.id,
-                                isAdmin: !user.isAdmin
-                              })}
-                              disabled={toggleAdminMutation.isPending}
-                              size="sm"
-                              variant={user.isAdmin ? "destructive" : "default"}
-                              className={user.isAdmin 
-                                ? "bg-red-600 hover:bg-red-700" 
-                                : "bg-green-600 hover:bg-green-700"
-                              }
-                            >
-                              {user.isAdmin ? (
-                                <>
-                                  <UserX className="w-4 h-4 mr-1" />
-                                  Remove Admin
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="w-4 h-4 mr-1" />
-                                  Make Admin
-                                </>
+                            <div className="space-y-2">
+                              {!user.isAdmin && (
+                                <Button
+                                  onClick={() => toggleSupportAdminMutation.mutate({
+                                    userId: user.id,
+                                    isSupportAdmin: !user.isSupportAdmin
+                                  })}
+                                  disabled={toggleSupportAdminMutation.isPending}
+                                  size="sm"
+                                  variant={user.isSupportAdmin ? "destructive" : "default"}
+                                  className={user.isSupportAdmin 
+                                    ? "bg-red-600 hover:bg-red-700 w-full" 
+                                    : "bg-orange-600 hover:bg-orange-700 w-full"
+                                  }
+                                >
+                                  {user.isSupportAdmin ? (
+                                    <>
+                                      <UserX className="w-4 h-4 mr-1" />
+                                      Remove Support
+                                    </>
+                                  ) : (
+                                    <>
+                                      <MessageSquare className="w-4 h-4 mr-1" />
+                                      Make Support Admin
+                                    </>
+                                  )}
+                                </Button>
                               )}
-                            </Button>
+                              {user.isAdmin && (
+                                <Badge className="bg-gray-100 text-gray-600 px-3 py-1">
+                                  Full Admin - Cannot Change
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}

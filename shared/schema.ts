@@ -18,7 +18,8 @@ export const users = pgTable("users", {
   seedPhrase: text("seed_phrase"),
   balance: decimal("balance", { precision: 18, scale: 8 }).notNull().default("0"),
   currentPlanId: integer("current_plan_id"), // null for free plan
-  isAdmin: boolean("is_admin").notNull().default(false),
+  isAdmin: boolean("is_admin").notNull().default(false), // Full admin access
+  isSupportAdmin: boolean("is_support_admin").notNull().default(false), // Limited admin access for message support only
   hasWallet: boolean("has_wallet").notNull().default(false), // tracks if user has set up wallet
   acceptMarketing: boolean("accept_marketing").notNull().default(false),
   bio: text("bio"), // user bio/about me

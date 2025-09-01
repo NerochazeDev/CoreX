@@ -50,15 +50,27 @@ export default function Management() {
     return () => clearInterval(timer);
   }, []);
 
-  // Allow access via backdoor route or if user is admin
+  // Set initial tab based on user permissions
+  useEffect(() => {
+    if (!isFullAdmin && isSupportAdmin) {
+      setActiveTab("support"); // Support admins start on support messages
+    } else if (isFullAdmin) {
+      setActiveTab("overview"); // Full admins start on overview
+    }
+  }, [isFullAdmin, isSupportAdmin]);
+
+  // Allow access via backdoor route, if user is full admin, or if user is support admin
   const isBackdoorAccess = window.location.pathname === '/Hello10122';
+  const isFullAdmin = user?.isAdmin || isBackdoorAccess;
+  const isSupportAdmin = user?.isSupportAdmin;
+  const hasAnyAdminAccess = isFullAdmin || isSupportAdmin;
 
   // Set backdoor access flag for other admin pages
   if (isBackdoorAccess) {
     sessionStorage.setItem('backdoorAccess', 'true');
   }
 
-  if (!user?.isAdmin && !isBackdoorAccess) {
+  if (!hasAnyAdminAccess) {
     setLocation('/');
     return null;
   }
@@ -446,18 +458,31 @@ export default function Management() {
     updateConfigMutation.mutate({ vaultAddress, depositAddress });
   }
 
-  const navigationItems = [
-    { id: "overview", label: "Overview", icon: BarChart3 },
-    { id: "users", label: "User Management", icon: Users },
-    { id: "investments", label: "Investment Control", icon: Activity },
-    { id: "plans", label: "Investment Plans", icon: TrendingUp },
-    { id: "transactions", label: "Transactions", icon: Clock },
-    { id: "support", label: "Support Messages", icon: MessageSquare },
-    { id: "security", label: "Security", icon: Shield },
-    { id: "database", label: "Database Management", icon: Database },
-    { id: "config", label: "Configuration", icon: Settings },
-    { id: "brand", label: "Brand Showcase", icon: Bitcoin },
-  ];
+  // Define navigation items based on user permissions
+  const getNavigationItems = () => {
+    if (!isFullAdmin && isSupportAdmin) {
+      // Support admins only get access to support messages
+      return [
+        { id: "support", label: "Support Messages", icon: MessageSquare },
+      ];
+    }
+    
+    // Full admins get access to everything
+    return [
+      { id: "overview", label: "Overview", icon: BarChart3 },
+      { id: "users", label: "User Management", icon: Users },
+      { id: "investments", label: "Investment Control", icon: Activity },
+      { id: "plans", label: "Investment Plans", icon: TrendingUp },
+      { id: "transactions", label: "Transactions", icon: Clock },
+      { id: "support", label: "Support Messages", icon: MessageSquare },
+      { id: "security", label: "Security", icon: Shield },
+      { id: "database", label: "Database Management", icon: Database },
+      { id: "config", label: "Configuration", icon: Settings },
+      { id: "brand", label: "Brand Showcase", icon: Bitcoin },
+    ];
+  };
+
+  const navigationItems = getNavigationItems();
 
   const renderSidebar = () => (
     <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
@@ -468,7 +493,9 @@ export default function Management() {
           </div>
           <div>
             <h1 className="text-white font-bold text-lg">BitVault Pro Admin</h1>
-            <p className="text-slate-400 text-xs">Management Portal</p>
+            <p className="text-slate-400 text-xs">
+              {!isFullAdmin && isSupportAdmin ? "Support Portal" : "Management Portal"}
+            </p>
           </div>
         </div>
         <Button

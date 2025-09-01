@@ -1058,6 +1058,17 @@ export class DatabaseStorage implements IStorage {
       return updated || undefined;
     });
   }
+
+  async updateUserSupportAdminStatus(userId: number, isSupportAdmin: boolean): Promise<User | undefined> {
+    return await executeQuery(async () => {
+      const [updated] = await db
+        .update(users)
+        .set({ isSupportAdmin })
+        .where(eq(users.id, userId))
+        .returning();
+      return updated || undefined;
+    });
+  }
 }
 
 
