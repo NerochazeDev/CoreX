@@ -72,7 +72,7 @@ export default function AdminUserManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       toast({
         title: "Admin Status Updated",
-        description: `User ${variables.isAdmin ? 'granted full' : 'removed'} admin access.`,
+        description: `User ${variables.isAdmin ? 'granted' : 'removed'} admin access for support messages.`,
       });
     },
     onError: (error: any) => {
@@ -172,7 +172,7 @@ export default function AdminUserManagement() {
                   </div>
                   <div>
                     <CardTitle className="text-2xl font-bold">Admin User Management</CardTitle>
-                    <p className="text-orange-100">Grant full admin access to users</p>
+                    <p className="text-orange-100">Grant support message access to users</p>
                   </div>
                 </div>
                 <Button
@@ -217,12 +217,12 @@ export default function AdminUserManagement() {
               {/* Info Card */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-blue-800 mb-2">
-                  <Crown className="w-5 h-5" />
-                  <span className="font-semibold">Full Admin Access</span>
+                  <MessageSquare className="w-5 h-5" />
+                  <span className="font-semibold">Support Admin Access</span>
                 </div>
                 <p className="text-blue-700 text-sm">
-                  Users with admin status will have complete access to all admin features including user management, 
-                  transaction management, support messages, database management, and all administrative controls.
+                  Users with admin status can access the support message dashboard and respond to customer inquiries.
+                  They will have limited admin access focused only on customer support.
                 </p>
               </div>
             </CardContent>

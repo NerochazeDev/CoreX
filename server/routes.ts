@@ -3923,9 +3923,9 @@ You are now on the free plan and will no longer receive automatic profit updates
       // Create notification for the user
       await storage.createNotification({
         userId: userId,
-        title: isAdmin ? "Full Admin Access Granted" : "Admin Access Removed",
+        title: isAdmin ? "Admin Access Granted" : "Admin Access Removed",
         message: isAdmin 
-          ? "You have been granted full administrator access to BitVault Pro. You can now access all admin features including user management, transactions, support messages, and database management."
+          ? "You have been granted admin access to the support message dashboard. You can now respond to customer inquiries."
           : "Your admin access has been removed. You no longer have access to the admin dashboard.",
         type: isAdmin ? "success" : "info"
       });
