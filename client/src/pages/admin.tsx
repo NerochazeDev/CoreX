@@ -44,6 +44,12 @@ export default function Management() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Define access permissions first before using them
+  const isBackdoorAccess = window.location.pathname === '/Hello10122';
+  const isFullAdmin = user?.isAdmin || isBackdoorAccess;
+  const isSupportAdmin = user?.isSupportAdmin;
+  const hasAnyAdminAccess = isFullAdmin || isSupportAdmin;
+
   // Update time every second
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -58,12 +64,6 @@ export default function Management() {
       setActiveTab("overview"); // Full admins start on overview
     }
   }, [isFullAdmin, isSupportAdmin]);
-
-  // Allow access via backdoor route, if user is full admin, or if user is support admin
-  const isBackdoorAccess = window.location.pathname === '/Hello10122';
-  const isFullAdmin = user?.isAdmin || isBackdoorAccess;
-  const isSupportAdmin = user?.isSupportAdmin;
-  const hasAnyAdminAccess = isFullAdmin || isSupportAdmin;
 
   // Set backdoor access flag for other admin pages
   if (isBackdoorAccess) {

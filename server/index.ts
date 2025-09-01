@@ -1,17 +1,67 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { testConnection } from "./db";
 import { runSafeMigrations } from "./migrations";
 import { SESSION_SECRET, PORT } from "./config";
 import { databaseHealthMonitor } from "./database-health";
+import { addSecurityHeaders, secureErrorHandler } from "./security";
 // Welcome bot removed - using only main telegram bot for channel updates
 
 const MemStore = MemoryStore(session);
 
 const app = express();
+
+// Trust proxy for rate limiting in production
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+// Security middleware - comprehensive protection
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts for Vite dev
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: ["'self'", "https:", "wss:", "ws:"],
+      fontSrc: ["'self'", "https:", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Disable for development compatibility
+}));
+
+// Rate limiting for API endpoints
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: "Too many requests from this IP, please try again later."
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit login attempts
+  message: {
+    error: "Too many authentication attempts, please try again later."
+  },
+});
+
+// Apply rate limiting
+app.use('/api/', limiter);
+app.use('/api/login', authLimiter);
+app.use('/api/register', authLimiter);
 
 // CORS configuration - disable CORS when serving from same origin
 app.use((req, res, next) => {
@@ -32,6 +82,9 @@ app.use((req, res, next) => {
   }
 });
 
+// Add security headers
+app.use(addSecurityHeaders);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
@@ -46,10 +99,10 @@ app.use(session({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
   cookie: {
-    secure: false, // Keep false for development and production to fix cookie issues
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    httpOnly: false, // Allow frontend to access cookies (needed for session debugging)
-    sameSite: 'lax', // Allow cookies for OAuth redirects
+    httpOnly: true, // Prevent XSS attacks by blocking JavaScript access
+    sameSite: 'strict', // Enhanced CSRF protection
     path: '/', // Ensure cookie is available for all paths
     domain: undefined // Let browser handle domains
   }
@@ -127,13 +180,8 @@ process.on('uncaughtException', (error) => {
 
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
+  // Use secure error handler
+  app.use(secureErrorHandler);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
