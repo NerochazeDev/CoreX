@@ -132,6 +132,21 @@ export const depositSessions = pgTable("deposit_sessions", {
   completedAt: timestamp("completed_at"), // When deposit was fully processed
 });
 
+export const supportMessages = pgTable("support_messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  imageUrl: text("image_url"), // Optional image attachment
+  status: text("status").notNull().default("open"), // 'open', 'in_progress', 'resolved', 'closed'
+  priority: text("priority").notNull().default("normal"), // 'low', 'normal', 'high', 'urgent'
+  adminResponse: text("admin_response"), // Admin reply
+  respondedBy: integer("responded_by"), // Admin user id who responded
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  respondedAt: timestamp("responded_at"), // When admin responded
+  resolvedAt: timestamp("resolved_at"), // When marked as resolved
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   bitcoinAddress: true,
@@ -203,6 +218,16 @@ export const insertDepositSessionSchema = createInsertSchema(depositSessions).om
   completedAt: true,
 });
 
+export const insertSupportMessageSchema = createInsertSchema(supportMessages).omit({
+  id: true,
+  status: true,
+  adminResponse: true,
+  respondedBy: true,
+  createdAt: true,
+  respondedAt: true,
+  resolvedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertInvestmentPlan = z.infer<typeof insertInvestmentPlanSchema>;
@@ -220,3 +245,5 @@ export type BackupDatabase = typeof backupDatabases.$inferSelect;
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
 export type InsertDepositSession = z.infer<typeof insertDepositSessionSchema>;
 export type DepositSession = typeof depositSessions.$inferSelect;
+export type InsertSupportMessage = z.infer<typeof insertSupportMessageSchema>;
+export type SupportMessage = typeof supportMessages.$inferSelect;

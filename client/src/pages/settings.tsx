@@ -6,6 +6,11 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { ProtectedRoute } from "@/components/protected-route";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Settings as SettingsIcon, 
   Bell, 
@@ -20,7 +25,10 @@ import {
   Smartphone,
   Lock,
   CreditCard,
-  Palette
+  Palette,
+  Send,
+  Upload,
+  MessageSquare
 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
@@ -28,6 +36,246 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { ArrowLeft, Crown } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+
+const supportMessageSchema = z.object({
+  subject: z.string().min(1, "Subject is required").max(100, "Subject must be less than 100 characters"),
+  message: z.string().min(10, "Message must be at least 10 characters").max(1000, "Message must be less than 1000 characters"),
+  priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
+  imageUrl: z.string().optional(),
+});
+
+type SupportMessageForm = z.infer<typeof supportMessageSchema>;
+
+function SupportMessageDialog({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const form = useForm<SupportMessageForm>({
+    resolver: zodResolver(supportMessageSchema),
+    defaultValues: {
+      subject: "",
+      message: "",
+      priority: "normal",
+      imageUrl: "",
+    },
+  });
+
+  const sendSupportMessage = useMutation({
+    mutationFn: async (data: SupportMessageForm) => {
+      let imageUrl = "";
+      
+      // Handle image upload if there's a file
+      if (imageFile) {
+        const imageData = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(imageFile);
+        });
+        imageUrl = imageData;
+      }
+
+      return apiRequest('/api/support/messages', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...data,
+          imageUrl: imageUrl || undefined,
+        }),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message Sent",
+        description: "Your support message has been sent successfully. We'll get back to you soon!",
+      });
+      form.reset();
+      setImageFile(null);
+      setImagePreview(null);
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/support/messages'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send support message. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const onSubmit = (data: SupportMessageForm) => {
+    sendSupportMessage.mutate(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {children}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            Contact Support
+          </DialogTitle>
+        </DialogHeader>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="subject"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subject</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Brief description of your issue"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Message</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Please describe your issue in detail..."
+                      className="min-h-[120px] resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Attach Image (Optional)
+              </label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
+                />
+                {imagePreview && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={removeImage}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+              {imagePreview && (
+                <div className="mt-2">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="max-w-full h-32 object-cover rounded-lg border"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={sendSupportMessage.isPending}
+                className="flex-1"
+              >
+                {sendSupportMessage.isPending ? (
+                  <>Sending...</>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Message
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function SettingsContent() {
   const { user, logout } = useAuth();
@@ -36,6 +284,10 @@ function SettingsContent() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("account");
   const [notifications, setNotifications] = useState(true);
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
   
 
   const handleLogout = () => {
@@ -58,6 +310,12 @@ function SettingsContent() {
       label: "Notifications",
       icon: Bell,
       description: "Manage your notification settings"
+    },
+    {
+      id: "support",
+      label: "Support",
+      icon: MessageSquare,
+      description: "Get help and contact support"
     }
   ];
 
@@ -252,15 +510,134 @@ function SettingsContent() {
               </CardContent>
             </Card>
           )}
+
+          {activeTab === "support" && (
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                    <MessageSquare className="w-4 h-4 text-blue-500" />
+                  </div>
+                  Support & Help
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  {/* Contact Support */}
+                  <SupportMessageDialog>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start h-auto p-4 border-primary/20 hover:bg-primary/5"
+                      data-testid="button-new-support-message"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center mr-3">
+                        <Send className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-medium text-foreground">Send Support Message</p>
+                        <p className="text-sm text-muted-foreground">Get help with your account or report issues</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    </Button>
+                  </SupportMessageDialog>
+
+                  {/* Quick Help Topics */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-foreground">Common Help Topics</h4>
+                    
+                    <div className="grid gap-3">
+                      <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                            <HelpCircle className="w-4 h-4 text-green-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground text-sm">Account & Security</p>
+                            <p className="text-xs text-muted-foreground">Password changes, 2FA, account verification</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                            <CreditCard className="w-4 h-4 text-blue-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground text-sm">Deposits & Withdrawals</p>
+                            <p className="text-xs text-muted-foreground">Transaction issues, processing times, fees</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                            <Palette className="w-4 h-4 text-orange-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground text-sm">Investment Plans</p>
+                            <p className="text-xs text-muted-foreground">Plan details, returns, risk management</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                            <Smartphone className="w-4 h-4 text-purple-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground text-sm">Technical Issues</p>
+                            <p className="text-xs text-muted-foreground">App problems, website errors, login issues</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Support Info */}
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <HelpCircle className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground text-sm">Support Hours</p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Our support team is available 24/7 to assist you with any questions or issues.
+                        </p>
+                        <p className="text-xs text-primary">
+                          Typical response time: 15-30 minutes
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Help Section */}
         <Card className="mt-8 border-0 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <HelpCircle className="w-5 h-5" />
-              <span className="text-sm">Need help? Contact our support team</span>
-            </div>
+          <CardContent className="p-0">
+            <SupportMessageDialog>
+              <Button 
+                variant="ghost" 
+                className="w-full h-auto p-4 justify-start gap-3 hover:bg-primary/5 rounded-xl"
+                data-testid="button-contact-support"
+              >
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-blue-500" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-foreground">Need help? Contact our support team</p>
+                  <p className="text-sm text-muted-foreground">Get assistance with your account, investments, or technical issues</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              </Button>
+            </SupportMessageDialog>
           </CardContent>
         </Card>
 

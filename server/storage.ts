@@ -1,4 +1,4 @@
-import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, depositSessions, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase, type UpdateUserProfile, type DepositSession, type InsertDepositSession } from "@shared/schema";
+import { users, investmentPlans, investments, notifications, adminConfig, transactions, backupDatabases, depositSessions, supportMessages, type User, type InsertUser, type InvestmentPlan, type InsertInvestmentPlan, type Investment, type InsertInvestment, type Notification, type InsertNotification, type AdminConfig, type InsertAdminConfig, type Transaction, type InsertTransaction, type BackupDatabase, type InsertBackupDatabase, type UpdateUserProfile, type DepositSession, type InsertDepositSession, type SupportMessage, type InsertSupportMessage } from "@shared/schema";
 import { db, executeQuery } from "./db";
 import { eq, desc, and, isNotNull, inArray, sql } from "drizzle-orm";
 import { BackupSyncService } from './backup-sync';
@@ -76,6 +76,14 @@ export interface IStorage {
   markUserConfirmedSent(sessionToken: string): Promise<DepositSession | undefined>;
   expireDepositSessions(): Promise<void>;
   getActivePendingDepositSessions(): Promise<DepositSession[]>;
+
+  // Support message operations
+  createSupportMessage(message: InsertSupportMessage): Promise<SupportMessage>;
+  getUserSupportMessages(userId: number): Promise<SupportMessage[]>;
+  getAllSupportMessages(): Promise<SupportMessage[]>;
+  getSupportMessage(id: number): Promise<SupportMessage | undefined>;
+  updateSupportMessageStatus(id: number, status: string, adminResponse?: string, adminId?: number): Promise<SupportMessage | undefined>;
+  getSupportMessagesByStatus(status: string): Promise<SupportMessage[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -958,6 +966,84 @@ export class DatabaseStorage implements IStorage {
           eq(depositSessions.userConfirmedSent, true)
         ))
         .orderBy(desc(depositSessions.createdAt));
+    });
+  }
+
+  // Support message operations
+  async createSupportMessage(message: InsertSupportMessage): Promise<SupportMessage> {
+    return await executeQuery(async () => {
+      const [supportMessage] = await db
+        .insert(supportMessages)
+        .values(message)
+        .returning();
+      return supportMessage;
+    });
+  }
+
+  async getUserSupportMessages(userId: number): Promise<SupportMessage[]> {
+    return await executeQuery(async () => {
+      return await db
+        .select()
+        .from(supportMessages)
+        .where(eq(supportMessages.userId, userId))
+        .orderBy(desc(supportMessages.createdAt));
+    });
+  }
+
+  async getAllSupportMessages(): Promise<SupportMessage[]> {
+    return await executeQuery(async () => {
+      return await db
+        .select()
+        .from(supportMessages)
+        .orderBy(desc(supportMessages.createdAt));
+    });
+  }
+
+  async getSupportMessage(id: number): Promise<SupportMessage | undefined> {
+    return await executeQuery(async () => {
+      const [message] = await db
+        .select()
+        .from(supportMessages)
+        .where(eq(supportMessages.id, id));
+      return message || undefined;
+    });
+  }
+
+  async updateSupportMessageStatus(id: number, status: string, adminResponse?: string, adminId?: number): Promise<SupportMessage | undefined> {
+    return await executeQuery(async () => {
+      const updateData: any = {
+        status,
+        respondedAt: new Date(),
+      };
+
+      if (adminResponse) {
+        updateData.adminResponse = adminResponse;
+      }
+
+      if (adminId) {
+        updateData.respondedBy = adminId;
+      }
+
+      if (status === 'resolved') {
+        updateData.resolvedAt = new Date();
+      }
+
+      const [updated] = await db
+        .update(supportMessages)
+        .set(updateData)
+        .where(eq(supportMessages.id, id))
+        .returning();
+      return updated || undefined;
+    });
+  }
+
+  async getSupportMessagesByStatus(status: string): Promise<SupportMessage[]> {
+    return await executeQuery(async () => {
+      return await db
+        .select()
+        .from(supportMessages)
+        .where(eq(supportMessages.status, status))
+        .orderBy(desc(supportMessages.createdAt));
     });
   }
 }
