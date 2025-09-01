@@ -57,6 +57,7 @@ function WhatsAppStyleChat({ children }: { children: React.ReactNode }) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
+  const [hasReceivedAutoReply, setHasReceivedAutoReply] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -111,16 +112,19 @@ function WhatsAppStyleChat({ children }: { children: React.ReactNode }) {
         description: "Your message has been sent to our support team!",
       });
 
-      // Add auto-reply after a short delay
-      setTimeout(() => {
-        const autoReply = {
-          id: Date.now() + 1,
-          message: "Thank you for contacting BitVault Pro support! We've received your message and will get back to you within 15-30 minutes. Our team is reviewing your request.",
-          createdAt: new Date().toISOString(),
-          isUser: false,
-        };
-        setMessages(prev => [...prev, autoReply]);
-      }, 2000);
+      // Add auto-reply after a short delay, but only once
+      if (!hasReceivedAutoReply) {
+        setTimeout(() => {
+          const autoReply = {
+            id: Date.now() + 1,
+            message: "Thank you for contacting BitVault Pro support! We've received your message and will get back to you within 15-30 minutes. Our team is reviewing your request.",
+            createdAt: new Date().toISOString(),
+            isUser: false,
+          };
+          setMessages(prev => [...prev, autoReply]);
+          setHasReceivedAutoReply(true);
+        }, 2000);
+      }
     },
     onError: (error: any) => {
       toast({

@@ -1797,16 +1797,16 @@ export default function Management() {
     </div>
   );
 
-  const renderSupportTab = () => {
-    const { data: supportMessages, isLoading: messagesLoading } = useQuery({
-      queryKey: ['/api/admin/support/messages'],
-      enabled: activeTab === 'support',
-    });
+  // Move hooks to top level to fix React hooks rule violation
+  const { data: supportMessages, isLoading: messagesLoading } = useQuery({
+    queryKey: ['/api/admin/support/messages'],
+    enabled: activeTab === 'support',
+  });
 
-    const [selectedMessage, setSelectedMessage] = useState<any>(null);
-    const [responseText, setResponseText] = useState("");
+  const [selectedMessage, setSelectedMessage] = useState<any>(null);
+  const [responseText, setResponseText] = useState("");
 
-    const respondMutation = useMutation({
+  const respondMutation = useMutation({
       mutationFn: async ({ messageId, response, status }: { messageId: number; response: string; status: string }) => {
         return await fetch(`/api/admin/support/messages/${messageId}/respond`, {
           method: 'POST',
@@ -1838,6 +1838,7 @@ export default function Management() {
       },
     });
 
+  const renderSupportTab = () => {
     const getStatusBadge = (status: string) => {
       const colors = {
         open: "bg-green-100 text-green-800",
