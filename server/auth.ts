@@ -295,9 +295,28 @@ export function setupAuth(app: Express) {
   });
   
   // View recovery code (requires password verification)
-  app.post("/api/auth/view-recovery", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/auth/view-recovery", async (req: Request, res: Response) => {
     try {
-      const userId = req.session?.userId;
+      // Use the same authentication logic as other endpoints
+      let userId = req.session?.userId;
+      
+      // Check auth token header if no session
+      if (!userId) {
+        const authToken = req.headers.authorization?.replace('Bearer ', '');
+        if (authToken) {
+          try {
+            const decoded = Buffer.from(authToken, 'base64').toString();
+            const [tokenUserId] = decoded.split(':');
+            userId = parseInt(tokenUserId);
+            if (!userId || isNaN(userId)) {
+              userId = null;
+            }
+          } catch (error) {
+            console.log('Auth token decode error:', error);
+          }
+        }
+      }
+      
       if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
@@ -338,9 +357,28 @@ export function setupAuth(app: Express) {
   });
 
   // Regenerate recovery code (requires password verification)
-  app.post("/api/auth/regenerate-recovery", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/auth/regenerate-recovery", async (req: Request, res: Response) => {
     try {
-      const userId = req.session?.userId;
+      // Use the same authentication logic as other endpoints
+      let userId = req.session?.userId;
+      
+      // Check auth token header if no session
+      if (!userId) {
+        const authToken = req.headers.authorization?.replace('Bearer ', '');
+        if (authToken) {
+          try {
+            const decoded = Buffer.from(authToken, 'base64').toString();
+            const [tokenUserId] = decoded.split(':');
+            userId = parseInt(tokenUserId);
+            if (!userId || isNaN(userId)) {
+              userId = null;
+            }
+          } catch (error) {
+            console.log('Auth token decode error:', error);
+          }
+        }
+      }
+      
       if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
