@@ -9,14 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { Eye, EyeOff, Shield, Key, Mail, User, Lock, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, Shield, Key, Mail, User, Lock, AlertTriangle, Copy } from "lucide-react";
 import { signupSchema, loginSchema, type SignupData, type LoginData } from "@shared/schema";
 import { useSecureAuth } from "@/hooks/use-auth-secure";
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
-  const [recoveryCode, setRecoveryCode] = useState<string>("");
+  const [showRecoveryCode, setShowRecoveryCode] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState('');
   const { user, loginMutation, signupMutation } = useSecureAuth();
 
   // Redirect if already logged in
@@ -49,12 +50,12 @@ export default function AuthPage() {
     navigate("/");
   };
 
-  const onSignup = async (data: SignupData) => {
+  const handleSignup = async (data: SignupData) => {
     const result = await signupMutation.mutateAsync(data);
     if (result?.recoveryCode) {
       setRecoveryCode(result.recoveryCode);
+      setShowRecoveryCode(true);
     }
-    // Don't navigate immediately - let user see recovery code first
   };
 
   if (user) {
@@ -64,7 +65,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
-        
+
         {/* Left Column - Auth Forms */}
         <div className="w-full max-w-md mx-auto">
           <div className="text-center mb-8">
@@ -81,8 +82,8 @@ export default function AuthPage() {
             </p>
           </div>
 
-          {/* Recovery Code Display */}
-          {recoveryCode && (
+          {/* Recovery Code Display (Original - now handled by modal) */}
+          {recoveryCode && !showRecoveryCode && (
             <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
               <Key className="h-4 w-4 text-orange-600" />
               <AlertDescription className="text-orange-800 dark:text-orange-200">
@@ -93,8 +94,8 @@ export default function AuthPage() {
                 <p className="text-sm mt-2">
                   This code will never be shown again. You'll need it to recover your account if you forget your password.
                 </p>
-                <Button 
-                  onClick={() => {setRecoveryCode(""); navigate("/");}} 
+                <Button
+                  onClick={() => { setRecoveryCode(""); navigate("/"); }}
                   className="mt-3 w-full"
                   data-testid="button-continue-after-signup"
                 >
@@ -110,7 +111,7 @@ export default function AuthPage() {
                 <TabsTrigger value="login" data-testid="tab-login">Sign In</TabsTrigger>
                 <TabsTrigger value="signup" data-testid="tab-signup">Create Account</TabsTrigger>
               </TabsList>
-              
+
               {/* Login Tab */}
               <TabsContent value="login">
                 <CardHeader>
@@ -141,7 +142,7 @@ export default function AuthPage() {
                         <p className="text-sm text-red-500">{loginForm.formState.errors.email.message}</p>
                       )}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="login-password">Password</Label>
                       <div className="relative">
@@ -167,9 +168,9 @@ export default function AuthPage() {
                         <p className="text-sm text-red-500">{loginForm.formState.errors.password.message}</p>
                       )}
                     </div>
-                    
-                    <Button 
-                      type="submit" 
+
+                    <Button
+                      type="submit"
                       className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
                       disabled={loginMutation.isPending}
                       data-testid="button-login-submit"
@@ -177,7 +178,7 @@ export default function AuthPage() {
                       {loginMutation.isPending ? "Signing In..." : "Sign In"}
                     </Button>
                   </form>
-                  
+
                   <div className="mt-4 text-center">
                     <Button
                       variant="link"
@@ -189,7 +190,7 @@ export default function AuthPage() {
                   </div>
                 </CardContent>
               </TabsContent>
-              
+
               {/* Signup Tab */}
               <TabsContent value="signup">
                 <CardHeader>
@@ -202,7 +203,7 @@ export default function AuthPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={signupForm.handleSubmit(onSignup)} className="space-y-4">
+                  <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="signup-firstName">First Name</Label>
@@ -229,7 +230,7 @@ export default function AuthPage() {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">Email</Label>
                       <div className="relative">
@@ -247,7 +248,7 @@ export default function AuthPage() {
                         <p className="text-sm text-red-500">{signupForm.formState.errors.email.message}</p>
                       )}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Password</Label>
                       <div className="relative">
@@ -275,17 +276,17 @@ export default function AuthPage() {
                         Must contain uppercase, lowercase, number, and special character
                       </p>
                     </div>
-                    
+
                     <Alert>
                       <AlertTriangle className="h-4 w-4" />
                       <AlertDescription>
-                        <strong>Security Notice:</strong> You'll receive a unique recovery code after signup. 
+                        <strong>Security Notice:</strong> You'll receive a unique recovery code after signup.
                         Save it securely - it's your only way to recover your account if you forget your password.
                       </AlertDescription>
                     </Alert>
-                    
-                    <Button 
-                      type="submit" 
+
+                    <Button
+                      type="submit"
                       className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
                       disabled={signupMutation.isPending}
                       data-testid="button-signup-submit"
@@ -305,15 +306,15 @@ export default function AuthPage() {
             <div className="w-32 h-32 mx-auto bg-gradient-to-br from-orange-500 to-amber-600 rounded-full flex items-center justify-center shadow-2xl">
               <Shield className="w-16 h-16 text-white" />
             </div>
-            
+
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
               Secure Bitcoin Investment Platform
             </h2>
-            
+
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto">
               Join thousands of investors who trust BitVault Pro for professional Bitcoin investment management with institutional-grade security.
             </p>
-            
+
             <div className="grid grid-cols-1 gap-4 max-w-md mx-auto mt-8">
               <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg backdrop-blur-sm">
                 <Shield className="w-6 h-6 text-orange-500" />
@@ -331,6 +332,58 @@ export default function AuthPage() {
           </div>
         </div>
       </div>
+
+      {/* Recovery Code Modal */}
+      {showRecoveryCode && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="w-5 h-5" />
+                Save Your Recovery Code
+              </CardTitle>
+              <CardDescription>
+                This is your only chance to save this code. You'll need it to reset your password.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  <strong>Important:</strong> This recovery code will only be shown once. Please save it securely.
+                </AlertDescription>
+              </Alert>
+
+              <div className="p-4 bg-gray-100 rounded-lg border text-center">
+                <code className="text-lg font-mono font-bold tracking-wider">
+                  {recoveryCode}
+                </code>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => navigator.clipboard.writeText(recoveryCode)}
+                  className="flex-1"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Code
+                </Button>
+                <Button
+                  onClick={() => { setRecoveryCode(""); setShowRecoveryCode(false); navigate("/"); }}
+                  className="flex-1"
+                >
+                  I've Saved It
+                </Button>
+              </div>
+
+              <p className="text-xs text-gray-500 text-center">
+                Use this code on the "Reset Password" page if you forget your password.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
