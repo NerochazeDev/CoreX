@@ -118,6 +118,11 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
   const forgotPasswordMutation = useMutation({
     mutationFn: async (data: ForgotPasswordData) => {
       const res = await apiRequest("POST", "/api/auth/forgot-password", data);
+      if (!res.ok) {
+        const errorText = await res.text();
+        const error = JSON.parse(errorText);
+        throw new Error(error.error || "Request failed");
+      }
       return await res.json();
     },
     onSuccess: (data: any) => {
@@ -139,6 +144,11 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
   const resetPasswordMutation = useMutation({
     mutationFn: async (data: ResetPasswordData) => {
       const res = await apiRequest("POST", "/api/auth/reset-password", data);
+      if (!res.ok) {
+        const errorText = await res.text();
+        const error = JSON.parse(errorText);
+        throw new Error(error.error || "Password reset failed");
+      }
       return await res.json();
     },
     onSuccess: (data: any) => {
@@ -161,6 +171,11 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
   const regenerateRecoveryMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/auth/regenerate-recovery");
+      if (!res.ok) {
+        const errorText = await res.text();
+        const error = JSON.parse(errorText);
+        throw new Error(error.error || "Failed to regenerate recovery code");
+      }
       return await res.json();
     },
     onSuccess: (data: any) => {
