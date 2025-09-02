@@ -581,9 +581,9 @@ function SettingsContent() {
           </CardContent>
         </Card>
 
-        {/* Navigation Menu */}
-        <div className="space-y-3 mb-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Navigation Menu and Content Area */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="space-y-3 mb-8">
             <TabsList className={`grid w-full ${user?.isSupportAdmin || user?.isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>
               <TabsTrigger value="account">Account</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
@@ -592,11 +592,10 @@ function SettingsContent() {
                 Support
               </TabsTrigger>
             </TabsList>
-          </Tabs>
-        </div>
+          </div>
 
-        {/* Content Area */}
-        <div className="space-y-6">
+          {/* Content Area */}
+          <div className="space-y-6">
           <TabsContent value="account" className="space-y-6">
             <Card className="border-0 shadow-lg">
               <CardHeader className="pb-4">
@@ -1251,6 +1250,7 @@ function SettingsContent() {
             </Button>
           </CardContent>
         </Card>
+        </Tabs>
       </div>
 
       <BottomNavigation />
