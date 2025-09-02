@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { ProtectedRoute } from "@/components/protected-route";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -332,10 +332,16 @@ function SettingsContent() {
 
   const viewRecoveryForm = useForm<PasswordVerificationForm>({
     resolver: zodResolver(passwordVerificationSchema),
+    defaultValues: {
+      password: ""
+    }
   });
 
   const regenerateForm = useForm<PasswordVerificationForm>({
     resolver: zodResolver(passwordVerificationSchema),
+    defaultValues: {
+      password: ""
+    }
   });
 
   const viewRecoveryMutation = useMutation({
@@ -669,6 +675,9 @@ function SettingsContent() {
                               <Shield className="w-5 h-5" />
                               View Recovery Code
                             </DialogTitle>
+                            <DialogDescription>
+                              Enter your password to securely view your recovery code.
+                            </DialogDescription>
                           </DialogHeader>
                           <Form {...viewRecoveryForm}>
                             <form onSubmit={viewRecoveryForm.handleSubmit((data) => viewRecoveryMutation.mutate(data))} className="space-y-4">
@@ -734,6 +743,9 @@ function SettingsContent() {
                               <RefreshCw className="w-5 h-5" />
                               Generate New Recovery Code
                             </DialogTitle>
+                            <DialogDescription>
+                              Enter your password to generate a new recovery code. This will invalidate your current code.
+                            </DialogDescription>
                           </DialogHeader>
                           <Form {...regenerateForm}>
                             <form onSubmit={regenerateForm.handleSubmit((data) => regenerateMutation.mutate(data))} className="space-y-4">
@@ -898,6 +910,9 @@ function SettingsContent() {
                                   <RefreshCw className="w-5 h-5" />
                                   Generate New Recovery Code
                                 </DialogTitle>
+                                <DialogDescription>
+                                  Enter your password to generate a new recovery code. This will invalidate your current code.
+                                </DialogDescription>
                               </DialogHeader>
                               <Form {...regenerateForm}>
                                 <form onSubmit={regenerateForm.handleSubmit((data) => regenerateMutation.mutate(data))} className="space-y-4">
