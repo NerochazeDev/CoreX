@@ -6,6 +6,10 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { ProtectedRoute } from "@/components/protected-route";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Settings as SettingsIcon, 
   Bell, 
@@ -16,13 +20,20 @@ import {
   User,
   Lock,
   ArrowLeft,
-  Crown
+  Crown,
+  MessageSquare,
+  Send,
+  Upload,
+  RefreshCw,
+  HelpCircle
 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useCurrency } from "@/hooks/use-currency";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 function SettingsContent() {
   const { user, logout } = useAuth();
@@ -34,6 +45,15 @@ function SettingsContent() {
   const [priceAlerts, setPriceAlerts] = useState(true);
   const [investmentUpdates, setInvestmentUpdates] = useState(true);
   const [securityAlerts, setSecurityAlerts] = useState(true);
+  
+  // Support chat state
+  const [supportChatOpen, setSupportChatOpen] = useState(false);
+  const [currentMessage, setCurrentMessage] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [hasReceivedAutoReply, setHasReceivedAutoReply] = useState(false);
+  const queryClient = useQueryClient();
 
   if (!user) {
     return <div>Loading...</div>;
@@ -45,6 +65,105 @@ function SettingsContent() {
       title: "Signed Out",
       description: "You have been signed out successfully",
     });
+  };
+
+  // Support message functionality
+  const sendMessage = useMutation({
+    mutationFn: async (messageText: string) => {
+      let imageUrl = "";
+      
+      if (imageFile) {
+        const imageData = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(imageFile);
+        });
+        imageUrl = imageData;
+      }
+
+      return await apiRequest('POST', '/api/support/messages', {
+        subject: messageText.slice(0, 50) + (messageText.length > 50 ? '...' : ''),
+        message: messageText,
+        priority: "normal",
+        imageUrl: imageUrl || undefined,
+      });
+    },
+    onSuccess: () => {
+      const newMessage = {
+        id: Date.now(),
+        message: currentMessage,
+        imageUrl: imagePreview,
+        createdAt: new Date().toISOString(),
+        isUser: true,
+      };
+      setMessages(prev => [...prev, newMessage]);
+      
+      setCurrentMessage("");
+      setImageFile(null);
+      setImagePreview(null);
+      
+      toast({
+        title: "Message Sent",
+        description: "Your message has been sent to our support team!",
+      });
+
+      if (!hasReceivedAutoReply) {
+        setTimeout(() => {
+          const autoReply = {
+            id: Date.now() + 1,
+            message: "Thank you for contacting BitVault Pro support! We've received your message and will get back to you within 15-30 minutes. Our team is reviewing your request.",
+            createdAt: new Date().toISOString(),
+            isUser: false,
+          };
+          setMessages(prev => [...prev, autoReply]);
+          setHasReceivedAutoReply(true);
+        }, 2000);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendMessage = () => {
+    if (currentMessage.trim() || imageFile) {
+      sendMessage.mutate(currentMessage);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   const menuItems = [
@@ -65,6 +184,12 @@ function SettingsContent() {
       label: "Security",
       icon: Shield,
       description: "Security settings and preferences"
+    },
+    {
+      id: "support",
+      label: "Support",
+      icon: MessageSquare,
+      description: "Get help and contact support"
     }
   ];
 
@@ -319,6 +444,203 @@ function SettingsContent() {
                         Manage Recovery Code
                       </Button>
                     </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "support" && (
+            <Card className="border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                    <MessageSquare className="w-5 h-5 text-blue-500" />
+                  </div>
+                  Support & Help
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  {/* Contact Support Button */}
+                  <Dialog open={supportChatOpen} onOpenChange={setSupportChatOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start h-auto p-6 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/10"
+                      >
+                        <div className="w-12 h-12 rounded-lg bg-orange-500/20 flex items-center justify-center mr-4">
+                          <Send className="w-6 h-6 text-orange-500" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="font-medium text-gray-900 dark:text-white">Contact Support</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Send a message to our support team</p>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[420px] h-[600px] p-0 gap-0">
+                      {/* Header */}
+                      <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white">
+                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                          <MessageSquare className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold">BitVault Pro Support</h3>
+                          <p className="text-xs opacity-90">Online • Responds within minutes</p>
+                        </div>
+                      </div>
+
+                      {/* Messages Area */}
+                      <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+                        <div className="space-y-4">
+                          {messages.length === 0 && (
+                            <div className="text-center py-8">
+                              <div className="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto mb-3">
+                                <MessageSquare className="w-8 h-8 text-orange-500" />
+                              </div>
+                              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                Welcome to BitVault Pro Support!<br />
+                                How can we help you today?
+                              </p>
+                            </div>
+                          )}
+                          
+                          {messages.map((msg) => (
+                            <div key={msg.id} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-[280px] rounded-2xl px-4 py-2 ${
+                                msg.isUser 
+                                  ? 'bg-orange-500 text-white rounded-br-md' 
+                                  : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md shadow-sm'
+                              }`}>
+                                {msg.imageUrl && (
+                                  <img 
+                                    src={msg.imageUrl} 
+                                    alt="Attached" 
+                                    className="rounded-lg mb-2 max-w-full h-auto"
+                                  />
+                                )}
+                                <p className="text-sm leading-relaxed">{msg.message}</p>
+                                <p className={`text-xs mt-1 ${
+                                  msg.isUser ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
+                                }`}>
+                                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Image Preview */}
+                      {imagePreview && (
+                        <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 border-t">
+                          <div className="flex items-center gap-2">
+                            <img 
+                              src={imagePreview} 
+                              alt="Preview" 
+                              className="w-12 h-12 object-cover rounded-lg"
+                            />
+                            <span className="text-sm text-gray-600 dark:text-gray-400 flex-1">Image attached</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={removeImage}
+                              className="h-8 w-8 p-0"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Input Area */}
+                      <div className="p-4 bg-white dark:bg-gray-900 border-t">
+                        <div className="flex items-end gap-2">
+                          <div className="flex-1 relative">
+                            <Textarea
+                              value={currentMessage}
+                              onChange={(e) => setCurrentMessage(e.target.value)}
+                              onKeyPress={handleKeyPress}
+                              placeholder="Type a message..."
+                              className="min-h-[44px] max-h-32 resize-none rounded-full px-4 py-3 pr-12 border-2 focus:border-orange-500"
+                              rows={1}
+                              style={{ 
+                                height: 'auto',
+                                minHeight: '44px'
+                              }}
+                            />
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageChange}
+                              className="hidden"
+                              id="image-upload"
+                            />
+                            <label
+                              htmlFor="image-upload"
+                              className="absolute right-3 top-3 cursor-pointer text-gray-500 hover:text-orange-500 transition-colors"
+                            >
+                              <Upload className="w-5 h-5" />
+                            </label>
+                          </div>
+                          <Button
+                            onClick={handleSendMessage}
+                            disabled={(!currentMessage.trim() && !imageFile) || sendMessage.isPending}
+                            className="h-11 w-11 rounded-full p-0 bg-orange-500 hover:bg-orange-600"
+                          >
+                            {sendMessage.isPending ? (
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Send className="w-5 h-5" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Quick Help Topics */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-gray-900 dark:text-white">Common Help Topics</h4>
+                    
+                    <div className="grid gap-3">
+                      <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                            <HelpCircle className="w-4 h-4 text-green-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">Account & Security</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Password changes, recovery codes, account verification</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                            <HelpCircle className="w-4 h-4 text-blue-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">Investments & Trading</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Investment plans, profits, Bitcoin wallet management</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                            <HelpCircle className="w-4 h-4 text-orange-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">Technical Support</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">App issues, bugs, performance problems</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>

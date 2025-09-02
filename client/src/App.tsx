@@ -33,6 +33,7 @@ import NotificationDetail from "@/pages/notification-detail";
 import TransactionDetail from "@/pages/transaction-detail";
 import OAuthSuccess from "@/pages/oauth-success";
 import SupportAdmin from "./pages/support-admin";
+import AdminSupport from "./pages/admin-support";
 import AuthPage from "@/pages/auth-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/import-wallet" component={ImportWallet} />
       <Route path="/wallet-setup" component={WalletSetup} />
       <Route path="/support-admin" component={SupportAdmin} />
+      <Route path="/admin/support" component={AdminSupport} />
       <Route component={NotFound} />
     </Switch>
   );
