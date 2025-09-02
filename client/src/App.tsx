@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
+import { SecureAuthProvider } from "@/hooks/use-auth-secure";
 import { CurrencyProvider } from "@/hooks/use-currency";
 import { RealtimeConnection } from "@/components/realtime-connection";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -32,6 +33,10 @@ import NotificationDetail from "@/pages/notification-detail";
 import TransactionDetail from "@/pages/transaction-detail";
 import OAuthSuccess from "@/pages/oauth-success";
 import SupportAdmin from "./pages/support-admin";
+import AuthPage from "@/pages/auth-page";
+import ForgotPasswordPage from "@/pages/forgot-password-page";
+import ResetPasswordPage from "@/pages/reset-password-page";
+import RecoverySettingsPage from "@/pages/recovery-settings-page";
 
 function Router() {
   return (
@@ -40,6 +45,10 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/oauth-success" component={OAuthSuccess} />
+      <Route path="/auth" component={AuthPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
+      <Route path="/recovery-settings" component={RecoverySettingsPage} />
       <Route path="/admin" component={Management} />
       <Route path="/admin-transactions" component={ManagementTransactions} />
       <Route path="/admin-notifications" component={ManagementNotifications} />
@@ -72,9 +81,11 @@ function App() {
         <TooltipProvider>
           <CurrencyProvider>
             <AuthProvider>
-              <RealtimeConnection />
-              <Toaster />
-              <Router />
+              <SecureAuthProvider>
+                <RealtimeConnection />
+                <Toaster />
+                <Router />
+              </SecureAuthProvider>
             </AuthProvider>
           </CurrencyProvider>
         </TooltipProvider>

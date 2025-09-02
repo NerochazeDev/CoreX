@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import { addInvestmentUpdateToBatch, addNewInvestmentToBatch, sendDailyStatsToChannel, sendBatchedUpdatesToChannel } from "./telegram-bot";
 import { createDemoUsers } from "./create-demo-users";
+import { setupAuth } from "./auth";
 // Welcome bot removed - all functionality moved to main bot
 
 // Extend Express Request type to include session
@@ -914,7 +915,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Session middleware is already configured in index.ts
 
-  // Initialize Passport and session support
+  // Setup new authentication system with recovery codes
+  setupAuth(app);
+
+  // Initialize Passport and session support (for existing Google OAuth)
   app.use(passport.initialize());
   app.use(passport.session());
 

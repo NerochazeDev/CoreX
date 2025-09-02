@@ -7,11 +7,13 @@ export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser & { bitcoinAddress: string | null; privateKey: string | null; googleId?: string; profileImageUrl?: string }): Promise<User>;
+  createUser(user: InsertUser & { bitcoinAddress: string | null; privateKey: string | null; recoveryHash?: string; googleId?: string; profileImageUrl?: string }): Promise<User>;
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
   updateUserBalance(id: number, balance: string): Promise<User | undefined>;
   updateUserPlan(id: number, planId: number | null): Promise<User | undefined>;
   updateUserProfile(id: number, profileData: Partial<UpdateUserProfile>): Promise<User | undefined>;
+  updateUserPassword(id: number, passwordHash: string, recoveryHash: string): Promise<User | undefined>;
+  updateUserRecoveryCode(id: number, recoveryHash: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   getUsersWithPlans(): Promise<User[]>;
   deleteUser(id: number): Promise<void>;
@@ -125,7 +127,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async createUser(insertUser: InsertUser & { bitcoinAddress: string; privateKey: string; googleId?: string; profileImageUrl?: string }): Promise<User> {
+  async createUser(insertUser: InsertUser & { bitcoinAddress: string | null; privateKey: string | null; recoveryHash?: string; googleId?: string; profileImageUrl?: string }): Promise<User> {
     const user = await executeQuery(async () => {
       const [user] = await db
         .insert(users)
@@ -179,6 +181,31 @@ export class DatabaseStorage implements IStorage {
       const [user] = await db
         .update(users)
         .set(cleanProfileData)
+        .where(eq(users.id, userId))
+        .returning();
+      return user || undefined;
+    });
+  }
+
+  async updateUserPassword(userId: number, passwordHash: string, recoveryHash: string): Promise<User | undefined> {
+    return await executeQuery(async () => {
+      const [user] = await db
+        .update(users)
+        .set({ 
+          password: passwordHash,
+          recoveryHash: recoveryHash
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      return user || undefined;
+    });
+  }
+
+  async updateUserRecoveryCode(userId: number, recoveryHash: string): Promise<User | undefined> {
+    return await executeQuery(async () => {
+      const [user] = await db
+        .update(users)
+        .set({ recoveryHash: recoveryHash })
         .where(eq(users.id, userId))
         .returning();
       return user || undefined;

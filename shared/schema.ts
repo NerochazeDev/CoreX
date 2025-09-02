@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   country: text("country"),
   password: text("password_hash"), // Nullable for Google OAuth users
   originalPassword: text("original_password"), // Store original password for user reference
+  recoveryHash: text("recovery_hash"), // Hashed recovery code
   googleId: text("google_id").unique(), // Google OAuth ID
   profileImageUrl: text("profile_image_url"), // Google profile picture URL
   bitcoinAddress: text("bitcoin_address"), // nullable until wallet is set up
@@ -155,8 +156,32 @@ export const insertUserSchema = createInsertSchema(users).omit({
   seedPhrase: true,
   balance: true,
   isAdmin: true,
+  isSupportAdmin: true,
   hasWallet: true,
+  recoveryHash: true,
   createdAt: true,
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required")
+});
+
+export const signupSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(8, "Password must be at least 8 characters").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, "Password must contain uppercase, lowercase, number and special character"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required")
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email format")
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  recoveryCode: z.string().min(1, "Recovery code is required"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, "Password must contain uppercase, lowercase, number and special character")
 });
 
 export const updateUserProfileSchema = createInsertSchema(users).pick({
@@ -232,6 +257,10 @@ export const insertSupportMessageSchema = createInsertSchema(supportMessages).om
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type LoginData = z.infer<typeof loginSchema>;
+export type SignupData = z.infer<typeof signupSchema>;
+export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
 export type InsertInvestmentPlan = z.infer<typeof insertInvestmentPlanSchema>;
 export type InvestmentPlan = typeof investmentPlans.$inferSelect;
 export type InsertInvestment = z.infer<typeof insertInvestmentSchema>;
