@@ -112,3 +112,4 @@ task = "shell.exec"
 args = "npm run dev"
 
 [agent]
+integrations = ["javascript_auth_all_persistance==1.0.0"]
