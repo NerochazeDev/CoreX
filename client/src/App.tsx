@@ -31,6 +31,7 @@ import NotFound from "@/pages/not-found";
 import NotificationDetail from "@/pages/notification-detail";
 import TransactionDetail from "@/pages/transaction-detail";
 import OAuthSuccess from "@/pages/oauth-success";
+import SupportAdmin from "./pages/support-admin";
 
 function Router() {
   return (
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/deposit/automated" component={AutomatedDeposit} />
       <Route path="/import-wallet" component={ImportWallet} />
       <Route path="/wallet-setup" component={WalletSetup} />
+      <Route path="/support-admin" component={SupportAdmin} />
       <Route component={NotFound} />
     </Switch>
   );

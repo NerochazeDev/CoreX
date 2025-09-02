@@ -466,7 +466,7 @@ export default function Management() {
         { id: "support", label: "Support Messages", icon: MessageSquare },
       ];
     }
-    
+
     // Full admins get access to everything
     return [
       { id: "overview", label: "Overview", icon: BarChart3 },
@@ -706,7 +706,7 @@ export default function Management() {
             <p className="text-sm text-muted-foreground">
               Send professional investment updates to your Telegram channel with current user statistics and top performers.
             </p>
-            
+
             {/* Send Both Notifications Button (Same as 12-hour automatic) */}
             <Button
               onClick={async () => {
@@ -714,7 +714,7 @@ export default function Management() {
                   const headers: Record<string, string> = {
                     'Content-Type': 'application/json'
                   };
-                  
+
                   if (isBackdoorAccess) {
                     headers['x-backdoor-access'] = 'true';
                   }
@@ -724,7 +724,7 @@ export default function Management() {
                     headers,
                     credentials: 'include'
                   });
-                  
+
                   if (response.ok) {
                     const result = await response.json();
                     toast({
@@ -749,7 +749,7 @@ export default function Management() {
               <Send className="w-4 h-4 mr-2" />
               Send Both Notifications Now (12-Hour Style)
             </Button>
-            
+
             {/* Individual notification buttons */}
             <div className="grid grid-cols-2 gap-2">
               <Button
@@ -758,7 +758,7 @@ export default function Management() {
                     const headers: Record<string, string> = {
                       'Content-Type': 'application/json'
                     };
-                    
+
                     if (isBackdoorAccess) {
                       headers['x-backdoor-access'] = 'true';
                     }
@@ -768,7 +768,7 @@ export default function Management() {
                       headers,
                       credentials: 'include'
                     });
-                    
+
                     if (response.ok) {
                       toast({
                         title: "Investment Charts Sent! 📊",
@@ -791,14 +791,14 @@ export default function Management() {
               >
                 📊 Charts Only
               </Button>
-              
+
               <Button
                 onClick={async () => {
                   try {
                     const headers: Record<string, string> = {
                       'Content-Type': 'application/json'
                     };
-                    
+
                     if (isBackdoorAccess) {
                       headers['x-backdoor-access'] = 'true';
                     }
@@ -808,7 +808,7 @@ export default function Management() {
                       headers,
                       credentials: 'include'
                     });
-                    
+
                     if (response.ok) {
                       toast({
                         title: "Banner Update Sent! 🖼️",
@@ -833,7 +833,7 @@ export default function Management() {
               </Button>
             </div>
           </div>
-          
+
           <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg">
             <p><strong>What gets sent:</strong></p>
             <ul className="list-disc list-inside mt-1 space-y-1">
@@ -1033,45 +1033,30 @@ export default function Management() {
 
   const renderPlansTab = () => (
     <div className="space-y-6">
-      {/* Free Plan Rate Configuration */}
+      {/* Support Admin Management */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Free Plan Configuration
+            <Shield className="w-5 h-5" />
+            Support Admin Management
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-            <h3 className="font-semibold text-blue-900 mb-4">Global Free Plan Settings</h3>
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <Label htmlFor="freePlanRate">Rate (% per 10 minutes)</Label>
-                <Input
-                  id="freePlanRate"
-                  type="number"
-                  step="0.0001"
-                  defaultValue={adminConfig ? (parseFloat(adminConfig.freePlanRate) * 100).toFixed(4) : "0.0100"}
-                  placeholder="0.0100"
-                  className="mt-1"
-                />
-              </div>
-              <Button
-                onClick={(e) => {
-                  const input = document.getElementById('freePlanRate') as HTMLInputElement;
-                  if (input) {
-                    const newRate = parseFloat(input.value) / 100;
-                    if (!isNaN(newRate) && newRate >= 0) {
-                      updateFreePlanRateMutation.mutate({ rate: newRate.toString() });
-                    }
-                  }
-                }}
-                disabled={updateFreePlanRateMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {updateFreePlanRateMutation.isPending ? "Updating..." : "Update Rate"}
-              </Button>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-2 text-blue-800 mb-2">
+              <MessageSquare className="w-5 h-5" />
+              <span className="font-semibold">Grant Support Access</span>
             </div>
+            <p className="text-blue-700 text-sm mb-3">
+              Grant specific users access to only the support message dashboard to handle customer inquiries without full admin privileges.
+            </p>
+            <Button
+              onClick={() => setLocation('/admin-user-management')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Manage Support Admin Access
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -1080,9 +1065,8 @@ export default function Management() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Investment Plan Management
-          </CardTitle>
+            <TrendingUp className="w-5 h-5" />
+            Investment Management</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -2041,7 +2025,7 @@ export default function Management() {
                 </Button>
               </div>
             </div>
-            
+
             {selectedMessage && (
               <div className="bg-gray-50 max-h-[500px] overflow-y-auto">
                 {/* Original Message */}
@@ -2081,7 +2065,7 @@ export default function Management() {
                   placeholder="Type your response..."
                   className="min-h-[100px] resize-none border-2 border-gray-200 focus:border-green-500 rounded-2xl p-4 text-base"
                 />
-                
+
                 <div className="flex items-center gap-3">
                   <Button
                     variant="outline"
