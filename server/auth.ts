@@ -338,7 +338,9 @@ export function setupAuth(app: Express) {
         return res.status(401).json({ error: "Invalid password" });
       }
       
-      // Generate a new recovery code to show (we don't store the actual code)
+      // Problem: We can't show the existing recovery code because it's hashed
+      // Solution: We need to generate a new one and replace the old one
+      // This is unavoidable since we don't store plain text recovery codes
       const newRecoveryCode = generateRecoveryCode();
       const newRecoveryHash = await hashRecoveryCode(newRecoveryCode);
       
@@ -347,7 +349,7 @@ export function setupAuth(app: Express) {
       
       res.json({
         recoveryCode: newRecoveryCode,
-        message: "Here's your current recovery code. Please save it securely!"
+        message: "Recovery code regenerated! Your previous code is no longer valid. Please save this new code securely!"
       });
       
     } catch (error) {

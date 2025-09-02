@@ -664,8 +664,8 @@ function SettingsContent() {
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             <div className="text-left">
-                              <p className="font-medium">View Code</p>
-                              <p className="text-xs text-muted-foreground">Show current recovery code</p>
+                              <p className="font-medium">Get New Code</p>
+                              <p className="text-xs text-muted-foreground">Generate fresh recovery code</p>
                             </div>
                           </Button>
                         </DialogTrigger>
@@ -673,18 +673,18 @@ function SettingsContent() {
                           <DialogHeader>
                             <DialogTitle className="flex items-center gap-2">
                               <Shield className="w-5 h-5" />
-                              View Recovery Code
+                              Generate New Recovery Code
                             </DialogTitle>
                             <DialogDescription>
-                              Enter your password to securely view your recovery code.
+                              This will generate a new recovery code and invalidate your previous one.
                             </DialogDescription>
                           </DialogHeader>
                           <Form {...viewRecoveryForm}>
                             <form onSubmit={viewRecoveryForm.handleSubmit((data) => viewRecoveryMutation.mutate(data))} className="space-y-4">
-                              <Alert className="border-amber-200 bg-amber-50">
-                                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                                <AlertDescription className="text-amber-800">
-                                  For security, please enter your password to view your recovery code.
+                              <Alert className="border-red-200 bg-red-50">
+                                <AlertTriangle className="h-4 w-4 text-red-600" />
+                                <AlertDescription className="text-red-800">
+                                  <strong>Warning:</strong> This will generate a new recovery code and your current code will no longer work. Enter your password to continue.
                                 </AlertDescription>
                               </Alert>
 
@@ -716,7 +716,7 @@ function SettingsContent() {
                                   disabled={viewRecoveryMutation.isPending}
                                   className="flex-1"
                                 >
-                                  {viewRecoveryMutation.isPending ? "Verifying..." : "View Code"}
+                                  {viewRecoveryMutation.isPending ? "Generating..." : "Generate New Code"}
                                 </Button>
                               </div>
                             </form>
@@ -885,7 +885,7 @@ function SettingsContent() {
                                       disabled={viewRecoveryMutation.isPending}
                                       className="flex-1"
                                     >
-                                      {viewRecoveryMutation.isPending ? "Verifying..." : "View Code"}
+                                      {viewRecoveryMutation.isPending ? "Generating..." : "Generate New Code"}
                                     </Button>
                                   </div>
                                 </form>
