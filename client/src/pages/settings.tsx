@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -12,14 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Settings as SettingsIcon, 
-  Bell, 
-  Shield, 
-  Moon, 
-  Sun, 
-  Globe, 
-  HelpCircle, 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Settings as SettingsIcon,
+  Bell,
+  Shield,
+  Moon,
+  Sun,
+  Globe,
+  HelpCircle,
   LogOut,
   ChevronRight,
   User,
@@ -34,7 +35,8 @@ import {
   Copy,
   RefreshCw,
   Eye,
-  AlertTriangle
+  AlertTriangle,
+  History
 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
@@ -75,7 +77,7 @@ function WhatsAppStyleChat({ children }: { children: React.ReactNode }) {
   const sendMessage = useMutation({
     mutationFn: async (messageText: string) => {
       let imageUrl = "";
-      
+
       // Handle image upload if there's a file
       if (imageFile) {
         const imageData = await new Promise<string>((resolve) => {
@@ -113,11 +115,11 @@ function WhatsAppStyleChat({ children }: { children: React.ReactNode }) {
         isUser: true,
       };
       setMessages(prev => [...prev, newMessage]);
-      
+
       setCurrentMessage("");
       setImageFile(null);
       setImagePreview(null);
-      
+
       toast({
         title: "Message Sent",
         description: "Your message has been sent to our support team!",
@@ -214,18 +216,18 @@ function WhatsAppStyleChat({ children }: { children: React.ReactNode }) {
                 </p>
               </div>
             )}
-            
+
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[280px] rounded-2xl px-4 py-2 ${
-                  msg.isUser 
-                    ? 'bg-primary text-primary-foreground rounded-br-md' 
+                  msg.isUser
+                    ? 'bg-primary text-primary-foreground rounded-br-md'
                     : 'bg-white dark:bg-gray-700 text-foreground rounded-bl-md shadow-sm'
                 }`}>
                   {msg.imageUrl && (
-                    <img 
-                      src={msg.imageUrl} 
-                      alt="Attached" 
+                    <img
+                      src={msg.imageUrl}
+                      alt="Attached"
                       className="rounded-lg mb-2 max-w-full h-auto"
                     />
                   )}
@@ -245,15 +247,15 @@ function WhatsAppStyleChat({ children }: { children: React.ReactNode }) {
         {imagePreview && (
           <div className="px-4 py-2 bg-muted/50 border-t">
             <div className="flex items-center gap-2">
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
+              <img
+                src={imagePreview}
+                alt="Preview"
                 className="w-12 h-12 object-cover rounded-lg"
               />
               <span className="text-sm text-muted-foreground flex-1">Image attached</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={removeImage}
                 className="h-8 w-8 p-0"
               >
@@ -274,7 +276,7 @@ function WhatsAppStyleChat({ children }: { children: React.ReactNode }) {
                 placeholder="Type a message..."
                 className="min-h-[44px] max-h-32 resize-none rounded-full px-4 py-3 pr-12 border-2 focus:border-primary"
                 rows={1}
-                style={{ 
+                style={{
                   height: 'auto',
                   minHeight: '44px'
                 }}
@@ -323,6 +325,9 @@ function SettingsContent() {
   const [currentRecoveryCode, setCurrentRecoveryCode] = useState("");
   const [showViewRecoveryDialog, setShowViewRecoveryDialog] = useState(false);
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
+  const [supportForm, setSupportForm] = useState({ subject: "", message: "", priority: "normal" });
+  const [supportMessages, setSupportMessages] = useState<any[]>([]);
+  const [supportMessagesLoading, setSupportMessagesLoading] = useState(false);
 
   const viewRecoveryForm = useForm<PasswordVerificationForm>({
     resolver: zodResolver(passwordVerificationSchema),
@@ -342,12 +347,12 @@ function SettingsContent() {
         body: JSON.stringify(data),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to view recovery code');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -379,12 +384,12 @@ function SettingsContent() {
         body: JSON.stringify(data),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to regenerate recovery code');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -406,6 +411,73 @@ function SettingsContent() {
     },
   });
 
+  const supportMutation = useMutation({
+    mutationFn: async (data: SupportMessageForm) => {
+      const response = await fetch('/api/support/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to send message');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message Sent",
+        description: "Your support message has been sent.",
+      });
+      setSupportForm({ subject: "", message: "", priority: "normal" });
+      // Re-fetch messages to show the newly sent one
+      queryClient.invalidateQueries({ queryKey: ['supportMessages'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Fetch support messages for the user
+  // This is a placeholder. In a real app, you'd likely use useQuery from react-query
+  // and handle loading and error states more robustly.
+  // For demonstration, we'll mock fetching.
+  useState(() => {
+    setSupportMessagesLoading(true);
+    setTimeout(() => {
+      setSupportMessages([
+        {
+          id: 1,
+          subject: "Login Issue",
+          message: "I can't log in to my account. It says my password is incorrect, but I know it's right.",
+          priority: "high",
+          status: "open",
+          createdAt: new Date().toISOString(),
+          adminResponse: "We're looking into this issue. Please try resetting your password in the meantime.",
+        },
+        {
+          id: 2,
+          subject: "Feature Request",
+          message: "It would be great if you could add a dark mode to the app.",
+          priority: "low",
+          status: "resolved",
+          createdAt: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+        },
+      ]);
+      setSupportMessagesLoading(false);
+    }, 1500);
+  });
+
+
   const handleCopyRecoveryCode = () => {
     if (currentRecoveryCode) {
       navigator.clipboard.writeText(currentRecoveryCode);
@@ -416,10 +488,14 @@ function SettingsContent() {
     }
   };
 
+  const handleSupportSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    supportMutation.mutate(supportForm);
+  };
+
   if (!user) {
     return <div>Loading...</div>;
   }
-  
 
   const handleLogout = () => {
     logout();
@@ -429,6 +505,7 @@ function SettingsContent() {
     });
   };
 
+  // Define menuItems here, before the return statement
   const menuItems = [
     {
       id: "account",
@@ -505,44 +582,21 @@ function SettingsContent() {
 
         {/* Navigation Menu */}
         <div className="space-y-3 mb-8">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-
-            return (
-              <Card 
-                key={item.id}
-                className={`cursor-pointer transition-all duration-300 border-0 shadow-sm hover:shadow-md ${
-                  isActive 
-                    ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20' 
-                    : 'bg-card hover:bg-primary/5'
-                }`}
-                onClick={() => setActiveTab(item.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      isActive ? 'bg-primary/20' : 'bg-muted'
-                    }`}>
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-foreground">{item.label}</h4>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                    </div>
-                    <ChevronRight className={`w-5 h-5 transition-transform ${
-                      isActive ? 'text-primary rotate-90' : 'text-muted-foreground'
-                    }`} />
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className={`grid w-full ${user?.isSupportAdmin || user?.isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>
+              <TabsTrigger value="account">Account</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+              <TabsTrigger value="support" className={`${(user?.isSupportAdmin || user?.isAdmin) ? '' : 'hidden'} bg-green-100 text-green-700 data-[state=active]:bg-green-600 data-[state=active]:text-white`}>
+                Support
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
         {/* Content Area */}
         <div className="space-y-6">
-          {activeTab === "account" && (
+          <TabsContent value="account" className="space-y-6">
             <Card className="border-0 shadow-lg">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3">
@@ -624,7 +678,7 @@ function SettingsContent() {
                                   For security, please enter your password to view your recovery code.
                                 </AlertDescription>
                               </Alert>
-                              
+
                               <FormField
                                 control={viewRecoveryForm.control}
                                 name="password"
@@ -638,7 +692,7 @@ function SettingsContent() {
                                   </FormItem>
                                 )}
                               />
-                              
+
                               <div className="flex gap-2">
                                 <Button
                                   type="button"
@@ -689,7 +743,7 @@ function SettingsContent() {
                                   <strong>Warning:</strong> Generating a new recovery code will invalidate your current one. Make sure to save the new code securely.
                                 </AlertDescription>
                               </Alert>
-                              
+
                               <FormField
                                 control={regenerateForm.control}
                                 name="password"
@@ -703,7 +757,7 @@ function SettingsContent() {
                                   </FormItem>
                                 )}
                               />
-                              
+
                               <div className="flex gap-2">
                                 <Button
                                   type="button"
@@ -731,11 +785,9 @@ function SettingsContent() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
 
-
-
-          {activeTab === "security" && (
+          <TabsContent value="security" className="space-y-6">
             <Card className="border-0 shadow-lg">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3">
@@ -764,7 +816,7 @@ function SettingsContent() {
                         <p className="text-sm text-muted-foreground mb-3">
                           Access and manage your account recovery code. You'll need your password to view or generate a new code.
                         </p>
-                        
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <Dialog open={showViewRecoveryDialog} onOpenChange={setShowViewRecoveryDialog}>
                             <DialogTrigger asChild>
@@ -792,7 +844,7 @@ function SettingsContent() {
                                       For security, please enter your password to view your recovery code.
                                     </AlertDescription>
                                   </Alert>
-                                  
+
                                   <FormField
                                     control={viewRecoveryForm.control}
                                     name="password"
@@ -806,7 +858,7 @@ function SettingsContent() {
                                       </FormItem>
                                     )}
                                   />
-                                  
+
                                   <div className="flex gap-2">
                                     <Button
                                       type="button"
@@ -855,7 +907,7 @@ function SettingsContent() {
                                       <strong>Warning:</strong> Generating a new recovery code will invalidate your current one. Make sure to save the new code securely.
                                     </AlertDescription>
                                   </Alert>
-                                  
+
                                   <FormField
                                     control={regenerateForm.control}
                                     name="password"
@@ -869,7 +921,7 @@ function SettingsContent() {
                                       </FormItem>
                                     )}
                                   />
-                                  
+
                                   <div className="flex gap-2">
                                     <Button
                                       type="button"
@@ -916,9 +968,9 @@ function SettingsContent() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
 
-          {activeTab === "notifications" && (
+          <TabsContent value="notifications" className="space-y-6">
             <Card className="border-0 shadow-lg">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3">
@@ -935,8 +987,8 @@ function SettingsContent() {
                       <p className="font-medium text-foreground">Push Notifications</p>
                       <p className="text-sm text-muted-foreground">Receive alerts and updates</p>
                     </div>
-                    <Switch 
-                      checked={notifications} 
+                    <Switch
+                      checked={notifications}
                       onCheckedChange={setNotifications}
                     />
                   </div>
@@ -975,113 +1027,191 @@ function SettingsContent() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
 
-          {activeTab === "support" && (
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                    <MessageSquare className="w-4 h-4 text-blue-500" />
-                  </div>
-                  Support & Help
+          {/* Contact Support Tab */}
+          <TabsContent value="contact" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  Contact Support
                 </CardTitle>
+                <CardDescription>
+                  Send us a message and we'll get back to you as soon as possible.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  {/* Contact Support */}
-                  <WhatsAppStyleChat>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start h-auto p-4 border-primary/20 hover:bg-primary/5"
-                      data-testid="button-new-support-message"
+              <CardContent>
+                <form onSubmit={handleSupportSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="subject">Subject</Label>
+                    <Input
+                      id="subject"
+                      value={supportForm.subject}
+                      onChange={(e) => setSupportForm(prev => ({ ...prev, subject: e.target.value }))}
+                      placeholder="Brief description of your issue"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="priority">Priority</Label>
+                    <Select
+                      value={supportForm.priority}
+                      onValueChange={(value) => setSupportForm(prev => ({ ...prev, priority: value as any }))}
                     >
-                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center mr-3">
-                        <Send className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p className="font-medium text-foreground">Send Support Message</p>
-                        <p className="text-sm text-muted-foreground">Get help with your account or report issues</p>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                    </Button>
-                  </WhatsAppStyleChat>
-
-                  {/* Quick Help Topics */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-foreground">Common Help Topics</h4>
-                    
-                    <div className="grid gap-3">
-                      <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                            <HelpCircle className="w-4 h-4 text-green-500" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground text-sm">Account & Security</p>
-                            <p className="text-xs text-muted-foreground">Password changes, 2FA, account verification</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                            <CreditCard className="w-4 h-4 text-blue-500" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground text-sm">Deposits & Withdrawals</p>
-                            <p className="text-xs text-muted-foreground">Transaction issues, processing times, fees</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-                            <Palette className="w-4 h-4 text-orange-500" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground text-sm">Investment Plans</p>
-                            <p className="text-xs text-muted-foreground">Plan details, returns, risk management</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                            <Smartphone className="w-4 h-4 text-purple-500" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground text-sm">Technical Issues</p>
-                            <p className="text-xs text-muted-foreground">App problems, website errors, login issues</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low - General inquiry</SelectItem>
+                        <SelectItem value="normal">Normal - Standard support</SelectItem>
+                        <SelectItem value="high">High - Urgent issue</SelectItem>
+                        <SelectItem value="urgent">Urgent - Critical problem</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  {/* Support Info */}
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <HelpCircle className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground text-sm">Support Hours</p>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          Our support team is available 24/7 to assist you with any questions or issues.
-                        </p>
-                        <p className="text-xs text-primary">
-                          Typical response time: 15-30 minutes
-                        </p>
-                      </div>
-                    </div>
+                  <div>
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea
+                      id="message"
+                      value={supportForm.message}
+                      onChange={(e) => setSupportForm(prev => ({ ...prev, message: e.target.value }))}
+                      placeholder="Please describe your issue in detail..."
+                      className="min-h-[120px]"
+                      required
+                    />
                   </div>
-                </div>
+
+                  <Button type="submit" disabled={supportMutation.isPending} className="w-full">
+                    {supportMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Message
+                      </>
+                    )}
+                  </Button>
+                </form>
               </CardContent>
             </Card>
+
+            {/* My Support Messages */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="w-5 h-5" />
+                  My Support Messages
+                </CardTitle>
+                <CardDescription>
+                  View your previous support conversations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {supportMessagesLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                        <div className="h-16 bg-gray-200 rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : supportMessages?.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageSquare className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500">No support messages yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {supportMessages?.map((message: any) => (
+                      <div key={message.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold">{message.subject}</h4>
+                          <Badge
+                            variant={message.status === 'resolved' ? 'default' : message.status === 'open' ? 'secondary' : 'outline'}
+                          >
+                            {message.status.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{message.message}</p>
+                        {message.adminResponse && (
+                          <div className="bg-green-50 border border-green-200 rounded p-3 mt-3">
+                            <p className="text-sm font-semibold text-green-800 mb-1">Support Response:</p>
+                            <p className="text-sm text-green-700">{message.adminResponse}</p>
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-500 mt-2">
+                          {new Date(message.createdAt).toLocaleDateString()} at {new Date(message.createdAt).toLocaleTimeString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Support Admin Tab */}
+          {(user?.isSupportAdmin || user?.isAdmin) && (
+            <TabsContent value="support" className="space-y-6">
+              <Card className="border-green-200 bg-green-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-800">
+                    <Shield className="w-5 h-5" />
+                    Support Admin Dashboard
+                  </CardTitle>
+                  <CardDescription className="text-green-600">
+                    Access the customer support message interface to help users with their inquiries.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-white rounded-lg p-6 border border-green-200">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                        <MessageSquare className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Customer Support Interface</h3>
+                        <p className="text-gray-600">Manage and respond to customer messages</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        View all customer support messages
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        Respond to customer inquiries in real-time
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        WhatsApp-style conversation interface
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        Track message status and priorities
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={() => setLocation('/support-admin')}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Open Support Dashboard
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
           )}
         </div>
 
@@ -1089,8 +1219,8 @@ function SettingsContent() {
         <Card className="mt-8 border-0 shadow-lg">
           <CardContent className="p-0">
             <WhatsAppStyleChat>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="w-full h-auto p-4 justify-start gap-3 hover:bg-primary/5 rounded-xl"
                 data-testid="button-contact-support"
               >
@@ -1110,7 +1240,7 @@ function SettingsContent() {
         {/* Logout Section */}
         <Card className="mt-6 border-0 shadow-lg bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20">
           <CardContent className="p-6">
-            <Button 
+            <Button
               onClick={handleLogout}
               variant="destructive"
               className="w-full h-12 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg transition-all duration-300 group"
