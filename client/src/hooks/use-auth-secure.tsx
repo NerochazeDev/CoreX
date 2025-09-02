@@ -29,21 +29,21 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
-  } = useQuery<User | undefined, Error>({
+  } = useQuery<User | null, Error>({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
       try {
         const res = await fetch("/api/auth/me");
         if (res.status === 401) {
-          return undefined;
+          return null;
         }
         if (!res.ok) {
           throw new Error("Failed to fetch user");
         }
         const data = await res.json();
-        return data.user;
+        return data.user || null;
       } catch (error) {
-        return undefined;
+        return null;
       }
     },
     retry: false,
