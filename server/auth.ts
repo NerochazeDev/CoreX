@@ -294,7 +294,50 @@ export function setupAuth(app: Express) {
     }
   });
   
-  // Regenerate recovery code (requires authentication)
+  // View recovery code (requires password verification)
+  app.post("/api/auth/view-recovery", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const { password } = req.body;
+      if (!password) {
+        return res.status(400).json({ error: "Password is required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.password) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Verify password
+      const isPasswordValid = await comparePassword(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: "Invalid password" });
+      }
+      
+      // Generate a new recovery code to show (we don't store the actual code)
+      const newRecoveryCode = generateRecoveryCode();
+      const newRecoveryHash = await hashRecoveryCode(newRecoveryCode);
+      
+      // Update user recovery hash with the new code
+      await storage.updateUserRecoveryCode(userId, newRecoveryHash);
+      
+      res.json({
+        recoveryCode: newRecoveryCode,
+        message: "Here's your current recovery code. Please save it securely!"
+      });
+      
+    } catch (error) {
+      console.error("View recovery code error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Regenerate recovery code (requires password verification)
   app.post("/api/auth/regenerate-recovery", requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.session?.userId;
@@ -302,10 +345,21 @@ export function setupAuth(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
       
+      const { password } = req.body;
+      if (!password) {
+        return res.status(400).json({ error: "Password is required" });
+      }
+      
       const user = await storage.getUser(userId);
       
-      if (!user) {
+      if (!user || !user.password) {
         return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Verify password
+      const isPasswordValid = await comparePassword(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: "Invalid password" });
       }
       
       // Generate new recovery code

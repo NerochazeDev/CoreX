@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Settings as SettingsIcon, 
   Bell, 
@@ -28,7 +29,12 @@ import {
   Palette,
   Send,
   Upload,
-  MessageSquare
+  MessageSquare,
+  Key,
+  Copy,
+  RefreshCw,
+  Eye,
+  AlertTriangle
 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
@@ -49,7 +55,12 @@ const supportMessageSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
+const passwordVerificationSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});
+
 type SupportMessageForm = z.infer<typeof supportMessageSchema>;
+type PasswordVerificationForm = z.infer<typeof passwordVerificationSchema>;
 
 function WhatsAppStyleChat({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -308,6 +319,102 @@ function SettingsContent() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("account");
   const [notifications, setNotifications] = useState(true);
+  const [showRecoveryCode, setShowRecoveryCode] = useState(false);
+  const [currentRecoveryCode, setCurrentRecoveryCode] = useState("");
+  const [showViewRecoveryDialog, setShowViewRecoveryDialog] = useState(false);
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
+
+  const viewRecoveryForm = useForm<PasswordVerificationForm>({
+    resolver: zodResolver(passwordVerificationSchema),
+  });
+
+  const regenerateForm = useForm<PasswordVerificationForm>({
+    resolver: zodResolver(passwordVerificationSchema),
+  });
+
+  const viewRecoveryMutation = useMutation({
+    mutationFn: async (data: PasswordVerificationForm) => {
+      const response = await fetch('/api/auth/view-recovery', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to view recovery code');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setCurrentRecoveryCode(data.recoveryCode);
+      setShowRecoveryCode(true);
+      setShowViewRecoveryDialog(false);
+      viewRecoveryForm.reset();
+      toast({
+        title: "Recovery Code Retrieved",
+        description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to retrieve recovery code",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const regenerateMutation = useMutation({
+    mutationFn: async (data: PasswordVerificationForm) => {
+      const response = await fetch('/api/auth/regenerate-recovery', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to regenerate recovery code');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setCurrentRecoveryCode(data.recoveryCode);
+      setShowRecoveryCode(true);
+      setShowRegenerateDialog(false);
+      regenerateForm.reset();
+      toast({
+        title: "Recovery Code Regenerated",
+        description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to regenerate recovery code",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCopyRecoveryCode = () => {
+    if (currentRecoveryCode) {
+      navigator.clipboard.writeText(currentRecoveryCode);
+      toast({
+        title: "Copied!",
+        description: "Recovery code copied to clipboard",
+      });
+    }
+  };
 
   if (!user) {
     return <div>Loading...</div>;
@@ -328,6 +435,12 @@ function SettingsContent() {
       label: "Account",
       icon: User,
       description: "Profile and personal information"
+    },
+    {
+      id: "security",
+      label: "Security",
+      icon: Shield,
+      description: "Recovery code and security settings"
     },
     {
       id: "notifications",
@@ -469,12 +582,341 @@ function SettingsContent() {
                       {currency}
                     </Button>
                   </div>
+
+                  <Separator />
+
+                  {/* Recovery Code Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Key className="w-5 h-5 text-orange-500" />
+                      <div>
+                        <p className="font-medium text-foreground">Recovery Code</p>
+                        <p className="text-sm text-muted-foreground">Manage your account recovery options</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Dialog open={showViewRecoveryDialog} onOpenChange={setShowViewRecoveryDialog}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="justify-start h-auto p-4"
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            <div className="text-left">
+                              <p className="font-medium">View Code</p>
+                              <p className="text-xs text-muted-foreground">Show current recovery code</p>
+                            </div>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <Shield className="w-5 h-5" />
+                              View Recovery Code
+                            </DialogTitle>
+                          </DialogHeader>
+                          <Form {...viewRecoveryForm}>
+                            <form onSubmit={viewRecoveryForm.handleSubmit((data) => viewRecoveryMutation.mutate(data))} className="space-y-4">
+                              <Alert className="border-amber-200 bg-amber-50">
+                                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                <AlertDescription className="text-amber-800">
+                                  For security, please enter your password to view your recovery code.
+                                </AlertDescription>
+                              </Alert>
+                              
+                              <FormField
+                                control={viewRecoveryForm.control}
+                                name="password"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Password</FormLabel>
+                                    <FormControl>
+                                      <Input type="password" placeholder="Enter your password" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => setShowViewRecoveryDialog(false)}
+                                  className="flex-1"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  type="submit"
+                                  disabled={viewRecoveryMutation.isPending}
+                                  className="flex-1"
+                                >
+                                  {viewRecoveryMutation.isPending ? "Verifying..." : "View Code"}
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
+                        </DialogContent>
+                      </Dialog>
+
+                      <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="justify-start h-auto p-4"
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            <div className="text-left">
+                              <p className="font-medium">Generate New</p>
+                              <p className="text-xs text-muted-foreground">Create a new recovery code</p>
+                            </div>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <RefreshCw className="w-5 h-5" />
+                              Generate New Recovery Code
+                            </DialogTitle>
+                          </DialogHeader>
+                          <Form {...regenerateForm}>
+                            <form onSubmit={regenerateForm.handleSubmit((data) => regenerateMutation.mutate(data))} className="space-y-4">
+                              <Alert className="border-red-200 bg-red-50">
+                                <AlertTriangle className="h-4 w-4 text-red-600" />
+                                <AlertDescription className="text-red-800">
+                                  <strong>Warning:</strong> Generating a new recovery code will invalidate your current one. Make sure to save the new code securely.
+                                </AlertDescription>
+                              </Alert>
+                              
+                              <FormField
+                                control={regenerateForm.control}
+                                name="password"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Password</FormLabel>
+                                    <FormControl>
+                                      <Input type="password" placeholder="Enter your password" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => setShowRegenerateDialog(false)}
+                                  className="flex-1"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  type="submit"
+                                  disabled={regenerateMutation.isPending}
+                                  variant="destructive"
+                                  className="flex-1"
+                                >
+                                  {regenerateMutation.isPending ? "Generating..." : "Generate New"}
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
 
+
+          {activeTab === "security" && (
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-orange-500" />
+                  </div>
+                  Security Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <Alert className="border-blue-200 bg-blue-50">
+                  <Key className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800">
+                    Your recovery code is essential for account security. Keep it safe and accessible only to you.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-muted/50">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                        <Key className="w-5 h-5 text-orange-500" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-foreground">Recovery Code Management</h4>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Access and manage your account recovery code. You'll need your password to view or generate a new code.
+                        </p>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <Dialog open={showViewRecoveryDialog} onOpenChange={setShowViewRecoveryDialog}>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="justify-center"
+                                size="sm"
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Current Code
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                              <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                  <Shield className="w-5 h-5" />
+                                  View Recovery Code
+                                </DialogTitle>
+                              </DialogHeader>
+                              <Form {...viewRecoveryForm}>
+                                <form onSubmit={viewRecoveryForm.handleSubmit((data) => viewRecoveryMutation.mutate(data))} className="space-y-4">
+                                  <Alert className="border-amber-200 bg-amber-50">
+                                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                    <AlertDescription className="text-amber-800">
+                                      For security, please enter your password to view your recovery code.
+                                    </AlertDescription>
+                                  </Alert>
+                                  
+                                  <FormField
+                                    control={viewRecoveryForm.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Password</FormLabel>
+                                        <FormControl>
+                                          <Input type="password" placeholder="Enter your password" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <div className="flex gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      onClick={() => setShowViewRecoveryDialog(false)}
+                                      className="flex-1"
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      type="submit"
+                                      disabled={viewRecoveryMutation.isPending}
+                                      className="flex-1"
+                                    >
+                                      {viewRecoveryMutation.isPending ? "Verifying..." : "View Code"}
+                                    </Button>
+                                  </div>
+                                </form>
+                              </Form>
+                            </DialogContent>
+                          </Dialog>
+
+                          <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="justify-center"
+                                size="sm"
+                              >
+                                <RefreshCw className="w-4 h-4 mr-2" />
+                                Generate New Code
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                              <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                  <RefreshCw className="w-5 h-5" />
+                                  Generate New Recovery Code
+                                </DialogTitle>
+                              </DialogHeader>
+                              <Form {...regenerateForm}>
+                                <form onSubmit={regenerateForm.handleSubmit((data) => regenerateMutation.mutate(data))} className="space-y-4">
+                                  <Alert className="border-red-200 bg-red-50">
+                                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                                    <AlertDescription className="text-red-800">
+                                      <strong>Warning:</strong> Generating a new recovery code will invalidate your current one. Make sure to save the new code securely.
+                                    </AlertDescription>
+                                  </Alert>
+                                  
+                                  <FormField
+                                    control={regenerateForm.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Password</FormLabel>
+                                        <FormControl>
+                                          <Input type="password" placeholder="Enter your password" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <div className="flex gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      onClick={() => setShowRegenerateDialog(false)}
+                                      className="flex-1"
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      type="submit"
+                                      disabled={regenerateMutation.isPending}
+                                      variant="destructive"
+                                      className="flex-1"
+                                    >
+                                      {regenerateMutation.isPending ? "Generating..." : "Generate New"}
+                                    </Button>
+                                  </div>
+                                </form>
+                              </Form>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                        <Shield className="w-4 h-4 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-green-800 text-sm">Security Tips</p>
+                        <ul className="text-xs text-green-700 mt-1 space-y-1">
+                          <li>• Store your recovery code in a secure password manager</li>
+                          <li>• Never share your recovery code with anyone</li>
+                          <li>• Generate a new code if you suspect it's been compromised</li>
+                          <li>• Keep multiple secure copies of your recovery code</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {activeTab === "notifications" && (
             <Card className="border-0 shadow-lg">
@@ -681,6 +1123,58 @@ function SettingsContent() {
       </div>
 
       <BottomNavigation />
+
+      {/* Recovery Code Display Dialog */}
+      {showRecoveryCode && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="w-5 h-5" />
+                Your Recovery Code
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  <strong>Important:</strong> Save this recovery code securely. You'll need it to reset your password if you forget it.
+                </AlertDescription>
+              </Alert>
+
+              <div className="p-4 bg-gray-100 rounded-lg border text-center">
+                <code className="text-lg font-mono font-bold tracking-wider">
+                  {currentRecoveryCode}
+                </code>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleCopyRecoveryCode}
+                  className="flex-1"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Code
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowRecoveryCode(false);
+                    setCurrentRecoveryCode("");
+                  }}
+                  className="flex-1"
+                >
+                  Done
+                </Button>
+              </div>
+
+              <p className="text-xs text-gray-500 text-center">
+                Use this code on the "Reset Password" page if you forget your password.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
