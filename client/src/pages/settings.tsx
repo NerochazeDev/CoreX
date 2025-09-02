@@ -8,6 +8,7 @@ import { BottomNavigation } from "@/components/bottom-navigation";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,7 +39,7 @@ import {
   AlertTriangle,
   History
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useCurrency } from "@/hooks/use-currency";
 import { useToast } from "@/hooks/use-toast";
@@ -325,7 +326,7 @@ function SettingsContent() {
   const [currentRecoveryCode, setCurrentRecoveryCode] = useState("");
   const [showViewRecoveryDialog, setShowViewRecoveryDialog] = useState(false);
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
-  const [supportForm, setSupportForm] = useState({ subject: "", message: "", priority: "normal" });
+  const [supportForm, setSupportForm] = useState({ subject: "", message: "", priority: "normal" as const });
   const [supportMessages, setSupportMessages] = useState<any[]>([]);
   const [supportMessagesLoading, setSupportMessagesLoading] = useState(false);
 
@@ -436,7 +437,7 @@ function SettingsContent() {
       });
       setSupportForm({ subject: "", message: "", priority: "normal" });
       // Re-fetch messages to show the newly sent one
-      queryClient.invalidateQueries({ queryKey: ['supportMessages'] });
+      // queryClient.invalidateQueries({ queryKey: ['supportMessages'] });
     },
     onError: (error: any) => {
       toast({
@@ -451,7 +452,7 @@ function SettingsContent() {
   // This is a placeholder. In a real app, you'd likely use useQuery from react-query
   // and handle loading and error states more robustly.
   // For demonstration, we'll mock fetching.
-  useState(() => {
+  useEffect(() => {
     setSupportMessagesLoading(true);
     setTimeout(() => {
       setSupportMessages([
@@ -459,7 +460,7 @@ function SettingsContent() {
           id: 1,
           subject: "Login Issue",
           message: "I can't log in to my account. It says my password is incorrect, but I know it's right.",
-          priority: "high",
+          priority: "high" as const,
           status: "open",
           createdAt: new Date().toISOString(),
           adminResponse: "We're looking into this issue. Please try resetting your password in the meantime.",
@@ -468,14 +469,14 @@ function SettingsContent() {
           id: 2,
           subject: "Feature Request",
           message: "It would be great if you could add a dark mode to the app.",
-          priority: "low",
+          priority: "low" as const,
           status: "resolved",
           createdAt: new Date(Date.now() - 86400000).toISOString(), // Yesterday
         },
       ]);
       setSupportMessagesLoading(false);
     }, 1500);
-  });
+  }, []);
 
 
   const handleCopyRecoveryCode = () => {
