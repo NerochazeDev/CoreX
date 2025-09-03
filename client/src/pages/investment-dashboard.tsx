@@ -355,7 +355,7 @@ export default function InvestmentDashboard() {
     return { bids, asks };
   };
 
-  // Real-time data updates with market data
+  // Real-time data updates with enhanced market data
   useEffect(() => {
     if (isLiveMode && isStreaming) {
       intervalRef.current = setInterval(() => {
@@ -367,31 +367,56 @@ export default function InvestmentDashboard() {
         setMarketDepth(newDepth);
         setOrderBook(newOrderBook);
         
-        // Calculate portfolio metrics
+        // Enhanced portfolio metrics calculation
         if (newData.length > 1) {
           const latest = newData[newData.length - 1];
           const previous = newData[newData.length - 2];
+          const historical = newData.slice(-30); // Last 30 data points
+          
+          // Calculate advanced technical indicators
+          const avgVolatility = historical.reduce((sum, point) => sum + (point.volatility || 0), 0) / historical.length;
+          const priceVelocity = historical.length > 5 ? 
+            (latest.value - historical[historical.length - 6].value) / 5 : 0;
           
           setTechnicalIndicators({
-            rsi: (latest as any).rsi || 0,
+            rsi: (latest as any).rsi || 50,
             macd: (latest as any).macd || 0,
             volatility: latest.volatility || 0,
             volume: latest.volume || 0,
-            change24h: latest.changePercent || 0
+            change24h: latest.changePercent || 0,
+            avgVolatility: avgVolatility,
+            priceVelocity: priceVelocity,
+            momentum: latest.changePercent > 0 ? 'bullish' : 'bearish',
+            strength: Math.abs(latest.changePercent)
           });
           
-          // Sound alerts for significant movements
+          // Enhanced sound alerts with different tones
           if (soundEnabled) {
             const priceChange = Math.abs(latest.changePercent);
             const volumeSpike = latest.volume > (previous.volume * 1.5);
             const rsiExtreme = (latest as any).rsi && ((latest as any).rsi > 80 || (latest as any).rsi < 20);
+            const bigMove = priceChange > 2.0;
             
-            if (priceChange > 1.0 || volumeSpike || rsiExtreme) {
+            if (bigMove || volumeSpike || rsiExtreme) {
               if (audioRef.current) {
                 audioRef.current.play().catch(() => {});
               }
+              
+              // Show toast notification for significant events
+              toast({
+                title: bigMove ? "📈 Significant Price Movement" : volumeSpike ? "📊 Volume Spike" : "⚠️ RSI Alert",
+                description: bigMove ? `${priceChange.toFixed(2)}% price change detected` : 
+                           volumeSpike ? "Unusual trading volume detected" :
+                           "RSI entering extreme territory",
+                duration: 3000,
+              });
             }
           }
+        }
+
+        // Invalidate cache occasionally to get fresh data
+        if (Math.random() < 0.1) { // 10% chance each update
+          queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user.id] });
         }
       }, refreshInterval);
     }
@@ -401,7 +426,7 @@ export default function InvestmentDashboard() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isLiveMode, isStreaming, refreshInterval, soundEnabled, totalInvestedAmount, dailyGrowthRate, selectedTimeframe]);
+  }, [isLiveMode, isStreaming, refreshInterval, soundEnabled, totalInvestedAmount, dailyGrowthRate, selectedTimeframe, user.id, toast, queryClient]);
 
   const chartData = isLiveMode && liveData.length > 0 ? liveData : generateAdvancedChartData();
   const latestData = chartData[chartData.length - 1];
@@ -943,9 +968,9 @@ export default function InvestmentDashboard() {
           </Card>
         </div>
 
-        {/* Key Metrics Row */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 ${isFullscreen ? 'mb-3' : 'mb-4 md:mb-6'}`}>
-          <Card className="bg-black/40 border-green-500/30 p-3 md:p-4 backdrop-blur-lg">
+        {/* Enhanced Key Metrics Row */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4 ${isFullscreen ? 'mb-3' : 'mb-4 md:mb-6'}`}>
+          <Card className="bg-black/40 border-green-500/30 p-3 md:p-4 backdrop-blur-lg hover:bg-black/50 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/20">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Portfolio Value</p>
@@ -958,31 +983,31 @@ export default function InvestmentDashboard() {
                   </p>
                 )}
               </div>
-              <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                <Wallet className="w-4 h-4 text-green-400" />
+              <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-green-400" />
               </div>
             </div>
           </Card>
 
-          <Card className="bg-black/40 border-orange-500/30 p-3 md:p-4 backdrop-blur-lg">
+          <Card className="bg-black/40 border-orange-500/30 p-3 md:p-4 backdrop-blur-lg hover:bg-black/50 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Total Profit</p>
                 <p className="text-lg font-bold text-orange-400">
                   {showValues ? `+${formatBitcoin(totalProfit.toString())} BTC` : '••••••••'}
                 </p>
-                <p className={`text-xs flex items-center gap-1 ${priceChangePercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {priceChangePercent >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                <p className={`text-xs flex items-center gap-1 ${profitMargin >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {profitMargin >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                   {showValues ? `${profitMargin.toFixed(2)}%` : '••••••'}
                 </p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-orange-400" />
+              <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-orange-400" />
               </div>
             </div>
           </Card>
 
-          <Card className="bg-black/40 border-blue-500/30 p-3 md:p-4 backdrop-blur-lg">
+          <Card className="bg-black/40 border-blue-500/30 p-3 md:p-4 backdrop-blur-lg hover:bg-black/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">24h Change</p>
@@ -993,16 +1018,16 @@ export default function InvestmentDashboard() {
                   {showValues ? `${priceChange >= 0 ? '+' : ''}${priceChange.toFixed(8)} BTC` : '••••••••'}
                 </p>
               </div>
-              <div className={`w-8 h-8 rounded-full ${priceChangePercent >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'} flex items-center justify-center`}>
+              <div className={`w-10 h-10 rounded-xl ${priceChangePercent >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'} flex items-center justify-center`}>
                 {priceChangePercent >= 0 ? 
-                  <TrendingUp className="w-4 h-4 text-green-400" /> : 
-                  <TrendingDown className="w-4 h-4 text-red-400" />
+                  <TrendingUp className="w-5 h-5 text-green-400" /> : 
+                  <TrendingDown className="w-5 h-5 text-red-400" />
                 }
               </div>
             </div>
           </Card>
 
-          <Card className="bg-black/40 border-purple-500/30 p-3 md:p-4 backdrop-blur-lg">
+          <Card className="bg-black/40 border-purple-500/30 p-3 md:p-4 backdrop-blur-lg hover:bg-black/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Active Positions</p>
@@ -1013,8 +1038,42 @@ export default function InvestmentDashboard() {
                   {showValues ? `${formatBitcoin(totalInvestedAmount.toString())} invested` : '•••••• invested'}
                 </p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <Target className="w-4 h-4 text-purple-400" />
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                <Target className="w-5 h-5 text-purple-400" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="bg-black/40 border-yellow-500/30 p-3 md:p-4 backdrop-blur-lg hover:bg-black/50 transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Daily ROI</p>
+                <p className="text-lg font-bold text-yellow-400">
+                  {dailyGrowthRate.toFixed(3)}%
+                </p>
+                <p className="text-xs text-gray-500">
+                  Average daily
+                </p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-yellow-400" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="bg-black/40 border-cyan-500/30 p-3 md:p-4 backdrop-blur-lg hover:bg-black/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Performance</p>
+                <p className={`text-lg font-bold ${technicalIndicators.momentum === 'bullish' ? 'text-green-400' : 'text-red-400'}`}>
+                  {technicalIndicators.momentum === 'bullish' ? 'BULL' : 'BEAR'}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Market trend
+                </p>
+              </div>
+              <div className={`w-10 h-10 rounded-xl ${technicalIndicators.momentum === 'bullish' ? 'bg-green-500/20' : 'bg-red-500/20'} flex items-center justify-center`}>
+                <Activity className={`w-5 h-5 ${technicalIndicators.momentum === 'bullish' ? 'text-green-400' : 'text-red-400'}`} />
               </div>
             </div>
           </Card>
@@ -1039,30 +1098,38 @@ export default function InvestmentDashboard() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
-                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                {/* Investment Period Selector */}
-                <div className="flex bg-gray-800/50 rounded-lg p-1 overflow-x-auto shrink-0">
-                  {(['Today', 'This Week', 'This Month', 'All Time'] as const).map((period) => (
+              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 w-full">
+                <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                {/* Time Frame Selector */}
+                <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-xl p-1 overflow-x-auto shrink-0 border border-gray-600/30">
+                  {(['1m', '5m', '15m', '1h', '4h', '1d', '1w'] as const).map((timeframe) => (
                     <Button
-                      key={period}
+                      key={timeframe}
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedTimeframe(period as any)}
-                      className={`px-2 py-1 text-xs ${selectedTimeframe === period ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
+                      onClick={() => setSelectedTimeframe(timeframe)}
+                      className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                        selectedTimeframe === timeframe 
+                          ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' 
+                          : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                      }`}
                     >
-                      {period}
+                      {timeframe.toUpperCase()}
                     </Button>
                   ))}
                 </div>
 
-                {/* Income View Selector */}
-                <div className="flex bg-gray-800/50 rounded-lg p-1 overflow-x-auto shrink-0">
+                {/* Advanced Chart Type Selector */}
+                <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-xl p-1 overflow-x-auto shrink-0 border border-gray-600/30">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setChartType('area')}
-                    className={`px-3 py-1 text-xs ${chartType === 'area' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                      chartType === 'area' 
+                        ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25' 
+                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                    }`}
                   >
                     <TrendingUp className="w-3 h-3 mr-1" />
                     Growth
@@ -1071,16 +1138,24 @@ export default function InvestmentDashboard() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setChartType('line')}
-                    className={`px-3 py-1 text-xs ${chartType === 'line' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                      chartType === 'line' 
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' 
+                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                    }`}
                   >
-                    <DollarSign className="w-3 h-3 mr-1" />
+                    <LineChart className="w-3 h-3 mr-1" />
                     Income
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setChartType('volume')}
-                    className={`px-3 py-1 text-xs ${chartType === 'volume' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                      chartType === 'volume' 
+                        ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/25' 
+                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                    }`}
                   >
                     <BarChart3 className="w-3 h-3 mr-1" />
                     Activity
@@ -1089,57 +1164,110 @@ export default function InvestmentDashboard() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setChartType('depth')}
-                    className={`px-3 py-1 text-xs ${chartType === 'depth' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                      chartType === 'depth' 
+                        ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg shadow-yellow-500/25' 
+                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                    }`}
                   >
                     <PieChart className="w-3 h-3 mr-1" />
                     Sources
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setChartType('heatmap')}
+                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                      chartType === 'heatmap' 
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25' 
+                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                    }`}
+                  >
+                    <Activity className="w-3 h-3 mr-1" />
+                    Heat
+                  </Button>
                 </div>
 
-                {/* Investment Metrics */}
-                <div className="flex bg-gray-800/50 rounded-lg p-1">
-                  <div className="px-3 py-1 text-xs text-green-400 font-medium">
+                {/* Live Investment Metrics */}
+                <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-xl p-1 border border-gray-600/30">
+                  <div className="px-3 py-1.5 text-xs text-green-400 font-semibold bg-green-500/10 rounded-lg">
                     Daily: +{dailyGrowthRate.toFixed(3)}%
                   </div>
-                  <div className="px-3 py-1 text-xs text-blue-400 font-medium">
-                    Total ROI: +{profitMargin.toFixed(2)}%
+                  <div className="px-3 py-1.5 text-xs text-blue-400 font-semibold bg-blue-500/10 rounded-lg ml-1">
+                    ROI: +{profitMargin.toFixed(2)}%
+                  </div>
+                  <div className="px-3 py-1.5 text-xs text-purple-400 font-semibold bg-purple-500/10 rounded-lg ml-1">
+                    Vol: {(technicalIndicators.volatility || 0).toFixed(1)}%
                   </div>
                 </div>
+                </div>
 
-                {/* Control Buttons */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSoundEnabled(!soundEnabled)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                </Button>
+                {/* Enhanced Control Panel */}
+                <div className="flex items-center gap-2 lg:ml-auto">
+                  <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-xl p-1 border border-gray-600/30">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSoundEnabled(!soundEnabled)}
+                      className={`text-gray-300 hover:text-white p-2 transition-all duration-200 ${
+                        soundEnabled ? 'bg-green-500/20 text-green-400' : 'hover:bg-gray-600/50'
+                      }`}
+                      title={soundEnabled ? "Disable sound alerts" : "Enable sound alerts"}
+                    >
+                      {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                    </Button>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user.id] });
-                    setLiveData([]);
-                    toast({
-                      title: "Data Refreshed",
-                      description: "Portfolio data has been updated",
-                    });
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user.id] });
+                        setLiveData([]);
+                        toast({
+                          title: "✅ Data Refreshed",
+                          description: "Portfolio data has been updated with latest information",
+                          duration: 2000,
+                        });
+                      }}
+                      className="text-gray-300 hover:text-white p-2 hover:bg-blue-500/20 transition-all duration-200"
+                      title="Refresh portfolio data"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={exportData}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <Download className="w-4 h-4" />
-                </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={exportData}
+                      className="text-gray-300 hover:text-white p-2 hover:bg-orange-500/20 transition-all duration-200"
+                      title="Export data to CSV"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        navigator.share && navigator.share({
+                          title: 'BitVault Pro Investment Dashboard',
+                          text: `Check out my investment performance: ${profitMargin.toFixed(2)}% ROI`,
+                          url: window.location.href
+                        }).catch(() => {
+                          navigator.clipboard.writeText(window.location.href);
+                          toast({
+                            title: "🔗 Link Copied",
+                            description: "Dashboard link copied to clipboard",
+                            duration: 2000,
+                          });
+                        });
+                      }}
+                      className="text-gray-300 hover:text-white p-2 hover:bg-purple-500/20 transition-all duration-200"
+                      title="Share dashboard"
+                    >
+                      <Share className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1149,25 +1277,82 @@ export default function InvestmentDashboard() {
             {loadingInvestments ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <RefreshCw className="w-8 h-8 mx-auto mb-2 animate-spin text-orange-400" />
-                  <p className="text-gray-400">Loading portfolio data...</p>
+                  <div className="relative">
+                    <div className="w-16 h-16 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-orange-400 animate-pulse" />
+                    </div>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-300 mb-2">Loading Investment Data</p>
+                  <p className="text-sm text-gray-500">Fetching real-time portfolio information...</p>
+                  <div className="mt-4 flex justify-center space-x-1">
+                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  </div>
                 </div>
               </div>
             ) : actualActiveInvestments.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <PieChart className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-                  <p className="text-gray-400 mb-2">No active investments to track</p>
-                  <Button
-                    onClick={() => setLocation('/investment')}
-                    className="bg-orange-500 hover:bg-orange-600"
-                  >
-                    Start Investing
-                  </Button>
+                <div className="text-center max-w-md">
+                  <div className="relative mb-6">
+                    <div className="w-20 h-20 bg-gradient-to-br from-orange-500/20 to-yellow-500/20 rounded-2xl mx-auto flex items-center justify-center">
+                      <TrendingUp className="w-10 h-10 text-orange-400" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-white">+</span>
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-200 mb-2">Start Your Investment Journey</h3>
+                  <p className="text-gray-400 mb-6 text-sm leading-relaxed">
+                    No active investments found. Begin earning automated daily returns with our professional investment plans.
+                  </p>
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => setLocation('/investment')}
+                      className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    >
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      Explore Investment Plans
+                    </Button>
+                    <p className="text-xs text-gray-500">
+                      Start with as little as 0.001 BTC • Daily returns up to 1.94%
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (
-              renderChart()
+              <div className="h-full relative">
+                {isStreaming && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <div className="flex items-center gap-2 bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-full px-3 py-1">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-green-400 font-medium">LIVE</span>
+                    </div>
+                  </div>
+                )}
+                {renderChart()}
+                
+                {/* Chart Overlay Information */}
+                <div className="absolute bottom-2 left-2 z-10">
+                  <div className="bg-black/60 backdrop-blur-sm border border-gray-600/30 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-4 text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span className="text-gray-300">Income: {showValues ? `+${formatBitcoin(totalProfit.toString())} BTC` : '••••••••'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        <span className="text-gray-300">ROI: {profitMargin.toFixed(2)}%</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                        <span className="text-gray-300">Active: {actualActiveInvestments.length}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </Card>
