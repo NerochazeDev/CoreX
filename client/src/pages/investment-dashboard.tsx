@@ -562,9 +562,6 @@ export default function InvestmentDashboard() {
         );
 
       case 'area':
-        return (</old_str>
-
-      case 'area':
         return (
           <ResponsiveContainer {...commonProps}>
             <AreaChart data={currentChartData}>
@@ -1409,7 +1406,7 @@ export default function InvestmentDashboard() {
                     </div>
                   </div>
                 )}
-              </div></old_str>
+              </div>
             )}
           </div>
         </Card>
