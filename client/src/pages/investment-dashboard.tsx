@@ -514,14 +514,15 @@ export default function InvestmentDashboard() {
 
     const commonProps = {
       width: "100%",
-      height: isFullscreen ? "70vh" : window.innerWidth < 768 ? "250px" : "400px"
+      height: isFullscreen ? "70vh" : "400px"
     };
 
     switch (chartType) {
       case 'line':
         return (
-          <ResponsiveContainer {...commonProps}>
-            <RechartsLineChart data={currentChartData}>
+          <div style={{ width: '100%', height: '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsLineChart data={currentChartData}>
               <defs>
                 <linearGradient id="colorIncomeGrowth" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
@@ -562,14 +563,16 @@ export default function InvestmentDashboard() {
                 dot={false}
                 activeDot={{ r: 4, stroke: '#10b981', strokeWidth: 2, fill: 'white' }}
               />
-            </RechartsLineChart>
-          </ResponsiveContainer>
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
         );
 
       case 'area':
         return (
-          <ResponsiveContainer {...commonProps}>
-            <AreaChart data={currentChartData}>
+          <div style={{ width: '100%', height: '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={currentChartData}>
               <defs>
                 <linearGradient id="colorInvestment" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.6}/>
@@ -640,14 +643,16 @@ export default function InvestmentDashboard() {
                 fill="url(#colorIncomeEarned)"
                 strokeWidth={3}
               />
-            </AreaChart>
-          </ResponsiveContainer>
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         );
 
       case 'volume':
         return (
-          <ResponsiveContainer {...commonProps}>
-            <ComposedChart data={currentChartData}>
+          <div style={{ width: '100%', height: '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={currentChartData}>
               <CartesianGrid strokeDasharray="1 1" stroke="rgba(156, 163, 175, 0.2)" />
               <XAxis 
                 dataKey="date" 
@@ -720,8 +725,9 @@ export default function InvestmentDashboard() {
                   strokeDasharray="4 4"
                 />
               )}
-            </ComposedChart>
-          </ResponsiveContainer>
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
         );
         
       case 'depth':
