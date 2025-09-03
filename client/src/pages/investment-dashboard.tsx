@@ -739,8 +739,8 @@ export default function InvestmentDashboard() {
   return (
     <div className={`min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
       {/* Advanced Trading Header */}
-      <header className={`bg-black/50 backdrop-blur-xl border-b border-orange-500/30 sticky top-0 z-40 ${isFullscreen ? 'py-2' : 'py-4'} lg:ml-64`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className={`bg-black/50 backdrop-blur-xl border-b border-orange-500/30 sticky top-0 z-40 ${isFullscreen ? 'py-2' : 'py-3 md:py-4'} lg:ml-64`}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               {!isFullscreen && (
@@ -804,12 +804,12 @@ export default function InvestmentDashboard() {
       </header>
 
       {/* Main Dashboard */}
-      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isFullscreen ? 'py-2' : 'py-6'} lg:ml-64`}>
+      <main className={`max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 ${isFullscreen ? 'py-2' : 'py-4 md:py-6'} lg:ml-64 pb-20 lg:pb-6`}>
         
         {/* Professional Trading Header */}
-        <div className={`grid grid-cols-1 lg:grid-cols-3 gap-4 ${isFullscreen ? 'mb-3' : 'mb-6'}`}>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 ${isFullscreen ? 'mb-3' : 'mb-4 md:mb-6'}`}>
           {/* Price & Change */}
-          <Card className="bg-black/40 border-orange-500/30 p-4 backdrop-blur-lg">
+          <Card className="bg-black/40 border-orange-500/30 p-3 md:p-4 backdrop-blur-lg sm:col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-bold text-orange-400">Portfolio Value</h3>
               <div className="flex gap-1">
@@ -840,7 +840,7 @@ export default function InvestmentDashboard() {
           </Card>
 
           {/* Technical Indicators */}
-          <Card className="bg-black/40 border-blue-500/30 p-4 backdrop-blur-lg">
+          <Card className="bg-black/40 border-blue-500/30 p-3 md:p-4 backdrop-blur-lg">
             <h3 className="text-sm font-semibold text-blue-400 mb-3">Technical Analysis</h3>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
@@ -882,7 +882,7 @@ export default function InvestmentDashboard() {
           </Card>
 
           {/* Market Sentiment */}
-          <Card className="bg-black/40 border-purple-500/30 p-4 backdrop-blur-lg">
+          <Card className="bg-black/40 border-purple-500/30 p-3 md:p-4 backdrop-blur-lg">
             <h3 className="text-sm font-semibold text-purple-400 mb-3">Market Sentiment</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
@@ -907,8 +907,8 @@ export default function InvestmentDashboard() {
         </div>
 
         {/* Key Metrics Row */}
-        <div className={`grid grid-cols-2 md:grid-cols-5 gap-3 ${isFullscreen ? 'mb-3' : 'mb-6'}`}>
-          <Card className="bg-black/40 border-green-500/30 p-4 backdrop-blur-lg">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 ${isFullscreen ? 'mb-3' : 'mb-4 md:mb-6'}`}>
+          <Card className="bg-black/40 border-green-500/30 p-3 md:p-4 backdrop-blur-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Portfolio Value</p>
@@ -927,7 +927,7 @@ export default function InvestmentDashboard() {
             </div>
           </Card>
 
-          <Card className="bg-black/40 border-orange-500/30 p-4 backdrop-blur-lg">
+          <Card className="bg-black/40 border-orange-500/30 p-3 md:p-4 backdrop-blur-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Total Profit</p>
@@ -945,7 +945,7 @@ export default function InvestmentDashboard() {
             </div>
           </Card>
 
-          <Card className="bg-black/40 border-blue-500/30 p-4 backdrop-blur-lg">
+          <Card className="bg-black/40 border-blue-500/30 p-3 md:p-4 backdrop-blur-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">24h Change</p>
@@ -965,7 +965,7 @@ export default function InvestmentDashboard() {
             </div>
           </Card>
 
-          <Card className="bg-black/40 border-purple-500/30 p-4 backdrop-blur-lg">
+          <Card className="bg-black/40 border-purple-500/30 p-3 md:p-4 backdrop-blur-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Active Positions</p>
@@ -985,12 +985,12 @@ export default function InvestmentDashboard() {
 
         {/* Advanced Chart Section */}
         <Card className="bg-black/40 border-orange-500/30 backdrop-blur-lg">
-          <div className="p-4 border-b border-orange-500/20">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="p-3 md:p-4 border-b border-orange-500/20">
+            <div className="flex flex-col gap-3 md:gap-4">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 md:gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-orange-400 mb-1">Professional Trading Terminal</h2>
-                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                  <h2 className="text-lg md:text-xl font-bold text-orange-400 mb-1">Professional Trading Terminal</h2>
+                  <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-400">
                     <span>Last Update: {new Date().toLocaleTimeString()}</span>
                     <Badge className={`${isStreaming ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
                       {isStreaming ? 'STREAMING LIVE' : 'PAUSED'}
@@ -1002,10 +1002,10 @@ export default function InvestmentDashboard() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 flex-wrap justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 {/* Timeframe Selector */}
-                <div className="flex bg-gray-800/50 rounded-lg p-1">
+                <div className="flex bg-gray-800/50 rounded-lg p-1 overflow-x-auto shrink-0">
                   {(['1m', '5m', '15m', '1h', '4h', '1d', '1w'] as const).map((tf) => (
                     <Button
                       key={tf}
@@ -1020,7 +1020,7 @@ export default function InvestmentDashboard() {
                 </div>
 
                 {/* Chart Type Selector */}
-                <div className="flex bg-gray-800/50 rounded-lg p-1">
+                <div className="flex bg-gray-800/50 rounded-lg p-1 overflow-x-auto shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1128,7 +1128,7 @@ export default function InvestmentDashboard() {
             </div>
           </div>
 
-          <div className={`p-4 ${isFullscreen ? 'h-[70vh]' : 'h-[500px]'}`}>
+          <div className={`p-3 md:p-4 ${isFullscreen ? 'h-[70vh]' : 'h-[300px] sm:h-[400px] md:h-[500px]'}`}>
             {loadingInvestments ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
@@ -1157,12 +1157,12 @@ export default function InvestmentDashboard() {
 
         {/* Professional Portfolio Analytics */}
         {!isFullscreen && actualActiveInvestments.length > 0 && (
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mt-6">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 md:gap-6 mt-4 md:mt-6">
             
             {/* Portfolio Analytics Panel */}
-            <div className="xl:col-span-8 space-y-6">
+            <div className="xl:col-span-8 space-y-4 md:space-y-6">
               <Card className="bg-black/40 border-blue-500/30 backdrop-blur-lg">
-                <div className="p-4 border-b border-blue-500/20">
+                <div className="p-3 md:p-4 border-b border-blue-500/20">
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-blue-400">Portfolio Analytics</h3>
                     <div className="flex bg-gray-800/50 rounded-lg p-1">
@@ -1181,7 +1181,7 @@ export default function InvestmentDashboard() {
                   </div>
                 </div>
                 
-                <div className="p-6">
+                <div className="p-4 md:p-6">
                   {portfolioView === 'overview' && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="text-center p-4 bg-gray-800/30 rounded-lg border border-gray-700/30">
