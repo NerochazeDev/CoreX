@@ -1349,7 +1349,7 @@ export default function InvestmentDashboard() {
                   </div>
                 </div>
               </div>
-            ) : actualActiveInvestments.length === 0 ? (
+            ) : actualActiveInvestments.length === 0 && currentChartData.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center max-w-md">
                   <div className="relative mb-6">
