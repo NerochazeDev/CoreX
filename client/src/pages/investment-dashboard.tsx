@@ -772,65 +772,69 @@ export default function InvestmentDashboard() {
   return (
     <div className={`min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
       {/* Advanced Trading Header */}
-      <header className={`bg-black/50 backdrop-blur-xl border-b border-orange-500/30 sticky top-0 z-40 ${isFullscreen ? 'py-2' : 'py-3 md:py-4'} lg:ml-64`}>
+      <header className={`bg-black/50 backdrop-blur-xl border-b border-orange-500/30 sticky top-0 z-40 ${isFullscreen ? 'py-2' : 'py-4 md:py-4'} lg:ml-64`}>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:justify-between lg:items-center">
+            <div className="flex items-center justify-between lg:justify-start gap-2 lg:gap-4">
               {!isFullscreen && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation('/')}
-                  className="text-gray-300 hover:text-white hover:bg-orange-500/20"
+                  className="text-gray-300 hover:text-white hover:bg-orange-500/20 lg:mr-2"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Home
+                  <ArrowLeft className="w-4 h-4 lg:mr-2" />
+                  <span className="hidden lg:inline">Back to Home</span>
                 </Button>
               )}
-              <div className="flex items-center gap-3">
-                <BitVaultLogo variant="dark" size={isFullscreen ? "md" : "lg"} showPro={true} />
-                <div className="border-l border-orange-500/30 pl-3">
-                  <h1 className={`${isFullscreen ? 'text-lg' : 'text-xl'} font-bold text-orange-400`}>Live Investment Dashboard</h1>
-                  <p className="text-xs text-gray-400">Real-time portfolio tracking</p>
+              <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1 lg:flex-initial">
+                <div className="shrink-0">
+                  <BitVaultLogo variant="dark" size={isFullscreen ? "md" : "md"} showPro={true} />
+                </div>
+                <div className="border-l border-orange-500/30 pl-2 lg:pl-3 min-w-0">
+                  <h1 className={`${isFullscreen ? 'text-sm' : 'text-sm lg:text-xl'} font-bold text-orange-400 leading-tight`}>Live Investment Dashboard</h1>
+                  <p className="text-xs text-gray-400 leading-tight">Real-time portfolio tracking</p>
                 </div>
               </div>
             </div>
 
             {/* Live Status & Controls */}
-            <div className="flex items-center gap-2">
-              <div className={`flex items-center gap-2 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/30 ${isFullscreen ? 'text-xs' : ''}`}>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="flex items-center justify-between lg:justify-end gap-2 w-full lg:w-auto">
+              <div className={`flex items-center gap-2 bg-green-500/10 px-2 lg:px-3 py-1 lg:py-1.5 rounded-full border border-green-500/30 ${isFullscreen ? 'text-xs' : 'text-xs lg:text-sm'}`}>
+                <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-green-400 font-medium">
                   {isLiveMode ? (isStreaming ? 'STREAMING' : 'LIVE') : 'PAUSED'}
                 </span>
               </div>
               
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsStreaming(!isStreaming)}
-                className="text-gray-300 hover:text-white hover:bg-green-500/20"
-              >
-                {isStreaming ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsStreaming(!isStreaming)}
+                  className="text-gray-300 hover:text-white hover:bg-green-500/20 h-8 w-8 p-0"
+                >
+                  {isStreaming ? <Pause className="w-3 h-3 lg:w-4 lg:h-4" /> : <Play className="w-3 h-3 lg:w-4 lg:h-4" />}
+                </Button>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowValues(!showValues)}
-                className="text-gray-300 hover:text-white hover:bg-blue-500/20"
-              >
-                {showValues ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowValues(!showValues)}
+                  className="text-gray-300 hover:text-white hover:bg-blue-500/20 h-8 w-8 p-0"
+                >
+                  {showValues ? <Eye className="w-3 h-3 lg:w-4 lg:h-4" /> : <EyeOff className="w-3 h-3 lg:w-4 lg:h-4" />}
+                </Button>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleFullscreen}
-                className="text-gray-300 hover:text-white hover:bg-purple-500/20"
-              >
-                <Maximize className="w-4 h-4" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleFullscreen}
+                  className="text-gray-300 hover:text-white hover:bg-purple-500/20 h-8 w-8 p-0"
+                >
+                  <Maximize className="w-3 h-3 lg:w-4 lg:h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
