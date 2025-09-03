@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, TrendingUp, History, Settings, Shield, Plus } from "lucide-react";
+import { Home, TrendingUp, History, Settings, Shield, Plus, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function BottomNavigation() {
@@ -8,7 +8,7 @@ export function BottomNavigation() {
 
   const navItems = [
     { path: "/", icon: Home, label: "Wallet" },
-    { path: "/deposit", icon: Plus, label: "Deposit" },
+    { path: "/dashboard", icon: BarChart3, label: "Dashboard" },
     { path: "/investment", icon: TrendingUp, label: "Invest" },
     { path: "/history", icon: History, label: "History" },
     { path: "/settings", icon: Settings, label: "Settings" },

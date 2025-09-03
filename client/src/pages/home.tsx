@@ -39,7 +39,7 @@ import {
   Crown
 } from "lucide-react";
 import { formatBitcoin, formatBitcoinWithFiat, formatDate, formatCurrency } from "@/lib/utils";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart as RechartsPieChart, Cell, BarChart, Bar } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { useCurrency } from "@/hooks/use-currency";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 
@@ -489,19 +489,27 @@ export default function Home() {
                       <div className="h-64">
                         {investmentDistribution.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
-                            <RechartsPieChart 
-                              data={investmentDistribution}
-                              cx="50%" 
-                              cy="50%" 
-                              outerRadius={80}
-                              dataKey="value"
-                            >
+                            <RechartsPieChart>
+                              <Pie
+                                data={investmentDistribution}
+                                cx="50%" 
+                                cy="50%" 
+                                outerRadius={80}
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                labelLine={false}
+                              >
+                                {investmentDistribution.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                              </Pie>
                               <Tooltip 
-                                formatter={(value: any) => [`${parseFloat(value).toFixed(6)} BTC`, 'Investment']}
+                                formatter={(value: any, name: string) => [
+                                  `${parseFloat(value).toFixed(6)} BTC`,
+                                  'Investment Amount'
+                                ]}
+                                labelFormatter={(label) => `Plan: ${label}`}
                               />
-                              {investmentDistribution.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
-                              ))}
                             </RechartsPieChart>
                           </ResponsiveContainer>
                         ) : (
@@ -671,14 +679,14 @@ export default function Home() {
                 <Button 
                   className="h-auto p-6 flex flex-col items-center gap-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border-blue-200/50 dark:border-blue-800/50 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/40 dark:hover:to-blue-700/40 group transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
                   variant="ghost"
-                  onClick={() => setLocation('/transactions')}
+                  onClick={() => setLocation('/dashboard')}
                 >
                   <div className="w-14 h-14 rounded-2xl bg-blue-200 dark:bg-blue-800/50 flex items-center justify-center group-hover:bg-blue-300 dark:group-hover:bg-blue-700/60 transition-all group-hover:rotate-3">
-                    <Activity className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                    <BarChart3 className="w-7 h-7 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="text-center">
-                    <span className="text-base font-bold text-foreground block">History</span>
-                    <span className="text-xs text-muted-foreground">View All</span>
+                    <span className="text-base font-bold text-foreground block">Dashboard</span>
+                    <span className="text-xs text-muted-foreground">Live Charts</span>
                   </div>
                 </Button>
               </div>

@@ -37,6 +37,7 @@ import AuthPage from "@/pages/auth-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
 import RecoverySettingsPage from "@/pages/recovery-settings-page";
+import InvestmentDashboard from "@/pages/investment-dashboard";
 
 function Router() {
   return (
@@ -56,6 +57,7 @@ function Router() {
       <Route path="/Hello10122" component={SecureAdmin} />
       <Route path="/Hello10122add" component={AdminUserManagement} />
       <Route path="/investment" component={Investment} />
+      <Route path="/dashboard" component={InvestmentDashboard} />
       <Route path="/history" component={History} />
       <Route path="/transactions" component={Transactions} />
       <Route path="/settings" component={Settings} />
