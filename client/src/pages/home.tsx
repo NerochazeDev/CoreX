@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
@@ -32,7 +33,12 @@ import {
   BarChart3,
   DollarSign,
   Clock,
-  Star
+  Star,
+  Search,
+  Settings,
+  Download,
+  Upload,
+  Zap
 } from "lucide-react";
 import { formatBitcoin, formatBitcoinWithFiat, formatDate, formatCurrency } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
@@ -167,49 +173,52 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      {/* Top Navigation Bar */}
+      <nav className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/60 dark:border-gray-700/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Left side */}
+            {/* Logo and Brand */}
             <div className="flex items-center">
               <BitVaultLogo variant="light" size="md" showPro={true} />
-              <div className="hidden md:block ml-8">
-                <nav className="flex space-x-8">
-                  <Button variant="ghost" className="text-gray-900 dark:text-gray-100 hover:text-orange-600">
-                    Portfolio
-                  </Button>
-                  <Button variant="ghost" onClick={() => setLocation('/investment')} className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
-                    Invest
-                  </Button>
-                  <Button variant="ghost" onClick={() => setLocation('/history')} className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
-                    History
-                  </Button>
-                </nav>
-              </div>
             </div>
 
-            {/* Right side */}
-            <div className="flex items-center space-x-4">
+            {/* Navigation Links - Desktop */}
+            <div className="hidden md:flex items-center space-x-8">
+              <Button variant="ghost" className="text-gray-900 dark:text-gray-100 font-medium">
+                Home
+              </Button>
+              <Button variant="ghost" onClick={() => setLocation('/investment')} className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 font-medium">
+                Invest
+              </Button>
+              <Button variant="ghost" onClick={() => setLocation('/history')} className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 font-medium">
+                Portfolio
+              </Button>
+              <Button variant="ghost" onClick={() => setLocation('/transactions')} className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 font-medium">
+                Activity
+              </Button>
+            </div>
+
+            {/* Right side actions */}
+            <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => setShowBalances(!showBalances)}
-                className="hidden sm:flex"
+                className="hidden sm:flex text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
-                {showBalances ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                {showBalances ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
               </Button>
 
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation('/notifications')}
-                className="relative"
+                className="relative text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount && unreadCount.count > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center">
                     {unreadCount.count}
                   </span>
                 )}
@@ -219,116 +228,121 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation('/profile')}
+                className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
                 <User className="w-5 h-5" />
               </Button>
             </div>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
-
-        {/* Portfolio Summary */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Portfolio</h1>
-              <p className="text-gray-500 dark:text-gray-400">Track your investments and earnings</p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefreshBalance}
-              disabled={isRefreshing}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:pb-8">
+        {/* Hero Section */}
+        <div className="py-8 lg:py-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              Welcome back, {user.username}
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Track your investments, manage your portfolio, and earn with automated Bitcoin strategies
+            </p>
           </div>
 
-          {/* Balance Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Total Balance */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Balance</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {showBalances ? `${formatBitcoin(totalValue.toString())} BTC` : '••••••'}
-                    </p>
-                    {bitcoinPrice && showBalances && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        ≈ {formatCurrency(totalValue * bitcoinPrice.usd.price, 'USD')}
-                      </p>
-                    )}
+          {/* Main Balance Display */}
+          <div className="max-w-4xl mx-auto">
+            <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-0 text-white mb-8">
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <p className="text-orange-100 text-lg mb-2">Total Portfolio Value</p>
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <h2 className="text-5xl lg:text-6xl font-bold">
+                      {showBalances ? formatBitcoin(totalValue.toString()) : '••••••••'}
+                    </h2>
+                    <span className="text-2xl text-orange-100">BTC</span>
                   </div>
-                  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                    <Wallet className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Total Profit */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Profit</p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {showBalances ? `+${formatBitcoin(totalProfit.toString())} BTC` : '••••••'}
+                  {bitcoinPrice && showBalances && (
+                    <p className="text-2xl text-orange-100">
+                      ≈ {formatCurrency(totalValue * bitcoinPrice.usd.price, 'USD')}
                     </p>
-                    <p className="text-sm text-green-600 dark:text-green-400">
+                  )}
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    <TrendingUp className="w-5 h-5 text-green-300" />
+                    <span className="text-green-300 text-lg font-semibold">
                       +{profitMargin.toFixed(2)}% return
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Active Investments */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Investments</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {actualActiveInvestments.length}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Earning daily
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                    <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+              <Button 
+                size="lg"
+                className="h-20 flex flex-col gap-2 bg-green-600 hover:bg-green-700 text-white border-0"
+                onClick={() => setLocation('/deposit')}
+              >
+                <Download className="w-6 h-6" />
+                <span className="font-semibold">Deposit</span>
+              </Button>
+
+              <Button 
+                size="lg"
+                className="h-20 flex flex-col gap-2 bg-blue-600 hover:bg-blue-700 text-white border-0"
+                onClick={() => setLocation('/withdraw')}
+              >
+                <Upload className="w-6 h-6" />
+                <span className="font-semibold">Withdraw</span>
+              </Button>
+
+              <Button 
+                size="lg"
+                className="h-20 flex flex-col gap-2 bg-orange-600 hover:bg-orange-700 text-white border-0"
+                onClick={() => setLocation('/investment')}
+              >
+                <Zap className="w-6 h-6" />
+                <span className="font-semibold">Invest</span>
+              </Button>
+
+              <Button 
+                size="lg"
+                className="h-20 flex flex-col gap-2 bg-purple-600 hover:bg-purple-700 text-white border-0"
+                onClick={() => setLocation('/history')}
+              >
+                <BarChart3 className="w-6 h-6" />
+                <span className="font-semibold">Analytics</span>
+              </Button>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Chart and Actions */}
-          <div className="lg:col-span-2 space-y-6">
-
-            {/* Portfolio Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5" />
-                  Portfolio Performance
-                </CardTitle>
+        {/* Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-8 space-y-8">
+            {/* Portfolio Performance Chart */}
+            <Card className="border border-gray-200 dark:border-gray-700">
+              <CardHeader className="border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl font-semibold">Portfolio Performance</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRefreshBalance}
+                      disabled={isRefreshing}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="h-64">
+              <CardContent className="p-6">
+                <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
                       <defs>
@@ -350,7 +364,7 @@ export default function Home() {
                         stroke="#f97316" 
                         fillOpacity={1} 
                         fill="url(#colorValue)"
-                        strokeWidth={2}
+                        strokeWidth={3}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -358,78 +372,101 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <Button 
-                    className="h-auto p-4 flex flex-col items-center gap-2 bg-green-600 hover:bg-green-700"
-                    onClick={() => setLocation('/deposit')}
-                  >
-                    <ArrowDownLeft className="w-6 h-6" />
-                    <span className="text-sm font-medium">Deposit</span>
-                  </Button>
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="border border-gray-200 dark:border-gray-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Active Investments</p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                        {actualActiveInvestments.length}
+                      </p>
+                      <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                        Earning daily
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
+                      <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                  <Button 
-                    className="h-auto p-4 flex flex-col items-center gap-2 bg-red-600 hover:bg-red-700"
-                    onClick={() => setLocation('/withdraw')}
-                  >
-                    <ArrowUpRight className="w-6 h-6" />
-                    <span className="text-sm font-medium">Withdraw</span>
-                  </Button>
+              <Card className="border border-gray-200 dark:border-gray-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Profit</p>
+                      <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                        {showBalances ? `+${formatBitcoin(totalProfit.toString())}` : '••••••'}
+                      </p>
+                      <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                        +{profitMargin.toFixed(2)}% return
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
+                      <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                  <Button 
-                    className="h-auto p-4 flex flex-col items-center gap-2 bg-orange-600 hover:bg-orange-700"
-                    onClick={() => setLocation('/investment')}
-                  >
-                    <TrendingUp className="w-6 h-6" />
-                    <span className="text-sm font-medium">Invest</span>
-                  </Button>
-
-                  <Button 
-                    className="h-auto p-4 flex flex-col items-center gap-2 bg-blue-600 hover:bg-blue-700"
-                    onClick={() => setLocation('/history')}
-                  >
-                    <Clock className="w-6 h-6" />
-                    <span className="text-sm font-medium">History</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <Card className="border border-gray-200 dark:border-gray-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Invested Amount</p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                        {showBalances ? formatBitcoin(totalInvestedAmount.toString()) : '••••••'}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                        BTC invested
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-xl flex items-center justify-center">
+                      <Wallet className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Active Investments */}
             {actualActiveInvestments.length > 0 && (
-              <Card>
-                <CardHeader>
+              <Card className="border border-gray-200 dark:border-gray-700">
+                <CardHeader className="border-b border-gray-100 dark:border-gray-800">
                   <div className="flex items-center justify-between">
-                    <CardTitle>Active Investments</CardTitle>
-                    <Button variant="ghost" size="sm" onClick={() => setLocation('/investment')}>
+                    <CardTitle className="text-xl font-semibold">Active Investments</CardTitle>
+                    <Button variant="ghost" size="sm" onClick={() => setLocation('/investment')} className="text-orange-600 hover:text-orange-700">
                       View All <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-6">
                   <div className="space-y-4">
                     {actualActiveInvestments.slice(0, 3).map((investment) => {
                       const plan = investmentPlans?.find(p => p.id === investment.planId);
                       return (
-                        <div key={investment.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <div>
-                            <h4 className="font-medium text-gray-900 dark:text-white">
-                              {plan?.name || 'Investment Plan'}
-                            </h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {formatBitcoin(investment.amount)} BTC invested
-                            </p>
+                        <div key={investment.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+                              <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 dark:text-white">
+                                {plan?.name || 'Investment Plan'}
+                              </h4>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {formatBitcoin(investment.amount)} BTC invested
+                              </p>
+                            </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-green-600 dark:text-green-400">
+                            <p className="font-semibold text-green-600 dark:text-green-400">
                               +{formatBitcoin(investment.currentProfit)} BTC
                             </p>
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400">
                               Active
                             </Badge>
                           </div>
@@ -442,48 +479,52 @@ export default function Home() {
             )}
           </div>
 
-          {/* Right Column - Market and Info */}
-          <div className="space-y-6">
-
+          {/* Right Column - Sidebar */}
+          <div className="lg:col-span-4 space-y-6">
             {/* Bitcoin Price */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
+            <Card className="border border-gray-200 dark:border-gray-700">
+              <CardHeader className="border-b border-gray-100 dark:border-gray-800">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-orange-500" />
                   Bitcoin Price
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <BitcoinPrice />
+              </CardContent>
+            </Card>
+
+            {/* Account Balance Widget */}
+            <Card className="border border-gray-200 dark:border-gray-700">
+              <CardHeader className="border-b border-gray-100 dark:border-gray-800">
+                <CardTitle className="text-lg font-semibold">Wallet Balance</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <WalletBalance />
               </CardContent>
             </Card>
 
             {/* Get Started (if no investments) */}
             {actualActiveInvestments.length === 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-orange-500" />
-                    Get Started
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <Card className="border border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
+                <CardContent className="p-6">
                   <div className="text-center space-y-4">
-                    <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto">
-                      <TrendingUp className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                    <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto">
+                      <Star className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                         Start Investing Today
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                        Begin earning with automated Bitcoin investments
+                      <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        Begin earning with automated Bitcoin investment strategies. Join thousands of investors already earning daily returns.
                       </p>
                       <Button 
-                        className="w-full"
+                        size="lg"
+                        className="w-full bg-orange-600 hover:bg-orange-700 text-white"
                         onClick={() => setLocation('/investment')}
                       >
-                        <Plus className="w-4 h-4 mr-2" />
+                        <Plus className="w-5 h-5 mr-2" />
                         Start Investing
                       </Button>
                     </div>
@@ -491,13 +532,6 @@ export default function Home() {
                 </CardContent>
               </Card>
             )}
-
-            {/* Account Balance Widget */}
-            <Card>
-              <CardContent className="p-0">
-                <WalletBalance />
-              </CardContent>
-            </Card>
           </div>
         </div>
       </main>
