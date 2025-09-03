@@ -179,45 +179,41 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-gradient-to-r from-white/95 via-orange-50/80 to-white/95 dark:from-gray-900/95 dark:via-orange-900/20 dark:to-gray-900/95 border-b border-orange-200/60 dark:border-orange-700/40 shadow-xl shadow-orange-500/10">
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-orange-600 rounded-2xl blur opacity-25"></div>
-                <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-2xl shadow-lg">
-                  <BitVaultLogo variant="light" size="md" showPro={true} />
-                </div>
-              </div>
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
+              <BitVaultLogo variant="light" size="md" showPro={true} />
               <div className="hidden sm:block">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
-                  BitVault Pro
-                </h1>
-                <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">
-                  Welcome back, {user.username || user.email?.split('@')[0]}
+                <p className="text-sm text-muted-foreground">
+                  Welcome back, {user.firstName || user.email?.split('@')[0]}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <nav className="flex items-center gap-2" aria-label="User navigation">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowBalances(!showBalances)}
-                className="hidden sm:flex h-11 w-11 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200"
+                aria-label={showBalances ? "Hide balances" : "Show balances"}
+                className="hidden sm:flex h-10 w-10"
+                data-testid="button-toggle-balances"
               >
-                {showBalances ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                {showBalances ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </Button>
 
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation('/notifications')}
-                className="relative h-11 w-11 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200"
+                aria-label="View notifications"
+                className="relative h-10 w-10"
+                data-testid="button-notifications"
               >
-                <Bell className="w-5 h-5" />
+                <Bell className="w-4 h-4" />
                 {unreadCount && unreadCount.count > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg animate-pulse">
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center font-bold">
                     {unreadCount.count}
                   </span>
                 )}
@@ -227,28 +223,30 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation('/profile')}
-                className="h-11 w-11 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200 p-1"
+                aria-label="Open profile"
+                className="h-10 w-10 p-1"
+                data-testid="button-profile"
               >
-                <Avatar className="w-9 h-9 border-2 border-orange-300/50 dark:border-orange-600/50">
+                <Avatar className="w-8 h-8">
                   {user.avatar && !user.avatar.startsWith('gradient-') ? (
                     <AvatarImage src={user.avatar} className="object-cover" />
                   ) : user.avatar && user.avatar.startsWith('gradient-') ? (
                     <div className={`w-full h-full bg-gradient-to-br ${user.avatar.replace('gradient-', '')} flex items-center justify-center rounded-full`}>
                       <span className="text-sm font-bold text-white">
-                        {(user.username || user.email || 'U').charAt(0).toUpperCase()}
+                        {(user.firstName || user.email || 'U').charAt(0).toUpperCase()}
                       </span>
                     </div>
                   ) : (
-                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-bold text-sm">
-                      {(user.username || user.email || 'U').charAt(0).toUpperCase()}
+                    <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
+                      {(user.firstName || user.email || 'U').charAt(0).toUpperCase()}
                     </AvatarFallback>
                   )}
                 </Avatar>
               </Button>
-            </div>
+            </nav>
           </div>
         </div>
-      </nav>
+      </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
         {/* Main Balance Card - Lighter Orange Theme */}
