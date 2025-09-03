@@ -89,15 +89,19 @@ function getUserIdFromRequest(req: any): number | null {
   const authToken = req.headers.authorization?.replace('Bearer ', '');
   if (authToken) {
     try {
+      console.log('Auth token received:', authToken.substring(0, 20) + '...');
       const decoded = Buffer.from(authToken, 'base64').toString();
+      console.log('Token decoded:', decoded);
       const [tokenUserId] = decoded.split(':');
+      console.log('Token userId extracted:', tokenUserId);
       const userId = parseInt(tokenUserId);
+      console.log('Parsed userId:', userId, 'isNaN:', isNaN(userId), 'truthy:', !!userId);
       if (userId && !isNaN(userId)) {
         console.log('Using auth token userId:', userId);
         return userId;
       }
     } catch (error) {
-      console.log('Invalid auth token format');
+      console.log('Invalid auth token format:', error);
     }
   }
 
