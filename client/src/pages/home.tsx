@@ -227,32 +227,32 @@ export default function Home() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
-        {/* Main Balance Card - Exodus Style */}
+        {/* Main Balance Card - Orange Theme */}
         <div className="max-w-2xl mx-auto mb-8">
           <div className="relative">
             {/* 3D Shadow Base */}
-            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-600/20 to-orange-800/20 rounded-3xl blur-sm"></div>
+            <div className="absolute top-3 left-3 w-full h-full bg-gradient-to-br from-orange-600/30 to-orange-800/30 rounded-3xl blur-lg"></div>
             
             {/* Main Card */}
-            <Card className="relative bg-gradient-to-br from-white to-gray-50/80 dark:from-gray-800 dark:to-gray-900/80 border-0 rounded-3xl shadow-2xl shadow-orange-500/10 backdrop-blur-xl overflow-hidden">
+            <Card className="relative bg-gradient-to-br from-orange-50 via-orange-100/80 to-orange-200/60 dark:from-orange-900/20 dark:via-orange-800/30 dark:to-orange-700/20 border border-orange-300/50 dark:border-orange-600/30 rounded-3xl shadow-2xl shadow-orange-500/20 backdrop-blur-xl overflow-hidden">
               {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-orange-600/10 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/10 via-orange-500/5 to-orange-600/15 pointer-events-none"></div>
               
               <CardContent className="relative p-8 text-center">
                 <div className="space-y-6">
                   {/* Balance Display */}
                   <div className="space-y-3">
-                    <p className="text-lg font-medium text-gray-600 dark:text-gray-300">Total Portfolio</p>
+                    <p className="text-lg font-medium text-orange-800 dark:text-orange-200">Total Portfolio</p>
                     <div className="space-y-2">
-                      <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white tracking-tight">
+                      <h1 className="text-5xl lg:text-6xl font-bold text-orange-900 dark:text-orange-100 tracking-tight">
                         {showBalances ? formatBitcoin(totalValue.toString()) : '••••••••'}
                       </h1>
                       <div className="flex items-center justify-center gap-2">
-                        <span className="text-xl font-medium text-orange-600 dark:text-orange-400">BTC</span>
+                        <span className="text-xl font-medium text-orange-700 dark:text-orange-300">BTC</span>
                         {bitcoinPrice && showBalances && (
                           <>
-                            <span className="text-gray-400">≈</span>
-                            <span className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+                            <span className="text-orange-500">≈</span>
+                            <span className="text-xl font-semibold text-orange-800 dark:text-orange-200">
                               {formatCurrency(totalValue * bitcoinPrice.usd.price, 'USD')}
                             </span>
                           </>
@@ -262,7 +262,7 @@ export default function Home() {
                   </div>
 
                   {/* Profit Indicator */}
-                  <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-900/20 px-4 py-2 rounded-full border border-green-200 dark:border-green-800">
+                  <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-900/30 px-4 py-2 rounded-full border border-green-300 dark:border-green-700 shadow-lg shadow-green-500/10">
                     <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
                     <span className="text-green-700 dark:text-green-300 font-semibold">
                       +{profitMargin.toFixed(2)}% return
@@ -318,60 +318,7 @@ export default function Home() {
         </div>
 
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Portfolio Performance - Main Chart */}
-          <div className="lg:col-span-2">
-            <div className="relative">
-              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-gray-900/10 to-gray-600/10 rounded-2xl blur-sm"></div>
-              <Card className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-0 rounded-2xl shadow-xl shadow-black/5">
-                <CardHeader className="border-b border-gray-100 dark:border-gray-700/50">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">Portfolio Performance</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRefreshBalance}
-                      disabled={isRefreshing}
-                      className="flex items-center gap-2 text-gray-600 hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400"
-                    >
-                      <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                      <span className="hidden sm:inline">Refresh</span>
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData}>
-                        <defs>
-                          <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#f97316" stopOpacity={0.05}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                        <YAxis tick={{ fontSize: 12 }} />
-                        <Tooltip 
-                          formatter={(value: any) => [`${parseFloat(value).toFixed(6)} BTC`, 'Value']}
-                          labelFormatter={(label) => `${label}`}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="value" 
-                          stroke="#f97316" 
-                          fillOpacity={1} 
-                          fill="url(#colorValue)"
-                          strokeWidth={3}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Right Sidebar */}
           <div className="space-y-6">
             {/* Bitcoin Price Widget */}
