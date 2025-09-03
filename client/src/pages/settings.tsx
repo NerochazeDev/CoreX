@@ -564,27 +564,39 @@ function SettingsContent() {
         <Card className="mt-6 mb-8 overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-primary via-orange-500 to-orange-600 text-white relative">
           <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-black/10 to-black/20"></div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
-          <CardContent className="p-8 relative z-10">
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-2xl">
-                <User className="w-10 h-10 text-white" />
+          <CardContent className="p-6 sm:p-8 relative z-10">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl overflow-hidden shadow-2xl">
+                {user.avatar && !user.avatar.startsWith('gradient-') ? (
+                  <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                ) : user.avatar && user.avatar.startsWith('gradient-') ? (
+                  <div className={`w-full h-full bg-gradient-to-br ${user.avatar.replace('gradient-', '')} flex items-center justify-center`}>
+                    <span className="text-xl sm:text-2xl font-bold text-white">
+                      {(user.username || user.email || 'U').charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="w-full h-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <User className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  </div>
+                )}
               </div>
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold text-white">{user.email.split('@')[0]}</h3>
-                <p className="text-orange-100 text-lg">{user.email}</p>
-                <div className="flex items-center gap-3 mt-3">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xl sm:text-2xl font-bold text-white truncate">{user.email.split('@')[0]}</h3>
+                <p className="text-orange-100 text-sm sm:text-lg truncate">{user.email}</p>
+                <div className="flex items-center flex-wrap gap-2 sm:gap-3 mt-2 sm:mt-3">
                   {user.isAdmin ? (
-                    <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-3 py-1.5">
-                      <Crown className="w-4 h-4 mr-2" />
+                    <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">
+                      <Crown className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Manager
                     </Badge>
                   ) : (
-                    <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5">
+                    <Badge className="bg-white/20 text-white border-white/30 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">
                       Premium Member
                     </Badge>
                   )}
-                  <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-3 py-1.5">
-                    <Shield className="w-4 h-4 mr-2" />
+                  <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">
+                    <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     Verified
                   </Badge>
                 </div>
@@ -1254,17 +1266,17 @@ function SettingsContent() {
             <WhatsAppStyleChat>
               <Button
                 variant="ghost"
-                className="w-full h-auto p-4 justify-start gap-3 hover:bg-primary/5 rounded-xl"
+                className="w-full h-auto p-3 sm:p-4 justify-start gap-3 hover:bg-primary/5 rounded-xl"
                 data-testid="button-contact-support"
               >
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
                   <MessageSquare className="w-5 h-5 text-blue-500" />
                 </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-foreground">Need help? Contact our support team</p>
-                  <p className="text-sm text-muted-foreground">Get assistance with your account, investments, or technical issues</p>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium text-foreground text-sm sm:text-base">Need help? Contact our support team</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-tight">Get assistance with your account, investments, or technical issues</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground flex-shrink-0" />
               </Button>
             </WhatsAppStyleChat>
           </CardContent>
