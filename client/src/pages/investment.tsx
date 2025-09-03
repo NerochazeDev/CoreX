@@ -21,6 +21,7 @@ import { TrendingUp, Target, Clock, Award, ArrowLeft, BarChart3, PieChart, Calen
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
+import { AdvancedInvestmentDashboard } from "@/components/advanced-investment-dashboard";
 
 export default function Investment() {
   const { user } = useAuth();
@@ -169,8 +170,14 @@ export default function Investment() {
           </Card>
         </div>
 
-        {/* Modern Performance Insights */}
-        {activeInvestments.length > 0 && (
+        {/* Advanced Investment Dashboard */}
+        <AdvancedInvestmentDashboard />
+
+        {/* Investment Plans */}
+        <InvestmentPlans />
+
+        {/* Investment Statistics */}
+        {activeInvestments && activeInvestments.length > 0 && (
           <Card className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-foreground">
@@ -198,9 +205,6 @@ export default function Investment() {
             </CardContent>
           </Card>
         )}
-
-        {/* Investment Plans */}
-        <InvestmentPlans />
 
         {/* Pending Investments */}
         {pendingInvestments.length > 0 && (

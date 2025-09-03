@@ -54,7 +54,7 @@ export default function Home() {
   // Handle regular login success messages
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    
+
     if (urlParams.get('login') === 'success' && user) {
       setTimeout(() => {
         toast({
@@ -63,7 +63,7 @@ export default function Home() {
           variant: "default",
         });
         // Clean up URL parameter
-        window.history.replaceState({}, '', '/');
+        window.history.replaceState({}, '/', window.location.pathname);
       }, 100);
     }
   }, [user, toast]); // Regular login success handling
@@ -396,7 +396,7 @@ export default function Home() {
                       Sync
                     </Button>
                     <Badge className="bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       Live Data
                     </Badge>
                   </div>
@@ -894,6 +894,44 @@ export default function Home() {
                 </div>
               </Card>
             )}
+
+            {/* Live Trading Preview */}
+            <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/10 dark:to-blue-900/10 rounded-lg border border-green-200/50">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-green-700 dark:text-green-300">Live Trading Active</span>
+                </div>
+                <Badge className="bg-green-100 text-green-800 text-xs">
+                  <Zap className="w-3 h-3 mr-1" />
+                  AI Trading
+                </Badge>
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                <div className="flex justify-between">
+                  <span>Arbitrage Bot Alpha:</span>
+                  <span className="text-green-600">+0.00012 BTC</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>DeFi Yield Optimizer:</span>
+                  <span className="text-green-600">+0.00008 BTC</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Market Making Engine:</span>
+                  <span className="text-green-600">+0.00015 BTC</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions for Investments */}
+            <div className="mt-4">
+              <Button 
+                className="w-full bg-orange-500 hover:bg-orange-600"
+                onClick={() => setLocation('/investment')}
+              >
+                View Live Trading Dashboard
+              </Button>
+            </div>
           </div>
         </div>
       </main>
