@@ -182,18 +182,18 @@ export default function Home() {
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-gradient-to-r from-white/95 via-orange-50/80 to-white/95 dark:from-gray-900/95 dark:via-orange-900/20 dark:to-gray-900/95 border-b border-orange-200/60 dark:border-orange-700/40 shadow-xl shadow-orange-500/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <div className="relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-orange-600 rounded-2xl blur opacity-25"></div>
-                <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-2xl shadow-lg">
-                  <BitVaultLogo variant="light" size="md" showPro={true} />
+                <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 p-2 sm:p-3 rounded-2xl shadow-lg">
+                  <BitVaultLogo variant="light" size="sm" showPro={false} />
                 </div>
               </div>
-              <div className="hidden sm:block">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent truncate">
                   BitVault Pro
                 </h1>
-                <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">
+                <p className="text-xs sm:text-sm text-orange-600/80 dark:text-orange-400/80 font-medium truncate">
                   Welcome back, {user.username || user.email?.split('@')[0]}
                 </p>
               </div>
