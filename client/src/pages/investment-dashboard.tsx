@@ -470,7 +470,7 @@ export default function InvestmentDashboard() {
   const renderChart = () => {
     const commonProps = {
       width: "100%",
-      height: isFullscreen ? "70vh" : "400px"
+      height: isFullscreen ? "70vh" : window.innerWidth < 768 ? "250px" : "400px"
     };
 
     switch (chartType) {
@@ -1082,198 +1082,211 @@ export default function InvestmentDashboard() {
         {/* Live Investment Income Tracker */}
         <Card className="bg-black/40 border-orange-500/30 backdrop-blur-lg">
           <div className="p-3 md:p-4 border-b border-orange-500/20">
-            <div className="flex flex-col gap-3 md:gap-4">
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 md:gap-4">
-                <div>
-                  <h2 className="text-lg md:text-xl font-bold text-orange-400 mb-1">Live Investment Income Tracker</h2>
-                  <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-400">
-                    <span>Last Income Update: {new Date().toLocaleTimeString()}</span>
-                    <Badge className={`${isStreaming ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
-                      {isStreaming ? 'EARNING LIVE' : 'TRACKING PAUSED'}
-                    </Badge>
-                    <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                      Daily ROI: +{dailyGrowthRate.toFixed(3)}%
-                    </Badge>
+            <div className="space-y-4">
+              {/* Header Section - Mobile Optimized */}
+              <div className="space-y-3">
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-base md:text-xl font-bold text-orange-400">Live Investment Income Tracker</h2>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-400">
+                    <span>Last Update: {new Date().toLocaleTimeString()}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge className={`text-xs ${isStreaming ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
+                        {isStreaming ? 'EARNING LIVE' : 'TRACKING PAUSED'}
+                      </Badge>
+                      <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
+                        Daily ROI: +{dailyGrowthRate.toFixed(3)}%
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 w-full">
-                <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-                {/* Time Frame Selector */}
-                <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-xl p-1 overflow-x-auto shrink-0 border border-gray-600/30">
-                  {(['1m', '5m', '15m', '1h', '4h', '1d', '1w'] as const).map((timeframe) => (
+              {/* Controls Section - Mobile Responsive */}
+              <div className="space-y-3">
+                {/* Time Frame Selector - Full width on mobile */}
+                <div className="w-full">
+                  <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-lg p-1 overflow-x-auto border border-gray-600/30">
+                    {(['1m', '5m', '15m', '1h', '4h', '1d', '1w'] as const).map((timeframe) => (
+                      <Button
+                        key={timeframe}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedTimeframe(timeframe)}
+                        className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                          selectedTimeframe === timeframe 
+                            ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' 
+                            : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                        }`}
+                      >
+                        {timeframe.toUpperCase()}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Chart Type Selector - Mobile responsive grid */}
+                <div className="w-full">
+                  <div className="grid grid-cols-3 md:flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-lg p-1 gap-1 border border-gray-600/30">
                     <Button
-                      key={timeframe}
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedTimeframe(timeframe)}
-                      className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                        selectedTimeframe === timeframe 
-                          ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' 
+                      onClick={() => setChartType('area')}
+                      className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                        chartType === 'area' 
+                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25' 
                           : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
                       }`}
                     >
-                      {timeframe.toUpperCase()}
+                      <TrendingUp className="w-3 h-3 md:mr-1" />
+                      <span className="hidden md:inline">Growth</span>
                     </Button>
-                  ))}
-                </div>
-
-                {/* Advanced Chart Type Selector */}
-                <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-xl p-1 overflow-x-auto shrink-0 border border-gray-600/30">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setChartType('area')}
-                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                      chartType === 'area' 
-                        ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25' 
-                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
-                    }`}
-                  >
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    Growth
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setChartType('line')}
-                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                      chartType === 'line' 
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' 
-                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
-                    }`}
-                  >
-                    <LineChart className="w-3 h-3 mr-1" />
-                    Income
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setChartType('volume')}
-                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                      chartType === 'volume' 
-                        ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/25' 
-                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
-                    }`}
-                  >
-                    <BarChart3 className="w-3 h-3 mr-1" />
-                    Activity
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setChartType('depth')}
-                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                      chartType === 'depth' 
-                        ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg shadow-yellow-500/25' 
-                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
-                    }`}
-                  >
-                    <PieChart className="w-3 h-3 mr-1" />
-                    Sources
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setChartType('heatmap')}
-                    className={`px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                      chartType === 'heatmap' 
-                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25' 
-                        : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
-                    }`}
-                  >
-                    <Activity className="w-3 h-3 mr-1" />
-                    Heat
-                  </Button>
-                </div>
-
-                {/* Live Investment Metrics */}
-                <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-xl p-1 border border-gray-600/30">
-                  <div className="px-3 py-1.5 text-xs text-green-400 font-semibold bg-green-500/10 rounded-lg">
-                    Daily: +{dailyGrowthRate.toFixed(3)}%
-                  </div>
-                  <div className="px-3 py-1.5 text-xs text-blue-400 font-semibold bg-blue-500/10 rounded-lg ml-1">
-                    ROI: +{profitMargin.toFixed(2)}%
-                  </div>
-                  <div className="px-3 py-1.5 text-xs text-purple-400 font-semibold bg-purple-500/10 rounded-lg ml-1">
-                    Vol: {(technicalIndicators.volatility || 0).toFixed(1)}%
-                  </div>
-                </div>
-                </div>
-
-                {/* Enhanced Control Panel */}
-                <div className="flex items-center gap-2 lg:ml-auto">
-                  <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-xl p-1 border border-gray-600/30">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSoundEnabled(!soundEnabled)}
-                      className={`text-gray-300 hover:text-white p-2 transition-all duration-200 ${
-                        soundEnabled ? 'bg-green-500/20 text-green-400' : 'hover:bg-gray-600/50'
+                      onClick={() => setChartType('line')}
+                      className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                        chartType === 'line' 
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' 
+                          : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
                       }`}
-                      title={soundEnabled ? "Disable sound alerts" : "Enable sound alerts"}
                     >
-                      {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                      <LineChart className="w-3 h-3 md:mr-1" />
+                      <span className="hidden md:inline">Income</span>
                     </Button>
-
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user.id] });
-                        setLiveData([]);
-                        toast({
-                          title: "✅ Data Refreshed",
-                          description: "Portfolio data has been updated with latest information",
-                          duration: 2000,
-                        });
-                      }}
-                      className="text-gray-300 hover:text-white p-2 hover:bg-blue-500/20 transition-all duration-200"
-                      title="Refresh portfolio data"
+                      onClick={() => setChartType('volume')}
+                      className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                        chartType === 'volume' 
+                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/25' 
+                          : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                      }`}
                     >
-                      <RefreshCw className="w-4 h-4" />
+                      <BarChart3 className="w-3 h-3 md:mr-1" />
+                      <span className="hidden md:inline">Activity</span>
                     </Button>
-
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={exportData}
-                      className="text-gray-300 hover:text-white p-2 hover:bg-orange-500/20 transition-all duration-200"
-                      title="Export data to CSV"
+                      onClick={() => setChartType('depth')}
+                      className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                        chartType === 'depth' 
+                          ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg shadow-yellow-500/25' 
+                          : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                      }`}
                     >
-                      <Download className="w-4 h-4" />
+                      <PieChart className="w-3 h-3 md:mr-1" />
+                      <span className="hidden md:inline">Sources</span>
                     </Button>
-
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        navigator.share && navigator.share({
-                          title: 'BitVault Pro Investment Dashboard',
-                          text: `Check out my investment performance: ${profitMargin.toFixed(2)}% ROI`,
-                          url: window.location.href
-                        }).catch(() => {
-                          navigator.clipboard.writeText(window.location.href);
+                      onClick={() => setChartType('heatmap')}
+                      className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                        chartType === 'heatmap' 
+                          ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25' 
+                          : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
+                      }`}
+                    >
+                      <Activity className="w-3 h-3 md:mr-1" />
+                      <span className="hidden md:inline">Heat</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Live Metrics - Mobile stacked */}
+                <div className="w-full">
+                  <div className="grid grid-cols-3 md:flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-lg p-1 gap-1 border border-gray-600/30">
+                    <div className="px-2 md:px-3 py-1.5 text-xs text-green-400 font-semibold bg-green-500/10 rounded text-center">
+                      <div className="md:hidden">Daily</div>
+                      <div className="hidden md:inline">Daily: </div>+{dailyGrowthRate.toFixed(3)}%
+                    </div>
+                    <div className="px-2 md:px-3 py-1.5 text-xs text-blue-400 font-semibold bg-blue-500/10 rounded text-center">
+                      <div className="md:hidden">ROI</div>
+                      <div className="hidden md:inline">ROI: </div>+{profitMargin.toFixed(2)}%
+                    </div>
+                    <div className="px-2 md:px-3 py-1.5 text-xs text-purple-400 font-semibold bg-purple-500/10 rounded text-center">
+                      <div className="md:hidden">Vol</div>
+                      <div className="hidden md:inline">Vol: </div>{(technicalIndicators.volatility || 0).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+
+                {/* Control Panel - Mobile responsive */}
+                <div className="w-full md:w-auto">
+                  <div className="flex justify-center md:justify-end">
+                    <div className="flex bg-gradient-to-r from-gray-800/80 to-gray-700/80 rounded-lg p-1 border border-gray-600/30">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSoundEnabled(!soundEnabled)}
+                        className={`text-gray-300 hover:text-white p-2 transition-all duration-200 ${
+                          soundEnabled ? 'bg-green-500/20 text-green-400' : 'hover:bg-gray-600/50'
+                        }`}
+                        title={soundEnabled ? "Disable sound alerts" : "Enable sound alerts"}
+                      >
+                        {soundEnabled ? <Volume2 className="w-3 h-3 md:w-4 md:h-4" /> : <VolumeX className="w-3 h-3 md:w-4 md:h-4" />}
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user.id] });
+                          setLiveData([]);
                           toast({
-                            title: "🔗 Link Copied",
-                            description: "Dashboard link copied to clipboard",
+                            title: "✅ Data Refreshed",
+                            description: "Portfolio data has been updated with latest information",
                             duration: 2000,
                           });
-                        });
-                      }}
-                      className="text-gray-300 hover:text-white p-2 hover:bg-purple-500/20 transition-all duration-200"
-                      title="Share dashboard"
-                    >
-                      <Share className="w-4 h-4" />
-                    </Button>
+                        }}
+                        className="text-gray-300 hover:text-white p-2 hover:bg-blue-500/20 transition-all duration-200"
+                        title="Refresh portfolio data"
+                      >
+                        <RefreshCw className="w-3 h-3 md:w-4 md:h-4" />
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={exportData}
+                        className="text-gray-300 hover:text-white p-2 hover:bg-orange-500/20 transition-all duration-200"
+                        title="Export data to CSV"
+                      >
+                        <Download className="w-3 h-3 md:w-4 md:h-4" />
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          navigator.share && navigator.share({
+                            title: 'BitVault Pro Investment Dashboard',
+                            text: `Check out my investment performance: ${profitMargin.toFixed(2)}% ROI`,
+                            url: window.location.href
+                          }).catch(() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            toast({
+                              title: "🔗 Link Copied",
+                              description: "Dashboard link copied to clipboard",
+                              duration: 2000,
+                            });
+                          });
+                        }}
+                        className="text-gray-300 hover:text-white p-2 hover:bg-purple-500/20 transition-all duration-200"
+                        title="Share dashboard"
+                      >
+                        <Share className="w-3 h-3 md:w-4 md:h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className={`p-3 md:p-4 ${isFullscreen ? 'h-[70vh]' : 'h-[300px] sm:h-[400px] md:h-[500px]'}`}>
+          <div className={`p-3 md:p-4 ${isFullscreen ? 'h-[70vh]' : 'h-[250px] sm:h-[350px] md:h-[450px]'} overflow-hidden`}>
             {loadingInvestments ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
