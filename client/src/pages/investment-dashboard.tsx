@@ -364,6 +364,7 @@ export default function InvestmentDashboard() {
         const newOrderBook = generateOrderBook();
         
         setLiveData(newData);
+        setChartData(newData);
         setMarketDepth(newDepth);
         setOrderBook(newOrderBook);
         
@@ -428,9 +429,22 @@ export default function InvestmentDashboard() {
     };
   }, [isLiveMode, isStreaming, refreshInterval, soundEnabled, totalInvestedAmount, dailyGrowthRate, selectedTimeframe, user.id, toast, queryClient]);
 
-  const chartData = isLiveMode && liveData.length > 0 ? liveData : generateAdvancedChartData();
-  const latestData = chartData[chartData.length - 1];
-  const previousData = chartData[chartData.length - 2];
+  // Initialize chart data immediately
+  const [chartData, setChartData] = useState<any[]>([]);
+
+  // Generate initial chart data
+  useEffect(() => {
+    const initialData = generateAdvancedChartData();
+    setChartData(initialData);
+    if (!isLiveMode) {
+      setLiveData(initialData);
+    }
+  }, [totalInvestedAmount, totalValue, selectedTimeframe]);
+
+  // Use live data if available, otherwise use generated data
+  const currentChartData = (isLiveMode && liveData.length > 0) ? liveData : chartData;
+  const latestData = currentChartData[currentChartData.length - 1];
+  const previousData = currentChartData[currentChartData.length - 2];
   const priceChange = latestData && previousData ? latestData.value - previousData.value : 0;
   const priceChangePercent = latestData && previousData ? ((latestData.value - previousData.value) / previousData.value * 100) : 0;
 
@@ -468,6 +482,23 @@ export default function InvestmentDashboard() {
   };
 
   const renderChart = () => {
+    if (!chartData || chartData.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-orange-400 animate-pulse" />
+              </div>
+            </div>
+            <p className="text-lg font-semibold text-gray-300 mb-2">Generating Chart Data</p>
+            <p className="text-sm text-gray-500">Creating investment visualization...</p>
+          </div>
+        </div>
+      );
+    }
+
     const commonProps = {
       width: "100%",
       height: isFullscreen ? "70vh" : window.innerWidth < 768 ? "250px" : "400px"
@@ -520,12 +551,12 @@ export default function InvestmentDashboard() {
               />
             </RechartsLineChart>
           </ResponsiveContainer>
-        );
+        );</old_str>
 
       case 'area':
         return (
           <ResponsiveContainer {...commonProps}>
-            <AreaChart data={chartData}>
+            <AreaChart data={currentChartData}>
               <defs>
                 <linearGradient id="colorInvestment" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.6}/>
@@ -603,7 +634,7 @@ export default function InvestmentDashboard() {
       case 'volume':
         return (
           <ResponsiveContainer {...commonProps}>
-            <ComposedChart data={chartData}>
+            <ComposedChart data={currentChartData}>
               <CartesianGrid strokeDasharray="1 1" stroke="rgba(156, 163, 175, 0.2)" />
               <XAxis 
                 dataKey="date" 
@@ -746,7 +777,7 @@ export default function InvestmentDashboard() {
         );
         
       case 'heatmap':
-        const heatmapData = chartData.slice(-20).map((point, i) => ({
+        const heatmapData = currentChartData.slice(-20).map((point, i) => ({
           x: i,
           y: 0,
           value: point.volatility || 0,
@@ -1347,25 +1378,27 @@ export default function InvestmentDashboard() {
                 {renderChart()}
                 
                 {/* Chart Overlay Information */}
-                <div className="absolute bottom-2 left-2 z-10">
-                  <div className="bg-black/60 backdrop-blur-sm border border-gray-600/30 rounded-lg px-3 py-2">
-                    <div className="flex items-center gap-4 text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                        <span className="text-gray-300">Income: {showValues ? `+${formatBitcoin(totalProfit.toString())} BTC` : '••••••••'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                        <span className="text-gray-300">ROI: {profitMargin.toFixed(2)}%</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                        <span className="text-gray-300">Active: {actualActiveInvestments.length}</span>
+                {currentChartData && currentChartData.length > 0 && (
+                  <div className="absolute bottom-2 left-2 z-10">
+                    <div className="bg-black/60 backdrop-blur-sm border border-gray-600/30 rounded-lg px-3 py-2">
+                      <div className="flex items-center gap-4 text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          <span className="text-gray-300">Income: {showValues ? `+${formatBitcoin(totalProfit.toString())} BTC` : '••••••••'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                          <span className="text-gray-300">ROI: {profitMargin.toFixed(2)}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                          <span className="text-gray-300">Active: {actualActiveInvestments.length}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                )}
+              </div></old_str>
             )}
           </div>
         </Card>
