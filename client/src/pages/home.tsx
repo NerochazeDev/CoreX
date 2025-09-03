@@ -227,32 +227,32 @@ export default function Home() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
-        {/* Main Balance Card - Orange Theme */}
+        {/* Main Balance Card - Deep Orange Theme */}
         <div className="max-w-2xl mx-auto mb-8">
           <div className="relative">
             {/* 3D Shadow Base */}
-            <div className="absolute top-3 left-3 w-full h-full bg-gradient-to-br from-orange-600/30 to-orange-800/30 rounded-3xl blur-lg"></div>
+            <div className="absolute top-3 left-3 w-full h-full bg-gradient-to-br from-orange-800/40 to-orange-900/50 rounded-3xl blur-lg"></div>
             
             {/* Main Card */}
-            <Card className="relative bg-gradient-to-br from-orange-50 via-orange-100/80 to-orange-200/60 dark:from-orange-900/20 dark:via-orange-800/30 dark:to-orange-700/20 border border-orange-300/50 dark:border-orange-600/30 rounded-3xl shadow-2xl shadow-orange-500/20 backdrop-blur-xl overflow-hidden">
+            <Card className="relative bg-gradient-to-br from-orange-700 via-orange-800/90 to-orange-900 dark:from-orange-800 dark:via-orange-900/90 dark:to-orange-950 border border-orange-600/60 dark:border-orange-700/50 rounded-3xl shadow-2xl shadow-orange-800/30 backdrop-blur-xl overflow-hidden">
               {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/10 via-orange-500/5 to-orange-600/15 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-600/20 via-orange-700/10 to-orange-800/25 pointer-events-none"></div>
               
               <CardContent className="relative p-8 text-center">
                 <div className="space-y-6">
                   {/* Balance Display */}
                   <div className="space-y-3">
-                    <p className="text-lg font-medium text-orange-800 dark:text-orange-200">Total Portfolio</p>
+                    <p className="text-lg font-medium text-orange-100">Total Portfolio</p>
                     <div className="space-y-2">
-                      <h1 className="text-5xl lg:text-6xl font-bold text-orange-900 dark:text-orange-100 tracking-tight">
+                      <h1 className="text-5xl lg:text-6xl font-bold text-white tracking-tight">
                         {showBalances ? formatBitcoin(totalValue.toString()) : '••••••••'}
                       </h1>
                       <div className="flex items-center justify-center gap-2">
-                        <span className="text-xl font-medium text-orange-700 dark:text-orange-300">BTC</span>
+                        <span className="text-xl font-medium text-orange-200">BTC</span>
                         {bitcoinPrice && showBalances && (
                           <>
-                            <span className="text-orange-500">≈</span>
-                            <span className="text-xl font-semibold text-orange-800 dark:text-orange-200">
+                            <span className="text-orange-300">≈</span>
+                            <span className="text-xl font-semibold text-orange-100">
                               {formatCurrency(totalValue * bitcoinPrice.usd.price, 'USD')}
                             </span>
                           </>
@@ -262,9 +262,9 @@ export default function Home() {
                   </div>
 
                   {/* Profit Indicator */}
-                  <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-900/30 px-4 py-2 rounded-full border border-green-300 dark:border-green-700 shadow-lg shadow-green-500/10">
-                    <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    <span className="text-green-700 dark:text-green-300 font-semibold">
+                  <div className="inline-flex items-center gap-2 bg-green-600/20 px-4 py-2 rounded-full border border-green-500/30 shadow-lg shadow-green-600/10 backdrop-blur-sm">
+                    <TrendingUp className="w-5 h-5 text-green-300" />
+                    <span className="text-green-200 font-semibold">
                       +{profitMargin.toFixed(2)}% return
                     </span>
                   </div>
@@ -274,7 +274,7 @@ export default function Home() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-16 flex flex-col gap-1 bg-gradient-to-br from-green-500/10 to-green-600/10 hover:from-green-500/20 hover:to-green-600/20 border border-green-200/50 dark:border-green-700/50 rounded-2xl shadow-lg shadow-green-500/5 text-green-700 dark:text-green-300"
+                      className="h-16 flex flex-col gap-1 bg-gradient-to-br from-green-600/20 to-green-700/20 hover:from-green-600/30 hover:to-green-700/30 border border-green-400/30 rounded-2xl shadow-lg shadow-green-600/10 text-green-200 hover:text-green-100"
                       onClick={() => setLocation('/deposit')}
                     >
                       <ArrowDownToLine className="w-6 h-6" />
@@ -284,7 +284,7 @@ export default function Home() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-16 flex flex-col gap-1 bg-gradient-to-br from-blue-500/10 to-blue-600/10 hover:from-blue-500/20 hover:to-blue-600/20 border border-blue-200/50 dark:border-blue-700/50 rounded-2xl shadow-lg shadow-blue-500/5 text-blue-700 dark:text-blue-300"
+                      className="h-16 flex flex-col gap-1 bg-gradient-to-br from-blue-600/20 to-blue-700/20 hover:from-blue-600/30 hover:to-blue-700/30 border border-blue-400/30 rounded-2xl shadow-lg shadow-blue-600/10 text-blue-200 hover:text-blue-100"
                       onClick={() => setLocation('/withdraw')}
                     >
                       <ArrowUpFromLine className="w-6 h-6" />
@@ -294,7 +294,7 @@ export default function Home() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-16 flex flex-col gap-1 bg-gradient-to-br from-orange-500/10 to-orange-600/10 hover:from-orange-500/20 hover:to-orange-600/20 border border-orange-200/50 dark:border-orange-700/50 rounded-2xl shadow-lg shadow-orange-500/5 text-orange-700 dark:text-orange-300"
+                      className="h-16 flex flex-col gap-1 bg-gradient-to-br from-orange-600/20 to-orange-700/20 hover:from-orange-600/30 hover:to-orange-700/30 border border-orange-400/30 rounded-2xl shadow-lg shadow-orange-600/10 text-orange-200 hover:text-orange-100"
                       onClick={() => setLocation('/investment')}
                     >
                       <Zap className="w-6 h-6" />
@@ -304,7 +304,7 @@ export default function Home() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-16 flex flex-col gap-1 bg-gradient-to-br from-purple-500/10 to-purple-600/10 hover:from-purple-500/20 hover:to-purple-600/20 border border-purple-200/50 dark:border-purple-700/50 rounded-2xl shadow-lg shadow-purple-500/5 text-purple-700 dark:text-purple-300"
+                      className="h-16 flex flex-col gap-1 bg-gradient-to-br from-purple-600/20 to-purple-700/20 hover:from-purple-600/30 hover:to-purple-700/30 border border-purple-400/30 rounded-2xl shadow-lg shadow-purple-600/10 text-purple-200 hover:text-purple-100"
                       onClick={() => setLocation('/history')}
                     >
                       <BarChart3 className="w-6 h-6" />
@@ -319,41 +319,20 @@ export default function Home() {
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Right Sidebar */}
-          <div className="space-y-6">
-            {/* Bitcoin Price Widget */}
-            <div className="relative">
-              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-gray-900/10 to-gray-600/10 rounded-2xl blur-sm"></div>
-              <Card className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-0 rounded-2xl shadow-xl shadow-black/5">
-                <CardHeader className="border-b border-gray-100 dark:border-gray-700/50 pb-4">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2 text-gray-900 dark:text-white">
-                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">₿</span>
-                    </div>
-                    Bitcoin
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <BitcoinPrice />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Wallet Balance */}
-            <div className="relative">
-              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-gray-900/10 to-gray-600/10 rounded-2xl blur-sm"></div>
-              <Card className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-0 rounded-2xl shadow-xl shadow-black/5">
-                <CardHeader className="border-b border-gray-100 dark:border-gray-700/50 pb-4">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2 text-gray-900 dark:text-white">
-                    <Wallet className="w-5 h-5 text-orange-500" />
-                    Wallet
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <WalletBalance />
-                </CardContent>
-              </Card>
-            </div>
+          {/* Wallet Balance - Restructured */}
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-800/20 to-orange-900/20 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-orange-700/10 via-orange-800/5 to-orange-900/10 dark:from-orange-800/20 dark:via-orange-900/15 dark:to-orange-950/20 backdrop-blur-xl border border-orange-600/30 dark:border-orange-700/30 rounded-2xl shadow-xl shadow-orange-800/10">
+              <CardHeader className="border-b border-orange-600/20 dark:border-orange-700/30 pb-4">
+                <CardTitle className="text-lg font-bold flex items-center gap-2 text-gray-900 dark:text-white">
+                  <Wallet className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  Wallet Balance
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <WalletBalance />
+              </CardContent>
+            </Card>
           </div>
         </div>
 
