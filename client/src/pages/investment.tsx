@@ -88,101 +88,111 @@ export default function Investment() {
   const currencyPrice = currency === 'USD' ? bitcoinPrice?.usd.price : bitcoinPrice?.gbp.price;
 
   return (
-    <div className="min-h-screen dark-bg">
-      {/* Navigation Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b dark-border lg:ml-64">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background">
+      {/* Modern Navigation Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm lg:ml-64">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                <ArrowLeft className="w-4 h-4" />
+              <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-full hover:bg-primary/10">
+                <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl font-bold dark-text">Investment Center</h1>
-              <p className="text-muted-foreground text-sm">Portfolio Analytics & Growth</p>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">Investment Center</h1>
+              <p className="text-sm text-muted-foreground">Portfolio Analytics & Growth</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 space-y-6 pb-20 lg:ml-64">
-        {/* Portfolio Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <BarChart3 className="w-4 h-4 text-bitcoin" />
-              <span className="text-xs text-gray-300">Total Invested</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:ml-64 space-y-6">
+        {/* Modern Portfolio Overview */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <Card className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Total Invested</span>
             </div>
             <div className="space-y-1">
-              <p className="text-lg font-bold text-white">
+              <p className="text-lg sm:text-xl font-bold text-foreground">
                 {currencyPrice ? formatBitcoinWithFiat(totalInvested.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalInvested.toString())} BTC`}
               </p>
             </div>
           </Card>
 
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-green-400" />
-              <span className="text-xs text-gray-300">Total Profit</span>
+          <Card className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-green-500" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Total Profit</span>
             </div>
             <div className="space-y-1">
-              <p className="text-lg font-bold text-green-400">
+              <p className="text-lg sm:text-xl font-bold text-green-500">
                 +{currencyPrice ? formatBitcoinWithFiat(totalProfit.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalProfit.toString())} BTC`}
               </p>
             </div>
           </Card>
 
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <PieChart className="w-4 h-4 text-purple-400" />
-              <span className="text-xs text-gray-300">Portfolio Value</span>
+          <Card className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                <PieChart className="w-5 h-5 text-purple-500" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Portfolio Value</span>
             </div>
             <div className="space-y-1">
-              <p className="text-lg font-bold text-white">
+              <p className="text-lg sm:text-xl font-bold text-foreground">
                 {currencyPrice ? formatBitcoinWithFiat(totalValue.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalValue.toString())} BTC`}
               </p>
             </div>
           </Card>
 
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-orange-400" />
-              <span className="text-xs text-gray-300">ROI</span>
+          <Card className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-orange-500" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">ROI</span>
             </div>
             <div className="space-y-1">
-              <p className={`text-lg font-bold ${portfolioReturn >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <p className={`text-lg sm:text-xl font-bold ${portfolioReturn >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {portfolioReturn >= 0 ? '+' : ''}{portfolioReturn.toFixed(2)}%
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Avg Daily: {avgDailyReturn.toFixed(3)}%
               </p>
             </div>
           </Card>
         </div>
 
-        {/* Performance Insights */}
+        {/* Modern Performance Insights */}
         {activeInvestments.length > 0 && (
-          <Card className="bg-gray-900/50 backdrop-blur-sm border border-gray-800">
+          <Card className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <BarChart3 className="w-5 h-5 text-bitcoin" />
+              <CardTitle className="flex items-center gap-3 text-foreground">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                </div>
                 Performance Insights
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-green-500/20 rounded-lg border border-green-500/30">
-                  <div className="text-2xl font-bold text-green-400">{activeInvestments.length}</div>
-                  <div className="text-sm text-gray-300">Active Investments</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center p-4 sm:p-6 bg-green-500/10 rounded-xl border border-green-500/20">
+                  <div className="text-2xl sm:text-3xl font-bold text-green-500">{activeInvestments.length}</div>
+                  <div className="text-sm text-muted-foreground mt-1">Active Investments</div>
                 </div>
-                <div className="text-center p-4 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                  <div className="text-2xl font-bold text-blue-400">{completedInvestments.length}</div>
-                  <div className="text-sm text-gray-300">Completed</div>
+                <div className="text-center p-4 sm:p-6 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                  <div className="text-2xl sm:text-3xl font-bold text-blue-500">{completedInvestments.length}</div>
+                  <div className="text-sm text-muted-foreground mt-1">Completed</div>
                 </div>
-                <div className="text-center p-4 bg-orange-500/20 rounded-lg border border-orange-500/30">
-                  <div className="text-2xl font-bold text-orange-400">{pendingInvestments.length}</div>
-                  <div className="text-sm text-gray-300">Pending Review</div>
+                <div className="text-center p-4 sm:p-6 bg-orange-500/10 rounded-xl border border-orange-500/20">
+                  <div className="text-2xl sm:text-3xl font-bold text-orange-500">{pendingInvestments.length}</div>
+                  <div className="text-sm text-muted-foreground mt-1">Pending Review</div>
                 </div>
               </div>
             </CardContent>

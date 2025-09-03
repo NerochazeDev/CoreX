@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useCurrency } from "@/hooks/use-currency";
-import { formatBitcoinAmount } from "@/lib/bitcoin";
 import { ArrowLeft, Clock, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -118,35 +117,31 @@ export default function History() {
   }
 
   return (
-    <div className="min-h-screen dark-bg">
-      {/* Navigation Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b dark-border lg:ml-64">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background">
+      {/* Modern Navigation Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm lg:ml-64">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center gap-4">
             <Link href="/">
               <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl font-bold dark-text">History</h1>
-              <p className="text-muted-foreground text-sm">Transaction history</p>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">History</h1>
+              <p className="text-sm text-muted-foreground">Transaction history</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 space-y-6 pb-20 lg:ml-64">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold dark-text mb-2">Transaction History</h1>
-          <p className="text-muted-foreground">Your investment and transaction history</p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:ml-64 space-y-6">
 
         {isLoading || loadingNotifications || loadingTransactions ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <Card key={i} className="dark-card dark-border">
-                <CardContent className="p-4">
+              <Card key={i} className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl">
+                <CardContent className="p-6">
                   <Skeleton className="h-4 w-3/4 mb-2" />
                   <Skeleton className="h-3 w-1/2 mb-2" />
                   <Skeleton className="h-3 w-1/4" />
@@ -157,7 +152,7 @@ export default function History() {
         ) : (
           <div className="space-y-4">
             <div className="space-y-4">
-            <h3 className="text-lg font-semibold dark-text">Transaction History</h3>
+            <h3 className="text-xl font-semibold text-foreground">Transaction History</h3>
 
             {/* All transactions including investment history */}
             <div className="space-y-3">
@@ -178,16 +173,16 @@ export default function History() {
                 };
 
                 const getPlanName = (planId: number) => {
-                  return investmentPlans?.find(plan => plan.id === planId)?.name || `Plan ${planId}`;
+                  return investmentPlans?.find((plan: any) => plan.id === planId)?.name || `Plan ${planId}`;
                 };
 
                 return (
-                  <Card key={`tx-${transaction.id}`} className="dark-card dark-border p-4 hover:bg-muted/5 transition-colors">
+                  <Card key={`tx-${transaction.id}`} className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl p-6 hover:bg-muted/5 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         {getTransactionIcon(transaction.type, transaction.status)}
                         <div>
-                          <p className="font-medium dark-text capitalize">
+                          <p className="font-medium text-foreground capitalize">
                             {transaction.type === 'investment' && transaction.planId 
                               ? `Investment - ${getPlanName(transaction.planId)}`
                               : transaction.type
@@ -199,7 +194,7 @@ export default function History() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold dark-text">
+                        <p className="font-semibold text-foreground">
                           {transaction.type === 'withdrawal' ? '-' : '+'}
                           {formatBitcoin(transaction.amount)} BTC
                         </p>
@@ -274,7 +269,7 @@ export default function History() {
                 const currentValue = parseFloat(investment.amount) + parseFloat(investment.currentProfit);
                 const progress = calculateInvestmentProgress(new Date(investment.startDate), new Date(investment.endDate));
                 const getPlanName = (planId: number) => {
-                  return investmentPlans?.find(plan => plan.id === planId)?.name || `Plan ${planId}`;
+                  return investmentPlans?.find((plan: any) => plan.id === planId)?.name || `Plan ${planId}`;
                 };
 
                 return (
@@ -300,7 +295,7 @@ export default function History() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold dark-text">
+                        <p className="font-semibold text-foreground">
                           {formatBitcoin(currentValue.toString())} BTC
                         </p>
                         {bitcoinPrice && (

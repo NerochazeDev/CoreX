@@ -120,48 +120,52 @@ export default function Transactions() {
   };
 
   return (
-    <div className="max-w-sm mx-auto lg:max-w-4xl bg-background min-h-screen relative lg:ml-64">
-      {/* Header */}
-      <header className="px-4 py-6 border-b dark-border">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setLocation('/history')}
-            className="rounded-full"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Transaction History</h1>
-            <p className="text-xs text-muted-foreground">View your deposits and investments</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background lg:ml-64">
+      {/* Modern Header */}
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setLocation('/history')}
+              className="rounded-full hover:bg-primary/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">Transaction History</h1>
+              <p className="text-sm text-muted-foreground">View your deposits and investments</p>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="p-4 pb-20 space-y-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-6">
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="dark-card dark-border animate-pulse">
-                <div className="h-24 bg-muted rounded"></div>
+              <Card key={i} className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl animate-pulse">
+                <div className="h-24 bg-muted rounded-2xl"></div>
               </Card>
             ))}
           </div>
         ) : transactions?.length === 0 ? (
-          <Card className="dark-card dark-border">
-            <CardContent className="pt-6 text-center">
-              <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="font-semibold text-foreground mb-2">No Transactions</h3>
-              <p className="text-sm text-muted-foreground mb-4">You haven't made any deposits or investments yet.</p>
-              <Button onClick={() => setLocation('/deposit')} className="bg-bitcoin hover:bg-bitcoin/90">
+          <Card className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl">
+            <CardContent className="pt-8 pb-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No Transactions</h3>
+              <p className="text-sm text-muted-foreground mb-6">You haven't made any deposits or investments yet.</p>
+              <Button onClick={() => setLocation('/deposit')} className="bg-primary hover:bg-primary/90">
                 Make a Deposit
               </Button>
             </CardContent>
           </Card>
         ) : (
           transactions?.map((transaction) => (
-            <Card key={transaction.id} className="dark-card dark-border">
+            <Card key={transaction.id} className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -169,7 +173,7 @@ export default function Transactions() {
                       {getTransactionIcon(transaction.type)}
                     </div>
                     <div>
-                      <CardTitle className="text-sm dark-text capitalize">
+                      <CardTitle className="text-sm text-foreground capitalize">
                         {transaction.type}
                       </CardTitle>
                       <p className="text-xs text-muted-foreground">
@@ -221,14 +225,14 @@ export default function Transactions() {
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground text-sm">Amount</span>
                     <div className="text-right">
-                      <div className="font-semibold dark-text">{formatBitcoin(transaction.amount)} BTC</div>
+                      <div className="font-semibold text-foreground">{formatBitcoin(transaction.amount)} BTC</div>
                     </div>
                   </div>
 
                   {transaction.planId && (
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground text-sm">Investment Plan</span>
-                      <span className="text-sm dark-text">Plan #{transaction.planId}</span>
+                      <span className="text-sm text-foreground">Plan #{transaction.planId}</span>
                     </div>
                   )}
 
