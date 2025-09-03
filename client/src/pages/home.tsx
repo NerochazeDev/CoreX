@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BitVaultLogo } from "@/components/bitvault-logo";
@@ -178,14 +179,23 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-b border-gray-200/50 dark:border-gray-700/50 shadow-lg shadow-black/5">
+      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-gradient-to-r from-white/95 via-orange-50/80 to-white/95 dark:from-gray-900/95 dark:via-orange-900/20 dark:to-gray-900/95 border-b border-orange-200/60 dark:border-orange-700/40 shadow-xl shadow-orange-500/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <BitVaultLogo variant="light" size="md" showPro={true} />
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-orange-600 rounded-2xl blur opacity-25"></div>
+                <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-2xl shadow-lg">
+                  <BitVaultLogo variant="light" size="md" showPro={true} />
+                </div>
+              </div>
               <div className="hidden sm:block">
-                <p className="text-xs text-gray-500 dark:text-gray-400">Hello,</p>
-                <p className="font-semibold text-gray-900 dark:text-white">{user.username}</p>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+                  BitVault Pro
+                </h1>
+                <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">
+                  Welcome back, {user.username || user.email?.split('@')[0]}
+                </p>
               </div>
             </div>
 
@@ -194,7 +204,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowBalances(!showBalances)}
-                className="hidden sm:flex text-gray-600 hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400"
+                className="hidden sm:flex h-11 w-11 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200"
               >
                 {showBalances ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
               </Button>
@@ -203,11 +213,11 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation('/notifications')}
-                className="relative text-gray-600 hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400"
+                className="relative h-11 w-11 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount && unreadCount.count > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-br from-orange-500 to-orange-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg animate-pulse">
                     {unreadCount.count}
                   </span>
                 )}
@@ -217,9 +227,23 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation('/profile')}
-                className="text-gray-600 hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-400"
+                className="h-11 w-11 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200 p-1"
               >
-                <User className="w-5 h-5" />
+                <Avatar className="w-9 h-9 border-2 border-orange-300/50 dark:border-orange-600/50">
+                  {user.avatar && !user.avatar.startsWith('gradient-') ? (
+                    <AvatarImage src={user.avatar} className="object-cover" />
+                  ) : user.avatar && user.avatar.startsWith('gradient-') ? (
+                    <div className={`w-full h-full bg-gradient-to-br ${user.avatar.replace('gradient-', '')} flex items-center justify-center rounded-full`}>
+                      <span className="text-sm font-bold text-white">
+                        {(user.username || user.email || 'U').charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  ) : (
+                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-600 text-white font-bold text-sm">
+                      {(user.username || user.email || 'U').charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
               </Button>
             </div>
           </div>
