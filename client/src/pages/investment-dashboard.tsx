@@ -551,7 +551,9 @@ export default function InvestmentDashboard() {
               />
             </RechartsLineChart>
           </ResponsiveContainer>
-        );</old_str>
+        );
+
+      case 'area':</old_str>
 
       case 'area':
         return (
