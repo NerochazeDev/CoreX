@@ -443,6 +443,14 @@ export default function InvestmentDashboard() {
 
   // Use live data if available, otherwise use generated data
   const currentChartData = (isLiveMode && liveData.length > 0) ? liveData : chartData;
+  
+  // Ensure chart data is always available
+  useEffect(() => {
+    if (currentChartData.length === 0 && !loadingInvestments) {
+      const initialData = generateAdvancedChartData();
+      setChartData(initialData);
+    }
+  }, [currentChartData.length, loadingInvestments]);
   const latestData = currentChartData[currentChartData.length - 1];
   const previousData = currentChartData[currentChartData.length - 2];
   const priceChange = latestData && previousData ? latestData.value - previousData.value : 0;
@@ -463,7 +471,7 @@ export default function InvestmentDashboard() {
   const exportData = () => {
     const csvContent = "data:text/csv;charset=utf-8," 
       + "Date,Value (BTC),Profit (BTC),Change %,Volume,USD Value\n"
-      + chartData.map(row => 
+      + currentChartData.map(row => 
           `${row.date},${row.value},${row.profit},${row.changePercent},${row.volume},${row.usdValue}`
         ).join("\n");
     
@@ -482,7 +490,7 @@ export default function InvestmentDashboard() {
   };
 
   const renderChart = () => {
-    if (!chartData || chartData.length === 0) {
+    if (!currentChartData || currentChartData.length === 0) {
       return (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
@@ -508,7 +516,7 @@ export default function InvestmentDashboard() {
       case 'line':
         return (
           <ResponsiveContainer {...commonProps}>
-            <RechartsLineChart data={chartData}>
+            <RechartsLineChart data={currentChartData}>
               <defs>
                 <linearGradient id="colorIncomeGrowth" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
@@ -553,7 +561,8 @@ export default function InvestmentDashboard() {
           </ResponsiveContainer>
         );
 
-      case 'area':</old_str>
+      case 'area':
+        return (</old_str>
 
       case 'area':
         return (
