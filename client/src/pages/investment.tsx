@@ -508,7 +508,7 @@ export default function Investment() {
             </div>
           </div>
         )}
-      </div>
+      </main>
 
       <BottomNavigation />
     </div>
