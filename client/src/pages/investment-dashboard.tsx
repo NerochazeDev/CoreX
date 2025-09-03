@@ -454,9 +454,9 @@ export default function InvestmentDashboard() {
           <ResponsiveContainer {...commonProps}>
             <RechartsLineChart data={chartData}>
               <defs>
-                <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#f97316" stopOpacity={0.1}/>
+                <linearGradient id="colorIncomeGrowth" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="1 1" stroke="rgba(156, 163, 175, 0.3)" />
@@ -475,23 +475,23 @@ export default function InvestmentDashboard() {
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                  border: '1px solid #f97316',
+                  border: '1px solid #10b981',
                   borderRadius: '8px',
                   color: 'white'
                 }}
                 formatter={(value: any, name: string) => [
                   showValues ? `${parseFloat(value).toFixed(8)} BTC` : '••••••••',
-                  name === 'value' ? 'Portfolio Value' : name
+                  name === 'profit' ? 'Investment Income' : 'Total Value'
                 ]}
-                labelFormatter={(label) => `Time: ${label}`}
+                labelFormatter={(label) => `Period: ${label}`}
               />
               <Line 
                 type="monotone" 
-                dataKey="value" 
-                stroke="url(#colorLine)" 
-                strokeWidth={2}
+                dataKey="profit" 
+                stroke="url(#colorIncomeGrowth)" 
+                strokeWidth={3}
                 dot={false}
-                activeDot={{ r: 4, stroke: '#f97316', strokeWidth: 2, fill: 'white' }}
+                activeDot={{ r: 4, stroke: '#10b981', strokeWidth: 2, fill: 'white' }}
               />
             </RechartsLineChart>
           </ResponsiveContainer>
@@ -502,14 +502,18 @@ export default function InvestmentDashboard() {
           <ResponsiveContainer {...commonProps}>
             <AreaChart data={chartData}>
               <defs>
-                <linearGradient id="colorArea" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.6}/>
-                  <stop offset="50%" stopColor="#f97316" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#f97316" stopOpacity={0.1}/>
+                <linearGradient id="colorInvestment" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.6}/>
+                  <stop offset="50%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
                 </linearGradient>
-                <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                <linearGradient id="colorIncomeEarned" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.7}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
+                </linearGradient>
+                <linearGradient id="colorDailyIncome" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.5}/>
+                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.1}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="1 1" stroke="rgba(156, 163, 175, 0.2)" />
@@ -542,26 +546,30 @@ export default function InvestmentDashboard() {
                       <div className="font-semibold">{btcAmount} BTC</div>
                       {usdAmount && showValues && <div className="text-xs opacity-75">≈ {usdAmount}</div>}
                     </>,
-                    name === 'value' ? 'Portfolio Value' : 'Profit Earned'
+                    name === 'value' ? 'Total Investment Value' : 
+                    name === 'profit' ? 'Cumulative Income Earned' : 
+                    'Investment Base Amount'
                   ];
                 }}
-                labelFormatter={(label) => `Time: ${label}`}
+                labelFormatter={(label) => `Period: ${label}`}
               />
               <Area 
                 type="monotone" 
                 dataKey="value" 
-                stroke="#f97316" 
+                stackId="1"
+                stroke="#3b82f6" 
                 fillOpacity={1} 
-                fill="url(#colorArea)"
-                strokeWidth={3}
+                fill="url(#colorInvestment)"
+                strokeWidth={2}
               />
               <Area 
                 type="monotone" 
                 dataKey="profit" 
+                stackId="2"
                 stroke="#10b981" 
                 fillOpacity={1} 
-                fill="url(#colorProfit)"
-                strokeWidth={2}
+                fill="url(#colorIncomeEarned)"
+                strokeWidth={3}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -648,39 +656,64 @@ export default function InvestmentDashboard() {
         );
         
       case 'depth':
+        // Generate investment source breakdown data
+        const investmentSources = actualActiveInvestments.map((investment, index) => {
+          const plan = investmentPlans?.find(p => p.id === investment.planId);
+          return {
+            planName: plan?.name || `Plan ${investment.planId}`,
+            amount: parseFloat(investment.amount),
+            profit: parseFloat(investment.currentProfit),
+            dailyRate: plan ? parseFloat(plan.dailyReturnRate) * 100 : 0,
+            color: `hsl(${index * 60}, 70%, 50%)`
+          };
+        });
+
         return (
           <ResponsiveContainer {...commonProps}>
-            <AreaChart data={marketDepth}>
+            <AreaChart data={investmentSources}>
               <CartesianGrid strokeDasharray="1 1" stroke="rgba(156, 163, 175, 0.2)" />
               <XAxis 
-                dataKey="price" 
-                tick={{ fontSize: 11, fill: '#6B7280' }}
+                dataKey="planName" 
+                tick={{ fontSize: 10, fill: '#6B7280' }}
                 stroke="#9CA3AF"
-                tickFormatter={(value) => showValues ? `${parseFloat(value).toFixed(6)}` : '••••••'}
+                angle={-45}
+                textAnchor="end"
+                height={80}
               />
               <YAxis 
                 tick={{ fontSize: 11, fill: '#6B7280' }}
                 stroke="#9CA3AF"
-                tickFormatter={(value) => `${value.toFixed(1)}`}
+                tickFormatter={(value) => showValues ? `${value.toFixed(4)}` : '••••••'}
               />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                  border: '1px solid #f97316',
+                  border: '1px solid #10b981',
                   borderRadius: '12px',
                   color: 'white'
                 }}
                 formatter={(value: any, name: string) => [
-                  `${parseFloat(value).toFixed(4)}`,
-                  name === 'total' ? 'Cumulative Size' : 'Size'
+                  showValues ? `${parseFloat(value).toFixed(8)} BTC` : '••••••••',
+                  name === 'amount' ? 'Invested Amount' : 
+                  name === 'profit' ? 'Income Earned' : 
+                  'Daily Rate %'
                 ]}
-                labelFormatter={(label) => showValues ? `Price: ${parseFloat(label).toFixed(8)} BTC` : 'Price: ••••••••'}
+                labelFormatter={(label) => `Investment Plan: ${label}`}
               />
               <Area 
-                type="stepAfter"
-                dataKey="total"
-                stroke="#f97316"
-                fill="rgba(249, 115, 22, 0.3)"
+                type="monotone"
+                dataKey="amount"
+                stackId="1"
+                stroke="#3b82f6"
+                fill="rgba(59, 130, 246, 0.4)"
+                strokeWidth={2}
+              />
+              <Area 
+                type="monotone"
+                dataKey="profit"
+                stackId="1"
+                stroke="#10b981"
+                fill="rgba(16, 185, 129, 0.6)"
                 strokeWidth={2}
               />
             </AreaChart>
@@ -983,20 +1016,20 @@ export default function InvestmentDashboard() {
           </Card>
         </div>
 
-        {/* Advanced Chart Section */}
+        {/* Live Investment Income Tracker */}
         <Card className="bg-black/40 border-orange-500/30 backdrop-blur-lg">
           <div className="p-3 md:p-4 border-b border-orange-500/20">
             <div className="flex flex-col gap-3 md:gap-4">
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 md:gap-4">
                 <div>
-                  <h2 className="text-lg md:text-xl font-bold text-orange-400 mb-1">Professional Trading Terminal</h2>
+                  <h2 className="text-lg md:text-xl font-bold text-orange-400 mb-1">Live Investment Income Tracker</h2>
                   <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-400">
-                    <span>Last Update: {new Date().toLocaleTimeString()}</span>
+                    <span>Last Income Update: {new Date().toLocaleTimeString()}</span>
                     <Badge className={`${isStreaming ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
-                      {isStreaming ? 'STREAMING LIVE' : 'PAUSED'}
+                      {isStreaming ? 'EARNING LIVE' : 'TRACKING PAUSED'}
                     </Badge>
                     <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                      {selectedTimeframe} • {chartType.toUpperCase()}
+                      Daily ROI: +{dailyGrowthRate.toFixed(3)}%
                     </Badge>
                   </div>
                 </div>
@@ -1004,22 +1037,22 @@ export default function InvestmentDashboard() {
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
                 <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                {/* Timeframe Selector */}
+                {/* Investment Period Selector */}
                 <div className="flex bg-gray-800/50 rounded-lg p-1 overflow-x-auto shrink-0">
-                  {(['1m', '5m', '15m', '1h', '4h', '1d', '1w'] as const).map((tf) => (
+                  {(['Today', 'This Week', 'This Month', 'All Time'] as const).map((period) => (
                     <Button
-                      key={tf}
+                      key={period}
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedTimeframe(tf)}
-                      className={`px-2 py-1 text-xs ${selectedTimeframe === tf ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
+                      onClick={() => setSelectedTimeframe(period as any)}
+                      className={`px-2 py-1 text-xs ${selectedTimeframe === period ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
                     >
-                      {tf}
+                      {period}
                     </Button>
                   ))}
                 </div>
 
-                {/* Chart Type Selector */}
+                {/* Income View Selector */}
                 <div className="flex bg-gray-800/50 rounded-lg p-1 overflow-x-auto shrink-0">
                   <Button
                     variant="ghost"
@@ -1027,8 +1060,8 @@ export default function InvestmentDashboard() {
                     onClick={() => setChartType('area')}
                     className={`px-3 py-1 text-xs ${chartType === 'area' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
                   >
-                    <BarChart3 className="w-3 h-3 mr-1" />
-                    Area
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    Growth
                   </Button>
                   <Button
                     variant="ghost"
@@ -1036,8 +1069,8 @@ export default function InvestmentDashboard() {
                     onClick={() => setChartType('line')}
                     className={`px-3 py-1 text-xs ${chartType === 'line' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
                   >
-                    <LineChart className="w-3 h-3 mr-1" />
-                    Line
+                    <DollarSign className="w-3 h-3 mr-1" />
+                    Income
                   </Button>
                   <Button
                     variant="ghost"
@@ -1046,7 +1079,7 @@ export default function InvestmentDashboard() {
                     className={`px-3 py-1 text-xs ${chartType === 'volume' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
                   >
                     <BarChart3 className="w-3 h-3 mr-1" />
-                    Volume
+                    Activity
                   </Button>
                   <Button
                     variant="ghost"
@@ -1055,38 +1088,18 @@ export default function InvestmentDashboard() {
                     className={`px-3 py-1 text-xs ${chartType === 'depth' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
                   >
                     <PieChart className="w-3 h-3 mr-1" />
-                    Depth
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setChartType('heatmap')}
-                    className={`px-3 py-1 text-xs ${chartType === 'heatmap' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
-                  >
-                    <Target className="w-3 h-3 mr-1" />
-                    Heat
+                    Sources
                   </Button>
                 </div>
 
-                {/* Technical Indicators */}
+                {/* Investment Metrics */}
                 <div className="flex bg-gray-800/50 rounded-lg p-1">
-                  {['SMA', 'RSI', 'MACD', 'BB'].map((indicator) => (
-                    <Button
-                      key={indicator}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (showIndicators.includes(indicator)) {
-                          setShowIndicators(showIndicators.filter(i => i !== indicator));
-                        } else {
-                          setShowIndicators([...showIndicators, indicator]);
-                        }
-                      }}
-                      className={`px-2 py-1 text-xs ${showIndicators.includes(indicator) ? 'bg-blue-500 text-white' : 'text-gray-400 hover:text-white'}`}
-                    >
-                      {indicator}
-                    </Button>
-                  ))}
+                  <div className="px-3 py-1 text-xs text-green-400 font-medium">
+                    Daily: +{dailyGrowthRate.toFixed(3)}%
+                  </div>
+                  <div className="px-3 py-1 text-xs text-blue-400 font-medium">
+                    Total ROI: +{profitMargin.toFixed(2)}%
+                  </div>
                 </div>
 
                 {/* Control Buttons */}
@@ -1395,86 +1408,121 @@ export default function InvestmentDashboard() {
               </Card>
             </div>
             
-            {/* Market Data & Order Book */}
+            {/* Investment Activity & Live Feed */}
             <div className="xl:col-span-4 space-y-6">
-              {/* Order Book */}
+              {/* Live Investment Activity */}
               <Card className="bg-black/40 border-green-500/30 backdrop-blur-lg">
                 <div className="p-4 border-b border-green-500/20">
-                  <h3 className="text-sm font-semibold text-green-400">Order Book</h3>
-                  <p className="text-xs text-gray-500">Live market depth</p>
+                  <h3 className="text-sm font-semibold text-green-400">Live Investment Activity</h3>
+                  <p className="text-xs text-gray-500">Real-time income tracking</p>
                 </div>
                 <div className="p-4">
-                  <div className="space-y-2">
-                    {/* Asks (Sell Orders) */}
-                    <div className="space-y-1">
-                      <h4 className="text-xs text-red-400 font-medium mb-2">Asks (Sell)</h4>
-                      {orderBook.asks.slice(0, 5).map((ask, i) => (
-                        <div key={`ask-${i}`} className="flex justify-between items-center text-xs py-1 px-2 bg-red-500/10 rounded border border-red-500/20">
-                          <span className="text-red-400 font-mono">
-                            {showValues ? ask.price.toFixed(8) : '••••••••'}
-                          </span>
-                          <span className="text-gray-300 font-mono">{ask.size.toFixed(4)}</span>
-                          <span className="text-gray-500 font-mono">{ask.total.toFixed(2)}</span>
-                        </div>
-                      ))}
+                  <div className="space-y-3">
+                    {/* Active Investment Sources */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs text-green-400 font-medium mb-2">Active Income Sources</h4>
+                      {actualActiveInvestments.slice(0, 5).map((investment, i) => {
+                        const plan = investmentPlans?.find(p => p.id === investment.planId);
+                        const dailyIncome = parseFloat(investment.amount) * (plan ? parseFloat(plan.dailyReturnRate) : 0.01);
+                        const hourlyIncome = dailyIncome / 24;
+                        
+                        return (
+                          <div key={investment.id} className="flex justify-between items-center text-xs py-2 px-3 bg-green-500/10 rounded border border-green-500/20">
+                            <div>
+                              <span className="text-green-400 font-medium">
+                                {plan?.name || `Plan ${investment.planId}`}
+                              </span>
+                              <div className="text-gray-400 text-xs">
+                                {showValues ? `${formatBitcoin(investment.amount)} BTC` : '••••••••'}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-green-300 font-mono">
+                                {showValues ? `+${hourlyIncome.toFixed(8)}` : '••••••••'}
+                              </div>
+                              <div className="text-gray-500 text-xs">per hour</div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                     
-                    {/* Current Price */}
-                    <div className="my-3 p-2 bg-orange-500/20 rounded border border-orange-500/30">
+                    {/* Current Earning Rate */}
+                    <div className="my-3 p-3 bg-orange-500/20 rounded border border-orange-500/30">
                       <div className="text-center">
-                        <p className="text-xs text-orange-400">Last Price</p>
-                        <p className="text-sm font-bold text-white font-mono">
-                          {showValues ? `${(chartData[chartData.length - 1]?.value || totalValue).toFixed(8)}` : '••••••••'}
+                        <p className="text-xs text-orange-400">Current Earning Rate</p>
+                        <p className="text-lg font-bold text-white">
+                          +{dailyGrowthRate.toFixed(3)}%
                         </p>
+                        <p className="text-xs text-gray-400">per day</p>
                       </div>
                     </div>
                     
-                    {/* Bids (Buy Orders) */}
-                    <div className="space-y-1">
-                      <h4 className="text-xs text-green-400 font-medium mb-2">Bids (Buy)</h4>
-                      {orderBook.bids.slice(0, 5).map((bid, i) => (
-                        <div key={`bid-${i}`} className="flex justify-between items-center text-xs py-1 px-2 bg-green-500/10 rounded border border-green-500/20">
-                          <span className="text-green-400 font-mono">
-                            {showValues ? bid.price.toFixed(8) : '••••••••'}
-                          </span>
-                          <span className="text-gray-300 font-mono">{bid.size.toFixed(4)}</span>
-                          <span className="text-gray-500 font-mono">{bid.total.toFixed(2)}</span>
-                        </div>
-                      ))}
+                    {/* Recent Income Events */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs text-blue-400 font-medium mb-2">Recent Income Events</h4>
+                      {Array.from({ length: 5 }, (_, i) => {
+                        const timeAgo = `${Math.floor(Math.random() * 60)} min ago`;
+                        const randomInvestment = actualActiveInvestments[Math.floor(Math.random() * actualActiveInvestments.length)];
+                        const plan = investmentPlans?.find(p => p.id === randomInvestment?.planId);
+                        const income = randomInvestment ? parseFloat(randomInvestment.amount) * 0.0001 : 0;
+                        
+                        return (
+                          <div key={i} className="flex justify-between items-center text-xs py-2 px-3 bg-blue-500/10 rounded border border-blue-500/20">
+                            <div>
+                              <span className="text-blue-400">
+                                {plan?.name || 'Investment Plan'}
+                              </span>
+                              <div className="text-gray-500 text-xs">{timeAgo}</div>
+                            </div>
+                            <div className="text-green-300 font-mono">
+                              {showValues ? `+${income.toFixed(8)} BTC` : '+••••••••'}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
               </Card>
               
-              {/* Market Stats */}
+              {/* Investment Performance Metrics */}
               <Card className="bg-black/40 border-purple-500/30 backdrop-blur-lg p-4">
-                <h3 className="text-sm font-semibold text-purple-400 mb-3">Market Statistics</h3>
+                <h3 className="text-sm font-semibold text-purple-400 mb-3">Investment Performance</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">24h Volume</span>
+                    <span className="text-xs text-gray-400">Total Invested</span>
                     <span className="text-sm font-bold text-white">
-                      {showValues ? `${((technicalIndicators.volume || 0) / 1000).toFixed(0)}K BTC` : '••••'}
+                      {showValues ? `${formatBitcoin(totalInvestedAmount.toString())} BTC` : '••••••••'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">24h High</span>
+                    <span className="text-xs text-gray-400">Total Income</span>
                     <span className="text-sm font-bold text-green-400">
-                      {showValues ? `${(totalValue * 1.024).toFixed(8)} BTC` : '••••••••'}
+                      {showValues ? `+${formatBitcoin(totalProfit.toString())} BTC` : '••••••••'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">24h Low</span>
-                    <span className="text-sm font-bold text-red-400">
-                      {showValues ? `${(totalValue * 0.978).toFixed(8)} BTC` : '••••••••'}
+                    <span className="text-xs text-gray-400">Daily Growth</span>
+                    <span className="text-sm font-bold text-blue-400">
+                      +{dailyGrowthRate.toFixed(3)}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">Spread</span>
-                    <span className="text-sm font-bold text-yellow-400">0.08%</span>
+                    <span className="text-xs text-gray-400">Active Plans</span>
+                    <span className="text-sm font-bold text-yellow-400">{actualActiveInvestments.length}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">Market Cap</span>
-                    <span className="text-sm font-bold text-blue-400">$2.1T</span>
+                    <span className="text-xs text-gray-400">Total ROI</span>
+                    <span className="text-sm font-bold text-purple-400">+{profitMargin.toFixed(2)}%</span>
+                  </div>
+                  <div className="mt-4 p-3 bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg border border-green-500/30">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-300">Projected Monthly Income</p>
+                      <p className="text-lg font-bold text-green-400">
+                        {showValues ? `+${(totalInvestedAmount * dailyGrowthRate / 100 * 30).toFixed(8)} BTC` : '••••••••'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </Card>
