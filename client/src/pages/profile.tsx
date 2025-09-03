@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { BottomNavigation } from "@/components/bottom-navigation";
+import { BitVaultLogo } from "@/components/bitvault-logo";
 import { 
   Copy, User, Bitcoin, Key, ExternalLink, Shield, ArrowLeft, TrendingUp, 
   Activity, Calendar, Mail, Hash, Award, Wallet, Eye, EyeOff, Settings,
@@ -339,30 +340,30 @@ function ProfileContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background">
-      {/* Modern Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
               <Link href="/">
-                <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-full hover:bg-primary/10">
-                  <ArrowLeft className="w-5 h-5" />
+                <Button variant="ghost" size="icon" aria-label="Back to home" className="h-10 w-10" data-testid="button-back">
+                  <ArrowLeft className="w-4 h-4" />
                 </Button>
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">
-                  Profile Center
+              <BitVaultLogo variant="light" size="md" showPro={true} />
+              <div className="hidden sm:block">
+                <h1 className="text-lg font-semibold text-foreground">
+                  Profile
                 </h1>
-                <p className="text-sm text-muted-foreground">Manage your account & preferences</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <nav className="flex items-center gap-2" aria-label="Profile actions">
               <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 hover:bg-primary/10 border-primary/20">
+                  <Button variant="outline" size="sm" className="gap-2" data-testid="button-edit-profile">
                     <Edit className="w-4 h-4" />
-                    Edit Profile
+                    Edit
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg">
@@ -450,50 +451,43 @@ function ProfileContent() {
                 onClick={logout}
                 variant="outline" 
                 size="sm" 
-                className="gap-2 text-red-600 hover:bg-red-50 border-red-200 hover:border-red-300 dark:text-red-400 dark:hover:bg-red-950/20"
+                className="gap-2 text-destructive hover:bg-destructive/10"
+                data-testid="button-logout"
               >
                 <ExternalLink className="w-4 h-4" />
                 Sign Out
               </Button>
-            </div>
+            </nav>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:ml-64">
-        {/* Modern Profile Header */}
-        <Card className="mb-8 overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-primary via-orange-500 to-orange-600 text-white relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-black/10 to-black/20"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
+        {/* Profile Header */}
+        <Card className="mb-8 overflow-hidden border border-border shadow-sm">
           
-          <CardContent className="p-8 relative z-10">
+          <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <div className="relative group">
-                <div className="relative">
-                  <Avatar className="w-24 h-24 border-4 border-white/30 shadow-xl transition-all duration-300 group-hover:scale-105">
-                    {profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
-                      <AvatarImage src={profileData.avatar} className="object-cover" />
-                    ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
-                      <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
-                        <span className="text-2xl font-bold text-white">
-                          {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    ) : (
-                      <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
+              <div className="relative">
+                <Avatar className="w-20 h-20 border-2 border-border">
+                  {profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
+                    <AvatarImage src={profileData.avatar} className="object-cover" />
+                  ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
+                    <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
+                      <span className="text-xl font-bold text-white">
                         {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <Camera className="w-6 h-6 text-white" />
-                  </div>
-                </div>
+                      </span>
+                    </div>
+                  ) : (
+                    <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
+                      {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
                 <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="absolute -bottom-2 -right-2 rounded-full w-10 h-10 p-0 bg-white hover:bg-white/90 text-orange-600 shadow-lg border-2 border-orange-200 hover:border-orange-300 transition-all duration-300">
-                      <Camera className="w-5 h-5" />
+                    <Button size="sm" className="absolute -bottom-1 -right-1 rounded-full w-8 h-8 p-0" data-testid="button-change-avatar">
+                      <Camera className="w-4 h-4" />
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
@@ -613,59 +607,59 @@ function ProfileContent() {
                 </Dialog>
               </div>
               
-              <div className="flex-1 space-y-3">
+              <div className="flex-1 space-y-4">
                 <div>
-                  <h2 className="text-3xl font-bold text-white mb-1">
+                  <h2 className="text-2xl font-bold text-foreground mb-1">
                     {profileData.firstName || profileData.lastName 
                       ? `${profileData.firstName} ${profileData.lastName}`.trim()
                       : user?.email?.split('@')[0] || 'User'
                     }
                   </h2>
-                  <p className="text-orange-100 text-lg">@{user?.email?.split('@')[0] || 'user'} • ID: #{displayUserId}</p>
+                  <p className="text-muted-foreground">@{user?.email?.split('@')[0] || 'user'} • ID: #{displayUserId}</p>
                   {profileData.bio && (
-                    <p className="text-orange-100 text-sm mt-2 max-w-md">{profileData.bio}</p>
+                    <p className="text-muted-foreground text-sm mt-2 max-w-md">{profileData.bio}</p>
                   )}
                 </div>
 
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
                   {user?.isAdmin ? (
-                    <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-3 py-1">
-                      <Crown className="w-4 h-4 mr-2" />
-                      Administrator
+                    <Badge variant="secondary">
+                      <Crown className="w-3 h-3 mr-1" />
+                      Admin
                     </Badge>
                   ) : (
-                    <Badge className="bg-white/20 text-white border-white/30 px-3 py-1">
-                      Premium Member
+                    <Badge variant="secondary">
+                      Premium
                     </Badge>
                   )}
-                  <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-3 py-1">
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                  <Badge variant="outline">
+                    <CheckCircle className="w-3 h-3 mr-1" />
                     Verified
                   </Badge>
                   {achievementProgress.loyalMember && (
-                    <Badge className="bg-purple-500/20 text-purple-100 border-purple-300/30 px-3 py-1">
-                      <Trophy className="w-4 h-4 mr-2" />
-                      Loyal Member
+                    <Badge variant="outline">
+                      <Trophy className="w-3 h-3 mr-1" />
+                      Loyal
                     </Badge>
                   )}
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-white">{accountAge}</p>
-                    <p className="text-orange-100 text-sm">Days Active</p>
+                    <p className="text-xl font-bold text-foreground">{accountAge}</p>
+                    <p className="text-muted-foreground text-sm">Days Active</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-white">{userTransactions}</p>
-                    <p className="text-orange-100 text-sm">Transactions</p>
+                    <p className="text-xl font-bold text-foreground">{userTransactions}</p>
+                    <p className="text-muted-foreground text-sm">Transactions</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-white">{activeInvestments + completedInvestments}</p>
-                    <p className="text-orange-100 text-sm">Investments</p>
+                    <p className="text-xl font-bold text-foreground">{activeInvestments + completedInvestments}</p>
+                    <p className="text-muted-foreground text-sm">Investments</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-white">{profileCompleteness}%</p>
-                    <p className="text-orange-100 text-sm">Profile Complete</p>
+                    <p className="text-xl font-bold text-foreground">{profileCompleteness}%</p>
+                    <p className="text-muted-foreground text-sm">Complete</p>
                   </div>
                 </div>
               </div>
@@ -673,30 +667,30 @@ function ProfileContent() {
           </CardContent>
         </Card>
 
-        {/* Modern Tabbed Interface */}
+        {/* Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 md:grid-cols-6 h-14 mb-8 bg-card/50 backdrop-blur-lg border border-border rounded-2xl shadow-lg p-2">
-            <TabsTrigger value="overview" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+          <TabsList className="grid grid-cols-3 md:grid-cols-6 h-12 mb-8 p-1">
+            <TabsTrigger value="overview" className="gap-2">
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="portfolio" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+            <TabsTrigger value="portfolio" className="gap-2">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Portfolio</span>
             </TabsTrigger>
-            <TabsTrigger value="activity" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+            <TabsTrigger value="activity" className="gap-2">
               <Activity className="w-4 h-4" />
               <span className="hidden sm:inline">Activity</span>
             </TabsTrigger>
-            <TabsTrigger value="achievements" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+            <TabsTrigger value="achievements" className="gap-2">
               <Award className="w-4 h-4" />
               <span className="hidden sm:inline">Achievements</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+            <TabsTrigger value="security" className="gap-2">
               <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">Security</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+            <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Settings</span>
             </TabsTrigger>
@@ -1276,7 +1270,7 @@ function ProfileContent() {
             <span>Share</span>
           </Button>
         </div>
-      </div>
+      </main>
 
       <BottomNavigation />
     </div>
