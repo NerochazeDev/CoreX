@@ -541,62 +541,80 @@ function SettingsContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50 lg:ml-64">
-        <div className="max-w-sm mx-auto lg:max-w-4xl px-6 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background">
+      {/* Modern Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm lg:ml-64">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="ghost" size="icon" className="rounded-xl hover:bg-primary/10">
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
             <div className="flex-1">
-              <h1 className="text-xl font-semibold text-foreground">Settings</h1>
-              <p className="text-sm text-muted-foreground">Manage your account</p>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">Settings</h1>
+              <p className="text-sm text-muted-foreground">Manage your account & preferences</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-sm mx-auto lg:max-w-4xl px-6 pb-24 lg:ml-64">
-        {/* Profile Summary Card */}
-        <Card className="mt-6 mb-8 overflow-hidden border-0 shadow-lg bg-gradient-to-br from-primary/5 to-primary/10">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
-                <User className="w-8 h-8 text-white" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:ml-64">
+        {/* Modern Profile Summary Card */}
+        <Card className="mt-6 mb-8 overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-primary via-orange-500 to-orange-600 text-white relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-black/10 to-black/20"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
+          <CardContent className="p-8 relative z-10">
+            <div className="flex items-center gap-6">
+              <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-2xl">
+                <User className="w-10 h-10 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-foreground">{user.email.split('@')[0]}</h3>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
-                <div className="flex items-center gap-2 mt-2">
+                <h3 className="text-2xl font-bold text-white">{user.email.split('@')[0]}</h3>
+                <p className="text-orange-100 text-lg">{user.email}</p>
+                <div className="flex items-center gap-3 mt-3">
                   {user.isAdmin ? (
-                    <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
-                      <Crown className="w-3 h-3 mr-1" />
+                    <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-3 py-1.5">
+                      <Crown className="w-4 h-4 mr-2" />
                       Manager
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                      Member
+                    <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5">
+                      Premium Member
                     </Badge>
                   )}
+                  <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-3 py-1.5">
+                    <Shield className="w-4 h-4 mr-2" />
+                    Verified
+                  </Badge>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Navigation Menu and Content Area */}
+        {/* Modern Navigation and Content Area */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="space-y-3 mb-8">
-            <TabsList className={`grid w-full ${user?.isSupportAdmin || user?.isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>
-              <TabsTrigger value="account">Account</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-              <TabsTrigger value="support" className={`${(user?.isSupportAdmin || user?.isAdmin) ? '' : 'hidden'} bg-green-100 text-green-700 data-[state=active]:bg-green-600 data-[state=active]:text-white`}>
-                Support
+          <div className="mb-8">
+            <TabsList className={`grid w-full h-14 bg-card/50 backdrop-blur-lg border border-border rounded-2xl shadow-lg p-2 ${user?.isSupportAdmin || user?.isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
+              <TabsTrigger value="account" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Account</span>
               </TabsTrigger>
+              <TabsTrigger value="security" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Security</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+                <Bell className="w-4 h-4" />
+                <span className="hidden sm:inline">Notifications</span>
+              </TabsTrigger>
+              {(user?.isSupportAdmin || user?.isAdmin) && (
+                <TabsTrigger value="support" className="gap-2 h-10 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="hidden sm:inline">Support</span>
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
