@@ -170,7 +170,7 @@ export default function InvestmentDashboard() {
 
   const calculateBollingerBands = (data: any[], period: number = 20, multiplier: number = 2) => {
     const sma = calculateSMA(data, period);
-    const bands = { upper: [], lower: [], middle: sma };
+    const bands = { upper: [] as number[], lower: [] as number[], middle: sma };
     
     for (let i = period - 1; i < data.length; i++) {
       const slice = data.slice(i - period + 1, i + 1);
@@ -190,7 +190,7 @@ export default function InvestmentDashboard() {
     console.log('🎯 Generating chart data with baseAmount:', Math.max(totalInvestedAmount || 0.1, 0.01));
     console.log('Total invested amount for chart:', totalInvestedAmount);
     
-    const data = [];
+    const data: any[] = [];
     const baseAmount = Math.max(totalInvestedAmount || 0.1, 0.01);
     const now = new Date();
     const timeframeMs = {
@@ -230,7 +230,7 @@ export default function InvestmentDashboard() {
       
       // Professional OHLC data with proper relationships
       const volatility = 0.008 + Math.abs(newsEvent) * 0.5; // Dynamic volatility
-      const open = i === dataPoints - 1 ? value : data[data.length - 1]?.close || value;
+      const open: number = i === dataPoints - 1 ? value : data[data.length - 1]?.close || value;
       const direction = Math.random() > 0.5 ? 1 : -1;
       const range = value * volatility * (0.5 + Math.random());
       
@@ -259,8 +259,8 @@ export default function InvestmentDashboard() {
         bid: parseFloat(bid.toFixed(8)),
         ask: parseFloat(ask.toFixed(8)),
         spread: parseFloat(spread.toFixed(8)),
-        change: data.length > 0 ? parseFloat((close - data[0].close).toFixed(8)) : 0,
-        changePercent: data.length > 0 ? parseFloat(((close - data[0].close) / data[0].close * 100).toFixed(4)) : 0,
+        change: data.length > 0 ? parseFloat((close - (data[0] as any).close).toFixed(8)) : 0,
+        changePercent: data.length > 0 ? parseFloat(((close - (data[0] as any).close) / (data[0] as any).close * 100).toFixed(4)) : 0,
         volatility: parseFloat((volatility * 100).toFixed(2)),
         usdValue: bitcoinPrice ? parseFloat((value * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price)).toFixed(2)) : 0
       });
