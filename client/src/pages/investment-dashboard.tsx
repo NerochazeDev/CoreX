@@ -187,6 +187,9 @@ export default function InvestmentDashboard() {
 
   // Generate professional trading data with multiple timeframes
   const generateAdvancedChartData = () => {
+    console.log('🎯 Generating chart data with baseAmount:', Math.max(totalInvestedAmount || 0.1, 0.01));
+    console.log('Total invested amount for chart:', totalInvestedAmount);
+    
     const data = [];
     const baseAmount = Math.max(totalInvestedAmount || 0.1, 0.01);
     const now = new Date();
@@ -443,6 +446,8 @@ export default function InvestmentDashboard() {
 
   // Use live data if available, otherwise use generated data
   const currentChartData = (isLiveMode && liveData.length > 0) ? liveData : chartData;
+  console.log('📊 Current chart data length:', currentChartData.length);
+  console.log('📊 Chart data sample:', currentChartData.slice(0, 2));
   
   // Ensure chart data is always available
   useEffect(() => {

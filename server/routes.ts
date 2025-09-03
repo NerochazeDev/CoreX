@@ -2223,34 +2223,10 @@ Your investment journey starts here!`,
   // Get current user with session validation or auth token
   app.get("/api/me", async (req, res) => {
     try {
-      // Debug session information
-      console.log('=== /api/me DEBUG ===');
-      console.log('Session ID:', req.sessionID);
-      console.log('Session data:', req.session);
-      console.log('Session userId:', req.session?.userId);
-      console.log('Cookies:', req.headers.cookie);
-      console.log('User Agent:', req.headers['user-agent']?.slice(0, 50));
-      console.log('====================');
-
-      let userId = req.session?.userId;
-
-      // If no session, check for auth token header
+      // Use the same authentication logic as other endpoints
+      const userId = getUserIdFromRequest(req);
+      
       if (!userId) {
-        const authToken = req.headers.authorization?.replace('Bearer ', '');
-        if (authToken) {
-          try {
-            const decoded = Buffer.from(authToken, 'base64').toString();
-            const [tokenUserId] = decoded.split(':');
-            userId = parseInt(tokenUserId);
-            console.log('Using auth token userId:', userId);
-          } catch (error) {
-            console.log('Auth token decode error:', error);
-          }
-        }
-      }
-
-      if (!userId) {
-        console.log('No authentication found, returning 401');
         return res.status(401).json({ message: "Authentication required" });
       }
 
@@ -2443,6 +2419,14 @@ Your investment journey starts here!`,
       }
 
       const investments = await storage.getUserInvestments(requestedUserId);
+      console.log(`📊 Returning ${investments.length} investments for user ${requestedUserId}:`, 
+        investments.map(inv => ({
+          id: inv.id,
+          amount: inv.amount,
+          isActive: inv.isActive,
+          currentProfit: inv.currentProfit,
+          planId: inv.planId
+        })));
       res.json(investments);
     } catch (error) {
       console.error('Get user investments error:', error);
