@@ -362,7 +362,6 @@ export default function History() {
                     </div>
                   </Card>
                   </div>
-                  </div>
                 );
               })}
             </div>
