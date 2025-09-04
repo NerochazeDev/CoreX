@@ -977,7 +977,7 @@ function SettingsContent() {
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <p className="font-medium text-orange-800 dark:text-orange-200 text-sm sm:text-base">Need help? Contact our support team</p>
-                    <p className="text-xs sm:text-sm text-orange-600 dark:text-orange-400 leading-tight">Get assistance with your account, investments, or technical issues</p>
+                    <p className="text-xs sm:text-sm text-orange-600 dark:text-orange-400 leading-tight">Get help with your account or technical issues</p>
                   </div>
                   <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
                 </Button>
