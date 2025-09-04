@@ -442,8 +442,6 @@ function SettingsContent() {
         description: "Your support message has been sent.",
       });
       setSupportForm({ subject: "", message: "", priority: "normal" });
-      // Re-fetch messages to show the newly sent one
-      // queryClient.invalidateQueries({ queryKey: ['supportMessages'] });
     },
     onError: (error: any) => {
       toast({
@@ -455,9 +453,6 @@ function SettingsContent() {
   });
 
   // Fetch support messages for the user
-  // This is a placeholder. In a real app, you'd likely use useQuery from react-query
-  // and handle loading and error states more robustly.
-  // For demonstration, we'll mock fetching.
   useEffect(() => {
     setSupportMessagesLoading(true);
     setTimeout(() => {
@@ -483,7 +478,6 @@ function SettingsContent() {
       setSupportMessagesLoading(false);
     }, 1500);
   }, []);
-
 
   const handleCopyRecoveryCode = () => {
     if (currentRecoveryCode) {
@@ -512,112 +506,103 @@ function SettingsContent() {
     });
   };
 
-  // Define menuItems here, before the return statement
-  const menuItems = [
-    {
-      id: "account",
-      label: "Account",
-      icon: User,
-      description: "Profile and personal information"
-    },
-    {
-      id: "security",
-      label: "Security",
-      icon: Shield,
-      description: "Recovery code and security settings"
-    },
-    {
-      id: "notifications",
-      label: "Notifications",
-      icon: Bell,
-      description: "Manage your notification settings"
-    },
-    {
-      id: "support",
-      label: "Support",
-      icon: MessageSquare,
-      description: "Get help and contact support"
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background">
-      {/* Modern Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm lg:ml-64">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">Settings</h1>
-              <p className="text-sm text-muted-foreground">Manage your account & preferences</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Header - Match Home Page Style */}
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
+              <Link href="/">
+                <Button variant="ghost" size="icon" className="h-10 w-10 p-0 rounded-full hover:bg-primary/10">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+              <div className="hidden sm:block">
+                <h1 className="text-xl font-bold text-foreground">Settings</h1>
+                <p className="text-sm text-muted-foreground">Manage your account & preferences</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:ml-64">
-        {/* Modern Profile Summary Card */}
-        <Card className="mt-6 mb-8 overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-primary via-orange-500 to-orange-600 text-white relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-black/10 to-black/20"></div>
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
-          <CardContent className="p-6 sm:p-8 relative z-10">
-            <div className="flex items-center gap-4 sm:gap-6">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl overflow-hidden shadow-2xl">
-                {user.avatar && !user.avatar.startsWith('gradient-') ? (
-                  <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
-                ) : user.avatar && user.avatar.startsWith('gradient-') ? (
-                  <div className={`w-full h-full bg-gradient-to-br ${user.avatar.replace('gradient-', '')} flex items-center justify-center`}>
-                    <span className="text-xl sm:text-2xl font-bold text-white">
-                      {(user.username || user.email || 'U').charAt(0).toUpperCase()}
-                    </span>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
+        {/* Profile Summary Card - Match Home Page Style */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <div className="relative">
+            {/* 3D Shadow Base */}
+            <div className="absolute top-3 left-3 w-full h-full bg-gradient-to-br from-orange-500/30 to-orange-600/40 rounded-3xl blur-lg"></div>
+
+            {/* Main Card */}
+            <Card className="relative bg-gradient-to-br from-orange-500 via-orange-600/90 to-orange-700 dark:from-orange-600 dark:via-orange-700/90 dark:to-orange-800 border border-orange-400/60 dark:border-orange-500/50 rounded-3xl shadow-2xl shadow-orange-600/30 backdrop-blur-xl overflow-hidden">
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 via-orange-500/10 to-orange-600/25 pointer-events-none"></div>
+
+              <CardContent className="relative p-8 text-center">
+                <div className="space-y-6">
+                  {/* Avatar Section */}
+                  <div className="relative group mx-auto w-fit">
+                    <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-2xl border-4 border-white/30 mx-auto">
+                      {user.avatar && !user.avatar.startsWith('gradient-') ? (
+                        <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                      ) : user.avatar && user.avatar.startsWith('gradient-') ? (
+                        <div className={`w-full h-full bg-gradient-to-br ${user.avatar.replace('gradient-', '')} flex items-center justify-center`}>
+                          <span className="text-2xl font-bold text-white">
+                            {(user.username || user.email || 'U').charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <User className="w-10 h-10 text-white" />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <div className="w-full h-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <User className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+
+                  {/* User Info */}
+                  <div className="space-y-3">
+                    <div>
+                      <h2 className="text-3xl font-bold text-white mb-1">{user.email.split('@')[0]}</h2>
+                      <p className="text-orange-100 text-lg">{user.email}</p>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-3">
+                      {user.isAdmin ? (
+                        <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-3 py-1">
+                          <Crown className="w-4 h-4 mr-2" />
+                          Administrator
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-white/20 text-white border-white/30 px-3 py-1">
+                          Premium Member
+                        </Badge>
+                      )}
+                      <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-3 py-1">
+                        <Shield className="w-4 h-4 mr-2" />
+                        Verified
+                      </Badge>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xl sm:text-2xl font-bold text-white truncate">{user.email.split('@')[0]}</h3>
-                <p className="text-orange-100 text-sm sm:text-lg truncate">{user.email}</p>
-                <div className="flex items-center flex-wrap gap-2 sm:gap-3 mt-2 sm:mt-3">
-                  {user.isAdmin ? (
-                    <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">
-                      <Crown className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      Manager
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-white/20 text-white border-white/30 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">
-                      Premium Member
-                    </Badge>
-                  )}
-                  <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm">
-                    <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    Verified
-                  </Badge>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
-        {/* Modern Navigation and Content Area */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Settings Navigation - Orange Theme */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-4xl mx-auto">
           <div className="mb-8">
             <TabsList className={`grid w-full h-14 bg-card/50 backdrop-blur-lg border border-border rounded-2xl shadow-lg p-2 ${user?.isSupportAdmin || user?.isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
-              <TabsTrigger value="account" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+              <TabsTrigger value="account" className="gap-2 h-10 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">Account</span>
               </TabsTrigger>
-              <TabsTrigger value="security" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+              <TabsTrigger value="security" className="gap-2 h-10 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
                 <Shield className="w-4 h-4" />
                 <span className="hidden sm:inline">Security</span>
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
+              <TabsTrigger value="notifications" className="gap-2 h-10 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
                 <Bell className="w-4 h-4" />
                 <span className="hidden sm:inline">Notifications</span>
               </TabsTrigger>
@@ -630,673 +615,394 @@ function SettingsContent() {
             </TabsList>
           </div>
 
-          {/* Content Area */}
+          {/* Content Sections - Orange Theme Design */}
           <div className="space-y-6">
-          <TabsContent value="account" className="space-y-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                    <User className="w-4 h-4 text-blue-500" />
-                  </div>
-                  Account Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                    <div>
-                      <p className="font-medium text-foreground">Email Address</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                    </div>
-                    <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
-                      Verified
-                    </Badge>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <Globe className="w-5 h-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium text-foreground">Currency</p>
-                        <p className="text-sm text-muted-foreground">Display preference</p>
+            <TabsContent value="account" className="space-y-6">
+              <div className="relative">
+                <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+                <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                        <User className="w-4 h-4 text-orange-500" />
                       </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={toggleCurrency}
-                      className="rounded-lg bg-primary/5 border-primary/20 text-primary hover:bg-primary hover:text-white"
-                    >
-                      {currency}
-                    </Button>
-                  </div>
-
-                  <Separator />
-
-                  {/* Recovery Code Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Key className="w-5 h-5 text-orange-500" />
-                      <div>
-                        <p className="font-medium text-foreground">Recovery Code</p>
-                        <p className="text-sm text-muted-foreground">Manage your account recovery options</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <Dialog open={showViewRecoveryDialog} onOpenChange={setShowViewRecoveryDialog}>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="justify-start h-auto p-4"
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            <div className="text-left">
-                              <p className="font-medium">Get New Code</p>
-                              <p className="text-xs text-muted-foreground">Generate fresh recovery code</p>
-                            </div>
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <Shield className="w-5 h-5" />
-                              Generate New Recovery Code
-                            </DialogTitle>
-                            <DialogDescription>
-                              This will generate a new recovery code and invalidate your previous one.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <Form {...viewRecoveryForm}>
-                            <form onSubmit={viewRecoveryForm.handleSubmit((data) => viewRecoveryMutation.mutate(data))} className="space-y-4">
-                              <Alert className="border-red-200 bg-red-50">
-                                <AlertTriangle className="h-4 w-4 text-red-600" />
-                                <AlertDescription className="text-red-800">
-                                  <strong>Warning:</strong> This will generate a new recovery code and your current code will no longer work. Enter your password to continue.
-                                </AlertDescription>
-                              </Alert>
-
-                              <FormField
-                                control={viewRecoveryForm.control}
-                                name="password"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Password</FormLabel>
-                                    <FormControl>
-                                      <Input type="password" placeholder="Enter your password" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <div className="flex gap-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  onClick={() => setShowViewRecoveryDialog(false)}
-                                  className="flex-1"
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  type="submit"
-                                  disabled={viewRecoveryMutation.isPending}
-                                  className="flex-1"
-                                >
-                                  {viewRecoveryMutation.isPending ? "Generating..." : "Generate New Code"}
-                                </Button>
-                              </div>
-                            </form>
-                          </Form>
-                        </DialogContent>
-                      </Dialog>
-
-                      <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="justify-start h-auto p-4"
-                          >
-                            <RefreshCw className="w-4 h-4 mr-2" />
-                            <div className="text-left">
-                              <p className="font-medium">Generate New</p>
-                              <p className="text-xs text-muted-foreground">Create a new recovery code</p>
-                            </div>
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <RefreshCw className="w-5 h-5" />
-                              Generate New Recovery Code
-                            </DialogTitle>
-                            <DialogDescription>
-                              Enter your password to generate a new recovery code. This will invalidate your current code.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <Form {...regenerateForm}>
-                            <form onSubmit={regenerateForm.handleSubmit((data) => regenerateMutation.mutate(data))} className="space-y-4">
-                              <Alert className="border-red-200 bg-red-50">
-                                <AlertTriangle className="h-4 w-4 text-red-600" />
-                                <AlertDescription className="text-red-800">
-                                  <strong>Warning:</strong> Generating a new recovery code will invalidate your current one. Make sure to save the new code securely.
-                                </AlertDescription>
-                              </Alert>
-
-                              <FormField
-                                control={regenerateForm.control}
-                                name="password"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Password</FormLabel>
-                                    <FormControl>
-                                      <Input type="password" placeholder="Enter your password" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <div className="flex gap-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  onClick={() => setShowRegenerateDialog(false)}
-                                  className="flex-1"
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  type="submit"
-                                  disabled={regenerateMutation.isPending}
-                                  variant="destructive"
-                                  className="flex-1"
-                                >
-                                  {regenerateMutation.isPending ? "Generating..." : "Generate New"}
-                                </Button>
-                              </div>
-                            </form>
-                          </Form>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="security" className="space-y-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-orange-500" />
-                  </div>
-                  Security Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <Alert className="border-blue-200 bg-blue-50">
-                  <Key className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-800">
-                    Your recovery code is essential for account security. Keep it safe and accessible only to you.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-muted/50">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-                        <Key className="w-5 h-5 text-orange-500" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-foreground">Recovery Code Management</h4>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Access and manage your account recovery code. You'll need your password to view or generate a new code.
-                        </p>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <Dialog open={showViewRecoveryDialog} onOpenChange={setShowViewRecoveryDialog}>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="justify-center"
-                                size="sm"
-                              >
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Current Code
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
-                                  <Shield className="w-5 h-5" />
-                                  View Recovery Code
-                                </DialogTitle>
-                              </DialogHeader>
-                              <Form {...viewRecoveryForm}>
-                                <form onSubmit={viewRecoveryForm.handleSubmit((data) => viewRecoveryMutation.mutate(data))} className="space-y-4">
-                                  <Alert className="border-amber-200 bg-amber-50">
-                                    <AlertTriangle className="h-4 w-4 text-amber-600" />
-                                    <AlertDescription className="text-amber-800">
-                                      For security, please enter your password to view your recovery code.
-                                    </AlertDescription>
-                                  </Alert>
-
-                                  <FormField
-                                    control={viewRecoveryForm.control}
-                                    name="password"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Password</FormLabel>
-                                        <FormControl>
-                                          <Input type="password" placeholder="Enter your password" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-
-                                  <div className="flex gap-2">
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      onClick={() => setShowViewRecoveryDialog(false)}
-                                      className="flex-1"
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      type="submit"
-                                      disabled={viewRecoveryMutation.isPending}
-                                      className="flex-1"
-                                    >
-                                      {viewRecoveryMutation.isPending ? "Generating..." : "Generate New Code"}
-                                    </Button>
-                                  </div>
-                                </form>
-                              </Form>
-                            </DialogContent>
-                          </Dialog>
-
-                          <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="justify-center"
-                                size="sm"
-                              >
-                                <RefreshCw className="w-4 h-4 mr-2" />
-                                Generate New Code
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
-                                  <RefreshCw className="w-5 h-5" />
-                                  Generate New Recovery Code
-                                </DialogTitle>
-                                <DialogDescription>
-                                  Enter your password to generate a new recovery code. This will invalidate your current code.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <Form {...regenerateForm}>
-                                <form onSubmit={regenerateForm.handleSubmit((data) => regenerateMutation.mutate(data))} className="space-y-4">
-                                  <Alert className="border-red-200 bg-red-50">
-                                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                                    <AlertDescription className="text-red-800">
-                                      <strong>Warning:</strong> Generating a new recovery code will invalidate your current one. Make sure to save the new code securely.
-                                    </AlertDescription>
-                                  </Alert>
-
-                                  <FormField
-                                    control={regenerateForm.control}
-                                    name="password"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Password</FormLabel>
-                                        <FormControl>
-                                          <Input type="password" placeholder="Enter your password" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-
-                                  <div className="flex gap-2">
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      onClick={() => setShowRegenerateDialog(false)}
-                                      className="flex-1"
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      type="submit"
-                                      disabled={regenerateMutation.isPending}
-                                      variant="destructive"
-                                      className="flex-1"
-                                    >
-                                      {regenerateMutation.isPending ? "Generating..." : "Generate New"}
-                                    </Button>
-                                  </div>
-                                </form>
-                              </Form>
-                            </DialogContent>
-                          </Dialog>
+                      Account Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/50 dark:border-orange-800/50">
+                        <div>
+                          <p className="font-medium text-orange-800 dark:text-orange-200">Email Address</p>
+                          <p className="text-sm text-orange-600 dark:text-orange-400">{user.email}</p>
                         </div>
+                        <Badge className="bg-green-500/20 text-green-600 border-green-200 dark:bg-green-900/30 dark:text-green-400">
+                          Verified
+                        </Badge>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                        <Shield className="w-4 h-4 text-green-500" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-green-800 text-sm">Security Tips</p>
-                        <ul className="text-xs text-green-700 mt-1 space-y-1">
-                          <li>• Store your recovery code in a secure password manager</li>
-                          <li>• Never share your recovery code with anyone</li>
-                          <li>• Generate a new code if you suspect it's been compromised</li>
-                          <li>• Keep multiple secure copies of your recovery code</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                      <Separator className="bg-orange-200/50 dark:bg-orange-800/50" />
 
-          <TabsContent value="notifications" className="space-y-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                    <Bell className="w-4 h-4 text-orange-500" />
-                  </div>
-                  Notification Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                    <div>
-                      <p className="font-medium text-foreground">Push Notifications</p>
-                      <p className="text-sm text-muted-foreground">Receive alerts and updates</p>
-                    </div>
-                    <Switch
-                      checked={notifications}
-                      onCheckedChange={setNotifications}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                    <div>
-                      <p className="font-medium text-foreground">Price Alerts</p>
-                      <p className="text-sm text-muted-foreground">Bitcoin price changes</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                    <div>
-                      <p className="font-medium text-foreground">Investment Updates</p>
-                      <p className="text-sm text-muted-foreground">Portfolio performance</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                    <div>
-                      <p className="font-medium text-foreground">Security Alerts</p>
-                      <p className="text-sm text-muted-foreground">Login and security events</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                    <div>
-                      <p className="font-medium text-foreground">Marketing</p>
-                      <p className="text-sm text-muted-foreground">Product updates and offers</p>
-                    </div>
-                    <Switch />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Contact Support Tab */}
-          <TabsContent value="contact" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5" />
-                  Contact Support
-                </CardTitle>
-                <CardDescription>
-                  Send us a message and we'll get back to you as soon as possible.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSupportSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input
-                      id="subject"
-                      value={supportForm.subject}
-                      onChange={(e) => setSupportForm(prev => ({ ...prev, subject: e.target.value }))}
-                      placeholder="Brief description of your issue"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select
-                      value={supportForm.priority}
-                      onValueChange={(value) => setSupportForm(prev => ({ ...prev, priority: value as any }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low - General inquiry</SelectItem>
-                        <SelectItem value="normal">Normal - Standard support</SelectItem>
-                        <SelectItem value="high">High - Urgent issue</SelectItem>
-                        <SelectItem value="urgent">Urgent - Critical problem</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      value={supportForm.message}
-                      onChange={(e) => setSupportForm(prev => ({ ...prev, message: e.target.value }))}
-                      placeholder="Please describe your issue in detail..."
-                      className="min-h-[120px]"
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" disabled={supportMutation.isPending} className="w-full">
-                    {supportMutation.isPending ? (
-                      <>
-                        <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* My Support Messages */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <History className="w-5 h-5" />
-                  My Support Messages
-                </CardTitle>
-                <CardDescription>
-                  View your previous support conversations
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {supportMessagesLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="animate-pulse">
-                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-16 bg-gray-200 rounded"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : supportMessages?.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MessageSquare className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500">No support messages yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {supportMessages?.map((message: any) => (
-                      <div key={message.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold">{message.subject}</h4>
-                          <Badge
-                            variant={message.status === 'resolved' ? 'default' : message.status === 'open' ? 'secondary' : 'outline'}
-                          >
-                            {message.status.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{message.message}</p>
-                        {message.adminResponse && (
-                          <div className="bg-green-50 border border-green-200 rounded p-3 mt-3">
-                            <p className="text-sm font-semibold text-green-800 mb-1">Support Response:</p>
-                            <p className="text-sm text-green-700">{message.adminResponse}</p>
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/50 dark:border-orange-800/50">
+                        <div className="flex items-center gap-3">
+                          <Globe className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                          <div>
+                            <p className="font-medium text-orange-800 dark:text-orange-200">Currency</p>
+                            <p className="text-sm text-orange-600 dark:text-orange-400">Display preference</p>
                           </div>
-                        )}
-                        <div className="text-xs text-gray-500 mt-2">
-                          {new Date(message.createdAt).toLocaleDateString()} at {new Date(message.createdAt).toLocaleTimeString()}
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={toggleCurrency}
+                          className="rounded-lg bg-orange-500/10 border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:bg-orange-900/20 dark:border-orange-600 dark:text-orange-300"
+                        >
+                          {currency}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="security" className="space-y-6">
+              <div className="relative">
+                <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+                <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                        <Shield className="w-4 h-4 text-orange-500" />
+                      </div>
+                      Security Settings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <Alert className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/20">
+                      <Key className="h-4 w-4 text-orange-600" />
+                      <AlertDescription className="text-orange-800 dark:text-orange-200">
+                        Your recovery code is essential for account security. Keep it safe and accessible only to you.
+                      </AlertDescription>
+                    </Alert>
+
+                    <div className="space-y-4">
+                      <div className="p-4 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/50 dark:border-orange-800/50">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                            <Key className="w-5 h-5 text-orange-500" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-orange-800 dark:text-orange-200">Recovery Code Management</h4>
+                            <p className="text-sm text-orange-600 dark:text-orange-400 mb-3">
+                              Access and manage your account recovery code. You'll need your password to view or generate a new code.
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <Dialog open={showViewRecoveryDialog} onOpenChange={setShowViewRecoveryDialog}>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="justify-center border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300"
+                                    size="sm"
+                                  >
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    View Code
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                      <Shield className="w-5 h-5" />
+                                      View Recovery Code
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <Form {...viewRecoveryForm}>
+                                    <form onSubmit={viewRecoveryForm.handleSubmit((data) => viewRecoveryMutation.mutate(data))} className="space-y-4">
+                                      <Alert className="border-amber-200 bg-amber-50">
+                                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                        <AlertDescription className="text-amber-800">
+                                          For security, please enter your password to view your recovery code.
+                                        </AlertDescription>
+                                      </Alert>
+
+                                      <FormField
+                                        control={viewRecoveryForm.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Password</FormLabel>
+                                            <FormControl>
+                                              <Input type="password" placeholder="Enter your password" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+
+                                      <div className="flex gap-2">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          onClick={() => setShowViewRecoveryDialog(false)}
+                                          className="flex-1"
+                                        >
+                                          Cancel
+                                        </Button>
+                                        <Button
+                                          type="submit"
+                                          disabled={viewRecoveryMutation.isPending}
+                                          className="flex-1 bg-orange-500 hover:bg-orange-600"
+                                        >
+                                          {viewRecoveryMutation.isPending ? "Generating..." : "View Code"}
+                                        </Button>
+                                      </div>
+                                    </form>
+                                  </Form>
+                                </DialogContent>
+                              </Dialog>
+
+                              <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="justify-center border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300"
+                                    size="sm"
+                                  >
+                                    <RefreshCw className="w-4 h-4 mr-2" />
+                                    Generate New
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                      <RefreshCw className="w-5 h-5" />
+                                      Generate New Recovery Code
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                      Enter your password to generate a new recovery code. This will invalidate your current code.
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <Form {...regenerateForm}>
+                                    <form onSubmit={regenerateForm.handleSubmit((data) => regenerateMutation.mutate(data))} className="space-y-4">
+                                      <Alert className="border-red-200 bg-red-50">
+                                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                                        <AlertDescription className="text-red-800">
+                                          <strong>Warning:</strong> Generating a new recovery code will invalidate your current one. Make sure to save the new code securely.
+                                        </AlertDescription>
+                                      </Alert>
+
+                                      <FormField
+                                        control={regenerateForm.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Password</FormLabel>
+                                            <FormControl>
+                                              <Input type="password" placeholder="Enter your password" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+
+                                      <div className="flex gap-2">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          onClick={() => setShowRegenerateDialog(false)}
+                                          className="flex-1"
+                                        >
+                                          Cancel
+                                        </Button>
+                                        <Button
+                                          type="submit"
+                                          disabled={regenerateMutation.isPending}
+                                          variant="destructive"
+                                          className="flex-1"
+                                        >
+                                          {regenerateMutation.isPending ? "Generating..." : "Generate New"}
+                                        </Button>
+                                      </div>
+                                    </form>
+                                  </Form>
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Support Admin Tab */}
-          {(user?.isSupportAdmin || user?.isAdmin) && (
-            <TabsContent value="support" className="space-y-6">
-              <Card className="border-green-200 bg-green-50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-800">
-                    <Shield className="w-5 h-5" />
-                    Support Admin Dashboard
-                  </CardTitle>
-                  <CardDescription className="text-green-600">
-                    Access the customer support message interface to help users with their inquiries.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-white rounded-lg p-6 border border-green-200">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                        <MessageSquare className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg">Customer Support Interface</h3>
-                        <p className="text-gray-600">Manage and respond to customer messages</p>
-                      </div>
                     </div>
-
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        View all customer support messages
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        Respond to customer inquiries in real-time
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        WhatsApp-style conversation interface
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        Track message status and priorities
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={() => setLocation('/support-admin')}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Open Support Dashboard
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
-          )}
+
+            <TabsContent value="notifications" className="space-y-6">
+              <div className="relative">
+                <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+                <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                        <Bell className="w-4 h-4 text-orange-500" />
+                      </div>
+                      Notification Settings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/50 dark:border-orange-800/50">
+                        <div>
+                          <p className="font-medium text-orange-800 dark:text-orange-200">Push Notifications</p>
+                          <p className="text-sm text-orange-600 dark:text-orange-400">Receive alerts and updates</p>
+                        </div>
+                        <Switch
+                          checked={notifications}
+                          onCheckedChange={setNotifications}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/50 dark:border-orange-800/50">
+                        <div>
+                          <p className="font-medium text-orange-800 dark:text-orange-200">Price Alerts</p>
+                          <p className="text-sm text-orange-600 dark:text-orange-400">Bitcoin price changes</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/50 dark:border-orange-800/50">
+                        <div>
+                          <p className="font-medium text-orange-800 dark:text-orange-200">Investment Updates</p>
+                          <p className="text-sm text-orange-600 dark:text-orange-400">Portfolio performance</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/50 dark:border-orange-800/50">
+                        <div>
+                          <p className="font-medium text-orange-800 dark:text-orange-200">Security Alerts</p>
+                          <p className="text-sm text-orange-600 dark:text-orange-400">Login and security events</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/50 dark:border-orange-800/50">
+                        <div>
+                          <p className="font-medium text-orange-800 dark:text-orange-200">Marketing</p>
+                          <p className="text-sm text-orange-600 dark:text-orange-400">Product updates and offers</p>
+                        </div>
+                        <Switch />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Support Admin Tab */}
+            {(user?.isSupportAdmin || user?.isAdmin) && (
+              <TabsContent value="support" className="space-y-6">
+                <div className="relative">
+                  <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-green-500/20 to-green-600/30 rounded-2xl blur-sm"></div>
+                  <Card className="relative bg-gradient-to-br from-green-500/10 via-green-600/5 to-green-700/10 dark:from-green-600/20 dark:via-green-700/15 dark:to-green-800/20 backdrop-blur-xl border border-green-400/30 dark:border-green-500/30 rounded-2xl shadow-xl shadow-green-600/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                        <Shield className="w-5 h-5" />
+                        Support Admin Dashboard
+                      </CardTitle>
+                      <CardDescription className="text-green-600 dark:text-green-400">
+                        Access the customer support message interface to help users with their inquiries.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-6 border border-green-200 dark:border-green-700">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                            <MessageSquare className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">Customer Support Interface</h3>
+                            <p className="text-gray-600 dark:text-gray-400">Manage and respond to customer messages</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 mb-6">
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            View all customer support messages
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            Respond to customer inquiries in real-time
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            WhatsApp-style conversation interface
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            Track message status and priorities
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={() => setLocation('/support-admin')}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Open Support Dashboard
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            )}
+          </div>
+        </Tabs>
+
+        {/* Help Section - Orange Theme */}
+        <div className="mt-8 relative max-w-4xl mx-auto">
+          <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+          <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+            <CardContent className="p-0">
+              <WhatsAppStyleChat>
+                <Button
+                  variant="ghost"
+                  className="w-full h-auto p-3 sm:p-4 justify-start gap-3 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 rounded-xl"
+                  data-testid="button-contact-support"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                    <MessageSquare className="w-5 h-5 text-orange-500" />
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="font-medium text-orange-800 dark:text-orange-200 text-sm sm:text-base">Need help? Contact our support team</p>
+                    <p className="text-xs sm:text-sm text-orange-600 dark:text-orange-400 leading-tight">Get assistance with your account, investments, or technical issues</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                </Button>
+              </WhatsAppStyleChat>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Help Section */}
-        <Card className="mt-8 border-0 shadow-lg">
-          <CardContent className="p-0">
-            <WhatsAppStyleChat>
+        {/* Logout Section - Orange Theme */}
+        <div className="mt-6 relative max-w-4xl mx-auto">
+          <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-2xl blur-sm"></div>
+          <Card className="relative bg-gradient-to-br from-red-500/10 via-red-600/5 to-red-700/10 dark:from-red-600/20 dark:via-red-700/15 dark:to-red-800/20 backdrop-blur-xl border border-red-400/30 dark:border-red-500/30 rounded-2xl shadow-xl shadow-red-600/20">
+            <CardContent className="p-6">
               <Button
-                variant="ghost"
-                className="w-full h-auto p-3 sm:p-4 justify-start gap-3 hover:bg-primary/5 rounded-xl"
-                data-testid="button-contact-support"
+                onClick={handleLogout}
+                variant="destructive"
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg transition-all duration-300 group"
               >
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                  <MessageSquare className="w-5 h-5 text-blue-500" />
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <p className="font-medium text-foreground text-sm sm:text-base">Need help? Contact our support team</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-tight">Get assistance with your account, investments, or technical issues</p>
-                </div>
-                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground flex-shrink-0" />
+                <LogOut className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform" />
+                Sign Out
               </Button>
-            </WhatsAppStyleChat>
-          </CardContent>
-        </Card>
-
-        {/* Logout Section */}
-        <Card className="mt-6 border-0 shadow-lg bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20">
-          <CardContent className="p-6">
-            <Button
-              onClick={handleLogout}
-              variant="destructive"
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg transition-all duration-300 group"
-            >
-              <LogOut className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform" />
-              Sign Out
-            </Button>
-          </CardContent>
-        </Card>
-        </Tabs>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
 
       <BottomNavigation />
 
