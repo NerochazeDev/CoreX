@@ -664,9 +664,16 @@ function ProfileContent() {
                     <p className="text-3xl font-bold text-orange-800 dark:text-orange-100">
                       {showSensitiveInfo ? formatBitcoin(user?.balance || '0') : '••••••••'}
                     </p>
-                    <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
-                      BTC
-                    </p>
+                    {showSensitiveInfo && price && (
+                      <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+                        ≈ {formatCurrency(fiatValue, currency)}
+                      </p>
+                    )}
+                    {!showSensitiveInfo && (
+                      <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+                        BTC
+                      </p>
+                    )}
                   </div>
                   <div className="w-12 h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
                     <Wallet className="w-6 h-6 text-orange-700 dark:text-orange-300" />
