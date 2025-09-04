@@ -364,7 +364,6 @@ export default function AutomatedDeposit() {
             </form>
           </CardContent>
         </Card>
-          </div>
         )}
 
       {step === "session" && currentSession && (
@@ -571,6 +570,7 @@ export default function AutomatedDeposit() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
