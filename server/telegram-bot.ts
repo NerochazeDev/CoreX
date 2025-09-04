@@ -124,7 +124,7 @@ export async function queueInvestmentUpdate(): Promise<string> {
   // Queue banner first
   const bannerId = broadcastQueue.addMessage({
     type: 'photo',
-    content: '📊 **BITVAULT PRO INVESTMENT UPDATE** 📊',
+    content: '🚨 **PROFIT ALERT!** 🚨\n💰 BITVAULT PRO MONEY MACHINE IS GOING CRAZY! 💰',
     photoPath: bannerPath,
     priority: 'normal',
     maxRetries: 3
@@ -279,65 +279,69 @@ export async function sendDailyStatsToChannel(): Promise<void> {
     // Sort plans by activity level
     planStats.sort((a, b) => b.activityPercent - a.activityPercent);
 
-    let message = `🏦 **BITVAULT PRO** • Daily Market Report
+    let message = `🚀 **BITVAULT PRO IS ON FIRE!** 🔥
 
-📊 **${new Date().toLocaleDateString('en-US', { 
+💰 **ANOTHER INSANE DAY OF PROFITS!** 💰
+${new Date().toLocaleDateString('en-US', { 
       weekday: 'long', 
       month: 'long', 
       day: 'numeric',
       year: 'numeric'
-    })}**
+    })}
 
-**Platform Performance Overview:**
-• Active Investors: **${totalUsers.toLocaleString()}**
-• Total Portfolio Value: **${totalBalance.toFixed(4)} BTC** (${(totalBalance * bitcoinPrice).toLocaleString()} USD)
-• Generated Returns: **${totalProfit.toFixed(4)} BTC** (${(totalProfit * bitcoinPrice).toLocaleString()} USD)
-• Active Positions: **${activeInvestments.toLocaleString()}**
+🎯 **TODAY'S EXPLOSIVE NUMBERS:**
+🔸 **${totalUsers.toLocaleString()} INVESTORS** are getting RICH with us! 📈
+🔸 **${totalBalance.toFixed(4)} BTC** under management = **$${(totalBalance * bitcoinPrice).toLocaleString()}** 💵
+🔸 **${totalProfit.toFixed(4)} BTC** in PURE PROFIT = **$${(totalProfit * bitcoinPrice).toLocaleString()}** made TODAY! 🤑
+🔸 **${activeInvestments.toLocaleString()} ACTIVE MONEY-MAKING MACHINES** working 24/7! ⚡
 
-**Investment Portfolio Distribution:**`;
+💎 **WHICH INVESTMENT PLAN IS MAKING BANK?** 💎`;
 
-    // Add plan statistics with clean formatting
+    // Add plan statistics with exciting formatting
     planStats.forEach((stat, index) => {
-      const performance = stat.activityPercent > 75 ? '🟢 Strong' : stat.activityPercent > 50 ? '🟡 Moderate' : '🔴 Conservative';
-      message += `\n\n**${stat.plan.name}** • ${stat.plan.roiPercentage}% Annual Return`;
-      message += `\n${performance} Performance • ${stat.activeCount} Active Positions`;
-      message += `\nPortfolio: ${stat.totalAmount.toFixed(4)} BTC • Returns: +${stat.totalProfit.toFixed(6)} BTC`;
+      const performance = stat.activityPercent > 75 ? '🔥 CRUSHING IT!' : stat.activityPercent > 50 ? '💪 SOLID GAINS' : '🎯 STEADY PROFIT';
+      const rankEmoji = index === 0 ? '👑 #1' : index === 1 ? '🥈 #2' : index === 2 ? '🥉 #3' : `🏆 #${index + 1}`;
+      message += `\n\n${rankEmoji} **${stat.plan.name}** - ${stat.plan.roiPercentage}% RETURNS! 💸`;
+      message += `\n${performance} | ${stat.activeCount} Smart Investors Making Money! 🤑`;
+      message += `\nTotal: ${stat.totalAmount.toFixed(4)} BTC | Profits: +${stat.totalProfit.toFixed(6)} BTC 📈`;
     });
 
     message += `
 
-**Market Intelligence:**
-✓ Institutional-grade cryptocurrency management
-✓ Advanced risk assessment and portfolio optimization
-✓ Real-time market analysis and automated rebalancing
-✓ Professional custody solutions with insurance coverage
+⚡ **WHY BITVAULT PRO IS DOMINATING:**
+✅ 24/7 AI-POWERED Bitcoin trading robots working for YOU!
+✅ MILITARY-GRADE security - Your money is SAFER than in banks!
+✅ INSTANT withdrawals - Get your profits ANYTIME!
+✅ ZERO hidden fees - Keep ALL your profits!
 
-**Platform Status:** All systems operational
-**Security Rating:** Bank-level encryption and cold storage
-**Regulatory Compliance:** Fully licensed and regulated
+🚨 **SYSTEM STATUS: ALL GREEN - MONEY MACHINE RUNNING!** 🚨
+🔐 **SECURITY: FORT KNOX LEVEL - UNBREACHABLE!**
+📜 **100% LEGAL & REGULATED - TRUSTED BY THOUSANDS!**
 
-*BitVault Pro - Professional Bitcoin Investment Management*`;
+💎 **BitVault Pro - Turn Your Bitcoin Into A PROFIT MACHINE!** 💎
+
+🔥 **JOIN THE MONEY REVOLUTION TODAY!** 🔥`;
 
     const success = await sendToChannel(message);
     if (success) {
       console.log('✅ Daily stats with investment plan charts sent to Telegram');
     } else {
       console.log('❌ Failed to send daily stats - will attempt fallback message');
-      // Send simplified fallback message if main message fails
-      const simpleFallback = `🏦 **BITVAULT PRO** • Daily Report
+      // Send exciting fallback message if main message fails
+      const simpleFallback = `🔥 **BITVAULT PRO IS CRUSHING IT!** 🔥
 
-**${new Date().toLocaleDateString('en-US', { 
+💥 **${new Date().toLocaleDateString('en-US', { 
         weekday: 'long', 
         month: 'long', 
         day: 'numeric'
-      })}**
+      })}** 💥
 
-✅ Platform operational and processing investments
-📊 All investment strategies performing within targets
-🔒 Security systems active and monitoring
-💰 Automated profit distribution ongoing
+🚀 PLATFORM STATUS: MAKING MONEY 24/7!
+📈 ALL STRATEGIES: PURE PROFIT MODE ACTIVATED!
+🛡️ SECURITY: FORT KNOX LEVEL - 100% SAFE!
+💰 PROFIT MACHINE: RUNNING AT MAXIMUM POWER!
 
-*Professional Bitcoin investment management*`;
+💎 **YOUR BITCOIN IS GETTING RICHER BY THE MINUTE!** 💎`;
       
       await sendToChannel(simpleFallback);
     }
@@ -378,7 +382,7 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
   try {
     // Send banner first
     const bannerPath = './attached_assets/IMG_6814_1756042561574.jpeg';
-    const bannerSent = await sendPhotoToChannel(bannerPath, '📊 **BITVAULT PRO INVESTMENT UPDATE** 📊');
+    const bannerSent = await sendPhotoToChannel(bannerPath, '🚨 **PROFIT ALERT!** 🚨\n💰 BITVAULT PRO MONEY MACHINE IS GOING CRAZY! 💰');
 
     if (bannerSent) {
       console.log('✅ Investment banner sent');
@@ -502,38 +506,40 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           // Sort plans by activity level
           planStats.sort((a, b) => b.activityPercent - a.activityPercent);
 
-          let message = `📈 **BITVAULT PRO** • Live Market Update
+          let message = `🚨 **LIVE PROFIT ALERT!** 🚨
+💥 **BITVAULT PRO BREAKING RECORDS AGAIN!** 💥
 
-**Real-Time Portfolio Metrics:**
-• Client Base: **${totalUsers.toLocaleString()}** institutional and retail investors
-• Assets Under Management: **${platformTotalBalance.toFixed(4)} BTC** (${(platformTotalBalance * bitcoinPrice).toLocaleString()} USD)
-• Total Returns Generated: **${platformTotalProfit.toFixed(4)} BTC** (${(platformTotalProfit * bitcoinPrice).toLocaleString()} USD)
-• Active Investment Strategies: **${platformActiveInvestments.toLocaleString()}**
+🔥 **REAL-TIME MONEY MACHINE STATUS:**
+💰 **${totalUsers.toLocaleString()} SMART INVESTORS** are making bank RIGHT NOW!
+📊 **$${(platformTotalBalance * bitcoinPrice).toLocaleString()}** in Bitcoin CRUSHING the market!
+🎯 **$${(platformTotalProfit * bitcoinPrice).toLocaleString()}** in PURE PROFIT generated!
+⚡ **${platformActiveInvestments.toLocaleString()}** profit strategies ACTIVE and WORKING!
 
-**Investment Strategy Performance:**`;
+🏆 **WHICH PLAN IS MAKING THE MOST MONEY?** 🏆`;
 
-          // Add plan statistics with professional formatting
+          // Add plan statistics with exciting formatting
           planStats.forEach((stat, index) => {
-            const riskLevel = stat.plan.roiPercentage > 30 ? 'Aggressive Growth' : stat.plan.roiPercentage > 15 ? 'Balanced Growth' : 'Conservative';
-            message += `\n\n**${stat.plan.name}** • ${riskLevel} Strategy`;
-            message += `\nTarget Return: ${stat.plan.roiPercentage}% annually`;
-            message += `\nActive Allocations: ${stat.activeCount} • Portfolio Value: ${stat.totalAmount.toFixed(4)} BTC`;
+            const riskLevel = stat.plan.roiPercentage > 30 ? '🚀 MAXIMUM GAINS' : stat.plan.roiPercentage > 15 ? '💪 HIGH PROFIT' : '🎯 STEADY MONEY';
+            const rankEmoji = index === 0 ? '👑 CHAMPION' : index === 1 ? '🥈 RUNNER-UP' : index === 2 ? '🥉 STRONG' : `🏅 TOP PERFORMER`;
+            message += `\n\n${rankEmoji} **${stat.plan.name}**`;
+            message += `\n${riskLevel} | **${stat.plan.roiPercentage}% ANNUAL RETURNS!** 📈`;
+            message += `\n💎 ${stat.activeCount} Winners | 💰 ${stat.totalAmount.toFixed(4)} BTC Making Money!`;
           });
 
           message += `
 
-**Market Operations:**
-• Continuous portfolio monitoring and optimization
-• Advanced algorithmic trading strategies deployed
-• Real-time risk management protocols active
-• Professional wealth management services
+⚡ **OUR SECRET WEAPONS:**
+🤖 AI Trading Bots working 24/7 - NEVER sleep, ALWAYS profit!
+🛡️ Military-grade security - Your Bitcoin is BULLETPROOF!
+⏰ INSTANT profits - Watch your money GROW in real-time!
+🏦 Regulated & insured - Your success is GUARANTEED!
 
-**Platform Infrastructure:** Enterprise-grade security and compliance
-**Market Analysis:** Powered by institutional research and AI
+🔥 **THE NUMBERS DON'T LIE - WE'RE THE BEST!** 🔥
+💯 **THOUSANDS of satisfied investors can't be wrong!**
 
-*Professional Bitcoin investment management for the digital economy*
+🚀 **DON'T MISS OUT - JOIN THE PROFIT PARTY!** 🚀
 
-${new Date().toLocaleDateString('en-US', { 
+⏰ LIVE UPDATE: ${new Date().toLocaleDateString('en-US', { 
             month: 'long', 
             day: 'numeric',
             year: 'numeric'
@@ -541,7 +547,7 @@ ${new Date().toLocaleDateString('en-US', {
             hour: '2-digit',
             minute: '2-digit',
             timeZone: 'UTC'
-          })} UTC`;
+          })} UTC ⏰`;
 
           const success = await sendToChannel(message);
           if (success) {
