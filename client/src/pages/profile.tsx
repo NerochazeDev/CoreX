@@ -439,221 +439,225 @@ function ProfileContent() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
-        {/* Main Profile Card - Match Home Page Style */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="relative">
-            {/* 3D Shadow Base */}
-            <div className="absolute top-3 left-3 w-full h-full bg-gradient-to-br from-orange-500/30 to-orange-600/40 rounded-3xl blur-lg"></div>
+        {/* Desktop Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          
+          {/* Left Column - Main Profile Info (Desktop: 8 cols, Mobile: Full width) */}
+          <div className="xl:col-span-8 space-y-8">
+            
+            {/* Main Profile Card */}
+            <div className="relative">
+              {/* 3D Shadow Base */}
+              <div className="absolute top-3 left-3 w-full h-full bg-gradient-to-br from-orange-500/30 to-orange-600/40 rounded-3xl blur-lg"></div>
 
-            {/* Main Card */}
-            <Card className="relative bg-gradient-to-br from-orange-500 via-orange-600/90 to-orange-700 dark:from-orange-600 dark:via-orange-700/90 dark:to-orange-800 border border-orange-400/60 dark:border-orange-500/50 rounded-3xl shadow-2xl shadow-orange-600/30 backdrop-blur-xl overflow-hidden">
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 via-orange-500/10 to-orange-600/25 pointer-events-none"></div>
+              {/* Main Card */}
+              <Card className="relative bg-gradient-to-br from-orange-500 via-orange-600/90 to-orange-700 dark:from-orange-600 dark:via-orange-700/90 dark:to-orange-800 border border-orange-400/60 dark:border-orange-500/50 rounded-3xl shadow-2xl shadow-orange-600/30 backdrop-blur-xl overflow-hidden">
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 via-orange-500/10 to-orange-600/25 pointer-events-none"></div>
 
-              <CardContent className="relative p-8 text-center">
-                <div className="space-y-6">
-                  {/* Avatar Section */}
-                  <div className="relative group mx-auto w-fit">
-                    <div className="relative">
-                      <Avatar className="w-24 h-24 border-4 border-white/30 shadow-xl transition-all duration-300 group-hover:scale-105 mx-auto">
-                        {profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
-                          <AvatarImage src={profileData.avatar} className="object-cover" />
-                        ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
-                          <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
-                            <span className="text-2xl font-bold text-white">
+                <CardContent className="relative p-6 lg:p-8">
+                  <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-8">
+                    {/* Avatar Section */}
+                    <div className="relative group flex-shrink-0 mx-auto lg:mx-0">
+                      <div className="relative">
+                        <Avatar className="w-24 h-24 lg:w-32 lg:h-32 border-4 border-white/30 shadow-xl transition-all duration-300 group-hover:scale-105">
+                          {profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
+                            <AvatarImage src={profileData.avatar} className="object-cover" />
+                          ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
+                            <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
+                              <span className="text-2xl lg:text-3xl font-bold text-white">
+                                {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          ) : (
+                            <AvatarFallback className="text-2xl lg:text-3xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
                               {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        ) : (
-                          <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
-                            {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                      <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <Camera className="w-6 h-6 text-white" />
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                          <Camera className="w-6 h-6 text-white" />
+                        </div>
                       </div>
-                    </div>
-                    <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button size="sm" className="absolute -bottom-2 -right-2 rounded-full w-10 h-10 p-0 bg-white hover:bg-white/90 text-orange-600 shadow-lg border-2 border-orange-200 hover:border-orange-300 transition-all duration-300">
-                          <Camera className="w-5 h-5" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2">
-                            <Camera className="w-5 h-5 text-orange-500" />
-                            Update Profile Picture
-                          </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-6">
-                          {/* Current/Preview Avatar */}
-                          <div className="flex justify-center">
-                            <Avatar className="w-32 h-32 border-4 border-border shadow-lg">
-                              {uploadedImage ? (
-                                <AvatarImage src={uploadedImage} className="object-cover" />
-                              ) : profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
-                                <AvatarImage src={profileData.avatar} className="object-cover" />
-                              ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
-                                <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
-                                  <span className="text-3xl font-bold text-white">
+                      <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="sm" className="absolute -bottom-2 -right-2 rounded-full w-10 h-10 p-0 bg-white hover:bg-white/90 text-orange-600 shadow-lg border-2 border-orange-200 hover:border-orange-300 transition-all duration-300">
+                            <Camera className="w-5 h-5" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <Camera className="w-5 h-5 text-orange-500" />
+                              Update Profile Picture
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-6">
+                            {/* Current/Preview Avatar */}
+                            <div className="flex justify-center">
+                              <Avatar className="w-32 h-32 border-4 border-border shadow-lg">
+                                {uploadedImage ? (
+                                  <AvatarImage src={uploadedImage} className="object-cover" />
+                                ) : profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
+                                  <AvatarImage src={profileData.avatar} className="object-cover" />
+                                ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
+                                  <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
+                                    <span className="text-3xl font-bold text-white">
+                                      {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
                                     {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                              ) : (
-                                <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
-                                  {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                              )}
-                            </Avatar>
-                          </div>
-
-                          {/* Upload Options */}
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-1 gap-3">
-                              <label className="block">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={handleAvatarUpload}
-                                  className="hidden"
-                                  disabled={isUploadingAvatar}
-                                />
-                                <Button 
-                                  variant="outline" 
-                                  className="w-full gap-2 cursor-pointer" 
-                                  asChild
-                                  disabled={isUploadingAvatar}
-                                >
-                                  <span>
-                                    {isUploadingAvatar ? (
-                                      <RefreshCw className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <Upload className="w-4 h-4" />
-                                    )}
-                                    {isUploadingAvatar ? 'Processing...' : 'Upload New Picture'}
-                                  </span>
-                                </Button>
-                              </label>
-
-                              <Button
-                                variant="outline"
-                                onClick={generateGradientAvatar}
-                                className="w-full gap-2"
-                              >
-                                <Star className="w-4 h-4" />
-                                Generate Avatar
-                              </Button>
-
-                              {(profileData.avatar || uploadedImage) && (
-                                <Button
-                                  variant="outline"
-                                  onClick={handleAvatarRemove}
-                                  className="w-full gap-2 text-red-600 border-red-200 hover:bg-red-50"
-                                >
-                                  <X className="w-4 h-4" />
-                                  Remove Picture
-                                </Button>
-                              )}
+                                  </AvatarFallback>
+                                )}
+                              </Avatar>
                             </div>
 
-                            {uploadedImage && (
-                              <div className="border-t pt-4">
-                                <div className="flex gap-2">
-                                  <Button
-                                    onClick={handleAvatarSave}
+                            {/* Upload Options */}
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 gap-3">
+                                <label className="block">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleAvatarUpload}
+                                    className="hidden"
                                     disabled={isUploadingAvatar}
-                                    className="flex-1 bg-orange-500 hover:bg-orange-600"
+                                  />
+                                  <Button 
+                                    variant="outline" 
+                                    className="w-full gap-2 cursor-pointer" 
+                                    asChild
+                                    disabled={isUploadingAvatar}
                                   >
-                                    {isUploadingAvatar ? (
-                                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                                    ) : (
-                                      <CheckCircle className="w-4 h-4 mr-2" />
-                                    )}
-                                    {isUploadingAvatar ? 'Saving...' : 'Save Picture'}
+                                    <span>
+                                      {isUploadingAvatar ? (
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <Upload className="w-4 h-4" />
+                                      )}
+                                      {isUploadingAvatar ? 'Processing...' : 'Upload New Picture'}
+                                    </span>
                                   </Button>
+                                </label>
+
+                                <Button
+                                  variant="outline"
+                                  onClick={generateGradientAvatar}
+                                  className="w-full gap-2"
+                                >
+                                  <Star className="w-4 h-4" />
+                                  Generate Avatar
+                                </Button>
+
+                                {(profileData.avatar || uploadedImage) && (
                                   <Button
                                     variant="outline"
-                                    onClick={() => setUploadedImage(null)}
-                                    disabled={isUploadingAvatar}
+                                    onClick={handleAvatarRemove}
+                                    className="w-full gap-2 text-red-600 border-red-200 hover:bg-red-50"
                                   >
-                                    Cancel
+                                    <X className="w-4 h-4" />
+                                    Remove Picture
                                   </Button>
-                                </div>
+                                )}
                               </div>
-                            )}
+
+                              {uploadedImage && (
+                                <div className="border-t pt-4">
+                                  <div className="flex gap-2">
+                                    <Button
+                                      onClick={handleAvatarSave}
+                                      disabled={isUploadingAvatar}
+                                      className="flex-1 bg-orange-500 hover:bg-orange-600"
+                                    >
+                                      {isUploadingAvatar ? (
+                                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                      ) : (
+                                        <CheckCircle className="w-4 h-4 mr-2" />
+                                      )}
+                                      {isUploadingAvatar ? 'Saving...' : 'Save Picture'}
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => setUploadedImage(null)}
+                                      disabled={isUploadingAvatar}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+
+                    {/* User Info */}
+                    <div className="flex-1 text-center lg:text-left space-y-4">
+                      <div>
+                        <h2 className="text-2xl lg:text-4xl font-bold text-white mb-1">
+                          {profileData.firstName || profileData.lastName 
+                            ? `${profileData.firstName} ${profileData.lastName}`.trim()
+                            : user?.email?.split('@')[0] || 'User'
+                          }
+                        </h2>
+                        <p className="text-orange-100 text-lg lg:text-xl">@{user?.email?.split('@')[0] || 'user'} • ID: #{displayUserId}</p>
+                        {profileData.bio && (
+                          <p className="text-orange-100 text-sm lg:text-base mt-2 max-w-2xl lg:mx-0 mx-auto">{profileData.bio}</p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap justify-center lg:justify-start gap-2 lg:gap-3">
+                        {user?.isAdmin ? (
+                          <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-3 py-1">
+                            <Crown className="w-4 h-4 mr-2" />
+                            Administrator
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-white/20 text-white border-white/30 px-3 py-1">
+                            Premium Member
+                          </Badge>
+                        )}
+                        <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-3 py-1">
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Verified
+                        </Badge>
+                        {achievementProgress.loyalMember && (
+                          <Badge className="bg-purple-500/20 text-purple-100 border-purple-300/30 px-3 py-1">
+                            <Trophy className="w-4 h-4 mr-2" />
+                            Loyal Member
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
+                        <div className="text-center lg:text-left">
+                          <p className="text-xl lg:text-2xl font-bold text-white">{accountAge}</p>
+                          <p className="text-orange-100 text-xs lg:text-sm">Days Active</p>
                         </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-
-                  {/* User Info */}
-                  <div className="space-y-3">
-                    <div>
-                      <h2 className="text-3xl font-bold text-white mb-1">
-                        {profileData.firstName || profileData.lastName 
-                          ? `${profileData.firstName} ${profileData.lastName}`.trim()
-                          : user?.email?.split('@')[0] || 'User'
-                        }
-                      </h2>
-                      <p className="text-orange-100 text-lg">@{user?.email?.split('@')[0] || 'user'} • ID: #{displayUserId}</p>
-                      {profileData.bio && (
-                        <p className="text-orange-100 text-sm mt-2 max-w-md mx-auto">{profileData.bio}</p>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap justify-center gap-3">
-                      {user?.isAdmin ? (
-                        <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-3 py-1">
-                          <Crown className="w-4 h-4 mr-2" />
-                          Administrator
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-white/20 text-white border-white/30 px-3 py-1">
-                          Premium Member
-                        </Badge>
-                      )}
-                      <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-3 py-1">
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Verified
-                      </Badge>
-                      {achievementProgress.loyalMember && (
-                        <Badge className="bg-purple-500/20 text-purple-100 border-purple-300/30 px-3 py-1">
-                          <Trophy className="w-4 h-4 mr-2" />
-                          Loyal Member
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-white">{accountAge}</p>
-                        <p className="text-orange-100 text-sm">Days Active</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-white">{userTransactions}</p>
-                        <p className="text-orange-100 text-sm">Transactions</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-white">{activeInvestments + completedInvestments}</p>
-                        <p className="text-orange-100 text-sm">Investments</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-white">{profileCompleteness}%</p>
-                        <p className="text-orange-100 text-sm">Profile Complete</p>
+                        <div className="text-center lg:text-left">
+                          <p className="text-xl lg:text-2xl font-bold text-white">{userTransactions}</p>
+                          <p className="text-orange-100 text-xs lg:text-sm">Transactions</p>
+                        </div>
+                        <div className="text-center lg:text-left">
+                          <p className="text-xl lg:text-2xl font-bold text-white">{activeInvestments + completedInvestments}</p>
+                          <p className="text-orange-100 text-xs lg:text-sm">Investments</p>
+                        </div>
+                        <div className="text-center lg:text-left">
+                          <p className="text-xl lg:text-2xl font-bold text-white">{profileCompleteness}%</p>
+                          <p className="text-orange-100 text-xs lg:text-sm">Profile Complete</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* Stats Overview - Orange Theme Design */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            {/* Stats Overview - Orange Theme Design */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           <div className="relative">
             <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
             <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
@@ -728,121 +732,166 @@ function ProfileContent() {
           </div>
         </div>
 
-        {/* Account Security & Achievement */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          <div className="relative">
-            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-green-500" />
-                  Account Security
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="font-medium">Email Verified</span>
-                    </div>
-                    <Badge className="bg-green-500">Active</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="font-medium">Account Secured</span>
-                    </div>
-                    <Badge className="bg-green-500">Protected</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                    <div className="flex items-center gap-2">
-                      <Lock className="w-5 h-5 text-blue-500" />
-                      <span className="font-medium">Strong Password</span>
-                    </div>
-                    <Badge variant="secondary">Good</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Quick Action Buttons */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link href="/settings">
+                <Button variant="outline" className="w-full h-12 lg:h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300">
+                  <Settings className="w-4 lg:w-5 h-4 lg:h-5 text-orange-600" />
+                  <span className="text-sm lg:text-base">Settings</span>
+                </Button>
+              </Link>
+              <Link href="/transactions">
+                <Button variant="outline" className="w-full h-12 lg:h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300">
+                  <Activity className="w-4 lg:w-5 h-4 lg:h-5 text-orange-600" />
+                  <span className="text-sm lg:text-base">History</span>
+                </Button>
+              </Link>
+              <Link href="/investment">
+                <Button variant="outline" className="w-full h-12 lg:h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300">
+                  <TrendingUp className="w-4 lg:w-5 h-4 lg:h-5 text-orange-600" />
+                  <span className="text-sm lg:text-base">Invest</span>
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                className="w-full h-12 lg:h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300"
+                onClick={() => setShowSensitiveInfo(!showSensitiveInfo)}
+              >
+                {showSensitiveInfo ? <EyeOff className="w-4 lg:w-5 h-4 lg:h-5 text-orange-600" /> : <Eye className="w-4 lg:w-5 h-4 lg:h-5 text-orange-600" />}
+                <span className="text-sm lg:text-base">{showSensitiveInfo ? 'Hide' : 'Show'}</span>
+              </Button>
+            </div>
           </div>
 
-          <div className="relative">
-            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  Achievements
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex justify-between text-sm">
-                    <span>Profile Completion</span>
-                    <span className="font-medium">{completedAchievements} of {totalAchievements}</span>
+          {/* Right Sidebar (Desktop Only) */}
+          <div className="xl:col-span-4 space-y-6">
+            
+            {/* Account Security */}
+            <div className="relative">
+              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg lg:text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-green-500" />
+                    Account Security
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 lg:w-5 h-4 lg:h-5 text-green-500" />
+                        <span className="font-medium text-sm lg:text-base">Email Verified</span>
+                      </div>
+                      <Badge className="bg-green-500 text-xs">Active</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 lg:w-5 h-4 lg:h-5 text-green-500" />
+                        <span className="font-medium text-sm lg:text-base">Account Secured</span>
+                      </div>
+                      <Badge className="bg-green-500 text-xs">Protected</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 lg:w-5 h-4 lg:h-5 text-blue-500" />
+                        <span className="font-medium text-sm lg:text-base">Strong Password</span>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">Good</Badge>
+                    </div>
                   </div>
-                  <Progress value={profileCompleteness} className="h-3" />
-                  <div className="grid grid-cols-2 gap-2">
-                    {achievementProgress.firstInvestment && (
-                      <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 text-xs">
-                        <Target className="w-3 h-3 mr-1" />
-                        First Investment
-                      </Badge>
-                    )}
-                    {achievementProgress.loyalMember && (
-                      <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-1 text-xs">
-                        <Trophy className="w-3 h-3 mr-1" />
-                        Loyal Member
-                      </Badge>
-                    )}
-                    {achievementProgress.activeTrader && (
-                      <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-1 text-xs">
-                        <Zap className="w-3 h-3 mr-1" />
-                        Active Trader
-                      </Badge>
-                    )}
-                    {achievementProgress.profitMaker && (
-                      <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 px-2 py-1 text-xs">
-                        <Star className="w-3 h-3 mr-1" />
-                        Profit Maker
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* Quick Action Buttons - Match Home Page Style */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-          <Link href="/settings">
-            <Button variant="outline" className="w-full h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300">
-              <Settings className="w-5 h-5 text-orange-600" />
-              <span>Settings</span>
-            </Button>
-          </Link>
-          <Link href="/transactions">
-            <Button variant="outline" className="w-full h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300">
-              <Activity className="w-5 h-5 text-orange-600" />
-              <span>History</span>
-            </Button>
-          </Link>
-          <Link href="/investment">
-            <Button variant="outline" className="w-full h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300">
-              <TrendingUp className="w-5 h-5 text-orange-600" />
-              <span>Invest</span>
-            </Button>
-          </Link>
-          <Button 
-            variant="outline" 
-            className="w-full h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300"
-            onClick={() => setShowSensitiveInfo(!showSensitiveInfo)}
-          >
-            {showSensitiveInfo ? <EyeOff className="w-5 h-5 text-orange-600" /> : <Eye className="w-5 h-5 text-orange-600" />}
-            <span>{showSensitiveInfo ? 'Hide' : 'Show'}</span>
-          </Button>
+            {/* Achievements */}
+            <div className="relative">
+              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg lg:text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-yellow-500" />
+                    Achievements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-xs lg:text-sm">
+                      <span>Profile Completion</span>
+                      <span className="font-medium">{completedAchievements} of {totalAchievements}</span>
+                    </div>
+                    <Progress value={profileCompleteness} className="h-2 lg:h-3" />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                      {achievementProgress.firstInvestment && (
+                        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 text-xs justify-start">
+                          <Target className="w-3 h-3 mr-1" />
+                          First Investment
+                        </Badge>
+                      )}
+                      {achievementProgress.loyalMember && (
+                        <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-1 text-xs justify-start">
+                          <Trophy className="w-3 h-3 mr-1" />
+                          Loyal Member
+                        </Badge>
+                      )}
+                      {achievementProgress.activeTrader && (
+                        <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-1 text-xs justify-start">
+                          <Zap className="w-3 h-3 mr-1" />
+                          Active Trader
+                        </Badge>
+                      )}
+                      {achievementProgress.profitMaker && (
+                        <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 px-2 py-1 text-xs justify-start">
+                          <Star className="w-3 h-3 mr-1" />
+                          Profit Maker
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity Summary (Desktop Only) */}
+            <div className="relative hidden xl:block">
+              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-orange-500" />
+                    Quick Stats
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                      <p className="text-lg font-bold text-orange-800 dark:text-orange-100">{totalInvested.toFixed(4)}</p>
+                      <p className="text-xs text-orange-600 dark:text-orange-400">BTC Invested</p>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
+                      <p className="text-lg font-bold text-green-600 dark:text-green-400">+{totalProfit.toFixed(4)}</p>
+                      <p className="text-xs text-green-600 dark:text-green-400">BTC Profit</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Active Investments</span>
+                      <span className="text-sm font-medium">{activeInvestments}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Completed</span>
+                      <span className="text-sm font-medium">{completedInvestments}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Total Transactions</span>
+                      <span className="text-sm font-medium">{userTransactions}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </main>
 
