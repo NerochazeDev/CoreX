@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurrency } from "@/hooks/use-currency";
 import { formatBitcoin, formatCurrency } from "@/lib/utils";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
@@ -30,8 +28,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +39,6 @@ function ProfileContent() {
   const queryClient = useQueryClient();
   const [showSensitiveInfo, setShowSensitiveInfo] = useState(false);
   const [displayUserId, setDisplayUserId] = useState(0);
-  const [activeTab, setActiveTab] = useState("overview");
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -52,17 +47,6 @@ function ProfileContent() {
     bio: '',
     website: '',
     avatar: '',
-    notifications: {
-      email: true,
-      push: true,
-      sms: false,
-      marketing: false
-    },
-    privacy: {
-      profileVisible: true,
-      showBalance: false,
-      showInvestments: false
-    }
   });
 
   // Initialize profile data from user when user data is available
@@ -112,12 +96,12 @@ function ProfileContent() {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
-      
+
       img.onload = () => {
         // Calculate new dimensions (max 400x400 while maintaining aspect ratio)
         const maxSize = 400;
         let { width, height } = img;
-        
+
         if (width > height) {
           if (width > maxSize) {
             height = (height * maxSize) / width;
@@ -129,18 +113,18 @@ function ProfileContent() {
             height = maxSize;
           }
         }
-        
+
         canvas.width = width;
         canvas.height = height;
-        
+
         // Draw and compress
         ctx?.drawImage(img, 0, 0, width, height);
-        
+
         // Convert to base64 with compression (0.8 quality)
         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
         resolve(compressedDataUrl);
       };
-      
+
       img.src = URL.createObjectURL(file);
     });
   };
@@ -163,10 +147,10 @@ function ProfileContent() {
           title: "Processing image...",
           description: "Compressing your image for faster upload.",
         });
-        
+
         const compressedImage = await compressImage(file);
         setUploadedImage(compressedImage);
-        
+
         toast({
           title: "Image ready",
           description: "Your image has been processed and is ready to save.",
@@ -185,17 +169,17 @@ function ProfileContent() {
 
   const handleAvatarSave = async () => {
     if (!uploadedImage) return;
-    
+
     setIsUploadingAvatar(true);
-    
+
     try {
       // Update profile with new avatar using the correct mutation
       const result = await updateProfileMutation.mutateAsync({ avatar: uploadedImage });
-      
+
       setProfileData(prev => ({ ...prev, avatar: uploadedImage }));
       setAvatarDialogOpen(false);
       setUploadedImage(null);
-      
+
       toast({
         title: "Profile Picture Updated",
         description: "Your new profile picture has been saved successfully.",
@@ -215,7 +199,7 @@ function ProfileContent() {
   const handleAvatarRemove = async () => {
     try {
       await updateProfileMutation.mutateAsync({ avatar: '' });
-      
+
       setProfileData(prev => ({ ...prev, avatar: '' }));
       setUploadedImage(null);
       toast({
@@ -243,15 +227,15 @@ function ProfileContent() {
     ];
     const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
     const gradientAvatar = `gradient-${randomGradient}`;
-    
+
     try {
       await updateProfileMutation.mutateAsync({ avatar: gradientAvatar });
-      
+
       setProfileData(prev => ({ 
         ...prev, 
         avatar: gradientAvatar
       }));
-      
+
       toast({
         title: "Avatar Generated",
         description: "A new gradient avatar has been created for you.",
@@ -316,12 +300,11 @@ function ProfileContent() {
 
   const handleProfileUpdate = async () => {
     try {
-      const { notifications, privacy, ...profileUpdateData } = profileData;
-      await updateProfileMutation.mutateAsync(profileUpdateData);
-      
+      await updateProfileMutation.mutateAsync(profileData);
+
       // Close dialog and show success feedback
       setIsEditDialogOpen(false);
-      
+
       // Force a page reload to show updated data
       setTimeout(() => {
         window.location.reload();
@@ -331,38 +314,32 @@ function ProfileContent() {
     }
   };
 
-  const recentActivity = [
-    { type: "investment", title: "New Investment Started", time: "2 hours ago", icon: TrendingUp },
-    { type: "profit", title: "Daily Profit Credited", time: "1 day ago", icon: DollarSign },
-    { type: "login", title: "Successful Login", time: "2 days ago", icon: Shield },
-    { type: "settings", title: "Profile Updated", time: "3 days ago", icon: Settings }
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background">
-      {/* Modern Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Header - Match Home Page Style */}
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
               <Link href="/">
-                <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-full hover:bg-primary/10">
+                <Button variant="ghost" size="icon" className="h-10 w-10 p-0 rounded-full hover:bg-primary/10">
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">
-                  Profile Center
-                </h1>
-                <p className="text-sm text-muted-foreground">Manage your account & preferences</p>
+              <div className="hidden sm:block">
+                <h1 className="text-xl font-bold text-foreground">Profile</h1>
+                <p className="text-sm text-muted-foreground">
+                  {user.firstName || user.email?.split('@')[0]}'s Profile
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="flex items-center gap-2">
               <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2 hover:bg-primary/10 border-primary/20">
                     <Edit className="w-4 h-4" />
-                    Edit Profile
+                    <span className="hidden sm:inline">Edit</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg">
@@ -420,7 +397,7 @@ function ProfileContent() {
                     <div className="flex gap-2">
                       <Button 
                         onClick={handleProfileUpdate} 
-                        className="flex-1"
+                        className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
                         disabled={updateProfileMutation.isPending}
                       >
                         {updateProfileMutation.isPending ? (
@@ -446,6 +423,7 @@ function ProfileContent() {
                   </div>
                 </DialogContent>
               </Dialog>
+
               <Button 
                 onClick={logout}
                 variant="outline" 
@@ -453,830 +431,413 @@ function ProfileContent() {
                 className="gap-2 text-red-600 hover:bg-red-50 border-red-200 hover:border-red-300 dark:text-red-400 dark:hover:bg-red-950/20"
               >
                 <ExternalLink className="w-4 h-4" />
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
               </Button>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:ml-64">
-        {/* Modern Profile Header */}
-        <Card className="mb-8 overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-primary via-orange-500 to-orange-600 text-white relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-black/10 to-black/20"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
-          
-          <CardContent className="p-8 relative z-10">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <div className="relative group">
-                <div className="relative">
-                  <Avatar className="w-24 h-24 border-4 border-white/30 shadow-xl transition-all duration-300 group-hover:scale-105">
-                    {profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
-                      <AvatarImage src={profileData.avatar} className="object-cover" />
-                    ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
-                      <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
-                        <span className="text-2xl font-bold text-white">
-                          {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                        </span>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
+        {/* Main Profile Card - Match Home Page Style */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <div className="relative">
+            {/* 3D Shadow Base */}
+            <div className="absolute top-3 left-3 w-full h-full bg-gradient-to-br from-orange-500/30 to-orange-600/40 rounded-3xl blur-lg"></div>
+
+            {/* Main Card */}
+            <Card className="relative bg-gradient-to-br from-orange-500 via-orange-600/90 to-orange-700 dark:from-orange-600 dark:via-orange-700/90 dark:to-orange-800 border border-orange-400/60 dark:border-orange-500/50 rounded-3xl shadow-2xl shadow-orange-600/30 backdrop-blur-xl overflow-hidden">
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 via-orange-500/10 to-orange-600/25 pointer-events-none"></div>
+
+              <CardContent className="relative p-8 text-center">
+                <div className="space-y-6">
+                  {/* Avatar Section */}
+                  <div className="relative group mx-auto w-fit">
+                    <div className="relative">
+                      <Avatar className="w-24 h-24 border-4 border-white/30 shadow-xl transition-all duration-300 group-hover:scale-105 mx-auto">
+                        {profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
+                          <AvatarImage src={profileData.avatar} className="object-cover" />
+                        ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
+                          <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
+                            <span className="text-2xl font-bold text-white">
+                              {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        ) : (
+                          <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
+                            {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <Camera className="w-6 h-6 text-white" />
                       </div>
-                    ) : (
-                      <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
-                        {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <Camera className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-                <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="absolute -bottom-2 -right-2 rounded-full w-10 h-10 p-0 bg-white hover:bg-white/90 text-orange-600 shadow-lg border-2 border-orange-200 hover:border-orange-300 transition-all duration-300">
-                      <Camera className="w-5 h-5" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <Camera className="w-5 h-5 text-orange-500" />
-                        Update Profile Picture
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-6">
-                      {/* Current/Preview Avatar */}
-                      <div className="flex justify-center">
-                        <div className="relative">
-                          <Avatar className="w-32 h-32 border-4 border-border shadow-lg">
-                            {uploadedImage ? (
-                              <AvatarImage src={uploadedImage} className="object-cover" />
-                            ) : profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
-                              <AvatarImage src={profileData.avatar} className="object-cover" />
-                            ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
-                              <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
-                                <span className="text-3xl font-bold text-white">
+                    </div>
+                    <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" className="absolute -bottom-2 -right-2 rounded-full w-10 h-10 p-0 bg-white hover:bg-white/90 text-orange-600 shadow-lg border-2 border-orange-200 hover:border-orange-300 transition-all duration-300">
+                          <Camera className="w-5 h-5" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Camera className="w-5 h-5 text-orange-500" />
+                            Update Profile Picture
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6">
+                          {/* Current/Preview Avatar */}
+                          <div className="flex justify-center">
+                            <Avatar className="w-32 h-32 border-4 border-border shadow-lg">
+                              {uploadedImage ? (
+                                <AvatarImage src={uploadedImage} className="object-cover" />
+                              ) : profileData.avatar && !profileData.avatar.startsWith('gradient-') ? (
+                                <AvatarImage src={profileData.avatar} className="object-cover" />
+                              ) : profileData.avatar && profileData.avatar.startsWith('gradient-') ? (
+                                <div className={`w-full h-full bg-gradient-to-br ${profileData.avatar.replace('gradient-', '')} flex items-center justify-center`}>
+                                  <span className="text-3xl font-bold text-white">
+                                    {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                              ) : (
+                                <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
                                   {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                                </span>
-                              </div>
-                            ) : (
-                              <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-orange-400 to-red-500 text-white">
-                                {(profileData.firstName || user?.email || 'U').charAt(0).toUpperCase()}
-                              </AvatarFallback>
-                            )}
-                          </Avatar>
-                        </div>
-                      </div>
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                          </div>
 
-                      {/* Upload Options */}
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-3">
-                          <label className="block">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleAvatarUpload}
-                              className="hidden"
-                              disabled={isUploadingAvatar}
-                            />
-                            <Button 
-                              variant="outline" 
-                              className="w-full gap-2 cursor-pointer" 
-                              asChild
-                              disabled={isUploadingAvatar}
-                            >
-                              <span>
-                                {isUploadingAvatar ? (
-                                  <RefreshCw className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <Upload className="w-4 h-4" />
-                                )}
-                                {isUploadingAvatar ? 'Processing...' : 'Upload New Picture'}
-                              </span>
-                            </Button>
-                          </label>
+                          {/* Upload Options */}
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-3">
+                              <label className="block">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleAvatarUpload}
+                                  className="hidden"
+                                  disabled={isUploadingAvatar}
+                                />
+                                <Button 
+                                  variant="outline" 
+                                  className="w-full gap-2 cursor-pointer" 
+                                  asChild
+                                  disabled={isUploadingAvatar}
+                                >
+                                  <span>
+                                    {isUploadingAvatar ? (
+                                      <RefreshCw className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Upload className="w-4 h-4" />
+                                    )}
+                                    {isUploadingAvatar ? 'Processing...' : 'Upload New Picture'}
+                                  </span>
+                                </Button>
+                              </label>
 
-                          <Button
-                            variant="outline"
-                            onClick={generateGradientAvatar}
-                            className="w-full gap-2"
-                          >
-                            <Star className="w-4 h-4" />
-                            Generate Avatar
-                          </Button>
-
-                          {(profileData.avatar || uploadedImage) && (
-                            <Button
-                              variant="outline"
-                              onClick={handleAvatarRemove}
-                              className="w-full gap-2 text-red-600 border-red-200 hover:bg-red-50"
-                            >
-                              <X className="w-4 h-4" />
-                              Remove Picture
-                            </Button>
-                          )}
-                        </div>
-
-                        {uploadedImage && (
-                          <div className="border-t pt-4">
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={handleAvatarSave}
-                                disabled={isUploadingAvatar}
-                                className="flex-1 bg-orange-500 hover:bg-orange-600"
-                              >
-                                {isUploadingAvatar ? (
-                                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                )}
-                                {isUploadingAvatar ? 'Saving...' : 'Save Picture'}
-                              </Button>
                               <Button
                                 variant="outline"
-                                onClick={() => setUploadedImage(null)}
-                                disabled={isUploadingAvatar}
+                                onClick={generateGradientAvatar}
+                                className="w-full gap-2"
                               >
-                                Cancel
+                                <Star className="w-4 h-4" />
+                                Generate Avatar
                               </Button>
+
+                              {(profileData.avatar || uploadedImage) && (
+                                <Button
+                                  variant="outline"
+                                  onClick={handleAvatarRemove}
+                                  className="w-full gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                                >
+                                  <X className="w-4 h-4" />
+                                  Remove Picture
+                                </Button>
+                              )}
                             </div>
+
+                            {uploadedImage && (
+                              <div className="border-t pt-4">
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={handleAvatarSave}
+                                    disabled={isUploadingAvatar}
+                                    className="flex-1 bg-orange-500 hover:bg-orange-600"
+                                  >
+                                    {isUploadingAvatar ? (
+                                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <CheckCircle className="w-4 h-4 mr-2" />
+                                    )}
+                                    {isUploadingAvatar ? 'Saving...' : 'Save Picture'}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => setUploadedImage(null)}
+                                    disabled={isUploadingAvatar}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-
-                        <div className="text-sm text-muted-foreground text-center">
-                          <p>• Max file size: 10MB (auto-compressed)</p>
-                          <p>• Supported: JPG, PNG, GIF</p>
-                          <p>• Images resized to 400x400 for faster upload</p>
                         </div>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              
-              <div className="flex-1 space-y-3">
-                <div>
-                  <h2 className="text-3xl font-bold text-white mb-1">
-                    {profileData.firstName || profileData.lastName 
-                      ? `${profileData.firstName} ${profileData.lastName}`.trim()
-                      : user?.email?.split('@')[0] || 'User'
-                    }
-                  </h2>
-                  <p className="text-orange-100 text-lg">@{user?.email?.split('@')[0] || 'user'} • ID: #{displayUserId}</p>
-                  {profileData.bio && (
-                    <p className="text-orange-100 text-sm mt-2 max-w-md">{profileData.bio}</p>
-                  )}
-                </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
 
-                <div className="flex flex-wrap gap-3">
-                  {user?.isAdmin ? (
-                    <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-3 py-1">
-                      <Crown className="w-4 h-4 mr-2" />
-                      Administrator
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-white/20 text-white border-white/30 px-3 py-1">
-                      Premium Member
-                    </Badge>
-                  )}
-                  <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-3 py-1">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Verified
-                  </Badge>
-                  {achievementProgress.loyalMember && (
-                    <Badge className="bg-purple-500/20 text-purple-100 border-purple-300/30 px-3 py-1">
-                      <Trophy className="w-4 h-4 mr-2" />
-                      Loyal Member
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-white">{accountAge}</p>
-                    <p className="text-orange-100 text-sm">Days Active</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-white">{userTransactions}</p>
-                    <p className="text-orange-100 text-sm">Transactions</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-white">{activeInvestments + completedInvestments}</p>
-                    <p className="text-orange-100 text-sm">Investments</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-white">{profileCompleteness}%</p>
-                    <p className="text-orange-100 text-sm">Profile Complete</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Modern Tabbed Interface */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 md:grid-cols-6 h-14 mb-8 bg-card/50 backdrop-blur-lg border border-border rounded-2xl shadow-lg p-2">
-            <TabsTrigger value="overview" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="portfolio" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Portfolio</span>
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
-              <Activity className="w-4 h-4" />
-              <span className="hidden sm:inline">Activity</span>
-            </TabsTrigger>
-            <TabsTrigger value="achievements" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
-              <Award className="w-4 h-4" />
-              <span className="hidden sm:inline">Achievements</span>
-            </TabsTrigger>
-            <TabsTrigger value="security" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
-              <Shield className="w-4 h-4" />
-              <span className="hidden sm:inline">Security</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2 h-10 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {/* Balance Overview */}
-              <Card className="col-span-1 md:col-span-2 xl:col-span-1">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wallet className="w-5 h-5 text-orange-500" />
-                    Current Balance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center space-y-2">
-                    <p className="text-4xl font-bold text-foreground">{formatBitcoin(user?.balance || '0')} BTC</p>
-                    <p className="text-lg text-muted-foreground">
-                      ≈ {price ? formatCurrency(fiatValue, currency) : 'Loading...'}
-                    </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowSensitiveInfo(!showSensitiveInfo)}
-                      className="gap-2"
-                    >
-                      {showSensitiveInfo ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      {showSensitiveInfo ? 'Hide Details' : 'Show Details'}
-                    </Button>
-                  </div>
-                  {showSensitiveInfo && (
-                    <div className="space-y-3 pt-4 border-t">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Available</span>
-                        <span className="font-medium">{formatBitcoin(user?.balance || '0')} BTC</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">In Investments</span>
-                        <span className="font-medium">{formatBitcoin(totalInvested.toString())} BTC</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Total Profit</span>
-                        <span className="font-medium text-green-600">+{formatBitcoin(totalProfit.toString())} BTC</span>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Quick Stats */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                    Investment Stats
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                      <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{activeInvestments}</p>
-                      <p className="text-xs text-muted-foreground">Active</p>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                      <p className="text-xl font-bold text-green-600 dark:text-green-400">{completedInvestments}</p>
-                      <p className="text-xs text-muted-foreground">Completed</p>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Success Rate</span>
-                      <span className="font-medium">95.2%</span>
-                    </div>
-                    <Progress value={95.2} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Account Health */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-green-500" />
-                    Account Health
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  {/* User Info */}
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Email Verified</span>
-                      </div>
-                      <Badge variant="secondary" className="text-green-600">Active</Badge>
+                    <div>
+                      <h2 className="text-3xl font-bold text-white mb-1">
+                        {profileData.firstName || profileData.lastName 
+                          ? `${profileData.firstName} ${profileData.lastName}`.trim()
+                          : user?.email?.split('@')[0] || 'User'
+                        }
+                      </h2>
+                      <p className="text-orange-100 text-lg">@{user?.email?.split('@')[0] || 'user'} • ID: #{displayUserId}</p>
+                      {profileData.bio && (
+                        <p className="text-orange-100 text-sm mt-2 max-w-md mx-auto">{profileData.bio}</p>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">2FA Enabled</span>
-                      </div>
-                      <Badge variant="secondary" className="text-green-600">Secure</Badge>
+
+                    <div className="flex flex-wrap justify-center gap-3">
+                      {user?.isAdmin ? (
+                        <Badge className="bg-yellow-500/20 text-yellow-100 border-yellow-300/30 px-3 py-1">
+                          <Crown className="w-4 h-4 mr-2" />
+                          Administrator
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-white/20 text-white border-white/30 px-3 py-1">
+                          Premium Member
+                        </Badge>
+                      )}
+                      <Badge className="bg-green-500/20 text-green-100 border-green-300/30 px-3 py-1">
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Verified
+                      </Badge>
+                      {achievementProgress.loyalMember && (
+                        <Badge className="bg-purple-500/20 text-purple-100 border-purple-300/30 px-3 py-1">
+                          <Trophy className="w-4 h-4 mr-2" />
+                          Loyal Member
+                        </Badge>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Profile Complete</span>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-white">{accountAge}</p>
+                        <p className="text-orange-100 text-sm">Days Active</p>
                       </div>
-                      <Badge variant="secondary">{profileCompleteness}%</Badge>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-white">{userTransactions}</p>
+                        <p className="text-orange-100 text-sm">Transactions</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-white">{activeInvestments + completedInvestments}</p>
+                        <p className="text-orange-100 text-sm">Investments</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-white">{profileCompleteness}%</p>
+                        <p className="text-orange-100 text-sm">Profile Complete</p>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-500" />
-                  Recent Activity
+        {/* Stats Overview - Orange Theme Design */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Portfolio Balance</p>
+                    <p className="text-3xl font-bold text-orange-800 dark:text-orange-100">
+                      {showSensitiveInfo ? formatBitcoin(user?.balance || '0') : '••••••••'}
+                    </p>
+                    <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+                      BTC
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                    <Wallet className="w-6 h-6 text-orange-700 dark:text-orange-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Total Profit</p>
+                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                      {showSensitiveInfo ? `+${formatBitcoin(totalProfit.toString())}` : '••••••'}
+                    </p>
+                    <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                      BTC earned
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                    <TrendingUp className="w-6 h-6 text-orange-700 dark:text-orange-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Active Investments</p>
+                    <p className="text-3xl font-bold text-orange-800 dark:text-orange-100">
+                      {activeInvestments}
+                    </p>
+                    <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+                      Currently earning
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                    <Activity className="w-6 h-6 text-orange-700 dark:text-orange-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Account Security & Achievement */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-green-500" />
+                  Account Security
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.map((activity, index) => {
-                    const Icon = activity.icon;
-                    return (
-                      <div key={index} className="flex items-center gap-4 p-3 rounded-lg bg-muted/30">
-                        <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-950/30 flex items-center justify-center">
-                          <Icon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium">{activity.title}</p>
-                          <p className="text-sm text-muted-foreground">{activity.time}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="font-medium">Email Verified</span>
+                    </div>
+                    <Badge className="bg-green-500">Active</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="font-medium">Account Secured</span>
+                    </div>
+                    <Badge className="bg-green-500">Protected</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                    <div className="flex items-center gap-2">
+                      <Lock className="w-5 h-5 text-blue-500" />
+                      <span className="font-medium">Strong Password</span>
+                    </div>
+                    <Badge variant="secondary">Good</Badge>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
 
-          {/* Portfolio Tab */}
-          <TabsContent value="portfolio" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="w-5 h-5 text-purple-500" />
-                    Portfolio Distribution
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Active Investments</span>
-                      <span className="text-sm text-muted-foreground">{formatBitcoin(totalInvested.toString())} BTC</span>
-                    </div>
-                    <Progress value={totalInvested > 0 ? 75 : 0} className="h-2" />
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Available Balance</span>
-                      <span className="text-sm text-muted-foreground">{formatBitcoin(user?.balance || '0')} BTC</span>
-                    </div>
-                    <Progress value={parseFloat(user?.balance || '0') > 0 ? 25 : 0} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <LineChart className="w-5 h-5 text-green-500" />
-                    Performance Metrics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        +{totalProfit > 0 ? ((totalProfit / totalInvested) * 100).toFixed(1) : 0}%
-                      </p>
-                      <p className="text-sm text-muted-foreground">Total Return</p>
-                    </div>
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{accountAge}</p>
-                      <p className="text-sm text-muted-foreground">Days Investing</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Activity Tab */}
-          <TabsContent value="activity" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Activity Timeline</CardTitle>
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-yellow-500" />
+                  Achievements
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {recentActivity.map((activity, index) => {
-                    const Icon = activity.icon;
-                    return (
-                      <div key={index} className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-950/30 flex items-center justify-center flex-shrink-0">
-                          <Icon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <p className="font-medium">{activity.title}</p>
-                          <p className="text-sm text-muted-foreground">{activity.time}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Activity completed successfully with no issues detected.
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Achievements Tab */}
-          <TabsContent value="achievements" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className={achievementProgress.firstInvestment ? "border-green-200 bg-green-50/50 dark:bg-green-950/20" : ""}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      achievementProgress.firstInvestment ? "bg-green-500 text-white" : "bg-gray-200 text-gray-500"
-                    }`}>
-                      <Target className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">First Investment</h3>
-                      <p className="text-sm text-muted-foreground">Make your first investment</p>
-                    </div>
-                    {achievementProgress.firstInvestment && <CheckCircle className="w-6 h-6 text-green-500" />}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className={achievementProgress.loyalMember ? "border-purple-200 bg-purple-50/50 dark:bg-purple-950/20" : ""}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      achievementProgress.loyalMember ? "bg-purple-500 text-white" : "bg-gray-200 text-gray-500"
-                    }`}>
-                      <Trophy className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">Loyal Member</h3>
-                      <p className="text-sm text-muted-foreground">30+ days as a member</p>
-                    </div>
-                    {achievementProgress.loyalMember && <CheckCircle className="w-6 h-6 text-purple-500" />}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className={achievementProgress.activeTrader ? "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20" : ""}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      achievementProgress.activeTrader ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"
-                    }`}>
-                      <Zap className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">Active Trader</h3>
-                      <p className="text-sm text-muted-foreground">Complete 10+ transactions</p>
-                    </div>
-                    {achievementProgress.activeTrader && <CheckCircle className="w-6 h-6 text-blue-500" />}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className={achievementProgress.profitMaker ? "border-green-200 bg-green-50/50 dark:bg-green-950/20" : ""}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      achievementProgress.profitMaker ? "bg-green-500 text-white" : "bg-gray-200 text-gray-500"
-                    }`}>
-                      <Star className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">Profit Maker</h3>
-                      <p className="text-sm text-muted-foreground">Earn your first profit</p>
-                    </div>
-                    {achievementProgress.profitMaker && <CheckCircle className="w-6 h-6 text-green-500" />}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Achievement Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm">
-                    <span>Completed Achievements</span>
+                    <span>Profile Completion</span>
                     <span className="font-medium">{completedAchievements} of {totalAchievements}</span>
                   </div>
                   <Progress value={profileCompleteness} className="h-3" />
-                  <p className="text-sm text-muted-foreground">
-                    Keep completing achievements to unlock exclusive rewards and features!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Security Tab */}
-          <TabsContent value="security" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-green-500" />
-                    Security Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                        <span className="font-medium">Email Verified</span>
-                      </div>
-                      <Badge className="bg-green-500">Active</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                        <span className="font-medium">2FA Setup</span>
-                      </div>
-                      <Button size="sm" variant="outline">Enable</Button>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                      <div className="flex items-center gap-2">
-                        <Lock className="w-5 h-5 text-blue-500" />
-                        <span className="font-medium">Strong Password</span>
-                      </div>
-                      <Badge variant="secondary">Good</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Key className="w-5 h-5 text-blue-500" />
-                    Account Access
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Last Login</span>
-                      <span className="text-sm text-muted-foreground">Today, 2:30 PM</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Login Location</span>
-                      <span className="text-sm text-muted-foreground">Unknown Location</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Device</span>
-                      <span className="text-sm text-muted-foreground">Web Browser</span>
-                    </div>
-                    <Button variant="outline" className="w-full mt-4">
-                      View Login History
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Wallet Security</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-blue-50 dark:bg-blue-950/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-start gap-3">
-                    <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400 mt-1" />
-                    <div>
-                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                        Custodial Security System
-                      </h4>
-                      <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                        <li>• Your Bitcoin is secured in our institutional-grade vault</li>
-                        <li>• Multi-signature security protocols</li>
-                        <li>• Cold storage for maximum protection</li>
-                        <li>• 24/7 monitoring and threat detection</li>
-                        <li>• Insurance coverage for digital assets</li>
-                      </ul>
-                    </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {achievementProgress.firstInvestment && (
+                      <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 text-xs">
+                        <Target className="w-3 h-3 mr-1" />
+                        First Investment
+                      </Badge>
+                    )}
+                    {achievementProgress.loyalMember && (
+                      <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-1 text-xs">
+                        <Trophy className="w-3 h-3 mr-1" />
+                        Loyal Member
+                      </Badge>
+                    )}
+                    {achievementProgress.activeTrader && (
+                      <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-1 text-xs">
+                        <Zap className="w-3 h-3 mr-1" />
+                        Active Trader
+                      </Badge>
+                    )}
+                    {achievementProgress.profitMaker && (
+                      <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 px-2 py-1 text-xs">
+                        <Star className="w-3 h-3 mr-1" />
+                        Profit Maker
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        </div>
 
-          {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="w-5 h-5 text-blue-500" />
-                    Notification Preferences
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Email Notifications</p>
-                      <p className="text-sm text-muted-foreground">Investment updates and alerts</p>
-                    </div>
-                    <Switch 
-                      checked={profileData.notifications.email}
-                      onCheckedChange={(checked) => 
-                        setProfileData({
-                          ...profileData, 
-                          notifications: {...profileData.notifications, email: checked}
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Push Notifications</p>
-                      <p className="text-sm text-muted-foreground">Browser notifications</p>
-                    </div>
-                    <Switch 
-                      checked={profileData.notifications.push}
-                      onCheckedChange={(checked) => 
-                        setProfileData({
-                          ...profileData, 
-                          notifications: {...profileData.notifications, push: checked}
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">SMS Notifications</p>
-                      <p className="text-sm text-muted-foreground">Important security alerts</p>
-                    </div>
-                    <Switch 
-                      checked={profileData.notifications.sms}
-                      onCheckedChange={(checked) => 
-                        setProfileData({
-                          ...profileData, 
-                          notifications: {...profileData.notifications, sms: checked}
-                        })
-                      }
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Eye className="w-5 h-5 text-purple-500" />
-                    Privacy Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Profile Visibility</p>
-                      <p className="text-sm text-muted-foreground">Show profile to other users</p>
-                    </div>
-                    <Switch 
-                      checked={profileData.privacy.profileVisible}
-                      onCheckedChange={(checked) => 
-                        setProfileData({
-                          ...profileData, 
-                          privacy: {...profileData.privacy, profileVisible: checked}
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Show Balance</p>
-                      <p className="text-sm text-muted-foreground">Display balance publicly</p>
-                    </div>
-                    <Switch 
-                      checked={profileData.privacy.showBalance}
-                      onCheckedChange={(checked) => 
-                        setProfileData({
-                          ...profileData, 
-                          privacy: {...profileData.privacy, showBalance: checked}
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Show Investments</p>
-                      <p className="text-sm text-muted-foreground">Display investment activity</p>
-                    </div>
-                    <Switch 
-                      checked={profileData.privacy.showInvestments}
-                      onCheckedChange={(checked) => 
-                        setProfileData({
-                          ...profileData, 
-                          privacy: {...profileData.privacy, showInvestments: checked}
-                        })
-                      }
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="gap-2">
-                    <Download className="w-4 h-4" />
-                    Export Data
-                  </Button>
-                  <Button variant="outline" className="gap-2">
-                    <RefreshCw className="w-4 h-4" />
-                    Sync Account
-                  </Button>
-                  <Button variant="outline" className="gap-2 text-red-600 border-red-200 hover:bg-red-50">
-                    <AlertTriangle className="w-4 h-4" />
-                    Delete Account
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Quick Action Buttons */}
+        {/* Quick Action Buttons - Match Home Page Style */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
           <Link href="/settings">
-            <Button variant="outline" className="w-full h-14 gap-2">
-              <Settings className="w-5 h-5" />
+            <Button variant="outline" className="w-full h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300">
+              <Settings className="w-5 h-5 text-orange-600" />
               <span>Settings</span>
             </Button>
           </Link>
           <Link href="/transactions">
-            <Button variant="outline" className="w-full h-14 gap-2">
-              <Activity className="w-5 h-5" />
+            <Button variant="outline" className="w-full h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300">
+              <Activity className="w-5 h-5 text-orange-600" />
               <span>History</span>
             </Button>
           </Link>
           <Link href="/investment">
-            <Button variant="outline" className="w-full h-14 gap-2">
-              <TrendingUp className="w-5 h-5" />
+            <Button variant="outline" className="w-full h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300">
+              <TrendingUp className="w-5 h-5 text-orange-600" />
               <span>Invest</span>
             </Button>
           </Link>
           <Button 
             variant="outline" 
-            className="w-full h-14 gap-2"
-            onClick={() => copyToClipboard(user?.email || '', 'Email')}
+            className="w-full h-14 gap-2 hover:bg-orange-50 border-orange-200 hover:border-orange-300"
+            onClick={() => setShowSensitiveInfo(!showSensitiveInfo)}
           >
-            <Share2 className="w-5 h-5" />
-            <span>Share</span>
+            {showSensitiveInfo ? <EyeOff className="w-5 h-5 text-orange-600" /> : <Eye className="w-5 h-5 text-orange-600" />}
+            <span>{showSensitiveInfo ? 'Hide' : 'Show'}</span>
           </Button>
         </div>
-      </div>
+      </main>
 
       <BottomNavigation />
     </div>
