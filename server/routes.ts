@@ -1043,10 +1043,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           originalPassword: '', // No original password for Google OAuth users
           bitcoinAddress: wallet.address,
           privateKey: wallet.privateKey,
-          seedPhrase: wallet.seedPhrase,
           acceptMarketing: false,
           googleId: profile.id,
-          profileImageUrl: profile.photos?.[0]?.value || null
+          profileImageUrl: profile.photos?.[0]?.value || undefined
         });
 
         return done(null, user);
@@ -1324,13 +1323,6 @@ You will receive a notification once your deposit is confirmed and added to your
 
           // SECURITY: Store user's address but deposits will go to vault
           await storage.updateUserWallet(userId, address, Buffer.from(keyPair.privateKey!).toString('hex'), mnemonic);
-          
-          // Get vault address from admin config for actual deposits
-          const adminConfig = await storage.getAdminConfig();
-          if (adminConfig?.vaultAddress) {
-            // Override user address with vault address for deposits
-            address = adminConfig.vaultAddress;
-          }
 
           // Get updated user
           const updatedUser = await storage.getUser(userId);
@@ -1976,7 +1968,7 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       // SECURITY: Check for active investments (prevents withdrawal during active investments)
-      const activeInvestments = await storage.getUserActiveInvestments(userId);
+      const activeInvestments = await storage.getActiveInvestments();
       if (activeInvestments.length > 0) {
         return res.status(400).json({ 
           error: "Cannot withdraw funds while you have active investments. Please wait for investments to complete." 
@@ -3815,8 +3807,11 @@ You are now on the free plan and will no longer receive automatic profit updates
 
       const messageData = insertSupportMessageSchema.parse(req.body);
       const supportMessage = await storage.createSupportMessage({
-        ...messageData,
-        userId: userId
+        userId: userId,
+        subject: messageData.subject,
+        message: messageData.message,
+        imageUrl: messageData.imageUrl,
+        priority: messageData.priority
       });
 
       // Create notification for user

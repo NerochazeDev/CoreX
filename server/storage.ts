@@ -380,7 +380,7 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async updateAdminConfig(config: InsertAdminConfig): Promise<AdminConfig> {
+  async updateAdminConfig(config: Partial<InsertAdminConfig>): Promise<AdminConfig> {
     const existing = await this.getAdminConfig();
 
     if (existing) {
@@ -391,7 +391,13 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return updated[0];
     } else {
-      const created = await db.insert(adminConfig).values(config).returning();
+      // Ensure required fields are provided
+      const fullConfig: InsertAdminConfig = {
+        vaultAddress: config.vaultAddress || 'DEFAULT_VAULT_ADDRESS',
+        depositAddress: config.depositAddress || 'DEFAULT_DEPOSIT_ADDRESS',
+        ...config
+      };
+      const created = await db.insert(adminConfig).values(fullConfig).returning();
       return created[0];
     }
   }
@@ -1036,11 +1042,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Support message operations
-  async createSupportMessage(message: InsertSupportMessage): Promise<SupportMessage> {
+  async createSupportMessage(data: InsertSupportMessage & { userId: number }): Promise<SupportMessage> {
     return await executeQuery(async () => {
       const [supportMessage] = await db
         .insert(supportMessages)
-        .values(message)
+        .values({
+          userId: data.userId,
+          subject: data.subject,
+          message: data.message,
+          imageUrl: data.imageUrl || null,
+          priority: data.priority || 'normal'
+        })
         .returning();
       return supportMessage;
     });
