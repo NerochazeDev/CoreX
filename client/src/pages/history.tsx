@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,10 +78,10 @@ export default function History() {
     enabled: !!user?.id,
   });
 
-    const { data: investmentPlans } = useQuery({
-        queryKey: ['/api/investment-plans'],
-        queryFn: () => fetch('/api/investment-plans').then(res => res.json()),
-    });
+  const { data: investmentPlans } = useQuery({
+    queryKey: ['/api/investment-plans'],
+    queryFn: () => fetch('/api/investment-plans').then(res => res.json()),
+  });
 
   const cancelTransactionMutation = useMutation({
     mutationFn: async (transactionId: number) => {
@@ -117,240 +118,252 @@ export default function History() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background">
-      {/* Modern Navigation Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm lg:ml-64">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">History</h1>
-              <p className="text-sm text-muted-foreground">Transaction history</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Header - Match Home Page Style */}
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
+              <Link href="/">
+                <Button variant="ghost" size="icon" className="h-10 w-10 p-0 rounded-full hover:bg-primary/10">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+              <div className="hidden sm:block">
+                <h1 className="text-xl font-bold text-foreground">Transaction History</h1>
+                <p className="text-sm text-muted-foreground">View your investment and transaction history</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:ml-64 space-y-6">
-
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
         {isLoading || loadingNotifications || loadingTransactions ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <Card key={i} className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl">
-                <CardContent className="p-6">
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-3 w-1/2 mb-2" />
-                  <Skeleton className="h-3 w-1/4" />
-                </CardContent>
-              </Card>
+              <div key={i} className="relative">
+                <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+                <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                  <CardContent className="p-6">
+                    <Skeleton className="h-4 w-3/4 mb-2" />
+                    <Skeleton className="h-3 w-1/2 mb-2" />
+                    <Skeleton className="h-3 w-1/4" />
+                  </CardContent>
+                </Card>
+              </div>
             ))}
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-foreground">Transaction History</h3>
+          <div className="space-y-6">
+            {/* Recent transactions from API */}
+            {Array.isArray(transactions) && transactions.map((transaction) => {
+              const getTransactionIcon = (type: string, status: string) => {
+                if (type === 'deposit') return <ArrowDownLeft className="w-5 h-5 text-green-500" />;
+                if (type === 'withdrawal') return <ArrowUpRight className="w-5 h-5 text-red-500" />;
+                if (type === 'investment') return <TrendingUp className="w-5 h-5 text-blue-500" />;
+                return <Activity className="w-5 h-5 text-gray-500" />;
+              };
 
-            {/* All transactions including investment history */}
-            <div className="space-y-3">
-              {/* Recent transactions from API */}
-              {Array.isArray(transactions) && transactions.map((transaction) => {
-                const getTransactionIcon = (type: string, status: string) => {
-                  if (type === 'deposit') return <ArrowDownLeft className="w-4 h-4 text-green-500" />;
-                  if (type === 'withdrawal') return <ArrowUpRight className="w-4 h-4 text-red-500" />;
-                  if (type === 'investment') return <TrendingUp className="w-4 h-4 text-blue-500" />;
-                  return <Activity className="w-4 h-4 text-gray-500" />;
-                };
+              const getStatusColor = (status: string) => {
+                if (status === 'confirmed') return 'text-green-500';
+                if (status === 'pending') return 'text-yellow-500';
+                if (status === 'rejected') return 'text-red-500';
+                return 'text-gray-500';
+              };
 
-                const getStatusColor = (status: string) => {
-                  if (status === 'confirmed') return 'text-green-500';
-                  if (status === 'pending') return 'text-yellow-500';
-                  if (status === 'rejected') return 'text-red-500';
-                  return 'text-gray-500';
-                };
+              const getPlanName = (planId: number) => {
+                return investmentPlans?.find((plan: any) => plan.id === planId)?.name || `Plan ${planId}`;
+              };
 
-                const getPlanName = (planId: number) => {
-                  return investmentPlans?.find((plan: any) => plan.id === planId)?.name || `Plan ${planId}`;
-                };
-
-                return (
-                  <Card key={`tx-${transaction.id}`} className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl p-6 hover:bg-muted/5 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {getTransactionIcon(transaction.type, transaction.status)}
-                        <div>
-                          <p className="font-medium text-foreground capitalize">
-                            {transaction.type === 'investment' && transaction.planId 
-                              ? `Investment - ${getPlanName(transaction.planId)}`
-                              : transaction.type
-                            }
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(transaction.createdAt), 'MMM dd, yyyy • HH:mm')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">
-                          {transaction.type === 'withdrawal' ? '-' : '+'}
-                          {formatBitcoin(transaction.amount)} BTC
-                        </p>
-                        {bitcoinPrice && (
-                          <p className="text-xs text-muted-foreground">
-                            ≈ {transaction.type === 'withdrawal' ? '-' : '+'}
-                            {formatCurrency(
-                              parseFloat(transaction.amount) * (
-                                currency === 'USD' ? bitcoinPrice.usd.price : 
-                                currency === 'GBP' ? bitcoinPrice.gbp.price : 
-                                bitcoinPrice.eur.price
-                              ), 
-                              currency
-                            )}
-                          </p>
-                        )}
-                        <p className={`text-sm capitalize ${getStatusColor(transaction.status)}`}>
-                          {transaction.status}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Transaction Hash or Address */}
-                    {transaction.transactionHash && (
-                      <div className="mt-3 pt-3 border-t dark-border">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            {transaction.type === 'withdrawal' ? 'To Address' : 'TX Hash'}
-                          </span>
-                          <span className="font-mono text-xs dark-text">
-                            {transaction.transactionHash.length > 16 
-                              ? `${transaction.transactionHash.substring(0, 8)}...${transaction.transactionHash.substring(-8)}`
-                              : transaction.transactionHash
-                            }
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Admin Notes */}
-                    {transaction.notes && (
-                      <div className="mt-2 p-2 bg-muted/30 rounded text-sm text-muted-foreground">
-                        <strong>Note:</strong> {transaction.notes}
-                      </div>
-                    )}
-
-                    {/* Confirmation details for wallet-style display */}
-                    {transaction.status === 'confirmed' && (
-                      <div className="mt-2 pt-2 border-t dark-border space-y-1">
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Confirmations</span>
-                          <span className="text-green-500">6/6 ✓</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Network Fee</span>
-                          <span>0.00001245 BTC</span>
-                        </div>
-                        {transaction.confirmedAt && (
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>Confirmed</span>
-                            <span>{format(new Date(transaction.confirmedAt), 'MMM dd, HH:mm')}</span>
+              return (
+                <div key={`tx-${transaction.id}`} className="relative">
+                  <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+                  <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20 hover:shadow-2xl transition-all duration-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                            {getTransactionIcon(transaction.type, transaction.status)}
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </Card>
-                );
-              })}
-
-              {/* Investment History as Transactions */}
-              {Array.isArray(investments) && investments.map((investment) => {
-                const currentValue = parseFloat(investment.amount) + parseFloat(investment.currentProfit);
-                const progress = calculateInvestmentProgress(new Date(investment.startDate), new Date(investment.endDate));
-                const getPlanName = (planId: number) => {
-                  return investmentPlans?.find((plan: any) => plan.id === planId)?.name || `Plan ${planId}`;
-                };
-
-                return (
-                  <Card key={`inv-${investment.id}`} className="dark-card dark-border p-4 hover:bg-muted/5 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          investment.isActive ? 'bg-green-500/20' : 'bg-blue-500/20'
-                        }`}>
-                          {investment.isActive ? (
-                            <TrendingUp className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <Award className="w-4 h-4 text-blue-500" />
+                          <div>
+                            <p className="font-bold text-orange-800 dark:text-orange-100 capitalize text-lg">
+                              {transaction.type === 'investment' && transaction.planId 
+                                ? `Investment - ${getPlanName(transaction.planId)}`
+                                : transaction.type
+                              }
+                            </p>
+                            <p className="text-sm text-orange-600 dark:text-orange-400">
+                              {format(new Date(transaction.createdAt), 'MMM dd, yyyy • HH:mm')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-orange-800 dark:text-orange-100 text-xl">
+                            {transaction.type === 'withdrawal' ? '-' : '+'}
+                            {formatBitcoin(transaction.amount)} BTC
+                          </p>
+                          {bitcoinPrice && (
+                            <p className="text-sm text-orange-600 dark:text-orange-400">
+                              ≈ {transaction.type === 'withdrawal' ? '-' : '+'}
+                              {formatCurrency(
+                                parseFloat(transaction.amount) * (
+                                  currency === 'USD' ? bitcoinPrice.usd.price : 
+                                  currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                  bitcoinPrice.eur.price
+                                ), 
+                                currency
+                              )}
+                            </p>
                           )}
-                        </div>
-                        <div>
-                          <p className="font-medium dark-text">
-                            {getPlanName(investment.planId)} Investment
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(investment.startDate), 'MMM dd, yyyy • HH:mm')}
-                          </p>
+                          <Badge className={`mt-2 ${getStatusColor(transaction.status)} bg-orange-100 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700/50`}>
+                            {transaction.status}
+                          </Badge>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">
-                          {formatBitcoin(currentValue.toString())} BTC
-                        </p>
-                        {bitcoinPrice && (
-                          <p className="text-xs text-muted-foreground">
-                            ≈ {formatCurrency(
-                              currentValue * (
-                                currency === 'USD' ? bitcoinPrice.usd.price : 
-                                currency === 'GBP' ? bitcoinPrice.gbp.price : 
-                                bitcoinPrice.eur.price
-                              ), 
-                              currency
-                            )}
-                          </p>
-                        )}
-                        <p className={`text-sm ${investment.isActive ? 'text-green-500' : 'text-blue-500'}`}>
-                          {investment.isActive ? 'Active' : 'Completed'}
-                        </p>
-                      </div>
-                    </div>
 
-                    {/* Investment Details */}
-                    <div className="mt-3 pt-3 border-t dark-border space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Principal</span>
-                        <span className="dark-text">{formatBitcoin(investment.amount)} BTC</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Current Profit</span>
-                        <span className="text-green-500">+{formatBitcoin(investment.currentProfit)} BTC</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">End Date</span>
-                        <span className="dark-text">{format(new Date(investment.endDate), 'MMM dd, yyyy')}</span>
-                      </div>
-
-                      {/* Progress bar for active investments */}
-                      {investment.isActive && (
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>Progress</span>
-                            <span>{progress.toFixed(1)}%</span>
-                          </div>
-                          <div className="w-full bg-secondary rounded-full h-1.5">
-                            <div 
-                              className="bg-bitcoin h-1.5 rounded-full transition-all duration-300" 
-                              style={{ width: `${Math.min(progress, 100)}%` }}
-                            />
+                      {/* Transaction Hash or Address */}
+                      {transaction.transactionHash && (
+                        <div className="mt-4 pt-4 border-t border-orange-400/20 dark:border-orange-500/30">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-orange-600 dark:text-orange-400">
+                              {transaction.type === 'withdrawal' ? 'To Address' : 'TX Hash'}
+                            </span>
+                            <span className="font-mono text-xs text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded">
+                              {transaction.transactionHash.length > 16 
+                                ? `${transaction.transactionHash.substring(0, 8)}...${transaction.transactionHash.substring(-8)}`
+                                : transaction.transactionHash
+                              }
+                            </span>
                           </div>
                         </div>
                       )}
-                    </div>
+
+                      {/* Admin Notes */}
+                      {transaction.notes && (
+                        <div className="mt-3 p-3 bg-orange-50/50 dark:bg-orange-900/20 rounded-xl text-sm text-orange-700 dark:text-orange-300 border border-orange-200/50 dark:border-orange-700/50">
+                          <strong>Note:</strong> {transaction.notes}
+                        </div>
+                      )}
+
+                      {/* Confirmation details for wallet-style display */}
+                      {transaction.status === 'confirmed' && (
+                        <div className="mt-3 pt-3 border-t border-orange-400/20 dark:border-orange-500/30 space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-orange-600 dark:text-orange-400">Confirmations</span>
+                            <span className="text-green-500 font-medium">6/6 ✓</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-orange-600 dark:text-orange-400">Network Fee</span>
+                            <span className="text-orange-700 dark:text-orange-300">0.00001245 BTC</span>
+                          </div>
+                          {transaction.confirmedAt && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-orange-600 dark:text-orange-400">Confirmed</span>
+                              <span className="text-orange-700 dark:text-orange-300">{format(new Date(transaction.confirmedAt), 'MMM dd, HH:mm')}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
                   </Card>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
+
+            {/* Investment History as Transactions */}
+            {Array.isArray(investments) && investments.map((investment) => {
+              const currentValue = parseFloat(investment.amount) + parseFloat(investment.currentProfit);
+              const progress = calculateInvestmentProgress(new Date(investment.startDate), new Date(investment.endDate));
+              const getPlanName = (planId: number) => {
+                return investmentPlans?.find((plan: any) => plan.id === planId)?.name || `Plan ${planId}`;
+              };
+
+              return (
+                <div key={`inv-${investment.id}`} className="relative">
+                  <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+                  <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20 hover:shadow-2xl transition-all duration-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
+                            investment.isActive ? 
+                            'bg-gradient-to-br from-green-400/30 to-green-500/40 shadow-green-500/30' : 
+                            'bg-gradient-to-br from-blue-400/30 to-blue-500/40 shadow-blue-500/30'
+                          }`}>
+                            {investment.isActive ? (
+                              <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            ) : (
+                              <Award className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-orange-800 dark:text-orange-100 text-lg">
+                              {getPlanName(investment.planId)} Investment
+                            </p>
+                            <p className="text-sm text-orange-600 dark:text-orange-400">
+                              {format(new Date(investment.startDate), 'MMM dd, yyyy • HH:mm')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-orange-800 dark:text-orange-100 text-xl">
+                            {formatBitcoin(currentValue.toString())} BTC
+                          </p>
+                          {bitcoinPrice && (
+                            <p className="text-sm text-orange-600 dark:text-orange-400">
+                              ≈ {formatCurrency(
+                                currentValue * (
+                                  currency === 'USD' ? bitcoinPrice.usd.price : 
+                                  currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                  bitcoinPrice.eur.price
+                                ), 
+                                currency
+                              )}
+                            </p>
+                          )}
+                          <Badge className={`mt-2 ${investment.isActive ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700/50' : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700/50'}`}>
+                            {investment.isActive ? 'Active' : 'Completed'}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* Investment Details */}
+                      <div className="mt-4 pt-4 border-t border-orange-400/20 dark:border-orange-500/30 space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-orange-600 dark:text-orange-400">Principal</span>
+                          <span className="text-orange-700 dark:text-orange-300 font-medium">{formatBitcoin(investment.amount)} BTC</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-orange-600 dark:text-orange-400">Current Profit</span>
+                          <span className="text-green-600 dark:text-green-400 font-medium">+{formatBitcoin(investment.currentProfit)} BTC</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-orange-600 dark:text-orange-400">End Date</span>
+                          <span className="text-orange-700 dark:text-orange-300 font-medium">{format(new Date(investment.endDate), 'MMM dd, yyyy')}</span>
+                        </div>
+
+                        {/* Progress bar for active investments */}
+                        {investment.isActive && (
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-orange-600 dark:text-orange-400">Progress</span>
+                              <span className="text-orange-700 dark:text-orange-300 font-medium">{progress.toFixed(1)}%</span>
+                            </div>
+                            <div className="w-full bg-orange-100 dark:bg-orange-900/30 rounded-full h-2 border border-orange-200/50 dark:border-orange-700/50">
+                              <div 
+                                className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-full transition-all duration-300 shadow-sm shadow-orange-500/30" 
+                                style={{ width: `${Math.min(progress, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })}
 
             {/* Bitcoin Transactions from Notifications */}
             {Array.isArray(notifications) && notifications
@@ -371,80 +384,95 @@ export default function History() {
                 const fiatValue = currencyPrice ? parseFloat(amount) * currencyPrice : 0;
 
                 return (
-                  <Card key={`notif-${notification.id}`} className="dark-card dark-border">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {isReceived ? (
-                            <ArrowDownLeft className="w-5 h-5 text-green-500" />
-                          ) : (
-                            <ArrowUpRight className="w-5 h-5 text-red-500" />
-                          )}
-                          <CardTitle className="text-lg dark-text">
-                            {isReceived ? "Bitcoin Received" : "Bitcoin Sent"}
-                          </CardTitle>
-                        </div>
-                        <Badge variant={isReceived ? "default" : "secondary"}>
-                          {isReceived ? "Received" : "Sent"}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground">Amount</span>
-                          <div className="text-right">
-                            <div className={`font-semibold ${isReceived ? "text-green-500" : "text-red-500"}`}>
-                              {isReceived ? "+" : "-"}{formatBitcoin(amount)} BTC
+                  <div key={`notif-${notification.id}`} className="relative">
+                    <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+                    <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${
+                              isReceived ? 
+                              'bg-gradient-to-br from-green-400/30 to-green-500/40 shadow-green-500/30' : 
+                              'bg-gradient-to-br from-red-400/30 to-red-500/40 shadow-red-500/30'
+                            }`}>
+                              {isReceived ? (
+                                <ArrowDownLeft className="w-5 h-5 text-green-600 dark:text-green-400" />
+                              ) : (
+                                <ArrowUpRight className="w-5 h-5 text-red-600 dark:text-red-400" />
+                              )}
                             </div>
-                            {currencyPrice && (
-                              <div className="text-sm text-muted-foreground">
-                                ≈ {isReceived ? "+" : "-"}{formatCurrency(fiatValue, currency)}
-                              </div>
-                            )}
+                            <CardTitle className="text-lg text-orange-800 dark:text-orange-100">
+                              {isReceived ? "Bitcoin Received" : "Bitcoin Sent"}
+                            </CardTitle>
                           </div>
+                          <Badge variant={isReceived ? "default" : "secondary"} className="bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700/50">
+                            {isReceived ? "Received" : "Sent"}
+                          </Badge>
                         </div>
-
-                        {txId && (
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Transaction ID</span>
-                            <span className="text-sm dark-text font-mono">{txId}...</span>
+                            <span className="text-orange-600 dark:text-orange-400">Amount</span>
+                            <div className="text-right">
+                              <div className={`font-bold text-lg ${isReceived ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                                {isReceived ? "+" : "-"}{formatBitcoin(amount)} BTC
+                              </div>
+                              {currencyPrice && (
+                                <div className="text-sm text-orange-600 dark:text-orange-400">
+                                  ≈ {isReceived ? "+" : "-"}{formatCurrency(fiatValue, currency)}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
 
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground">Date</span>
-                          <span className="text-sm dark-text">{formatDate(new Date(notification.createdAt))}</span>
-                        </div>
+                          {txId && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-orange-600 dark:text-orange-400">Transaction ID</span>
+                              <span className="text-sm text-orange-700 dark:text-orange-300 font-mono bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded">{txId}...</span>
+                            </div>
+                          )}
 
-                        <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground">Status</span>
-                          <Badge variant="default" className="text-xs">Confirmed</Badge>
+                          <div className="flex justify-between items-center">
+                            <span className="text-orange-600 dark:text-orange-400">Date</span>
+                            <span className="text-sm text-orange-700 dark:text-orange-300">{formatDate(new Date(notification.createdAt))}</span>
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                            <span className="text-orange-600 dark:text-orange-400">Status</span>
+                            <Badge className="text-xs bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700/50">Confirmed</Badge>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </div>
                 );
               })}
-            </div>
 
             {/* Show empty state only if no transactions, investments, or notifications */}
             {(!Array.isArray(investments) || investments.length === 0) && 
              (!Array.isArray(transactions) || transactions.length === 0) &&
              (!Array.isArray(notifications) || notifications.filter(n => n.title.includes("Bitcoin")).length === 0) && (
-              <Card className="dark-card dark-border">
-                <CardContent className="p-8 text-center">
-                  <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold dark-text mb-2">No Transaction History</h3>
-                  <p className="text-muted-foreground mb-4">
-                    You haven't made any transactions or investments yet. Start investing or receive Bitcoin to see your history here.
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="relative max-w-md mx-auto">
+                <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+                <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20 backdrop-blur-xl">
+                  <CardContent className="p-8 text-center">
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-orange-500/25">
+                        <Activity className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-orange-800 dark:text-orange-100">No Transaction History</h3>
+                      <p className="text-orange-600 dark:text-orange-300">
+                        You haven't made any transactions or investments yet. Start investing or receive Bitcoin to see your history here.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </div>
         )}
-      </div>
+      </main>
 
       <BottomNavigation />
     </div>
