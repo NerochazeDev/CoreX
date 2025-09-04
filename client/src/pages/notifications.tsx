@@ -214,31 +214,32 @@ export default function Notifications() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto lg:max-w-4xl bg-background min-h-screen relative lg:ml-64">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b dark-border">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
               <Button 
                 variant="ghost" 
-                size="icon" 
+                size="sm" 
                 onClick={() => setLocation('/')}
-                className="rounded-full"
+                className="h-10 w-10 p-0 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200"
+                data-testid="button-back"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-bitcoin" />
+                <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-orange-600" />
                   Notifications
                   {unreadCount > 0 && (
-                    <Badge className="bg-bitcoin text-black text-xs">
+                    <Badge className="bg-orange-500 text-white text-xs hover:bg-orange-600 border-orange-600">
                       {unreadCount}
                     </Badge>
                   )}
                 </h1>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">
                   Stay updated with your account • {notifications?.length || 0}/50 notifications
                 </p>
               </div>
@@ -251,7 +252,8 @@ export default function Notifications() {
                   size="sm"
                   onClick={() => markAllReadMutation.mutate()}
                   disabled={markAllReadMutation.isPending}
-                  className="text-xs"
+                  className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-700/50 dark:text-orange-300 dark:hover:bg-orange-900/20"
+                  data-testid="button-mark-all-read"
                 >
                   <CheckCheck className="w-4 h-4 mr-1" />
                   Mark All Read
@@ -263,7 +265,8 @@ export default function Notifications() {
                   size="sm"
                   onClick={() => clearAllNotificationsMutation.mutate()}
                   disabled={clearAllNotificationsMutation.isPending}
-                  className="text-xs"
+                  className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-700/50 dark:text-orange-300 dark:hover:bg-orange-900/20"
+                  data-testid="button-clear-all"
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
                   Clear All
@@ -274,69 +277,85 @@ export default function Notifications() {
         </div>
       </header>
 
-      <div className="p-4 pb-20 space-y-4">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 space-y-6">
         {/* Search and Filter */}
-        <div className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search notifications..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+        <div className="relative">
+          <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+          <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+            <CardContent className="p-6 space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-orange-600 dark:text-orange-400" />
+                <Input
+                  placeholder="Search notifications..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-orange-200 dark:border-orange-700/50 focus:border-orange-400 dark:focus:border-orange-500 bg-white/50 dark:bg-gray-900/50"
+                  data-testid="input-search-notifications"
+                />
+              </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {[
-              { key: 'all', label: 'All', count: notifications?.length || 0 },
-              { key: 'unread', label: 'Unread', count: unreadCount },
-              { key: 'success', label: 'Success', count: notifications?.filter(n => n.type === 'success').length || 0 },
-              { key: 'error', label: 'Errors', count: notifications?.filter(n => n.type === 'error').length || 0 },
-              { key: 'info', label: 'Info', count: notifications?.filter(n => n.type === 'info').length || 0 },
-            ].map(({ key, label, count }) => (
-              <Button
-                key={key}
-                variant={filter === key ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilter(key as any)}
-                className="whitespace-nowrap"
-              >
-                {label} {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
-              </Button>
-            ))}
-          </div>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {[
+                  { key: 'all', label: 'All', count: notifications?.length || 0 },
+                  { key: 'unread', label: 'Unread', count: unreadCount },
+                  { key: 'success', label: 'Success', count: notifications?.filter(n => n.type === 'success').length || 0 },
+                  { key: 'error', label: 'Errors', count: notifications?.filter(n => n.type === 'error').length || 0 },
+                  { key: 'info', label: 'Info', count: notifications?.filter(n => n.type === 'info').length || 0 },
+                ].map(({ key, label, count }) => (
+                  <Button
+                    key={key}
+                    variant={filter === key ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilter(key as any)}
+                    className={`whitespace-nowrap ${
+                      filter === key 
+                        ? "bg-orange-500 text-white hover:bg-orange-600 border-orange-500" 
+                        : "border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-700/50 dark:text-orange-300 dark:hover:bg-orange-900/20"
+                    }`}
+                    data-testid={`filter-${key}`}
+                  >
+                    {label} {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Notifications List */}
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <Card key={i} className="dark-card dark-border animate-pulse">
-                <CardContent className="p-4">
-                  <div className="flex gap-3">
-                    <div className="w-5 h-5 bg-muted rounded"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-muted rounded w-3/4"></div>
-                      <div className="h-3 bg-muted rounded w-1/2"></div>
+              <div key={i} className="relative">
+                <div className="absolute top-1 left-1 w-full h-full bg-gradient-to-br from-orange-500/10 to-orange-600/15 rounded-xl blur-sm"></div>
+                <Card className="relative bg-gradient-to-br from-orange-500/5 via-orange-600/3 to-orange-700/5 dark:from-orange-600/10 dark:via-orange-700/8 dark:to-orange-800/10 backdrop-blur-xl border border-orange-400/20 dark:border-orange-500/20 rounded-2xl shadow-lg shadow-orange-600/10 animate-pulse">
+                  <CardContent className="p-4">
+                    <div className="flex gap-3">
+                      <div className="w-5 h-5 bg-orange-300/50 dark:bg-orange-600/50 rounded"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-orange-300/50 dark:bg-orange-600/50 rounded w-3/4"></div>
+                        <div className="h-3 bg-orange-300/30 dark:bg-orange-600/30 rounded w-1/2"></div>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             ))}
           </div>
         ) : filteredNotifications.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {filteredNotifications.map((notification) => (
-              <Card 
-                key={notification.id} 
-                className={`dark-card dark-border cursor-pointer transition-all hover:shadow-md ${
-                  !notification.isRead ? 'ring-2 ring-bitcoin/20' : ''
-                } ${getNotificationColor(notification.type)}`}
-                onClick={() => {
-                  setLocation(`/notifications/${notification.id}`);
-                }}
-              >
+              <div key={notification.id} className="relative group">
+                <div className="absolute top-1 left-1 w-full h-full bg-gradient-to-br from-orange-500/10 to-orange-600/15 rounded-xl blur-sm group-hover:blur-md transition-all duration-200"></div>
+                <Card 
+                  className={`relative bg-gradient-to-br from-orange-500/5 via-orange-600/3 to-orange-700/5 dark:from-orange-600/10 dark:via-orange-700/8 dark:to-orange-800/10 backdrop-blur-xl border border-orange-400/20 dark:border-orange-500/20 rounded-2xl shadow-lg shadow-orange-600/10 cursor-pointer transition-all hover:shadow-xl hover:shadow-orange-600/20 ${
+                    !notification.isRead ? 'ring-2 ring-orange-400/30 dark:ring-orange-500/40' : ''
+                  }`}
+                  onClick={() => {
+                    setLocation(`/notifications/${notification.id}`);
+                  }}
+                  data-testid={`notification-${notification.id}`}
+                >
                 <CardContent className="p-4">
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 mt-0.5">

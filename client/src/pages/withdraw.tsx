@@ -103,26 +103,36 @@ export default function Withdraw() {
   }
 
   return (
-    <div className="max-w-sm mx-auto lg:max-w-4xl bg-background min-h-screen relative lg:ml-64">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
-      <header className="px-4 py-6 border-b dark-border">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setLocation('/')}
-            className="rounded-full"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Withdraw Bitcoin</h1>
-            <p className="text-xs text-muted-foreground">Send Bitcoin to external address</p>
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setLocation('/')}
+                className="h-10 w-10 p-0 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent flex items-center gap-2">
+                  <Send className="w-5 h-5 text-orange-600" />
+                  Withdraw Bitcoin
+                </h1>
+                <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">
+                  Send Bitcoin to external address
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="p-4 pb-20">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
         {/* Active Investments Warning */}
         {hasActiveInvestments && (
           <Card className="mb-6 bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">

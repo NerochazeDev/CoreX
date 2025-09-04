@@ -253,25 +253,30 @@ export default function AutomatedDeposit() {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-orange-500 mb-2">💰 Deposit Bitcoin</h1>
-        <p className="text-muted-foreground">
-          Send Bitcoin to your personal wallet address and get instant verification when confirmed on the blockchain
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent mb-4">
+            💰 Deposit Bitcoin
+          </h1>
+          <p className="text-lg text-orange-600/80 dark:text-orange-400/80 font-medium max-w-2xl mx-auto">
+            Send Bitcoin to your personal wallet address and get instant verification when confirmed on the blockchain
+          </p>
+        </div>
 
-      {step === "input" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">1</div>
-              Enter Deposit Amount
-            </CardTitle>
-            <CardDescription>
-              Specify how much Bitcoin you want to deposit. We'll create a secure session for your deposit.
-            </CardDescription>
-          </CardHeader>
+        {step === "input" && (
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+              <CardHeader className="text-center">
+                <CardTitle className="flex items-center justify-center gap-3 text-xl">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center text-lg font-bold shadow-lg">1</div>
+                  <span className="bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">Enter Deposit Amount</span>
+                </CardTitle>
+                <CardDescription className="text-orange-600/70 dark:text-orange-400/70">
+                  Specify how much Bitcoin you want to deposit. We'll create a secure session for your deposit.
+                </CardDescription>
+              </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
