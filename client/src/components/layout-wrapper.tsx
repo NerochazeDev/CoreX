@@ -8,13 +8,11 @@ interface LayoutWrapperProps {
 export function LayoutWrapper({ children, className = "" }: LayoutWrapperProps) {
   const { isCollapsed } = useSidebar();
   
-  // Use style instead of dynamic class names for reliable transitions
-  const leftPadding = isCollapsed ? '4rem' : '16rem'; // 16 = 4rem, 64 = 16rem
-  
   return (
     <div 
-      className={`transition-all duration-300 ${className}`}
-      style={{ paddingLeft: `max(0px, ${leftPadding})` }}
+      className={`transition-all duration-300 ${className} ${
+        isCollapsed ? 'lg:pl-16' : 'lg:pl-64'
+      }`}
     >
       {children}
     </div>

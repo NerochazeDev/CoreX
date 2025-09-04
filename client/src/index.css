@@ -54,7 +54,7 @@
 }
 
 .dark {
-  /* Plus500 Professional Dark Theme */
+  /* BitVault Pro Professional Dark Theme */
   --background: 210 40% 3%; /* Professional dark background */
   --foreground: 0 0% 98%; /* Clean white text */
   --muted: 210 40% 8%; /* Dark muted */
@@ -66,15 +66,16 @@
   --border: 210 40% 12%; /* Subtle dark border */
   --input: 210 40% 8%; /* Dark input */
   
-  --primary: 210 100% 60%; /* Brighter blue for dark theme */
-  --primary-foreground: 210 40% 3%; /* Dark text on bright blue */
+  /* Keep BitVault Orange/Gold theme in dark mode */
+  --primary: 25 95% 58%; /* Brighter BitVault Orange for dark theme */
+  --primary-foreground: 0 0% 100%; /* White text on orange */
   --secondary: 210 40% 8%; /* Dark secondary */
   --secondary-foreground: 0 0% 98%; /* White text */
   --accent: 45 93% 55%; /* Brighter gold for dark theme */
   --accent-foreground: 210 40% 3%; /* Dark text on gold */
   --destructive: 0 84% 60%; /* Professional red */
   --destructive-foreground: 0 0% 98%; /* White text */
-  --ring: 210 100% 60%; /* Blue ring */
+  --ring: 25 95% 58%; /* BitVault Orange ring */
 }
 
 @layer base {

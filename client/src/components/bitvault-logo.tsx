@@ -27,7 +27,7 @@ export function BitVaultLogo({
     xl: "w-10 h-10"
   };
 
-  const textColor = variant === 'white' ? 'text-white' : 'text-primary';
+  const textColor = variant === 'white' ? 'text-white' : variant === 'dark' ? 'text-orange-500' : 'text-primary';
   const bgColor = variant === 'white' ? 'bg-white' : 'bg-gradient-to-r from-orange-500 to-amber-500';
   const iconTextColor = variant === 'white' ? 'text-orange-500' : 'text-white';
 
