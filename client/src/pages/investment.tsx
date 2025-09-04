@@ -277,7 +277,8 @@ export default function Investment() {
                     <div className="mt-3 p-2 bg-yellow-500/10 rounded text-xs text-yellow-700 dark:text-yellow-400">
                       💡 Your investment is being verified by our team. This usually takes 1-24 hours.
                     </div>
-                  </Card>
+                  </CardContent>
+                </Card>
                 ))}
             </div>
           </div>
@@ -311,7 +312,7 @@ export default function Investment() {
                         <div className="flex items-center gap-3">
                           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
                           <Badge variant="outline" className="border-orange-400/60 text-orange-700 dark:text-orange-300 bg-orange-100/50 dark:bg-orange-900/30">
-                            {investment.plan?.name || 'Investment Plan'}
+                            {plan?.name || 'Investment Plan'}
                           </Badge>
                         </div>
                         <Badge className="bg-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/30 border-green-400/30">
@@ -330,21 +331,21 @@ export default function Investment() {
                         </div>
                         <div>
                           <p className="text-xs text-orange-600 dark:text-orange-400 mb-1">ROI</p>
-                          <p className="text-sm font-bold text-orange-700 dark:text-orange-300">{investment.plan?.roiPercentage || 0}%</p>
+                          <p className="text-sm font-bold text-orange-700 dark:text-orange-300">{plan?.roiPercentage || 0}%</p>
                         </div>
                         <div>
                           <p className="text-xs text-orange-600 dark:text-orange-400 mb-1">Duration</p>
-                          <p className="text-sm font-bold text-orange-800 dark:text-orange-200">{investment.plan?.durationDays || 0} days</p>
+                          <p className="text-sm font-bold text-orange-800 dark:text-orange-200">{plan?.durationDays || 0} days</p>
                         </div>
                       </div>
 
                       <div className="mt-3">
                         <div className="flex justify-between text-xs text-orange-600 dark:text-orange-400 mb-1">
                           <span>Progress</span>
-                          <span>{Math.min(((new Date().getTime() - new Date(investment.createdAt).getTime()) / (24 * 60 * 60 * 1000) / (investment.plan?.durationDays || 1)) * 100, 100).toFixed(1)}%</span>
+                          <span>{Math.min(((new Date().getTime() - new Date(investment.startDate).getTime()) / (24 * 60 * 60 * 1000) / (plan?.durationDays || 1)) * 100, 100).toFixed(1)}%</span>
                         </div>
                         <Progress 
-                          value={Math.min(((new Date().getTime() - new Date(investment.createdAt).getTime()) / (24 * 60 * 60 * 1000) / (investment.plan?.durationDays || 1)) * 100, 100)} 
+                          value={Math.min(((new Date().getTime() - new Date(investment.startDate).getTime()) / (24 * 60 * 60 * 1000) / (plan?.durationDays || 1)) * 100, 100)} 
                           className="h-2"
                         />
                       </div>
