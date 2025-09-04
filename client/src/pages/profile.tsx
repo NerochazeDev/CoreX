@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,15 +25,59 @@ function ProfileContent() {
   const { toast } = useToast();
   
   // Fetch user data
-  const { data: user } = useQuery({ queryKey: ['/api/me'] });
+  const { data: user } = useQuery({ 
+    queryKey: ['/api/me'],
+    queryFn: () => fetch('/api/me', {
+      credentials: 'include',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
+      }
+    }).then(res => {
+      if (!res.ok) throw new Error('Failed to fetch user');
+      return res.json();
+    })
+  });
+  
   const { data: price } = useQuery({ queryKey: ['/api/bitcoin/price'] });
-  const { data: investments } = useQuery({ queryKey: ['/api/investments/user'] });
-  const { data: transactions } = useQuery({ queryKey: ['/api/transactions'] });
+  
+  const { data: investments } = useQuery({ 
+    queryKey: ['/api/investments/user', user?.id],
+    queryFn: () => fetch(`/api/investments/user/${user?.id}`, {
+      credentials: 'include',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
+      }
+    }).then(res => {
+      if (!res.ok) {
+        if (res.status === 401) return [];
+        throw new Error('Failed to fetch investments');
+      }
+      return res.json();
+    }),
+    enabled: !!user?.id
+  });
+  
+  const { data: transactions } = useQuery({ 
+    queryKey: ['/api/transactions'],
+    queryFn: () => fetch('/api/transactions', {
+      credentials: 'include',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
+      }
+    }).then(res => {
+      if (!res.ok) {
+        if (res.status === 401) return [];
+        throw new Error('Failed to fetch transactions');
+      }
+      return res.json();
+    }),
+    enabled: !!user?.id
+  });
 
   // Profile state
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
+    firstName: '',
+    lastName: '',
     bio: '',
     website: '',
     avatar: null as string | null,
@@ -49,6 +93,18 @@ function ProfileContent() {
       showInvestments: false
     }
   });
+
+  // Update profile data when user data is loaded
+  useEffect(() => {
+    if (user) {
+      setProfileData(prev => ({
+        ...prev,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        avatar: user.profileImageUrl || null
+      }));
+    }
+  }, [user]);
 
   // Calculate metrics
   const activeInvestments = investments?.filter(inv => inv.isActive).length || 0;
@@ -91,9 +147,9 @@ function ProfileContent() {
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20 border-4 border-white/20">
-                  <AvatarImage src={profileData.avatar || undefined} />
+                  <AvatarImage src={profileData.avatar || user?.profileImageUrl || undefined} />
                   <AvatarFallback className="bg-white/20 text-white text-xl font-bold">
-                    {(profileData.firstName || user?.email?.charAt(0) || 'U').toUpperCase()}
+                    {(profileData.firstName || user?.firstName || user?.email?.charAt(0) || 'U').toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
