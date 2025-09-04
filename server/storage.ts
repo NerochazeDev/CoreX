@@ -959,6 +959,30 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  async updateDepositSessionVault(sessionToken: string, vaultTxHash: string): Promise<DepositSession | undefined> {
+    return await executeQuery(async () => {
+      const [updated] = await db
+        .update(depositSessions)
+        .set({
+          vaultTxHash,
+          lastCheckedAt: new Date(),
+        })
+        .where(eq(depositSessions.sessionToken, sessionToken))
+        .returning();
+      return updated || undefined;
+    });
+  }
+
+  async getDepositSessionByTxHash(txHash: string): Promise<DepositSession | undefined> {
+    return await executeQuery(async () => {
+      const [session] = await db
+        .select()
+        .from(depositSessions)
+        .where(eq(depositSessions.blockchainTxHash, txHash));
+      return session || undefined;
+    });
+  }
+
   async markUserConfirmedSent(sessionToken: string): Promise<DepositSession | undefined> {
     return await executeQuery(async () => {
       const [updated] = await db
