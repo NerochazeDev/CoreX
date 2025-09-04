@@ -983,6 +983,21 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  async getRecentUserTransactions(userId: number, type: string, hoursAgo: number): Promise<Transaction[]> {
+    return await executeQuery(async () => {
+      const cutoffTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+      const result = await db
+        .select()
+        .from(transactions)
+        .where(and(
+          eq(transactions.userId, userId),
+          eq(transactions.type, type),
+          sql`${transactions.createdAt} >= ${cutoffTime}`
+        ));
+      return result;
+    });
+  }
+
   async markUserConfirmedSent(sessionToken: string): Promise<DepositSession | undefined> {
     return await executeQuery(async () => {
       const [updated] = await db

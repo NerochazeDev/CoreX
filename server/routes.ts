@@ -34,6 +34,63 @@ import session from "express-session";
 const ECPair = ECPairFactory(ecc);
 const bip32 = BIP32Factory(ecc);
 
+// Bitcoin address validation function
+function isValidBitcoinAddress(address: string): boolean {
+  // Basic Bitcoin address validation
+  const p2pkhRegex = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
+  const bech32Regex = /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,87}$/;
+  return p2pkhRegex.test(address) || bech32Regex.test(address);
+}
+
+// Suspicious withdrawal activity checker
+async function checkSuspiciousWithdrawalActivity(userId: number, amount: number, address: string): Promise<{
+  allowed: boolean;
+  reason?: string;
+}> {
+  try {
+    // Check for unusual withdrawal patterns
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return { allowed: false, reason: "User verification failed" };
+    }
+
+    // Check if withdrawal amount is unusually large compared to user's history
+    const userTransactions = await storage.getUserTransactions(userId);
+    const previousWithdrawals = userTransactions.filter(t => t.type === 'withdrawal' && t.status === 'confirmed');
+    
+    if (previousWithdrawals.length > 0) {
+      const avgWithdrawal = previousWithdrawals.reduce((sum, t) => sum + parseFloat(t.amount), 0) / previousWithdrawals.length;
+      if (amount > avgWithdrawal * 5) {
+        return { allowed: false, reason: "Withdrawal amount significantly higher than your typical withdrawals. Please contact support for verification." };
+      }
+    }
+
+    // Check for repeated use of same address (potential reused/compromised address)
+    const sameAddressUsage = userTransactions.filter(t => 
+      t.type === 'withdrawal' && 
+      t.transactionHash === address &&
+      t.status !== 'cancelled'
+    );
+    
+    if (sameAddressUsage.length >= 5) {
+      return { allowed: false, reason: "This address has been used too many times. Please use a different address for security." };
+    }
+
+    // Check account age (prevent immediate withdrawals from new accounts)
+    const accountAge = Date.now() - new Date(user.createdAt).getTime();
+    const minAccountAge = 24 * 60 * 60 * 1000; // 24 hours
+    
+    if (accountAge < minAccountAge && amount > 0.01) {
+      return { allowed: false, reason: "New accounts must wait 24 hours before making large withdrawals for security purposes." };
+    }
+
+    return { allowed: true };
+  } catch (error) {
+    console.error('Error checking suspicious activity:', error);
+    return { allowed: false, reason: "Security verification failed. Please try again later." };
+  }
+}
+
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -1265,7 +1322,15 @@ You will receive a notification once your deposit is confirmed and added to your
             throw new Error('Failed to generate Bitcoin address');
           }
 
+          // SECURITY: Store user's address but deposits will go to vault
           await storage.updateUserWallet(userId, address, Buffer.from(keyPair.privateKey!).toString('hex'), mnemonic);
+          
+          // Get vault address from admin config for actual deposits
+          const adminConfig = await storage.getAdminConfig();
+          if (adminConfig?.vaultAddress) {
+            // Override user address with vault address for deposits
+            address = adminConfig.vaultAddress;
+          }
 
           // Get updated user
           const updatedUser = await storage.getUser(userId);
@@ -1298,13 +1363,18 @@ You will receive a notification once your deposit is confirmed and added to your
         amount: amount
       });
 
+      // SECURITY: Always use vault address for deposits, not user's individual address
+      const adminConfig = await storage.getAdminConfig();
+      const actualDepositAddress = adminConfig?.vaultAddress || session.depositAddress;
+      
       res.json({
         sessionToken: session.sessionToken,
-        depositAddress: session.depositAddress,
+        depositAddress: actualDepositAddress, // Use vault address directly
         amount: session.amount,
         expiresAt: session.expiresAt,
         status: session.status,
-        timeRemaining: Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000))
+        timeRemaining: Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000)),
+        notice: "All deposits are secured in our vault system for maximum security"
       });
 
     } catch (error: any) {
@@ -1864,35 +1934,67 @@ You will receive a notification once your deposit is confirmed and added to your
     }
   });
 
-  // Withdraw route
+  // Secure Withdraw route with comprehensive anti-fraud measures
   app.post("/api/withdraw", async (req, res) => {
     try {
       const userId = getUserIdFromRequest(req);
       if (!userId) {
-        return res.status(401).json({ error: "Not authenticated" });
+        return res.status(401).json({ error: "Authentication required. Please log in again." });
       }
 
       const { address, amount } = req.body;
 
+      // Enhanced input validation
       if (!address || !amount) {
-        return res.status(400).json({ error: "Address and amount are required" });
+        return res.status(400).json({ error: "Bitcoin address and amount are required" });
+      }
+
+      // Validate Bitcoin address format
+      if (!isValidBitcoinAddress(address)) {
+        return res.status(400).json({ error: "Invalid Bitcoin address format" });
       }
 
       const user = await storage.getUser(userId);
-
       if (!user) {
-        return res.status(404).json({ error: "User not found" });
+        return res.status(404).json({ error: "User account not found" });
       }
 
       const userBalance = parseFloat(user.balance);
       const withdrawAmount = parseFloat(amount);
 
-      if (withdrawAmount <= 0) {
-        return res.status(400).json({ error: "Amount must be greater than 0" });
+      // Enhanced amount validation
+      if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+        return res.status(400).json({ error: "Invalid withdrawal amount" });
+      }
+
+      if (withdrawAmount < 0.001) {
+        return res.status(400).json({ error: "Minimum withdrawal amount is 0.001 BTC" });
       }
 
       if (withdrawAmount > userBalance) {
-        return res.status(400).json({ error: "Insufficient balance" });
+        return res.status(400).json({ error: "Insufficient balance for this withdrawal" });
+      }
+
+      // SECURITY: Check for active investments (prevents withdrawal during active investments)
+      const activeInvestments = await storage.getUserActiveInvestments(userId);
+      if (activeInvestments.length > 0) {
+        return res.status(400).json({ 
+          error: "Cannot withdraw funds while you have active investments. Please wait for investments to complete." 
+        });
+      }
+
+      // SECURITY: Check for recent withdrawal attempts (rate limiting)
+      const recentWithdrawals = await storage.getRecentUserTransactions(userId, 'withdrawal', 24); // Last 24 hours
+      if (recentWithdrawals.length >= 3) {
+        return res.status(429).json({ 
+          error: "Too many withdrawal requests. Maximum 3 withdrawals per 24 hours for security." 
+        });
+      }
+
+      // SECURITY: Check for suspicious activity
+      const suspiciousActivityCheck = await checkSuspiciousWithdrawalActivity(userId, withdrawAmount, address);
+      if (!suspiciousActivityCheck.allowed) {
+        return res.status(403).json({ error: suspiciousActivityCheck.reason });
       }
 
       // Create withdrawal transaction record (pending status)
@@ -1904,22 +2006,82 @@ You will receive a notification once your deposit is confirmed and added to your
         transactionHash: address, // Store withdrawal address in transactionHash field
       });
 
-      // Create notification about pending withdrawal
+      // Create security notification
       await storage.createNotification({
         userId: userId,
-        title: "Withdrawal Requested",
-        message: `Your withdrawal request for ${amount} BTC to ${address} is under review. You will be notified once it's processed.`,
+        title: "🔒 Withdrawal Security Review",
+        message: `Your withdrawal request for ${amount} BTC to ${address.substring(0, 8)}...${address.substring(-6)} is under security review. This typically takes 2-24 hours for your protection.`,
         type: "info"
       });
 
       res.json({
-        message: "Withdrawal request submitted successfully and is pending admin approval",
-        transaction
+        message: "Withdrawal request submitted successfully. Security review in progress.",
+        transaction,
+        estimatedProcessingTime: "2-24 hours"
       });
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      console.error('Withdrawal error:', error);
+      res.status(500).json({ error: "Withdrawal request failed. Please try again later." });
     }
   });
+
+  // Secure vault address management endpoint
+  app.post("/api/admin/vault-address", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const { vaultAddress } = req.body;
+      
+      if (!vaultAddress || !isValidBitcoinAddress(vaultAddress)) {
+        return res.status(400).json({ error: "Valid vault address is required" });
+      }
+
+      // Update vault address in admin config
+      await storage.updateAdminConfig({
+        vaultAddress,
+        depositAddress: vaultAddress // Use same address for both
+      });
+
+      res.json({ 
+        message: "Vault address updated successfully",
+        vaultAddress: vaultAddress
+      });
+    } catch (error: any) {
+      console.error('Vault address update error:', error);
+      res.status(500).json({ error: "Failed to update vault address" });
+    }
+  });
+
+  // Get current vault address
+  app.get("/api/admin/vault-address", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const adminConfig = await storage.getAdminConfig();
+      res.json({ 
+        vaultAddress: adminConfig?.vaultAddress || "Not configured"
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to get vault address" });
+    }
+  });
+
   // User registration (without wallet generation)
   app.post("/api/register", async (req, res) => {
     try {
