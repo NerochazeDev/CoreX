@@ -364,7 +364,8 @@ export default function AutomatedDeposit() {
             </form>
           </CardContent>
         </Card>
-      )}
+          </div>
+        )}
 
       {step === "session" && currentSession && (
         <div className="space-y-4">
