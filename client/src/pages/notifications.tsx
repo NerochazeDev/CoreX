@@ -503,7 +503,7 @@ export default function Notifications() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </main>
 
       <BottomNavigation />
     </div>
