@@ -227,7 +227,7 @@ export default function Withdraw() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
 
       <BottomNavigation />
     </div>
