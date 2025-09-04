@@ -245,18 +245,19 @@ export default function Notifications() {
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {unreadCount > 0 && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => markAllReadMutation.mutate()}
                   disabled={markAllReadMutation.isPending}
-                  className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-700/50 dark:text-orange-300 dark:hover:bg-orange-900/20"
+                  className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-700/50 dark:text-orange-300 dark:hover:bg-orange-900/20 sm:min-w-0 min-w-[80px]"
                   data-testid="button-mark-all-read"
                 >
-                  <CheckCheck className="w-4 h-4 mr-1" />
-                  Mark All Read
+                  <CheckCheck className="w-4 h-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Mark All Read</span>
+                  <span className="sm:hidden">Read</span>
                 </Button>
               )}
               {notifications && notifications.length > 0 && (
@@ -265,11 +266,12 @@ export default function Notifications() {
                   size="sm"
                   onClick={() => clearAllNotificationsMutation.mutate()}
                   disabled={clearAllNotificationsMutation.isPending}
-                  className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-700/50 dark:text-orange-300 dark:hover:bg-orange-900/20"
+                  className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-700/50 dark:text-orange-300 dark:hover:bg-orange-900/20 sm:min-w-0 min-w-[80px]"
                   data-testid="button-clear-all"
                 >
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Clear All
+                  <Trash2 className="w-4 h-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Clear All</span>
+                  <span className="sm:hidden">Clear</span>
                 </Button>
               )}
             </div>

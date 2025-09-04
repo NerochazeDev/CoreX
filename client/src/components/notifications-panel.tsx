@@ -54,16 +54,17 @@ export function NotificationsPanel() {
     },
   });
 
-  const markAsReadMutation = useMutation({
-    mutationFn: async (notificationId: number) => {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PATCH',
+  const clearAllMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/notifications/${user?.id}/clear-all`, {
+        method: 'DELETE',
       });
-      if (!response.ok) throw new Error('Failed to mark as read');
+      if (!response.ok) throw new Error('Failed to clear all notifications');
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications', user?.id, 'unread-count'] });
     },
   });
 
