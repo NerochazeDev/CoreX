@@ -259,7 +259,13 @@ export default function Investment() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
+        {/* Desktop Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          
+          {/* Left Column - Main Content (Desktop: 8 cols, Mobile: Full width) */}
+          <div className="xl:col-span-8 space-y-8">
+            
         {/* Stats Overview - Orange Theme Design */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="relative">
@@ -757,6 +763,83 @@ export default function Investment() {
             </div>
           </div>
         )}
+          </div>
+
+          {/* Right Sidebar (Desktop Only) */}
+          <div className="xl:col-span-4 space-y-6">
+            
+            {/* Quick Actions */}
+            <div className="relative">
+              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg lg:text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-orange-500" />
+                    Quick Actions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button
+                    onClick={() => setLocation('/deposit/automated')}
+                    className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium rounded-xl shadow-lg transition-all duration-200"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2 rotate-180" />
+                    Make Deposit
+                  </Button>
+                  <Button
+                    onClick={() => setLocation('/withdraw')}
+                    variant="outline"
+                    className="w-full h-12 border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300 font-medium rounded-xl"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Withdraw Funds
+                  </Button>
+                  <Button
+                    onClick={() => setLocation('/history')}
+                    variant="outline"
+                    className="w-full h-12 border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300 font-medium rounded-xl"
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    View History
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Investment Tips */}
+            <div className="relative">
+              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg lg:text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                    <Star className="w-5 h-5 text-orange-500" />
+                    Investment Tips
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3 text-sm text-orange-700 dark:text-orange-300">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Start with smaller amounts to test the platform</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Monitor your investments daily for updates</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Reinvest profits to maximize returns</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Keep track of market trends and news</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </main>
 
       <BottomNavigation />

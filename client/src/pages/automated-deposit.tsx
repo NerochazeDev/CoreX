@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { Copy, CheckCircle, Clock, Loader2, AlertTriangle, RefreshCw, ArrowUpDown } from "lucide-react";
+import { Copy, CheckCircle, Clock, Loader2, AlertTriangle, RefreshCw, ArrowUpDown, Shield, Activity, Zap, TrendingUp, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -252,9 +252,21 @@ export default function AutomatedDeposit() {
     setTimeRemaining(0);
   };
 
+  // Mock function for navigation, replace with actual navigation logic if needed
+  const setLocation = (path: string) => {
+    console.log(`Navigating to ${path}`);
+    // In a real app, you would use React Router or a similar library:
+    // navigate(path);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
+        {/* Desktop Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+
+          {/* Left Column - Main Content (Desktop: 8 cols, Mobile: Full width) */}
+          <div className="xl:col-span-8 space-y-8">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent mb-4">
             💰 Deposit Bitcoin
@@ -571,7 +583,109 @@ export default function AutomatedDeposit() {
           </CardContent>
         </Card>
       )}
-      </div>
+          </div>
+
+          {/* Right Sidebar (Desktop Only) */}
+          <div className="xl:col-span-4 space-y-6">
+
+            {/* Deposit Guidelines */}
+            <div className="relative">
+              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-green-500" />
+                    Deposit Guidelines
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Send Bitcoin to the generated address</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Wait for blockchain confirmations</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Funds appear after verification</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Address expires after 24 hours</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Network Information */}
+            <div className="relative">
+              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-orange-500" />
+                    Network Info
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-orange-600 dark:text-orange-400">Network:</span>
+                      <span className="font-medium text-orange-800 dark:text-orange-200">Bitcoin</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-orange-600 dark:text-orange-400">Min Amount:</span>
+                      <span className="font-medium text-orange-800 dark:text-orange-200">{inputMode === 'BTC' ? '0.00001 BTC' : '$10 USD'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-orange-600 dark:text-orange-400">Confirmations:</span>
+                      <span className="font-medium text-orange-800 dark:text-orange-200">3</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-orange-600 dark:text-orange-400">Processing:</span>
+                      <span className="font-medium text-green-600">~30 mins</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="relative">
+              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-orange-500" />
+                    Quick Actions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button
+                    onClick={() => setLocation('/investment')}
+                    className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium rounded-xl shadow-lg"
+                  >
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Start Investing
+                  </Button>
+                  <Button
+                    onClick={() => setLocation('/history')}
+                    variant="outline"
+                    className="w-full h-12 border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300 font-medium rounded-xl"
+                  >
+                    <History className="w-4 h-4 mr-2" />
+                    Transaction History
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
