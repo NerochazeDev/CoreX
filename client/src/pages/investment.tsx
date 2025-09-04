@@ -1,33 +1,30 @@
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
-import { Card } from "@/components/ui/card";
-import { InvestmentPlans } from "@/components/investment-plans";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import type { Investment, InvestmentPlan, Transaction } from "@shared/schema";
-import { formatBitcoin, formatBitcoinWithFiat, formatCurrency, calculateInvestmentProgress, formatDate } from "@/lib/utils";
+import { formatBitcoin, formatBitcoinWithFiat, formatCurrency, calculateInvestmentProgress, formatDate, calculateCurrencyValue } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { useLocation } from "wouter";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { useCurrency } from "@/hooks/use-currency";
-// Remove unused import
-import { TrendingUp, Target, Clock, Award, ArrowLeft, BarChart3, PieChart, Calendar, DollarSign, Zap } from "lucide-react";
+import { TrendingUp, Target, Clock, Award, ArrowLeft, BarChart3, PieChart, Calendar, DollarSign, Zap, Activity, Wallet, Shield, Star, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 import { BitVaultLogo } from "@/components/bitvault-logo";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Investment() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { currency } = useCurrency();
   const { data: bitcoinPrice } = useBitcoinPrice();
+  const { toast } = useToast();
+  const [showBalances, setShowBalances] = useState(true);
 
   if (!user) {
     setLocation('/login');
@@ -37,30 +34,94 @@ export default function Investment() {
   const { data: investments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user.id],
     queryFn: () => fetch(`/api/investments/user/${user.id}`, {
+      credentials: 'include',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+        'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
       }
     }).then(res => {
       if (!res.ok) {
+        if (res.status === 401) return [];
         throw new Error('Failed to fetch investments');
       }
       return res.json();
     }),
-    refetchInterval: 5000, // Refresh every 5 seconds for instant updates
-    staleTime: 0, // Always consider data stale
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    enabled: !!user?.id,
+    refetchInterval: 30000,
   });
 
   const { data: plans } = useQuery<InvestmentPlan[]>({
     queryKey: ['/api/investment-plans'],
-    refetchInterval: 60000, // Refresh every minute
+    queryFn: () => fetch('/api/investment-plans', {
+      credentials: 'include',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
+      }
+    }).then(res => {
+      if (!res.ok) {
+        if (res.status === 401) return [];
+        throw new Error('Failed to fetch investment plans');
+      }
+      return res.json();
+    }),
+    enabled: !!user,
+    refetchInterval: 60000,
   });
 
-  const { data: transactions } = useQuery<any[]>({
+  const { data: transactions } = useQuery<Transaction[]>({
     queryKey: ['/api/transactions'],
-    refetchInterval: 5000, // Refresh every 5 seconds
-    staleTime: 0, // Always consider data stale
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    queryFn: () => fetch('/api/transactions', {
+      credentials: 'include',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
+      }
+    }).then(res => {
+      if (!res.ok) {
+        if (res.status === 401) return [];
+        throw new Error('Failed to fetch transactions');
+      }
+      return res.json();
+    }),
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const createInvestmentMutation = useMutation({
+    mutationFn: async ({ planId, amount }: { planId: number; amount: string }) => {
+      const response = await fetch('/api/invest', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          planId,
+          amount,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Investment failed');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/investments'] });
+      toast({
+        title: "Investment Submitted",
+        description: "Your investment has been submitted and is pending confirmation.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Investment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   const getPlanName = (planId: number) => {
@@ -69,8 +130,8 @@ export default function Investment() {
 
   const activeInvestments = investments?.filter(inv => inv.isActive === true) || [];
   const completedInvestments = investments?.filter(inv => inv.isActive === false) || [];
-  const pendingInvestments = transactions?.filter ? transactions.filter(tx => tx.type === 'investment' && tx.status === 'pending') : [];
-  const rejectedInvestments = transactions?.filter ? transactions.filter(tx => tx.type === 'investment' && tx.status === 'rejected') : [];
+  const pendingInvestments = transactions?.filter(tx => tx.type === 'investment' && tx.status === 'pending') || [];
+  const rejectedInvestments = transactions?.filter(tx => tx.type === 'investment' && tx.status === 'rejected') || [];
 
   // Calculate portfolio statistics
   const totalInvested = investments?.reduce((sum, inv) => sum + parseFloat(inv.amount), 0) || 0;
@@ -88,30 +149,115 @@ export default function Investment() {
 
   const currencyPrice = currency === 'USD' ? bitcoinPrice?.usd.price : bitcoinPrice?.gbp.price;
 
+  const handleInvest = (plan: InvestmentPlan) => {
+    if (!user) return;
+    
+    const confirmed = confirm(
+      `Invest in ${plan.name}?\n\n` +
+      `Investment: ${formatBitcoin(plan.minAmount)} BTC\n` +
+      `Profit: +${formatBitcoin((parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString())} BTC\n` +
+      `Total Return: ${formatBitcoin((parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString())} BTC\n\n` +
+      `Duration: ${plan.durationDays} days\n` +
+      `Daily Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}% per day\n\n` +
+      `Proceed with investment?`
+    );
+    
+    if (confirmed) {
+      createInvestmentMutation.mutate({
+        planId: plan.id,
+        amount: plan.minAmount,
+      });
+    }
+  };
+
+  const getGradientClass = (color: string) => {
+    switch (color) {
+      case 'orange':
+        return 'bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 border-orange-400/30 dark:border-orange-500/30';
+      case 'gray':
+        return 'bg-gradient-to-br from-gray-500/10 via-gray-600/5 to-gray-700/10 dark:from-gray-600/20 dark:via-gray-700/15 dark:to-gray-800/20 border-gray-400/30 dark:border-gray-500/30';
+      case 'gold':
+        return 'bg-gradient-to-br from-yellow-500/10 via-yellow-600/5 to-yellow-700/10 dark:from-yellow-600/20 dark:via-yellow-700/15 dark:to-yellow-800/20 border-yellow-400/30 dark:border-yellow-500/30';
+      default:
+        return 'bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 border-orange-400/30 dark:border-orange-500/30';
+    }
+  };
+
+  const getTextColorClass = (color: string) => {
+    switch (color) {
+      case 'orange':
+        return 'text-orange-700 dark:text-orange-300';
+      case 'gray':
+        return 'text-gray-700 dark:text-gray-300';
+      case 'gold':
+        return 'text-yellow-700 dark:text-yellow-300';
+      default:
+        return 'text-orange-700 dark:text-orange-300';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Header with Orange Theme */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-gradient-to-r from-white/95 via-orange-50/80 to-white/95 dark:from-gray-900/95 dark:via-orange-900/20 dark:to-gray-900/95 border-b border-orange-200/60 dark:border-orange-700/40 shadow-xl shadow-orange-500/10">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20">
-            <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
               <Link href="/">
-                <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200">
+                <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200" data-testid="button-back">
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
               </Link>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent truncate">
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
                   Investment Center
                 </h1>
-                <p className="text-xs sm:text-sm text-orange-600/80 dark:text-orange-400/80 font-medium truncate">
+                <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">
                   Portfolio Analytics & Growth
                 </p>
               </div>
             </div>
+
+            <nav className="flex items-center gap-2" aria-label="User navigation">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowBalances(!showBalances)}
+                aria-label={showBalances ? "Hide balances" : "Show balances"}
+                className="h-10 w-10"
+                data-testid="button-toggle-balances"
+              >
+                {showBalances ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation('/profile')}
+                aria-label="Open profile"
+                className="h-10 w-10 p-1"
+                data-testid="button-profile"
+              >
+                <Avatar className="w-8 h-8">
+                  {user.avatar && !user.avatar.startsWith('gradient-') ? (
+                    <AvatarImage src={user.avatar} className="object-cover" />
+                  ) : user.avatar && user.avatar.startsWith('gradient-') ? (
+                    <div className={`w-full h-full bg-gradient-to-br ${user.avatar.replace('gradient-', '')} flex items-center justify-center rounded-full`}>
+                      <span className="text-sm font-bold text-white">
+                        {(user.firstName || user.email || 'U').charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  ) : (
+                    <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
+                      {(user.firstName || user.email || 'U').charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+              </Button>
+            </nav>
           </div>
         </div>
-      </nav>
+      </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 space-y-6">
         {/* Stats Overview - Orange Theme Design */}
@@ -124,7 +270,7 @@ export default function Investment() {
                   <div>
                     <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Total Invested</p>
                     <p className="text-lg sm:text-xl font-bold text-orange-800 dark:text-orange-100">
-                      {currencyPrice ? formatBitcoinWithFiat(totalInvested.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalInvested.toString())} BTC`}
+                      {showBalances ? (currencyPrice ? formatBitcoinWithFiat(totalInvested.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalInvested.toString())} BTC`) : '••••••'}
                     </p>
                   </div>
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
@@ -143,7 +289,7 @@ export default function Investment() {
                   <div>
                     <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Total Profit</p>
                     <p className="text-lg sm:text-xl font-bold text-green-600 dark:text-green-400">
-                      +{currencyPrice ? formatBitcoinWithFiat(totalProfit.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalProfit.toString())} BTC`}
+                      {showBalances ? `+${currencyPrice ? formatBitcoinWithFiat(totalProfit.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalProfit.toString())} BTC`}` : '••••••'}
                     </p>
                   </div>
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
@@ -162,7 +308,7 @@ export default function Investment() {
                   <div>
                     <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Portfolio Value</p>
                     <p className="text-lg sm:text-xl font-bold text-orange-800 dark:text-orange-100">
-                      {currencyPrice ? formatBitcoinWithFiat(totalValue.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalValue.toString())} BTC`}
+                      {showBalances ? (currencyPrice ? formatBitcoinWithFiat(totalValue.toString(), currencyPrice, currency, { compact: true }) : `${formatBitcoin(totalValue.toString())} BTC`) : '••••••'}
                     </p>
                   </div>
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
@@ -187,7 +333,7 @@ export default function Investment() {
                       Avg Daily: {avgDailyReturn.toFixed(3)}%
                     </p>
                   </div>
-                  <div className="w-10 h-10 sm:w-12 h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
                     <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-orange-700 dark:text-orange-300" />
                   </div>
                 </div>
@@ -227,7 +373,152 @@ export default function Investment() {
         )}
 
         {/* Investment Plans */}
-        <InvestmentPlans />
+        <div className="relative">
+          <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+          <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+            <CardHeader className="border-b border-orange-400/20 dark:border-orange-500/30">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                    <Zap className="w-5 h-5 text-orange-700 dark:text-orange-300" />
+                  </div>
+                  Investment Plans
+                </CardTitle>
+                <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-700/50">
+                  Choose Your Plan
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {plans?.length ? (
+                <div className="grid gap-4 sm:gap-6">
+                  {plans.map((plan) => (
+                    <div key={plan.id} className="relative group">
+                      <div className="absolute top-1 left-1 w-full h-full bg-gradient-to-br from-orange-500/10 to-orange-600/15 rounded-xl blur-sm group-hover:blur-md transition-all duration-200"></div>
+                      <Card className={`relative ${getGradientClass(plan.color)} backdrop-blur-xl rounded-2xl shadow-xl shadow-orange-600/20 border`}>
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h4 className={`text-xl font-bold ${getTextColorClass(plan.color)}`}>
+                                {plan.name}
+                              </h4>
+                              <div className={`text-sm ${getTextColorClass(plan.color)} opacity-80`}>
+                                <p>Min: {formatBitcoin(plan.minAmount)} BTC</p>
+                                {bitcoinPrice && (
+                                  <p className="text-xs">
+                                    ≈ {formatCurrency(
+                                      calculateCurrencyValue(
+                                        plan.minAmount, 
+                                        currency === 'USD' ? bitcoinPrice.usd.price : 
+                                        currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                        bitcoinPrice.eur.price
+                                      ), 
+                                      currency
+                                    )}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className={`text-3xl font-bold ${getTextColorClass(plan.color)}`}>
+                                {plan.roiPercentage}%
+                              </p>
+                              <p className={`text-sm ${getTextColorClass(plan.color)} opacity-80`}>
+                                {plan.durationDays} days
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Expected Returns Section */}
+                          <div className={`bg-white/15 dark:bg-white/10 rounded-lg p-4 mb-4 ${getTextColorClass(plan.color)}`}>
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="text-sm opacity-80">Expected Returns:</span>
+                              <Target className="w-4 h-4 opacity-80" />
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span>Investment Amount:</span>
+                                <div className="text-right">
+                                  <div>{formatBitcoin(plan.minAmount)} BTC</div>
+                                  {bitcoinPrice && (
+                                    <div className="text-xs opacity-75">
+                                      {formatCurrency(
+                                        calculateCurrencyValue(
+                                          plan.minAmount, 
+                                          currency === 'USD' ? bitcoinPrice.usd.price : 
+                                          currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                          bitcoinPrice.eur.price
+                                        ), 
+                                        currency
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>Profit ({plan.roiPercentage}%):</span>
+                                <div className="text-right text-green-300">
+                                  <div>+{formatBitcoin((parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString())} BTC</div>
+                                  {bitcoinPrice && (
+                                    <div className="text-xs opacity-75">
+                                      +{formatCurrency(
+                                        calculateCurrencyValue(
+                                          (parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString(), 
+                                          currency === 'USD' ? bitcoinPrice.usd.price : 
+                                          currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                          bitcoinPrice.eur.price
+                                        ), 
+                                        currency
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex justify-between text-base font-semibold border-t border-white/20 pt-2">
+                                <span>Total Return:</span>
+                                <div className="text-right text-green-300">
+                                  <div>{formatBitcoin((parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString())} BTC</div>
+                                  {bitcoinPrice && (
+                                    <div className="text-xs opacity-75">
+                                      {formatCurrency(
+                                        calculateCurrencyValue(
+                                          (parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString(), 
+                                          currency === 'USD' ? bitcoinPrice.usd.price : 
+                                          currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                          bitcoinPrice.eur.price
+                                        ), 
+                                        currency
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-xs opacity-75 mt-2">
+                                *Returns in BTC after {plan.durationDays} days
+                              </div>
+                            </div>
+                          </div>
+
+                          <Button
+                            onClick={() => handleInvest(plan)}
+                            disabled={createInvestmentMutation.isPending}
+                            className={`w-full bg-white/20 hover:bg-white/30 transition-colors rounded-lg py-3 text-base font-medium border-0 ${getTextColorClass(plan.color)} backdrop-blur-sm`}
+                          >
+                            {createInvestmentMutation.isPending ? 'Processing...' : 'Invest Now'}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-orange-600 dark:text-orange-400">Loading investment plans...</div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Pending Investments */}
         {pendingInvestments.length > 0 && (
