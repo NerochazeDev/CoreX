@@ -135,21 +135,19 @@ function ProfileContent() {
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8 pb-20">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Profile</h1>
-          <p className="text-muted-foreground">Manage your BitVault Pro account and settings</p>
-        </div>
-
         {/* Profile Header */}
         <Card className="mb-8 overflow-hidden border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20 border-4 border-white/20">
-                  <AvatarImage src={profileData.avatar || user?.profileImageUrl || undefined} />
+                  <AvatarImage 
+                    src={user?.profileImageUrl || profileData.avatar || undefined} 
+                    alt="Profile Picture"
+                    className="object-cover"
+                  />
                   <AvatarFallback className="bg-white/20 text-white text-xl font-bold">
-                    {(profileData.firstName || user?.firstName || user?.email?.charAt(0) || 'U').toUpperCase()}
+                    {(user?.firstName || profileData.firstName || user?.email?.charAt(0) || 'U').toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
