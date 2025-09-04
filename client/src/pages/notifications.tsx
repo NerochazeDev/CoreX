@@ -356,99 +356,100 @@ export default function Notifications() {
                   }}
                   data-testid={`notification-${notification.id}`}
                 >
-                <CardContent className="p-4">
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 mt-0.5">
-                      {getNotificationIcon(notification.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <h3 className={`font-semibold text-sm ${!notification.isRead ? 'text-foreground' : 'text-muted-foreground'}`}>
-                          {notification.title}
-                        </h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {!notification.isRead && (
-                            <div className="w-2 h-2 bg-bitcoin rounded-full"></div>
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(notification.createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
+                  <CardContent className="p-4">
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        {getNotificationIcon(notification.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className={`font-semibold text-sm ${!notification.isRead ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {notification.title}
+                          </h3>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {!notification.isRead && (
+                              <div className="w-2 h-2 bg-bitcoin rounded-full"></div>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(notification.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
+                          {notification.message}
+                        </p>
+                        {/* Show USD equivalent for Bitcoin amount notifications */}
+                        {(notification.title.includes("Bitcoin") || notification.title.includes("Investment") || notification.title.includes("Deposit") || notification.title.includes("Withdrawal")) && bitcoinPrice && (() => {
+                          const amountMatch = notification.message.match(/(\d+\.?\d*) BTC/);
+                          if (amountMatch) {
+                            const amount = parseFloat(amountMatch[1]);
+                            const currencyPrice = currency === 'USD' ? bitcoinPrice.usd.price : 
+                                                currency === 'GBP' ? bitcoinPrice.gbp.price : 
+                                                bitcoinPrice.eur.price;
+                            const fiatValue = amount * currencyPrice;
+                            return (
+                              <p className="text-xs text-bitcoin mt-1">
+                                ≈ {formatCurrency(fiatValue, currency)}
+                              </p>
+                            );
+                          }
+                          return null;
+                        })()}
+                        <div className="flex items-center justify-between mt-2">
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs capitalize"
+                          >
+                            {notification.type}
+                          </Badge>
+                          {(() => {
+                            const pendingTransaction = getRelatedPendingTransaction(notification);
+                            return pendingTransaction && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-700 dark:hover:bg-red-900/20 h-6 px-2 text-xs"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <X className="w-3 h-3 mr-1" />
+                                    Cancel
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Cancel Transaction</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to cancel this {pendingTransaction.type} of {pendingTransaction.amount} BTC? 
+                                      This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Keep Transaction</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => cancelTransactionMutation.mutate(pendingTransaction.id)}
+                                      disabled={cancelTransactionMutation.isPending}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      {cancelTransactionMutation.isPending ? "Cancelling..." : "Yes, Cancel"}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            );
+                          })()}
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
-                        {notification.message}
-                      </p>
-                      {/* Show USD equivalent for Bitcoin amount notifications */}
-                      {(notification.title.includes("Bitcoin") || notification.title.includes("Investment") || notification.title.includes("Deposit") || notification.title.includes("Withdrawal")) && bitcoinPrice && (() => {
-                        const amountMatch = notification.message.match(/(\d+\.?\d*) BTC/);
-                        if (amountMatch) {
-                          const amount = parseFloat(amountMatch[1]);
-                          const currencyPrice = currency === 'USD' ? bitcoinPrice.usd.price : 
-                                              currency === 'GBP' ? bitcoinPrice.gbp.price : 
-                                              bitcoinPrice.eur.price;
-                          const fiatValue = amount * currencyPrice;
-                          return (
-                            <p className="text-xs text-bitcoin mt-1">
-                              ≈ {formatCurrency(fiatValue, currency)}
-                            </p>
-                          );
-                        }
-                        return null;
-                      })()}
-                      <div className="flex items-center justify-between mt-2">
-                        <Badge 
-                          variant="outline" 
-                          className="text-xs capitalize"
-                        >
-                          {notification.type}
-                        </Badge>
-                        {(() => {
-                          const pendingTransaction = getRelatedPendingTransaction(notification);
-                          return pendingTransaction && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-700 dark:hover:bg-red-900/20 h-6 px-2 text-xs"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <X className="w-3 h-3 mr-1" />
-                                  Cancel
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Cancel Transaction</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to cancel this {pendingTransaction.type} of {pendingTransaction.amount} BTC? 
-                                    This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Keep Transaction</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => cancelTransactionMutation.mutate(pendingTransaction.id)}
-                                    disabled={cancelTransactionMutation.isPending}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    {cancelTransactionMutation.isPending ? "Cancelling..." : "Yes, Cancel"}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          );
-                        })()}
-                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             ))}
           </div>
         ) : (
