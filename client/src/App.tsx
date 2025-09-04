@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SecureAuthProvider } from "@/hooks/use-auth-secure";
 import { CurrencyProvider } from "@/hooks/use-currency";
+import { ThemeProvider } from "@/contexts/theme-context";
+import { SidebarProvider } from "@/contexts/sidebar-context";
 import { RealtimeConnection } from "@/components/realtime-connection";
 import { ErrorBoundary } from "@/components/error-boundary";
 import Home from "@/pages/home";
@@ -79,19 +81,23 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <CurrencyProvider>
-            <AuthProvider>
-              <SecureAuthProvider>
-                <RealtimeConnection />
-                <Toaster />
-                <Router />
-              </SecureAuthProvider>
-            </AuthProvider>
-          </CurrencyProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <SidebarProvider>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <CurrencyProvider>
+                <AuthProvider>
+                  <SecureAuthProvider>
+                    <RealtimeConnection />
+                    <Toaster />
+                    <Router />
+                  </SecureAuthProvider>
+                </AuthProvider>
+              </CurrencyProvider>
+            </TooltipProvider>
+          </QueryClientProvider>
+        </SidebarProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

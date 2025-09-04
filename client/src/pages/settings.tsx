@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { BottomNavigation } from "@/components/bottom-navigation";
+import { LayoutWrapper } from "@/components/layout-wrapper";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -43,6 +44,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useCurrency } from "@/hooks/use-currency";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/contexts/theme-context";
 import { Link } from "wouter";
 import { ArrowLeft, Crown } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -319,6 +321,7 @@ function SettingsContent() {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const { currency, toggleCurrency } = useCurrency();
+  const { theme, setTheme, actualTheme } = useTheme();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("account");
   const [notifications, setNotifications] = useState(true);
@@ -507,27 +510,28 @@ function SettingsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Header - Match Home Page Style */}
-      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Link href="/">
-                <Button variant="ghost" size="icon" className="h-10 w-10 p-0 rounded-full hover:bg-primary/10">
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </Link>
-              <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-foreground">Settings</h1>
-                <p className="text-sm text-muted-foreground">Manage your account & preferences</p>
+    <LayoutWrapper>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        {/* Header - Match Home Page Style */}
+        <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center gap-3">
+                <Link href="/">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 p-0 rounded-full hover:bg-primary/10">
+                    <ArrowLeft className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <div className="hidden sm:block">
+                  <h1 className="text-xl font-bold text-foreground">Settings</h1>
+                  <p className="text-sm text-muted-foreground">Manage your account & preferences</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
         {/* Profile Summary Card - Match Home Page Style */}
         <div className="max-w-2xl mx-auto mb-8">
           <div className="relative">
@@ -549,7 +553,7 @@ function SettingsContent() {
                       ) : user.avatar && user.avatar.startsWith('gradient-') ? (
                         <div className={`w-full h-full bg-gradient-to-br ${user.avatar.replace('gradient-', '')} flex items-center justify-center`}>
                           <span className="text-2xl font-bold text-white">
-                            {(user.username || user.email || 'U').charAt(0).toUpperCase()}
+                {(user.firstName || user.email || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
                       ) : (
@@ -658,6 +662,48 @@ function SettingsContent() {
                         >
                           {currency}
                         </Button>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/50 dark:border-orange-800/50">
+                        <div className="flex items-center gap-3">
+                          {actualTheme === 'dark' ? (
+                            <Moon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                          ) : (
+                            <Sun className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                          )}
+                          <div>
+                            <p className="font-medium text-orange-800 dark:text-orange-200">Theme</p>
+                            <p className="text-sm text-orange-600 dark:text-orange-400">Appearance preference</p>
+                          </div>
+                        </div>
+                        <Select value={theme} onValueChange={setTheme}>
+                          <SelectTrigger 
+                            className="w-32 rounded-lg bg-orange-500/10 border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:bg-orange-900/20 dark:border-orange-600 dark:text-orange-300"
+                            data-testid="select-theme"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="light" data-testid="theme-light">
+                              <div className="flex items-center gap-2">
+                                <Sun className="w-4 h-4" />
+                                Light
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="dark" data-testid="theme-dark">
+                              <div className="flex items-center gap-2">
+                                <Moon className="w-4 h-4" />
+                                Dark
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="system" data-testid="theme-system">
+                              <div className="flex items-center gap-2">
+                                <Palette className="w-4 h-4" />
+                                System
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </CardContent>
@@ -1057,7 +1103,10 @@ function SettingsContent() {
           </Card>
         </div>
       )}
-    </div>
+        
+        <BottomNavigation />
+      </div>
+    </LayoutWrapper>
   );
 }
 
