@@ -935,7 +935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Use production domain for Render deployment
     if (process.env.NODE_ENV === 'production') {
-      return 'https://bitvault-pro.onrender.com/api/auth/google/callback';
+      return 'https://bitvault-pro-invest.onrender.com/api/auth/google/callback';
     }
     
     // For Replit development environment
