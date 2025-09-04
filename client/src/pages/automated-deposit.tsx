@@ -100,7 +100,7 @@ export default function AutomatedDeposit() {
     if (sessionDetails) {
       setCurrentSession(sessionDetails);
       setTimeRemaining(sessionDetails.timeRemaining);
-      
+
       if (sessionDetails.status === "confirmed") {
         setStep("completed");
         toast({
@@ -217,11 +217,11 @@ export default function AutomatedDeposit() {
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Always use the BTC amount for validation and submission
     const btcAmount = inputMode === 'BTC' ? amount : convertUsdToBtc(fiatAmount);
     const amountNum = parseFloat(btcAmount);
-    
+
     if (isNaN(amountNum) || amountNum <= 0) {
       toast({
         title: "❌ Invalid Amount",
@@ -294,7 +294,7 @@ export default function AutomatedDeposit() {
                     {inputMode}
                   </Button>
                 </div>
-                
+
                 <div className="space-y-3">
                   {inputMode === 'BTC' ? (
                     <div>
@@ -337,7 +337,7 @@ export default function AutomatedDeposit() {
                   )}
                 </div>
               </div>
-              
+
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
@@ -364,6 +364,7 @@ export default function AutomatedDeposit() {
             </form>
           </CardContent>
         </Card>
+        </div>
         )}
 
       {step === "session" && currentSession && (
