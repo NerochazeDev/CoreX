@@ -231,7 +231,7 @@ export default function Investment() {
         {/* Pending Investments */}
         {pendingInvestments.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Clock className="w-5 h-5 text-orange-400" />
               Pending Investments
             </h3>
@@ -402,7 +402,7 @@ export default function Investment() {
         {/* Completed Investments */}
         {completedInvestments.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Target className="w-5 h-5 text-blue-400" />
               Completed Investments
             </h3>
@@ -446,7 +446,7 @@ export default function Investment() {
         {/* Rejected Investments */}
         {rejectedInvestments.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <span className="w-5 h-5 text-red-400">⚠️</span>
               Rejected Investments
             </h3>

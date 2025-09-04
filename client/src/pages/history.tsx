@@ -117,51 +117,42 @@ export default function History() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Header with Orange Theme */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-gradient-to-r from-white/95 via-orange-50/80 to-white/95 dark:from-gray-900/95 dark:via-orange-900/20 dark:to-gray-900/95 border-b border-orange-200/60 dark:border-orange-700/40 shadow-xl shadow-orange-500/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200">
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </Link>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent truncate">
-                  Transaction History
-                </h1>
-                <p className="text-xs sm:text-sm text-orange-600/80 dark:text-orange-400/80 font-medium truncate">
-                  Complete Activity Overview
-                </p>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background">
+      {/* Modern Navigation Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm lg:ml-64">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">History</h1>
+              <p className="text-sm text-muted-foreground">Transaction history</p>
             </div>
           </div>
         </div>
-      </nav>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 lg:ml-64 space-y-6">
 
         {isLoading || loadingNotifications || loadingTransactions ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="relative">
-                <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-                <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-                  <CardContent className="p-6">
-                    <Skeleton className="h-4 w-3/4 mb-2" />
-                    <Skeleton className="h-3 w-1/2 mb-2" />
-                    <Skeleton className="h-3 w-1/4" />
-                  </CardContent>
-                </Card>
-              </div>
+              <Card key={i} className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl">
+                <CardContent className="p-6">
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-3 w-1/2 mb-2" />
+                  <Skeleton className="h-3 w-1/4" />
+                </CardContent>
+              </Card>
             ))}
           </div>
         ) : (
           <div className="space-y-4">
             <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-orange-800 dark:text-orange-200">Transaction History</h3>
+            <h3 className="text-xl font-semibold text-foreground">Transaction History</h3>
 
             {/* All transactions including investment history */}
             <div className="space-y-3">
@@ -186,9 +177,7 @@ export default function History() {
                 };
 
                 return (
-                  <div key={`tx-${transaction.id}`} className="relative group">
-                    <div className="absolute top-1 left-1 w-full h-full bg-gradient-to-br from-orange-500/10 to-orange-600/15 rounded-xl blur-sm group-hover:blur-md transition-all duration-200"></div>
-                    <Card className="relative bg-gradient-to-br from-orange-50/80 to-orange-100/60 dark:from-orange-900/20 dark:to-orange-800/30 rounded-xl border border-orange-300/50 dark:border-orange-600/30 backdrop-blur-sm hover:shadow-lg transition-all duration-200 p-6">
+                  <Card key={`tx-${transaction.id}`} className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl p-6 hover:bg-muted/5 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         {getTransactionIcon(transaction.type, transaction.status)}
@@ -284,9 +273,7 @@ export default function History() {
                 };
 
                 return (
-                  <div key={`inv-${investment.id}`} className="relative group">
-                    <div className="absolute top-1 left-1 w-full h-full bg-gradient-to-br from-orange-500/10 to-orange-600/15 rounded-xl blur-sm group-hover:blur-md transition-all duration-200"></div>
-                    <Card className="relative bg-gradient-to-br from-orange-50/80 to-orange-100/60 dark:from-orange-900/20 dark:to-orange-800/30 rounded-xl border border-orange-300/50 dark:border-orange-600/30 backdrop-blur-sm hover:shadow-lg transition-all duration-200 p-4">
+                  <Card key={`inv-${investment.id}`} className="dark-card dark-border p-4 hover:bg-muted/5 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -361,7 +348,6 @@ export default function History() {
                       )}
                     </div>
                   </Card>
-                  </div>
                 );
               })}
             </div>
@@ -385,9 +371,7 @@ export default function History() {
                 const fiatValue = currencyPrice ? parseFloat(amount) * currencyPrice : 0;
 
                 return (
-                  <div key={`notif-${notification.id}`} className="relative group">
-                    <div className="absolute top-1 left-1 w-full h-full bg-gradient-to-br from-orange-500/10 to-orange-600/15 rounded-xl blur-sm group-hover:blur-md transition-all duration-200"></div>
-                    <Card className="relative bg-gradient-to-br from-orange-50/80 to-orange-100/60 dark:from-orange-900/20 dark:to-orange-800/30 rounded-xl border border-orange-300/50 dark:border-orange-600/30 backdrop-blur-sm hover:shadow-lg transition-all duration-200">
+                  <Card key={`notif-${notification.id}`} className="dark-card dark-border">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -440,7 +424,6 @@ export default function History() {
                       </div>
                     </CardContent>
                   </Card>
-                  </div>
                 );
               })}
             </div>
@@ -449,20 +432,15 @@ export default function History() {
             {(!Array.isArray(investments) || investments.length === 0) && 
              (!Array.isArray(transactions) || transactions.length === 0) &&
              (!Array.isArray(notifications) || notifications.filter(n => n.title.includes("Bitcoin")).length === 0) && (
-              <div className="relative">
-                <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-                <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-                  <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/30">
-                      <TrendingUp className="w-8 h-8 text-orange-700 dark:text-orange-300" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200 mb-2">No Transaction History</h3>
-                    <p className="text-orange-600 dark:text-orange-400 mb-4">
-                      You haven't made any transactions or investments yet. Start investing or receive Bitcoin to see your history here.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+              <Card className="dark-card dark-border">
+                <CardContent className="p-8 text-center">
+                  <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold dark-text mb-2">No Transaction History</h3>
+                  <p className="text-muted-foreground mb-4">
+                    You haven't made any transactions or investments yet. Start investing or receive Bitcoin to see your history here.
+                  </p>
+                </CardContent>
+              </Card>
             )}
           </div>
         )}
