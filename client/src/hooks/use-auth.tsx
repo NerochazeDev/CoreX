@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { User } from '@shared/schema';
+import { toast } from '@/components/ui/toast'; // Assuming toast is available from a local path
+import { useLocation } from 'react-router-dom'; // Assuming useLocation is used for navigation
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +26,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useLocation(); // Placeholder for navigation function
+
+  // Helper function for navigation (replace with actual routing logic if needed)
+  const setLocation = (path: string) => {
+    // In a real React Router setup, you'd use useHistory or useNavigate
+    console.log(`Navigating to ${path}`);
+    // Example: history.push(path);
+  };
 
   useEffect(() => {
     // Validate session with server on app load
@@ -67,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // On network error, check localStorage as fallback
       const storedUser = localStorage.getItem('bitvault_user');
       const lastActivity = localStorage.getItem('bitvault_last_activity');
-      
+
       // Only use localStorage if recent (within 1 hour)
       if (storedUser && lastActivity && (Date.now() - parseInt(lastActivity)) < 3600000) {
         try {
@@ -91,44 +101,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
+    try {
+      console.log("Starting login process...");
 
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      }).catch((networkError) => {
+        console.error("Network error during login:", networkError);
+        throw new Error("Network connection failed. Please check your internet connection.");
+      });
 
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Ensure cookies are sent with requests
-      mode: 'cors', // Enable CORS with credentials
-      body: JSON.stringify({ email, password }),
-    });
+      if (!response.ok) {
+        let errorMessage = "Login failed";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          console.error("Error parsing response:", parseError);
+          errorMessage = `Server error (${response.status})`;
+        }
+        throw new Error(errorMessage);
+      }
 
+      const userData = await response.json().catch((parseError) => {
+        console.error("Error parsing login response:", parseError);
+        throw new Error("Invalid response from server");
+      });
 
+      console.log("Login completed, showing success toast...");
 
-    if (!response.ok) {
-      const error = await response.json();
+      setUser(userData.user);
 
-      throw new Error(error.message);
+      toast({
+        title: "Welcome back!",
+        description: `Successfully signed in as ${userData.user.email}`,
+      });
+
+      console.log("Redirecting to home page...");
+      setLocation('/');
+
+      return userData;
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast({
+        title: "Login Failed",
+        description: error.message || "An error occurred during login",
+        variant: "destructive",
+      });
+      throw error;
     }
-
-    const userData = await response.json();
-
-
-    // Store auth token if provided
-    if (userData.authToken) {
-      localStorage.setItem('bitvault_auth_token', userData.authToken);
-
-    }
-
-    // Store in localStorage with activity timestamp
-    localStorage.setItem('bitvault_user', JSON.stringify(userData));
-    localStorage.setItem('bitvault_last_activity', Date.now().toString());
-
-    // Set user state
-    setUser(userData);
-
-    // Force a re-render by updating loading state
-    setIsLoading(false);
   };
 
   const register = async (registrationData: {
@@ -141,22 +165,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     acceptMarketing: boolean;
     captchaToken: string;
   }) => {
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // Ensure cookies are sent with requests
-      body: JSON.stringify(registrationData),
-    });
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(registrationData),
+        credentials: 'include',
+      }).catch((networkError) => {
+        console.error("Network error during registration:", networkError);
+        throw new Error("Network connection failed. Please check your internet connection.");
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message);
+      if (!response.ok) {
+        let errorMessage = "Registration failed";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          console.error("Error parsing response:", parseError);
+          errorMessage = `Server error (${response.status})`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const userData = await response.json().catch((parseError) => {
+        console.error("Error parsing registration response:", parseError);
+        throw new Error("Invalid response from server");
+      });
+
+      setUser(userData.user);
+
+      toast({
+        title: "Account Created!",
+        description: `Welcome to BitVault Pro, ${userData.user.email}!`,
+      });
+
+      setLocation('/');
+
+      return userData;
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Registration Failed",
+        description: error.message || "An error occurred during registration",
+        variant: "destructive",
+      });
+      throw error;
     }
-
-    const userData = await response.json();
-    setUser(userData);
-    localStorage.setItem('bitvault_user', JSON.stringify(userData));
-    localStorage.setItem('bitvault_last_activity', Date.now().toString());
   };
 
   const refreshUser = async () => {
@@ -195,17 +250,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       // Call server logout endpoint to destroy session
-      await fetch('/api/logout', {
-        method: 'POST',
+      await fetch("/api/auth/logout", {
+        method: "POST",
         credentials: 'include',
+      }).catch((error) => {
+        console.error("Network error during logout:", error);
+        // Continue with logout process even if server request fails
       });
     } catch (error) {
-      console.error('Logout request failed:', error);
+      console.error("Logout error:", error);
     } finally {
       // Always clear local state regardless of server response
       setUser(null);
-      localStorage.removeItem('bitvault_user');
-      localStorage.removeItem('bitvault_last_activity');
+      setLocation('/login');
     }
   };
 
