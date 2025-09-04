@@ -7,43 +7,31 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export const apiRequest = async (method: string, url: string, data?: any) => {
-  const config: RequestInit = {
+export async function apiRequest(method: string, endpoint: string, data?: any) {
+  const options: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
     },
-    credentials: 'include',
+    credentials: 'include', // Include cookies for session-based auth
   };
 
+  // Add auth token from localStorage if available
+  const authToken = localStorage.getItem('bitvault_auth_token');
+  if (authToken) {
+    options.headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${authToken}`,
+    };
+  }
+
   if (data) {
-    config.body = JSON.stringify(data);
+    options.body = JSON.stringify(data);
   }
 
-  try {
-    const response = await fetch(url, config).catch((networkError) => {
-      console.error(`Network error for ${method} ${url}:`, networkError);
-      throw new Error("Network connection failed. Please check your internet connection.");
-    });
-
-    if (!response.ok) {
-      let errorMessage = 'Request failed';
-      try {
-        const error = await response.json();
-        errorMessage = error.error || errorMessage;
-      } catch (parseError) {
-        console.error("Error parsing error response:", parseError);
-        errorMessage = `Server error (${response.status})`;
-      }
-      throw new Error(errorMessage);
-    }
-
-    return response;
-  } catch (error: any) {
-    console.error(`API request error for ${method} ${url}:`, error);
-    throw error;
-  }
-};
+  const response = await fetch(endpoint, options);
+  return response;
+}
 
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {
@@ -63,9 +51,6 @@ export const getQueryFn: <T>(options: {
       credentials: "include", // Ensure cookies are sent with every request
       mode: "cors", // Enable CORS with credentials
       headers,
-    }).catch((networkError) => {
-      console.error(`Network error for GET ${queryKey[0]}:`, networkError);
-      throw new Error("Network connection failed. Please check your internet connection.");
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

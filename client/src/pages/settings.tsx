@@ -528,11 +528,6 @@ function SettingsContent() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
-        {/* Desktop Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          
-          {/* Left Column - Main Content (Desktop: 8 cols, Mobile: Full width) */}
-          <div className="xl:col-span-8 space-y-8">
         {/* Profile Summary Card - Match Home Page Style */}
         <div className="max-w-2xl mx-auto mb-8">
           <div className="relative">
@@ -596,7 +591,7 @@ function SettingsContent() {
         </div>
 
         {/* Settings Navigation - Orange Theme */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-4xl mx-auto">
           <div className="mb-8">
             <TabsList className={`grid w-full h-14 bg-card/50 backdrop-blur-lg border border-border rounded-2xl shadow-lg p-2 ${user?.isSupportAdmin || user?.isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <TabsTrigger value="account" className="gap-2 h-10 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-xl">
@@ -965,89 +960,9 @@ function SettingsContent() {
             )}
           </div>
         </Tabs>
-          </div>
-
-          {/* Right Sidebar (Desktop Only) */}
-          <div className="xl:col-span-4 space-y-6">
-            
-            {/* Account Overview */}
-            <div className="relative">
-              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
-                    <User className="w-5 h-5 text-orange-500" />
-                    Account Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-orange-600 dark:text-orange-400">Account Type:</span>
-                      <Badge className="bg-green-500/20 text-green-600 border-green-200 dark:bg-green-900/30 dark:text-green-400">
-                        Premium
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-orange-600 dark:text-orange-400">Verification:</span>
-                      <Badge className="bg-green-500/20 text-green-600 border-green-200 dark:bg-green-900/30 dark:text-green-400">
-                        Verified
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-orange-600 dark:text-orange-400">2FA Status:</span>
-                      <Badge className="bg-orange-500/20 text-orange-600 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400">
-                        Enabled
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Settings */}
-            <div className="relative">
-              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
-                    <SettingsIcon className="w-5 h-5 text-orange-500" />
-                    Quick Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button
-                    onClick={() => setActiveTab('account')}
-                    variant="outline"
-                    className="w-full justify-start border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Edit Profile
-                  </Button>
-                  <Button
-                    onClick={() => setActiveTab('security')}
-                    variant="outline"
-                    className="w-full justify-start border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300"
-                  >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Security Settings
-                  </Button>
-                  <Button
-                    onClick={() => setActiveTab('notifications')}
-                    variant="outline"
-                    className="w-full justify-start border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300"
-                  >
-                    <Bell className="w-4 h-4 mr-2" />
-                    Notifications
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
 
         {/* Help Section - Orange Theme */}
-        <div className="mt-8 relative">
+        <div className="mt-8 relative max-w-4xl mx-auto">
           <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
           <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
             <CardContent className="p-0">
@@ -1072,7 +987,7 @@ function SettingsContent() {
         </div>
 
         {/* Logout Section - Orange Theme */}
-        <div className="mt-6 relative">
+        <div className="mt-6 relative max-w-4xl mx-auto">
           <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-2xl blur-sm"></div>
           <Card className="relative bg-gradient-to-br from-red-500/10 via-red-600/5 to-red-700/10 dark:from-red-600/20 dark:via-red-700/15 dark:to-red-800/20 backdrop-blur-xl border border-red-400/30 dark:border-red-500/30 rounded-2xl shadow-xl shadow-red-600/20">
             <CardContent className="p-6">

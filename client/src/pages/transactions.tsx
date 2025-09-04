@@ -120,35 +120,28 @@ export default function Transactions() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Header - Match Other Pages Style */}
-      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setLocation('/history')}
-                className="h-10 w-10 p-0 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">Transaction History</h1>
-                <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">View your deposits and investments</p>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-orange-50/10 to-background dark:from-background dark:via-slate-900/50 dark:to-background lg:ml-64">
+      {/* Modern Header */}
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setLocation('/history')}
+              className="rounded-full hover:bg-primary/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">Transaction History</h1>
+              <p className="text-sm text-muted-foreground">View your deposits and investments</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 lg:pb-8">
-        {/* Desktop Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          
-          {/* Left Column - Main Content (Desktop: 9 cols, Mobile: Full width) */}
-          <div className="xl:col-span-9 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-6">
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -278,80 +271,7 @@ export default function Transactions() {
             </Card>
           ))
         )}
-          </div>
-
-          {/* Right Sidebar (Desktop Only) */}
-          <div className="xl:col-span-3 space-y-6">
-            
-            {/* Quick Actions */}
-            <div className="relative">
-              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-orange-500" />
-                    Quick Actions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button
-                    onClick={() => setLocation('/deposit/automated')}
-                    className="w-full h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium rounded-xl shadow-lg"
-                  >
-                    <TrendingUp className="w-4 h-4 mr-2" />
-                    New Deposit
-                  </Button>
-                  <Button
-                    onClick={() => setLocation('/investment')}
-                    variant="outline"
-                    className="w-full h-12 border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300 font-medium rounded-xl"
-                  >
-                    <Bitcoin className="w-4 h-4 mr-2" />
-                    Invest Now
-                  </Button>
-                  <Button
-                    onClick={() => setLocation('/history')}
-                    variant="outline"
-                    className="w-full h-12 border-orange-300 text-orange-700 hover:bg-orange-500 hover:text-white dark:border-orange-600 dark:text-orange-300 font-medium rounded-xl"
-                  >
-                    <Clock className="w-4 h-4 mr-2" />
-                    Full History
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Transaction Summary */}
-            <div className="relative">
-              <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-              <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-bold text-orange-800 dark:text-orange-100 flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                    Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-orange-600 dark:text-orange-400">Total Transactions:</span>
-                      <span className="font-medium text-orange-800 dark:text-orange-200">{transactions?.length || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-orange-600 dark:text-orange-400">Confirmed:</span>
-                      <span className="font-medium text-green-600">{transactions?.filter(t => t.status === 'confirmed').length || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-orange-600 dark:text-orange-400">Pending:</span>
-                      <span className="font-medium text-yellow-600">{transactions?.filter(t => t.status === 'pending').length || 0}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </main>
+      </div>
 
       <BottomNavigation />
     </div>

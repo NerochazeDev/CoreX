@@ -7,15 +7,12 @@ export function useBitcoinPrice() {
       if (process.env.NODE_ENV === 'development') {
         console.log('🚀 Fetching Bitcoin price from CoinGecko API...');
       }
-
+      
       try {
         // Use our backend as a proxy to avoid CORS issues
         const response = await fetch('/api/bitcoin/price', {
           method: 'GET',
           credentials: 'include'
-        }).catch((networkError) => {
-          console.error("Network error fetching Bitcoin price:", networkError);
-          throw new Error("Network connection failed");
         });
 
         if (!response.ok) {
@@ -31,22 +28,15 @@ export function useBitcoinPrice() {
                 'Accept': 'application/json'
               }
             }
-          ).catch((networkError) => {
-            console.error("Network error fetching Bitcoin price directly from CoinGecko:", networkError);
-            throw new Error("Network connection failed");
-          });
-
-
+          );
+          
           if (!directResponse.ok) {
             throw new Error(`CoinGecko API error: ${directResponse.status}`);
           }
-
-          const directData = await directResponse.json().catch((parseError) => {
-            console.error("Error parsing Bitcoin price response from CoinGecko:", parseError);
-            throw new Error("Invalid response format");
-          });
+          
+          const directData = await directResponse.json();
           const bitcoin = directData.bitcoin;
-
+          
           const result = {
             usd: {
               price: bitcoin.usd,
@@ -61,24 +51,21 @@ export function useBitcoinPrice() {
               change24h: bitcoin.eur_24h_change || 0
             }
           };
-
+          
           if (process.env.NODE_ENV === 'development') {
             console.log('✅ Bitcoin price fetched directly from CoinGecko:', result);
           }
           return result;
         }
 
-        const data = await response.json().catch((parseError) => {
-          console.error("Error parsing Bitcoin price response from backend:", parseError);
-          throw new Error("Invalid response format");
-        });
+        const data = await response.json();
         if (process.env.NODE_ENV === 'development') {
           console.log('✅ Bitcoin price fetched from backend:', data);
         }
         return data;
-      } catch (error: any) {
+      } catch (error) {
         console.error('❌ All Bitcoin price fetch attempts failed:', error);
-
+        
         // Only use fallback as absolute last resort and log it clearly
         console.warn('⚠️ Using fallback Bitcoin price data - API unavailable');
         throw error; // Don't use fallback data, let React Query handle retries
@@ -88,8 +75,6 @@ export function useBitcoinPrice() {
     staleTime: 50000, // Consider data stale after 50 seconds
     retry: 2, // Reduce retry attempts
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
-    onError: (error: any) => {
-      console.error("Bitcoin price query error:", error);
-    },
   });
 }
+
