@@ -34,7 +34,7 @@ import {
   LineChart
 } from "lucide-react";
 import { formatBitcoin, formatCurrency } from "@/lib/utils";
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ComposedChart, Bar, ScatterChart, Scatter } from "recharts";
+import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ComposedChart, Bar, ScatterChart, Scatter, PieChart, Pie, Cell, RadialBarChart, RadialBar, ReferenceLine, Brush, Legend } from "recharts";
 import { useCurrency } from "@/hooks/use-currency";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 import { queryClient } from "@/lib/queryClient";
@@ -53,7 +53,7 @@ export default function InvestmentDashboard() {
   const [showValues, setShowValues] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(5000); // 5 seconds
-  const [chartType, setChartType] = useState<'line' | 'area' | 'candle' | 'volume' | 'depth' | 'heatmap'>('area');
+  const [chartType, setChartType] = useState<'line' | 'area' | 'candle' | 'volume' | 'depth' | 'heatmap' | 'advanced' | 'distribution' | 'comparison'>('advanced');
   const [selectedTimeframe, setSelectedTimeframe] = useState<'1m' | '5m' | '15m' | '1h' | '4h' | '1d' | '1w'>('5m');
   const [showIndicators, setShowIndicators] = useState<string[]>(['SMA', 'RSI']);
   const [portfolioView, setPortfolioView] = useState<'overview' | 'analytics' | 'risk' | 'performance'>('overview');
@@ -797,6 +797,319 @@ export default function InvestmentDashboard() {
           </div>
         );
         
+      case 'advanced':
+        return (
+          <div style={{ width: '100%', height: '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={currentChartData}>
+              <defs>
+                <linearGradient id="gradientProfit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
+                  <stop offset="50%" stopColor="#059669" stopOpacity={0.6}/>
+                  <stop offset="100%" stopColor="#047857" stopOpacity={0.3}/>
+                </linearGradient>
+                <linearGradient id="gradientVolume" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6}/>
+                  <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.2}/>
+                </linearGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.2)" />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                stroke="#6B7280"
+                axisLine={false}
+              />
+              <YAxis 
+                yAxisId="value"
+                orientation="right"
+                tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                stroke="#6B7280"
+                axisLine={false}
+                tickFormatter={(value) => showValues ? `${value.toFixed(4)}` : '••••'}
+              />
+              <YAxis 
+                yAxisId="volume"
+                orientation="left"
+                tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                stroke="#6B7280"
+                axisLine={false}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                  border: '1px solid rgba(16, 185, 129, 0.5)',
+                  borderRadius: '12px',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                  color: 'white',
+                  backdropFilter: 'blur(16px)'
+                }}
+                formatter={(value: any, name: string) => {
+                  if (name === 'volume') return [`${(parseFloat(value) / 1000).toFixed(0)}K`, 'Volume'];
+                  if (name === 'volatility') return [`${parseFloat(value).toFixed(2)}%`, 'Volatility'];
+                  return [showValues ? `${parseFloat(value).toFixed(8)} BTC` : '••••••••', name === 'profit' ? 'Profit' : name === 'value' ? 'Portfolio Value' : 'Investment'];
+                }}
+                labelFormatter={(label) => `Time: ${label}`}
+              />
+              <Bar 
+                yAxisId="volume"
+                dataKey="volume" 
+                fill="url(#gradientVolume)"
+                opacity={0.6}
+                radius={[2, 2, 0, 0]}
+              />
+              <Area 
+                yAxisId="value"
+                type="monotone" 
+                dataKey="value" 
+                stroke="#3b82f6" 
+                fill="rgba(59, 130, 246, 0.1)"
+                strokeWidth={1}
+                dot={false}
+              />
+              <Line 
+                yAxisId="value"
+                type="monotone" 
+                dataKey="profit" 
+                stroke="url(#gradientProfit)" 
+                strokeWidth={3}
+                dot={false}
+                filter="url(#glow)"
+                activeDot={{ 
+                  r: 6, 
+                  stroke: '#10b981', 
+                  strokeWidth: 2, 
+                  fill: 'white',
+                  filter: 'url(#glow)'
+                }}
+              />
+              {showIndicators.includes('SMA') && (
+                <Line 
+                  yAxisId="value"
+                  type="monotone" 
+                  dataKey="sma20" 
+                  stroke="#fbbf24" 
+                  strokeWidth={2}
+                  dot={false}
+                  strokeDasharray="4 4"
+                  opacity={0.8}
+                />
+              )}
+              {showIndicators.includes('RSI') && currentChartData.some(d => d.rsi) && (
+                <Line 
+                  yAxisId="value"
+                  type="monotone" 
+                  dataKey="rsi" 
+                  stroke="#ec4899" 
+                  strokeWidth={1}
+                  dot={false}
+                  strokeDasharray="2 6"
+                  opacity={0.6}
+                />
+              )}
+              <ReferenceLine yAxisId="value" y={totalInvestedAmount} stroke="#ef4444" strokeDasharray="8 8" opacity={0.7} />
+              <Brush dataKey="date" height={30} stroke="#10b981" fill="rgba(16, 185, 129, 0.1)" />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        );
+        
+      case 'distribution':
+        const distributionData = actualActiveInvestments.map((investment, index) => {
+          const plan = investmentPlans?.find(p => p.id === investment.planId);
+          const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+          return {
+            name: plan?.name || `Plan ${investment.planId}`,
+            value: parseFloat(investment.amount),
+            profit: parseFloat(investment.currentProfit),
+            color: colors[index % colors.length],
+            percentage: (parseFloat(investment.amount) / totalInvestedAmount * 100).toFixed(1)
+          };
+        });
+        
+        return (
+          <div style={{ width: '100%', height: '400px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                <defs>
+                  <filter id="shadow">
+                    <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="rgba(0,0,0,0.3)"/>
+                  </filter>
+                </defs>
+                <Pie
+                  data={distributionData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  innerRadius={40}
+                  paddingAngle={3}
+                  dataKey="value"
+                  filter="url(#shadow)"
+                >
+                  {distributionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    color: 'white'
+                  }}
+                  formatter={(value: any, name: string) => [
+                    showValues ? `${parseFloat(value).toFixed(8)} BTC (${distributionData.find(d => d.name === name)?.percentage}%)` : '••••••••',
+                    'Investment Amount'
+                  ]}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: '12px', color: '#9CA3AF' }}
+                />
+                </PieChart>
+              </ResponsiveContainer>
+              
+              <ResponsiveContainer width="100%" height="100%">
+                <RadialBarChart 
+                  cx="50%" 
+                  cy="50%" 
+                  innerRadius="20%" 
+                  outerRadius="80%" 
+                  data={distributionData.map(d => ({...d, fill: d.color}))}
+                >
+                <RadialBar 
+                  dataKey="profit" 
+                  cornerRadius={4}
+                  fill="url(#gradientProfit)"
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    color: 'white'
+                  }}
+                  formatter={(value: any) => [
+                    showValues ? `+${parseFloat(value).toFixed(8)} BTC` : '••••••••',
+                    'Profit Earned'
+                  ]}
+                />
+                </RadialBarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        );
+        
+      case 'comparison':
+        const comparisonData = actualActiveInvestments.map((investment, index) => {
+          const plan = investmentPlans?.find(p => p.id === investment.planId);
+          const roi = (parseFloat(investment.currentProfit) / parseFloat(investment.amount) * 100);
+          const dailyRate = plan ? parseFloat(plan.dailyReturnRate) * 100 : 0;
+          const projectedMonthly = parseFloat(investment.amount) * (dailyRate / 100) * 30;
+          
+          return {
+            name: plan?.name || `Plan ${investment.planId}`,
+            invested: parseFloat(investment.amount),
+            profit: parseFloat(investment.currentProfit),
+            roi: roi,
+            dailyRate: dailyRate,
+            projectedMonthly: projectedMonthly,
+            efficiency: roi / (dailyRate || 1)
+          };
+        });
+        
+        return (
+          <div style={{ width: '100%', height: '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={comparisonData}>
+              <defs>
+                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor="#059669" stopOpacity={0.6}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.2)" />
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                stroke="#6B7280"
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis 
+                yAxisId="amount"
+                orientation="left"
+                tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                stroke="#6B7280"
+                tickFormatter={(value) => showValues ? `${value.toFixed(3)}` : '•••'}
+              />
+              <YAxis 
+                yAxisId="percentage"
+                orientation="right"
+                tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                stroke="#6B7280"
+                tickFormatter={(value) => `${value.toFixed(1)}%`}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                  border: '1px solid rgba(16, 185, 129, 0.5)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  backdropFilter: 'blur(16px)'
+                }}
+                formatter={(value: any, name: string) => {
+                  if (name === 'roi' || name === 'dailyRate') return [`${parseFloat(value).toFixed(2)}%`, name === 'roi' ? 'Current ROI' : 'Daily Rate'];
+                  if (name === 'efficiency') return [`${parseFloat(value).toFixed(2)}x`, 'Efficiency Score'];
+                  return [showValues ? `${parseFloat(value).toFixed(6)} BTC` : '••••••••', name === 'invested' ? 'Invested' : name === 'profit' ? 'Profit' : 'Projected Monthly'];
+                }}
+              />
+              <Bar 
+                yAxisId="amount"
+                dataKey="invested" 
+                fill="rgba(59, 130, 246, 0.6)"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar 
+                yAxisId="amount"
+                dataKey="profit" 
+                fill="url(#barGradient)"
+                radius={[4, 4, 0, 0]}
+              />
+              <Line 
+                yAxisId="percentage"
+                type="monotone" 
+                dataKey="roi" 
+                stroke="#f59e0b" 
+                strokeWidth={3}
+                dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
+              />
+              <Line 
+                yAxisId="percentage"
+                type="monotone" 
+                dataKey="dailyRate" 
+                stroke="#ec4899" 
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={{ fill: '#ec4899', strokeWidth: 2, r: 3 }}
+              />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        );
+
       case 'heatmap':
         const heatmapData = currentChartData.slice(-20).map((point, i) => ({
           x: i,
@@ -1134,7 +1447,9 @@ export default function InvestmentDashboard() {
         </div>
 
         {/* Live Investment Income Tracker */}
-        <Card className="bg-black/40 border-orange-500/30 backdrop-blur-lg">
+        <Card className="bg-black/40 border-orange-500/30 backdrop-blur-lg relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 via-yellow-500 to-green-500"></div>
           <div className="p-3 md:p-4 border-b border-orange-500/20">
             <div className="space-y-4">
               {/* Header Section - Mobile Optimized */}
@@ -1184,15 +1499,15 @@ export default function InvestmentDashboard() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setChartType('area')}
+                      onClick={() => setChartType('advanced')}
                       className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                        chartType === 'area' 
-                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25' 
+                        chartType === 'advanced' 
+                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/25' 
                           : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
                       }`}
                     >
                       <TrendingUp className="w-3 h-3 md:mr-1" />
-                      <span className="hidden md:inline">Growth</span>
+                      <span className="hidden md:inline">Advanced</span>
                     </Button>
                     <Button
                       variant="ghost"
@@ -1223,28 +1538,28 @@ export default function InvestmentDashboard() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setChartType('depth')}
+                      onClick={() => setChartType('distribution')}
                       className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                        chartType === 'depth' 
+                        chartType === 'distribution' 
                           ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg shadow-yellow-500/25' 
                           : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
                       }`}
                     >
                       <PieChart className="w-3 h-3 md:mr-1" />
-                      <span className="hidden md:inline">Sources</span>
+                      <span className="hidden md:inline">Portfolio</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setChartType('heatmap')}
+                      onClick={() => setChartType('comparison')}
                       className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                        chartType === 'heatmap' 
-                          ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25' 
+                        chartType === 'comparison' 
+                          ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/25' 
                           : 'text-gray-300 hover:text-white hover:bg-gray-600/50'
                       }`}
                     >
                       <Activity className="w-3 h-3 md:mr-1" />
-                      <span className="hidden md:inline">Heat</span>
+                      <span className="hidden md:inline">Compare</span>
                     </Button>
                   </div>
                 </div>
@@ -1340,7 +1655,8 @@ export default function InvestmentDashboard() {
             </div>
           </div>
 
-          <div className={`p-3 md:p-4 ${isFullscreen ? 'h-[70vh]' : 'h-[250px] sm:h-[350px] md:h-[450px]'} overflow-hidden`}>
+          <div className={`relative p-3 md:p-4 ${isFullscreen ? 'h-[70vh]' : 'h-[250px] sm:h-[350px] md:h-[450px]'} overflow-hidden`}>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none rounded-lg"></div>
             {loadingInvestments ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
@@ -1389,7 +1705,11 @@ export default function InvestmentDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="h-full relative">
+              <div className="h-full relative z-10">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-lg pointer-events-none"></div>
+                <div className="absolute top-2 left-2 w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
+                <div className="absolute top-2 left-6 w-1 h-1 bg-blue-400 rounded-full animate-pulse delay-150 shadow-lg shadow-blue-400/50"></div>
+                <div className="absolute top-2 left-9 w-1 h-1 bg-purple-400 rounded-full animate-pulse delay-300 shadow-lg shadow-purple-400/50"></div>
                 {isStreaming && (
                   <div className="absolute top-2 right-2 z-10">
                     <div className="flex items-center gap-2 bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-full px-3 py-1">
