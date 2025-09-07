@@ -744,8 +744,9 @@ export default function InvestmentDashboard() {
         });
 
         return (
-          <ResponsiveContainer {...commonProps}>
-            <AreaChart data={investmentSources}>
+          <div style={{ width: '100%', height: '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={investmentSources}>
               <CartesianGrid strokeDasharray="1 1" stroke="rgba(156, 163, 175, 0.2)" />
               <XAxis 
                 dataKey="planName" 
@@ -793,6 +794,7 @@ export default function InvestmentDashboard() {
               />
             </AreaChart>
           </ResponsiveContainer>
+          </div>
         );
         
       case 'heatmap':
@@ -805,7 +807,8 @@ export default function InvestmentDashboard() {
         }));
         
         return (
-          <ResponsiveContainer {...commonProps}>
+          <div style={{ width: '100%', height: '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
             <ScatterChart data={heatmapData}>
               <CartesianGrid strokeDasharray="1 1" stroke="rgba(156, 163, 175, 0.2)" />
               <XAxis 
@@ -837,6 +840,7 @@ export default function InvestmentDashboard() {
               />
             </ScatterChart>
           </ResponsiveContainer>
+          </div>
         );
 
       default:
