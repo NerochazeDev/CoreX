@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -40,6 +40,61 @@ import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Memoized chart component for better performance
+const OptimizedChart = memo(({ chartType, data, showValues, showIndicators, totalInvestedAmount }: any) => {
+  const chartData = useMemo(() => data, [data]);
+  
+  const renderChart = useCallback(() => {
+    if (!chartData || chartData.length === 0) return null;
+    
+    switch (chartType) {
+      case 'advanced':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={chartData}>
+              <defs>
+                <linearGradient id="gradientProfit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
+                  <stop offset="50%" stopColor="#059669" stopOpacity={0.6}/>
+                  <stop offset="100%" stopColor="#047857" stopOpacity={0.3}/>
+                </linearGradient>
+                <linearGradient id="gradientVolume" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6}/>
+                  <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.2}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.2)" />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} stroke="#6B7280" axisLine={false} />
+              <YAxis yAxisId="value" orientation="right" tick={{ fontSize: 10, fill: '#9CA3AF' }} stroke="#6B7280" axisLine={false} />
+              <YAxis yAxisId="volume" orientation="left" tick={{ fontSize: 10, fill: '#9CA3AF' }} stroke="#6B7280" axisLine={false} />
+              <Tooltip contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.95)', border: '1px solid rgba(16, 185, 129, 0.5)', borderRadius: '12px', color: 'white' }} />
+              <Bar yAxisId="volume" dataKey="volume" fill="url(#gradientVolume)" opacity={0.6} />
+              <Area yAxisId="value" type="monotone" dataKey="value" stroke="#3b82f6" fill="rgba(59, 130, 246, 0.1)" />
+              <Line yAxisId="value" type="monotone" dataKey="profit" stroke="url(#gradientProfit)" strokeWidth={3} dot={false} />
+              <ReferenceLine yAxisId="value" y={totalInvestedAmount} stroke="#ef4444" strokeDasharray="8 8" opacity={0.7} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        );
+      default:
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsLineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.2)" />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+              <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+              <Tooltip />
+              <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} dot={false} />
+            </RechartsLineChart>
+          </ResponsiveContainer>
+        );
+    }
+  }, [chartType, chartData, showValues, showIndicators, totalInvestedAmount]);
+  
+  return renderChart();
+});
+
+OptimizedChart.displayName = 'OptimizedChart';
+
 export default function InvestmentDashboard() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -52,7 +107,7 @@ export default function InvestmentDashboard() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showValues, setShowValues] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(false);
-  const [refreshInterval, setRefreshInterval] = useState(5000); // 5 seconds
+  const [refreshInterval, setRefreshInterval] = useState(10000); // Optimized to 10 seconds
   const [chartType, setChartType] = useState<'line' | 'area' | 'candle' | 'volume' | 'depth' | 'heatmap' | 'advanced' | 'distribution' | 'comparison'>('advanced');
   const [selectedTimeframe, setSelectedTimeframe] = useState<'1m' | '5m' | '15m' | '1h' | '4h' | '1d' | '1w'>('5m');
   const [showIndicators, setShowIndicators] = useState<string[]>(['SMA', 'RSI']);
@@ -88,9 +143,9 @@ export default function InvestmentDashboard() {
       return res.json();
     }),
     enabled: !!user?.id,
-    refetchInterval: isLiveMode ? refreshInterval : false,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+    refetchInterval: isLiveMode ? 30000 : false, // Optimized to 30 seconds
+    staleTime: 15000, // Cache for 15 seconds
+    refetchOnWindowFocus: false, // Reduce unnecessary calls
   });
 
   const { data: investmentPlans } = useQuery<InvestmentPlan[]>({
@@ -110,18 +165,31 @@ export default function InvestmentDashboard() {
     enabled: !!user,
   });
 
-  // Calculate investment metrics
-  const actualActiveInvestments = activeInvestments?.filter(inv => inv.isActive === true) || [];
-  const totalInvestedAmount = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
-  const totalProfit = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit), 0);
-  const totalValue = totalInvestedAmount + totalProfit;
-  const profitMargin = totalInvestedAmount > 0 ? (totalProfit / totalInvestedAmount) * 100 : 0;
-  const dailyGrowthRate = actualActiveInvestments.length > 0 
-    ? actualActiveInvestments.reduce((sum, inv) => {
-        const plan = investmentPlans?.find(p => p.id === inv.planId);
-        return sum + (plan ? parseFloat(plan.dailyReturnRate) * 100 : 0);
-      }, 0) / actualActiveInvestments.length 
-    : 3.67;
+  // Memoized investment metrics for performance
+  const investmentMetrics = useMemo(() => {
+    const actualActiveInvestments = activeInvestments?.filter(inv => inv.isActive === true) || [];
+    const totalInvestedAmount = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+    const totalProfit = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit), 0);
+    const totalValue = totalInvestedAmount + totalProfit;
+    const profitMargin = totalInvestedAmount > 0 ? (totalProfit / totalInvestedAmount) * 100 : 0;
+    const dailyGrowthRate = actualActiveInvestments.length > 0 
+      ? actualActiveInvestments.reduce((sum, inv) => {
+          const plan = investmentPlans?.find(p => p.id === inv.planId);
+          return sum + (plan ? parseFloat(plan.dailyReturnRate) * 100 : 0);
+        }, 0) / actualActiveInvestments.length 
+      : 3.67;
+    
+    return {
+      actualActiveInvestments,
+      totalInvestedAmount,
+      totalProfit,
+      totalValue,
+      profitMargin,
+      dailyGrowthRate
+    };
+  }, [activeInvestments, investmentPlans]);
+  
+  const { actualActiveInvestments, totalInvestedAmount, totalProfit, totalValue, profitMargin, dailyGrowthRate } = investmentMetrics;
 
   // Calculate technical indicators
   const calculateSMA = (data: any[], period: number): number[] => {
