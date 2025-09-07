@@ -34,7 +34,7 @@ import {
   LineChart
 } from "lucide-react";
 import { formatBitcoin, formatCurrency } from "@/lib/utils";
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ComposedChart, Bar, ScatterChart, Scatter, PieChart, Pie, Cell, RadialBarChart, RadialBar, ReferenceLine, Brush, Legend } from "recharts";
+import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ComposedChart, Bar, ScatterChart, Scatter, PieChart as RechartsPieChart, Pie, Cell, RadialBarChart, RadialBar, ReferenceLine, Brush, Legend } from "recharts";
 import { useCurrency } from "@/hooks/use-currency";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 import { queryClient } from "@/lib/queryClient";
@@ -939,7 +939,7 @@ export default function InvestmentDashboard() {
           <div style={{ width: '100%', height: '400px' }}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <RechartsPieChart>
                 <defs>
                   <filter id="shadow">
                     <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="rgba(0,0,0,0.3)"/>
@@ -977,7 +977,7 @@ export default function InvestmentDashboard() {
                   iconType="circle"
                   wrapperStyle={{ fontSize: '12px', color: '#9CA3AF' }}
                 />
-                </PieChart>
+                </RechartsPieChart>
               </ResponsiveContainer>
               
               <ResponsiveContainer width="100%" height="100%">
