@@ -309,7 +309,7 @@ export function setupAuth(app: Express) {
             const [tokenUserId] = decoded.split(':');
             userId = parseInt(tokenUserId);
             if (!userId || isNaN(userId)) {
-              userId = null;
+              userId = undefined;
             }
           } catch (error) {
             console.log('Auth token decode error:', error);
@@ -373,7 +373,7 @@ export function setupAuth(app: Express) {
             const [tokenUserId] = decoded.split(':');
             userId = parseInt(tokenUserId);
             if (!userId || isNaN(userId)) {
-              userId = null;
+              userId = undefined;
             }
           } catch (error) {
             console.log('Auth token decode error:', error);

@@ -86,7 +86,7 @@ export default function ManagementNotifications() {
     });
   };
 
-  if (!user?.isAdmin && !isBackdoorAccess) {
+  if (!user?.isAdmin) {
     return <div>Access denied. Admin privileges required.</div>;
   }
 

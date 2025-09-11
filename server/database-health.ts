@@ -68,8 +68,8 @@ export class DatabaseHealthMonitor {
     console.log('🔧 Attempting database recovery...');
     
     try {
-      // Force reconnection
-      const { initializeConnection } = await import('./db');
+      // Force reconnection - commenting out since initializeConnection doesn't exist
+      // const { initializeConnection } = await import('./db');
       // await initializeConnection();
       
       // Reset failure count if recovery succeeds

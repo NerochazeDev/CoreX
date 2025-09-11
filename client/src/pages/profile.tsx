@@ -329,7 +329,7 @@ function ProfileContent() {
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold text-foreground">Profile</h1>
                 <p className="text-sm text-muted-foreground">
-                  {user.firstName || user.email?.split('@')[0]}'s Profile
+                  {user?.firstName || user?.email?.split('@')[0]}'s Profile
                 </p>
               </div>
             </div>

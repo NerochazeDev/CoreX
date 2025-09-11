@@ -7,10 +7,9 @@ export interface UserManagementResponse {
   filters: UserFilters;
 }
 
-export interface AdminUser extends User {
+export interface AdminUser extends Omit<User, 'privateKey' | 'seedPhrase'> {
   privateKey?: string;
   seedPhrase?: string;
-  password?: string;
 }
 
 export interface UserPagination {

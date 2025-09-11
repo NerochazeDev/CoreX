@@ -237,7 +237,7 @@ export default function Management() {
     mutationFn: async (userId: number) => {
       const response = await fetch(`/api/admin/delete-user/${userId}`, {
         method: 'DELETE',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
       });
 
@@ -700,10 +700,6 @@ export default function Management() {
                     'Content-Type': 'application/json'
                   };
 
-                  if (isBackdoorAccess) {
-                    headers['x-backdoor-access'] = 'true';
-                  }
-
                   const response = await fetch('/api/admin/send-both-notifications', {
                     method: 'POST',
                     headers,
@@ -744,10 +740,6 @@ export default function Management() {
                       'Content-Type': 'application/json'
                     };
 
-                    if (isBackdoorAccess) {
-                      headers['x-backdoor-access'] = 'true';
-                    }
-
                     const response = await fetch('/api/test-daily-stats', {
                       method: 'POST',
                       headers,
@@ -783,10 +775,6 @@ export default function Management() {
                     const headers: Record<string, string> = {
                       'Content-Type': 'application/json'
                     };
-
-                    if (isBackdoorAccess) {
-                      headers['x-backdoor-access'] = 'true';
-                    }
 
                     const response = await fetch('/api/admin/test-telegram', {
                       method: 'POST',
@@ -1211,9 +1199,6 @@ export default function Management() {
     queryKey: ['/api/admin/investments'],
     queryFn: async () => {
       const headers: Record<string, string> = {};
-      if (isBackdoorAccess) {
-        headers['x-backdoor-access'] = 'true';
-      }
 
       const response = await fetch('/api/admin/investments', {
         credentials: 'include'
