@@ -11,6 +11,11 @@ if (!process.env.DATABASE_URL) {
 // Clean and validate the DATABASE_URL from environment secrets
 let databaseUrl = process.env.DATABASE_URL.trim();
 
+// Fix duplicate DATABASE_URL= prefix if present
+if (databaseUrl.startsWith('DATABASE_URL=')) {
+  databaseUrl = databaseUrl.substring('DATABASE_URL='.length);
+}
+
 // Remove any trailing file paths or socket references that might be invalid
 databaseUrl = databaseUrl.replace(/\/\.s\.PGSQL\.\d+$/, '');
 
