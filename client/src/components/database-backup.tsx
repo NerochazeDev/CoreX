@@ -16,9 +16,7 @@ export function DatabaseBackup() {
       setDownloading(true);
       const response = await fetch('/api/admin/download-database', {
         method: 'GET',
-        headers: {
-          'x-backdoor-access': 'true'
-        }
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -64,9 +62,9 @@ export function DatabaseBackup() {
       const response = await fetch('/api/admin/upload-database', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-backdoor-access': 'true'
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ databaseData: text })
       });
 

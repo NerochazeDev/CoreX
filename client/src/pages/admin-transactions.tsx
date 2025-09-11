@@ -21,18 +21,15 @@ export default function ManagementTransactions() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [notes, setNotes] = useState("");
 
-  // Allow access via backdoor route or if user is admin
-  const isBackdoorAccess = window.location.pathname === '/Hello10122' || 
-                          window.location.pathname.includes('/Hello10122') ||
-                          sessionStorage.getItem('backdoorAccess') === 'true';
+  // Require proper admin authentication
 
   // Fetch pending transactions
   const { data: transactions, isLoading } = useQuery<Transaction[]>({
     queryKey: ['/api/admin/transactions/pending'],
-    enabled: !!user?.isAdmin || isBackdoorAccess,
+    enabled: !!user?.isAdmin,
     queryFn: async () => {
       const response = await fetch('/api/admin/transactions/pending', {
-        headers: isBackdoorAccess ? { 'x-backdoor-access': 'true' } : {},
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch transactions');
       return response.json();
@@ -43,7 +40,6 @@ export default function ManagementTransactions() {
   const confirmTransactionMutation = useMutation({
     mutationFn: async ({ transactionId, notes }: { transactionId: number; notes?: string }) => {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
       
       const response = await fetch('/api/admin/transactions/confirm', {
         method: 'POST',
@@ -78,7 +74,6 @@ export default function ManagementTransactions() {
   const rejectTransactionMutation = useMutation({
     mutationFn: async ({ transactionId, notes }: { transactionId: number; notes?: string }) => {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
       
       const response = await fetch('/api/admin/transactions/reject', {
         method: 'POST',
@@ -109,7 +104,7 @@ export default function ManagementTransactions() {
     },
   });
 
-  if (!user?.isAdmin && !isBackdoorAccess) {
+  if (!user?.isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

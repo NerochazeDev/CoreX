@@ -9,8 +9,22 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, AlertTriangle, Lock, ArrowLeft, Users, Crown, MessageSquare, Search, UserCheck, UserX } from "lucide-react";
+import { Shield, AlertTriangle, Lock, ArrowLeft, Users, Crown, MessageSquare, Search, UserCheck, UserX, Eye, Edit, Trash2, Filter, SortAsc, SortDesc, ChevronLeft, ChevronRight, MoreVertical, CheckSquare } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useDebounce } from "@/hooks/use-debounce";
 import type { User } from "@shared/schema";
+import type { 
+  UserManagementResponse, 
+  AdminUser, 
+  UserPagination, 
+  BulkActionRequest, 
+  BulkActionResponse, 
+  UserRole, 
+  SortField, 
+  SortOrder 
+} from "@/types/admin";
 
 export default function AdminUserManagement() {
   const { user, isLoading } = useAuth();
@@ -18,6 +32,18 @@ export default function AdminUserManagement() {
   const [accessGranted, setAccessGranted] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [roleFilter, setRoleFilter] = useState<UserRole>("");
+  const [sortBy, setSortBy] = useState<SortField>("createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [showUserDetail, setShowUserDetail] = useState(false);
+  const [bulkAction, setBulkAction] = useState("");
+
+  // Debounce search term to prevent excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,17 +62,45 @@ export default function AdminUserManagement() {
     setAccessGranted(true);
   }, [user, isLoading]);
 
-  const { data: users, isLoading: usersLoading } = useQuery<User[]>({
-    queryKey: ['/api/admin/users'],
-    queryFn: async () => {
-      const response = await fetch('/api/admin/users', {
-        headers: { 'x-backdoor-access': 'true' },
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useQuery<UserManagementResponse>({
+    queryKey: ['/api/admin/users', currentPage, pageSize, debouncedSearchTerm, roleFilter, sortBy, sortOrder],
+    queryFn: async (): Promise<UserManagementResponse> => {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: pageSize.toString(),
+        search: debouncedSearchTerm,
+        role: roleFilter,
+        sortBy,
+        sortOrder
+      });
+      const response = await fetch(`/api/admin/users?${params}`, {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to fetch users');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch users');
+      }
       return response.json();
     },
     enabled: accessGranted,
+    retry: 2,
+    retryDelay: 1000,
+  });
+
+  const { data: userDetail } = useQuery<{ user: AdminUser }>({
+    queryKey: ['/api/admin/users', selectedUser?.id],
+    queryFn: async (): Promise<{ user: AdminUser }> => {
+      if (!selectedUser?.id) throw new Error('User ID is required');
+      const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch user details');
+      }
+      return response.json();
+    },
+    enabled: !!selectedUser?.id,
   });
 
   const toggleSupportAdminMutation = useMutation({
@@ -54,8 +108,7 @@ export default function AdminUserManagement() {
       const response = await fetch('/api/admin/toggle-user-support-admin', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-backdoor-access': 'true'
+          'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ userId, isSupportAdmin }),
@@ -84,10 +137,51 @@ export default function AdminUserManagement() {
     },
   });
 
-  const filteredUsers = users?.filter(u => 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${u.firstName} ${u.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const users: AdminUser[] = usersData?.users || [];
+  const pagination: UserPagination = usersData?.pagination || { 
+    page: 1, 
+    totalPages: 1, 
+    total: 0, 
+    hasNext: false, 
+    hasPrev: false,
+    limit: pageSize
+  };
+
+  const bulkActionMutation = useMutation<BulkActionResponse, Error, BulkActionRequest>({
+    mutationFn: async (request: BulkActionRequest): Promise<BulkActionResponse> => {
+      const response = await fetch('/api/admin/users/bulk-action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || 'Failed to perform bulk action');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data: BulkActionResponse) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      setSelectedUsers([]);
+      setBulkAction("");
+      toast({
+        title: "Bulk Action Completed",
+        description: `Successfully processed ${data.successful} users. ${data.failed > 0 ? `${data.failed} failed.` : ''}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Bulk Action Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -190,30 +284,131 @@ export default function AdminUserManagement() {
           {/* Search and Stats */}
           <Card className="mb-6">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <Input
-                      placeholder="Search users by name or email..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-80"
-                    />
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <Input
+                        placeholder="Search users by name or email..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1); // Reset to first page when searching
+                        }}
+                        className="pl-10 w-80"
+                      />
+                    </div>
+                    <Select value={roleFilter} onValueChange={(value: UserRole) => {
+                      setRoleFilter(value);
+                      setCurrentPage(1); // Reset to first page when filter changes
+                    }}>
+                      <SelectTrigger className="w-48">
+                        <Filter className="w-4 h-4 mr-2" />
+                        <SelectValue placeholder="Filter by role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Users</SelectItem>
+                        <SelectItem value="admin">Admins</SelectItem>
+                        <SelectItem value="support">Support Staff</SelectItem>
+                        <SelectItem value="user">Regular Users</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
+                      const [field, order] = value.split('-') as [SortField, SortOrder];
+                      setSortBy(field);
+                      setSortOrder(order);
+                      setCurrentPage(1); // Reset to first page when sorting changes
+                    }}>
+                      <SelectTrigger className="w-48">
+                        {sortOrder === 'asc' ? <SortAsc className="w-4 h-4 mr-2" /> : <SortDesc className="w-4 h-4 mr-2" />}
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name-asc">Name A-Z</SelectItem>
+                        <SelectItem value="name-desc">Name Z-A</SelectItem>
+                        <SelectItem value="email-asc">Email A-Z</SelectItem>
+                        <SelectItem value="email-desc">Email Z-A</SelectItem>
+                        <SelectItem value="balance-desc">Balance High-Low</SelectItem>
+                        <SelectItem value="balance-asc">Balance Low-High</SelectItem>
+                        <SelectItem value="createdAt-desc">Newest First</SelectItem>
+                        <SelectItem value="createdAt-asc">Oldest First</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(parseInt(value))}>
+                      <SelectTrigger className="w-20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-gray-500">per page</span>
                   </div>
                 </div>
-                <div className="flex gap-4">
+
+                {selectedUsers.length > 0 && (
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <CheckSquare className="w-5 h-5 text-blue-600" />
+                    <span className="text-blue-800 font-medium">{selectedUsers.length} users selected</span>
+                    <div className="flex gap-2 ml-auto">
+                      <Select value={bulkAction} onValueChange={setBulkAction}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="Bulk actions" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="updateSupportAdmin-true">Grant Support Access</SelectItem>
+                          <SelectItem value="updateSupportAdmin-false">Remove Support Access</SelectItem>
+                          <SelectItem value="delete">Delete Users</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={() => {
+                          if (bulkAction) {
+                            const [action, value] = bulkAction.split('-') as [BulkActionRequest['action'], string];
+                            bulkActionMutation.mutate({
+                              action,
+                              userIds: selectedUsers,
+                              value: value === 'true' ? true : value === 'false' ? false : value
+                            });
+                          }
+                        }}
+                        disabled={!bulkAction || bulkActionMutation.isPending}
+                        size="sm"
+                      >
+                        Apply Action
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedUsers([])}
+                      >
+                        Clear Selection
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                <div className="flex gap-6">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">{users?.length || 0}</p>
+                    <p className="text-2xl font-bold text-blue-600">{pagination.total || 0}</p>
                     <p className="text-sm text-gray-600">Total Users</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{users?.filter(u => u.isAdmin).length || 0}</p>
+                    <p className="text-2xl font-bold text-green-600">{users.filter((u) => u.isAdmin).length || 0}</p>
                     <p className="text-sm text-gray-600">Full Admins</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-orange-600">{users?.filter(u => u.isSupportAdmin).length || 0}</p>
+                    <p className="text-2xl font-bold text-orange-600">{users.filter((u) => u.isSupportAdmin).length || 0}</p>
                     <p className="text-sm text-gray-600">Support Admins</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-purple-600">{selectedUsers.length}</p>
+                    <p className="text-sm text-gray-600">Selected</p>
                   </div>
                 </div>
               </div>
@@ -237,7 +432,7 @@ export default function AdminUserManagement() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                User List ({filteredUsers.length})
+                User List ({pagination.total} total, showing {users.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -249,7 +444,7 @@ export default function AdminUserManagement() {
                     </div>
                   ))}
                 </div>
-              ) : filteredUsers.length === 0 ? (
+              ) : users.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Users Found</h3>
@@ -260,6 +455,18 @@ export default function AdminUserManagement() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedUsers.length === users.length && users.length > 0}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedUsers(users.map((u) => u.id));
+                              } else {
+                                setSelectedUsers([]);
+                              }
+                            }}
+                          />
+                        </TableHead>
                         <TableHead>User</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Country</TableHead>
@@ -269,8 +476,20 @@ export default function AdminUserManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredUsers.map((user) => (
-                        <TableRow key={user.id}>
+                      {users.map((user) => (
+                        <TableRow key={user.id} className={selectedUsers.includes(user.id) ? 'bg-blue-50' : ''}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedUsers.includes(user.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedUsers([...selectedUsers, user.id]);
+                                } else {
+                                  setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                                }
+                              }}
+                            />
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
@@ -307,7 +526,27 @@ export default function AdminUserManagement() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedUser(user)}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>User Details - {user.firstName} {user.lastName}</DialogTitle>
+                                  </DialogHeader>
+                                  {selectedUser?.id === user.id && (
+                                    <UserDetailView user={userDetail?.user || user} />
+                                  )}
+                                </DialogContent>
+                              </Dialog>
+                              
                               {!user.isAdmin && (
                                 <Button
                                   onClick={() => toggleSupportAdminMutation.mutate({
@@ -317,27 +556,18 @@ export default function AdminUserManagement() {
                                   disabled={toggleSupportAdminMutation.isPending}
                                   size="sm"
                                   variant={user.isSupportAdmin ? "destructive" : "default"}
-                                  className={user.isSupportAdmin 
-                                    ? "bg-red-600 hover:bg-red-700 w-full" 
-                                    : "bg-orange-600 hover:bg-orange-700 w-full"
-                                  }
                                 >
                                   {user.isSupportAdmin ? (
-                                    <>
-                                      <UserX className="w-4 h-4 mr-1" />
-                                      Remove Support
-                                    </>
+                                    <UserX className="w-4 h-4" />
                                   ) : (
-                                    <>
-                                      <MessageSquare className="w-4 h-4 mr-1" />
-                                      Make Support Admin
-                                    </>
+                                    <MessageSquare className="w-4 h-4" />
                                   )}
                                 </Button>
                               )}
+                              
                               {user.isAdmin && (
-                                <Badge className="bg-gray-100 text-gray-600 px-3 py-1">
-                                  Full Admin - Cannot Change
+                                <Badge className="bg-gray-100 text-gray-600">
+                                  Admin
                                 </Badge>
                               )}
                             </div>
@@ -348,6 +578,51 @@ export default function AdminUserManagement() {
                   </Table>
                 </div>
               )}
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-6 border-t">
+                  <div className="text-sm text-gray-600">
+                    Showing {((pagination.page - 1) * pageSize) + 1} to {Math.min(pagination.page * pageSize, pagination.total)} of {pagination.total} users
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={!pagination.hasPrev}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                        const pageNumber = Math.max(1, Math.min(pagination.totalPages - 4, currentPage - 2)) + i;
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={pageNumber === currentPage ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNumber)}
+                            className="w-10"
+                          >
+                            {pageNumber}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.min(pagination.totalPages, currentPage + 1))}
+                      disabled={!pagination.hasNext}
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -356,4 +631,137 @@ export default function AdminUserManagement() {
   }
 
   return null;
+}
+
+// User Detail Component
+function UserDetailView({ user }: { user: any }) {
+  if (!user) return <div>Loading user details...</div>;
+
+  return (
+    <div className="space-y-6">
+      {/* User Profile */}
+      <div className="grid grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Profile Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                {user.firstName?.[0] || user.email[0].toUpperCase()}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">{user.firstName} {user.lastName}</h3>
+                <p className="text-gray-600">ID: {user.id}</p>
+                <p className="text-gray-600">{user.email}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <strong>Country:</strong>
+                <p>{user.country || 'Not specified'}</p>
+              </div>
+              <div>
+                <strong>Phone:</strong>
+                <p>{user.phone || 'Not provided'}</p>
+              </div>
+              <div>
+                <strong>Registration:</strong>
+                <p>{new Date(user.createdAt).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <strong>Account Type:</strong>
+                <p>
+                  {user.isAdmin ? 'Full Administrator' : 
+                   user.isSupportAdmin ? 'Support Administrator' : 
+                   'Regular User'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Balance & Wallet</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <strong>Current Balance:</strong>
+              <p className="text-2xl font-bold font-mono text-green-600">
+                {parseFloat(user.balance).toFixed(8)} BTC
+              </p>
+            </div>
+            <div>
+              <strong>Bitcoin Address:</strong>
+              <p className="font-mono text-xs bg-gray-100 p-2 rounded break-all">
+                {user.bitcoinAddress || 'Not generated'}
+              </p>
+            </div>
+            <div>
+              <strong>Wallet Status:</strong>
+              <Badge variant={user.hasWallet ? "default" : "secondary"}>
+                {user.hasWallet ? 'Wallet Created' : 'No Wallet'}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      {user.investments?.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Investments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {user.investments.slice(0, 3).map((investment: any) => (
+                <div key={investment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-semibold">Investment #{investment.id}</p>
+                    <p className="text-sm text-gray-600">
+                      Started: {new Date(investment.startDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-mono">{parseFloat(investment.amount).toFixed(8)} BTC</p>
+                    <p className="text-sm text-green-600">+{parseFloat(investment.currentProfit || 0).toFixed(8)} BTC</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Account Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-red-600">Admin Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <Button variant="outline" size="sm">
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Profile
+            </Button>
+            <Button variant="outline" size="sm">
+              Update Balance
+            </Button>
+            <Button variant="outline" size="sm">
+              View Transactions
+            </Button>
+            <Button variant="destructive" size="sm">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete User
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

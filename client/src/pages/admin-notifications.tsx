@@ -23,17 +23,14 @@ export default function ManagementNotifications() {
   const [message, setMessage] = useState("");
   const [type, setType] = useState<"info" | "success" | "warning" | "error">("info");
 
-  // Allow access via backdoor route or if user is admin
-  const isBackdoorAccess = window.location.pathname === '/Hello10122' || 
-                          window.location.pathname.includes('/Hello10122') ||
-                          sessionStorage.getItem('backdoorAccess') === 'true';
+  // Require proper admin authentication
 
   const { data: users, isLoading: loadingUsers } = useQuery<UserType[]>({
     queryKey: ['/api/admin/users'],
-    enabled: !!user?.isAdmin || isBackdoorAccess,
+    enabled: !!user?.isAdmin,
     queryFn: async () => {
       const response = await fetch('/api/admin/users', {
-        headers: isBackdoorAccess ? { 'x-backdoor-access': 'true' } : {},
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch users');
       return response.json();

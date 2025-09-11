@@ -45,8 +45,7 @@ export default function Management() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Define access permissions first before using them
-  const isBackdoorAccess = window.location.pathname === '/Hello10122';
-  const isFullAdmin = user?.isAdmin || isBackdoorAccess;
+  const isFullAdmin = user?.isAdmin;
   const isSupportAdmin = user?.isSupportAdmin;
   const hasAnyAdminAccess = isFullAdmin || isSupportAdmin;
 
@@ -65,10 +64,7 @@ export default function Management() {
     }
   }, [isFullAdmin, isSupportAdmin]);
 
-  // Set backdoor access flag for other admin pages
-  if (isBackdoorAccess) {
-    sessionStorage.setItem('backdoorAccess', 'true');
-  }
+  // Removed backdoor access flag - using proper authentication only
 
   if (!hasAnyAdminAccess) {
     setLocation('/');
@@ -82,13 +78,7 @@ export default function Management() {
   const { data: users } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
     queryFn: async () => {
-      const headers: Record<string, string> = {};
-      if (isBackdoorAccess) {
-        headers['x-backdoor-access'] = 'true';
-      }
-
       const response = await fetch('/api/admin/users', {
-        headers,
         credentials: 'include' // Ensure cookies are sent
       });
       if (!response.ok) throw new Error('Failed to fetch users');
@@ -245,11 +235,6 @@ export default function Management() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      const headers: Record<string, string> = {};
-      if (isBackdoorAccess) {
-        headers['x-backdoor-access'] = 'true';
-      }
-
       const response = await fetch(`/api/admin/delete-user/${userId}`, {
         method: 'DELETE',
         headers,
@@ -1231,7 +1216,6 @@ export default function Management() {
       }
 
       const response = await fetch('/api/admin/investments', {
-        headers,
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch investments');
@@ -1243,7 +1227,6 @@ export default function Management() {
   const pauseInvestmentMutation = useMutation({
     mutationFn: async ({ investmentId, reason }: { investmentId: number; reason?: string }) => {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
 
       const response = await fetch(`/api/admin/investments/${investmentId}/toggle`, {
         method: 'POST',
@@ -1266,7 +1249,6 @@ export default function Management() {
   const cancelInvestmentMutation = useMutation({
     mutationFn: async ({ investmentId, reason, refund }: { investmentId: number; reason?: string; refund?: boolean }) => {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (isBackdoorAccess) headers['x-backdoor-access'] = 'true';
 
       const response = await fetch(`/api/admin/investments/${investmentId}`, {
         method: 'DELETE',

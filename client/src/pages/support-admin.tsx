@@ -49,7 +49,6 @@ export default function SupportAdmin() {
     queryKey: ['/api/admin/support/messages'],
     queryFn: async () => {
       const response = await fetch('/api/admin/support/messages', {
-        headers: { 'x-backdoor-access': 'true' },
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch support messages');
@@ -65,7 +64,6 @@ export default function SupportAdmin() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-backdoor-access': 'true',
         },
         credentials: 'include',
         body: JSON.stringify({ response, status }),
