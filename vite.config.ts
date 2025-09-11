@@ -32,7 +32,8 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5000,
     hmr: {
-      overlay: false
+      overlay: false,
+      clientPort: 443
     }
   },
 });
