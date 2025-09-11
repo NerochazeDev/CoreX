@@ -75,7 +75,7 @@ export default function Management() {
     queryKey: ['/api/admin/stats'],
   });
 
-  const { data: users } = useQuery<User[]>({
+  const { data: usersResponse } = useQuery<{users: User[], pagination: any, filters: any}>({
     queryKey: ['/api/admin/users'],
     queryFn: async () => {
       const response = await fetch('/api/admin/users', {
@@ -85,6 +85,8 @@ export default function Management() {
       return response.json();
     },
   });
+
+  const users = usersResponse?.users;
 
   const { data: investmentPlans } = useQuery<InvestmentPlan[]>({
     queryKey: ['/api/investment-plans'],
