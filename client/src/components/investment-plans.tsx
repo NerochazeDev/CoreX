@@ -96,16 +96,19 @@ export function InvestmentPlans() {
   }
 
   const getGradientClass = (color: string) => {
-    switch (color) {
-      case 'orange':
-        return 'bg-gradient-to-r from-yellow-600 to-yellow-500';
-      case 'gray':
-        return 'bg-gradient-to-r from-gray-600 to-gray-500';
-      case 'gold':
-        return 'bg-gradient-to-r from-yellow-500 to-yellow-400';
-      default:
-        return 'bg-gradient-to-r from-gray-600 to-gray-500';
-    }
+    // Map hex colors to Tailwind classes
+    const colorMap: Record<string, string> = {
+      '#8B5CF6': 'bg-gradient-to-r from-purple-500 to-purple-600',
+      '#EC4899': 'bg-gradient-to-r from-pink-500 to-pink-600',
+      '#14B8A6': 'bg-gradient-to-r from-teal-500 to-teal-600',
+      '#3B82F6': 'bg-gradient-to-r from-blue-500 to-blue-600',
+      '#10B981': 'bg-gradient-to-r from-emerald-500 to-emerald-600',
+      '#F59E0B': 'bg-gradient-to-r from-amber-500 to-amber-600',
+      'orange': 'bg-gradient-to-r from-yellow-600 to-yellow-500',
+      'gray': 'bg-gradient-to-r from-gray-600 to-gray-500',
+      'gold': 'bg-gradient-to-r from-yellow-500 to-yellow-400',
+    };
+    return colorMap[color] || 'bg-gradient-to-r from-gray-600 to-gray-500';
   };
 
   const getTextColorClass = (color: string) => {

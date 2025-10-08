@@ -22,17 +22,50 @@
   "investmentPlans": [
     {
       "id": 1,
-      "name": "Starter Plan",
-      "minAmount": "0.001",
-      "roiPercentage": 5,
-      "durationDays": 30,
-      "color": "#3B82F6",
+      "name": "Quick Start",
+      "minAmount": "0.00015",
+      "roiPercentage": 3,
+      "durationDays": 7,
+      "color": "#8B5CF6",
       "updateIntervalMinutes": 10,
-      "dailyReturnRate": "0.0020",
+      "dailyReturnRate": "0.0043",
       "isActive": true
     },
     {
       "id": 2,
+      "name": "Rapid Growth",
+      "minAmount": "0.0003",
+      "roiPercentage": 5,
+      "durationDays": 14,
+      "color": "#EC4899",
+      "updateIntervalMinutes": 10,
+      "dailyReturnRate": "0.0036",
+      "isActive": true
+    },
+    {
+      "id": 3,
+      "name": "Foundation Plan",
+      "minAmount": "0.0008",
+      "roiPercentage": 8,
+      "durationDays": 30,
+      "color": "#14B8A6",
+      "updateIntervalMinutes": 10,
+      "dailyReturnRate": "0.0027",
+      "isActive": true
+    },
+    {
+      "id": 4,
+      "name": "Starter Plan",
+      "minAmount": "0.001",
+      "roiPercentage": 10,
+      "durationDays": 30,
+      "color": "#3B82F6",
+      "updateIntervalMinutes": 10,
+      "dailyReturnRate": "0.0033",
+      "isActive": true
+    },
+    {
+      "id": 5,
       "name": "Growth Plan",
       "minAmount": "0.01",
       "roiPercentage": 15,
@@ -43,7 +76,7 @@
       "isActive": true
     },
     {
-      "id": 3,
+      "id": 6,
       "name": "Premium Plan",
       "minAmount": "0.1",
       "roiPercentage": 25,
@@ -107,7 +140,7 @@
   "backupDatabases": [],
   "nextIds": {
     "users": 2,
-    "investmentPlans": 4,
+    "investmentPlans": 7,
     "investments": 1,
     "notifications": 6,
     "adminConfig": 1,

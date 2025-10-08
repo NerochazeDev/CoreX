@@ -837,10 +837,40 @@ function broadcastToClients(data: any) {
 async function initializeDefaultPlans(): Promise<void> {
   try {
     const existingPlans = await storage.getInvestmentPlans();
-    if (existingPlans.length === 0) {
-      console.log('Creating default investment plans...');
-
-      await storage.createInvestmentPlan({
+    const existingPlanNames = existingPlans.map(p => p.name);
+    
+    const plansToCreate = [
+      {
+        name: "Quick Start",
+        minAmount: "0.00015",
+        roiPercentage: 3,
+        durationDays: 7,
+        color: "#8B5CF6",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: "0.0043",
+        isActive: true,
+      },
+      {
+        name: "Rapid Growth",
+        minAmount: "0.0003",
+        roiPercentage: 5,
+        durationDays: 14,
+        color: "#EC4899",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: "0.0036",
+        isActive: true,
+      },
+      {
+        name: "30-Day Builder",
+        minAmount: "0.0008",
+        roiPercentage: 8,
+        durationDays: 30,
+        color: "#14B8A6",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: "0.0027",
+        isActive: true,
+      },
+      {
         name: "Foundation Plan",
         minAmount: "0.001",
         roiPercentage: 15,
@@ -849,9 +879,8 @@ async function initializeDefaultPlans(): Promise<void> {
         updateIntervalMinutes: 60,
         dailyReturnRate: "0.0050",
         isActive: true,
-      });
-
-      await storage.createInvestmentPlan({
+      },
+      {
         name: "Growth Plan",
         minAmount: "0.01",
         roiPercentage: 25,
@@ -860,9 +889,8 @@ async function initializeDefaultPlans(): Promise<void> {
         updateIntervalMinutes: 60,
         dailyReturnRate: "0.0083",
         isActive: true,
-      });
-
-      await storage.createInvestmentPlan({
+      },
+      {
         name: "Premium Plan",
         minAmount: "0.05",
         roiPercentage: 35,
@@ -871,9 +899,8 @@ async function initializeDefaultPlans(): Promise<void> {
         updateIntervalMinutes: 60,
         dailyReturnRate: "0.0116",
         isActive: true,
-      });
-
-      await storage.createInvestmentPlan({
+      },
+      {
         name: "Institutional Plan",
         minAmount: "0.1",
         roiPercentage: 50,
@@ -882,9 +909,20 @@ async function initializeDefaultPlans(): Promise<void> {
         updateIntervalMinutes: 60,
         dailyReturnRate: "0.0194",
         isActive: true,
-      });
+      },
+    ];
 
+    for (const plan of plansToCreate) {
+      if (!existingPlanNames.includes(plan.name)) {
+        console.log(`Creating investment plan: ${plan.name}...`);
+        await storage.createInvestmentPlan(plan);
+      }
+    }
+
+    if (existingPlans.length === 0) {
       console.log('Default investment plans created successfully');
+    } else if (existingPlans.length < plansToCreate.length) {
+      console.log(`Added ${plansToCreate.length - existingPlans.length} new investment plans`);
     }
   } catch (error) {
     console.error('Error initializing default plans:', error);
