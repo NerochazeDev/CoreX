@@ -128,8 +128,9 @@ export function InvestmentPlans() {
       
       <div className="space-y-3">
         {plans?.map((plan) => (
-          <Card key={plan.id} className={`${getGradientClass(plan.color)} rounded-xl p-4 relative overflow-hidden border-0`}>
-            <div className="absolute top-0 right-0 w-16 h-16 bg-white opacity-10 rounded-full -translate-y-8 translate-x-8"></div>
+          <Card key={plan.id} className={`${getGradientClass(plan.color)} rounded-xl p-4 relative overflow-hidden border-0 bg-opacity-20 backdrop-blur-lg`}>
+            <div className="absolute top-0 right-0 w-16 h-16 bg-white opacity-5 rounded-full -translate-y-8 translate-x-8"></div>
+            <div className="absolute inset-0 bg-white/10 backdrop-blur-md"></div>
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-3">
                 <div>
@@ -173,7 +174,7 @@ export function InvestmentPlans() {
               </div>
               
               {/* Expected Returns Section */}
-              <div className={`bg-white bg-opacity-15 rounded-lg p-3 mb-3 ${getTextColorClass(plan.color)}`}>
+              <div className={`bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3 mb-3 border border-white/20 ${getTextColorClass(plan.color)}`}>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs opacity-80">Expected Returns:</span>
                   <Target className="w-3 h-3 opacity-80" />
@@ -271,7 +272,7 @@ export function InvestmentPlans() {
               <Button
                 onClick={() => handleInvest(plan)}
                 disabled={createInvestmentMutation.isPending}
-                className={`w-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors rounded-lg py-2 text-sm font-medium border-0 ${getTextColorClass(plan.color)}`}
+                className={`w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200 rounded-lg py-2 text-sm font-medium border border-white/30 ${getTextColorClass(plan.color)}`}
               >
                 {createInvestmentMutation.isPending ? 'Processing...' : 'Invest Now'}
               </Button>
