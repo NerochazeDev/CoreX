@@ -41,6 +41,14 @@ async function addMissingColumns(): Promise<void> {
     
     // Add missing columns to investments table
     await db.execute(sql`ALTER TABLE investments ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE`);
+    await db.execute(sql`ALTER TABLE investments ADD COLUMN IF NOT EXISTS usd_amount DECIMAL(18, 2)`);
+    await db.execute(sql`ALTER TABLE investments ADD COLUMN IF NOT EXISTS gross_profit DECIMAL(18, 2) DEFAULT 0`);
+    await db.execute(sql`ALTER TABLE investments ADD COLUMN IF NOT EXISTS performance_fee DECIMAL(18, 2) DEFAULT 0`);
+    await db.execute(sql`ALTER TABLE investments ADD COLUMN IF NOT EXISTS net_profit DECIMAL(18, 2) DEFAULT 0`);
+    
+    // Add missing columns to investment_plans table
+    await db.execute(sql`ALTER TABLE investment_plans ADD COLUMN IF NOT EXISTS usd_min_amount DECIMAL(18, 2)`);
+    await db.execute(sql`ALTER TABLE investment_plans ADD COLUMN IF NOT EXISTS performance_fee_percentage INTEGER DEFAULT 0`);
     
     console.log('✅ Missing columns added successfully');
   } catch (error) {
@@ -185,6 +193,9 @@ export async function runSafeMigrations() {
     `);
 
     console.log('✅ Database tables created successfully');
+    
+    // Always add missing columns after table creation
+    await addMissingColumns();
     
   } catch (error) {
     console.error('❌ Error running migrations:', error);

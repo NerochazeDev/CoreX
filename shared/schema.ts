@@ -33,11 +33,13 @@ export const investmentPlans = pgTable("investment_plans", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   minAmount: decimal("min_amount", { precision: 18, scale: 8 }).notNull(),
+  usdMinAmount: decimal("usd_min_amount", { precision: 18, scale: 2 }), // USD amount for new plans
   roiPercentage: integer("roi_percentage").notNull(),
   durationDays: integer("duration_days").notNull(),
   color: text("color").notNull(),
   updateIntervalMinutes: integer("update_interval_minutes").notNull().default(60), // How often to update balance (in minutes)
   dailyReturnRate: decimal("daily_return_rate", { precision: 5, scale: 4 }).notNull().default("0.0001"), // Daily return rate for automatic updates
+  performanceFeePercentage: integer("performance_fee_percentage").default(0), // Performance fee (10 or 20) on profits only
   isActive: boolean("is_active").notNull().default(true),
 });
 
@@ -46,9 +48,13 @@ export const investments = pgTable("investments", {
   userId: integer("user_id").notNull(),
   planId: integer("plan_id").notNull(),
   amount: decimal("amount", { precision: 18, scale: 8 }).notNull(),
+  usdAmount: decimal("usd_amount", { precision: 18, scale: 2 }), // USD amount for new investments
   startDate: timestamp("start_date").notNull().defaultNow(),
   endDate: timestamp("end_date").notNull(),
   currentProfit: decimal("current_profit", { precision: 18, scale: 8 }).notNull().default("0"),
+  grossProfit: decimal("gross_profit", { precision: 18, scale: 2 }).default("0"), // Total profit before fees
+  performanceFee: decimal("performance_fee", { precision: 18, scale: 2 }).default("0"), // Fee amount deducted
+  netProfit: decimal("net_profit", { precision: 18, scale: 2 }).default("0"), // Profit after fees
   isActive: boolean("is_active").notNull().default(true),
 });
 
