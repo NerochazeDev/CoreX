@@ -29,6 +29,12 @@ export interface IStorage {
   getUserInvestments(userId: number): Promise<Investment[]>;
   createInvestment(investment: InsertInvestment): Promise<Investment>;
   updateInvestmentProfit(id: number, profit: string): Promise<Investment | undefined>;
+  updateInvestmentProfitDetails(id: number, details: { 
+    currentProfit: string; 
+    grossProfit?: string; 
+    performanceFee?: string; 
+    netProfit?: string; 
+  }): Promise<Investment | undefined>;
   getActiveInvestments(): Promise<Investment[]>;
 
   // Notification operations
@@ -286,6 +292,13 @@ export class DatabaseStorage implements IStorage {
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
 
+    // Determine USD amount if this is a USD-based plan
+    let usdAmount: string | undefined;
+    if (plan.usdMinAmount) {
+      // For USD plans, set usdAmount equal to the plan's USD minimum
+      usdAmount = plan.usdMinAmount;
+    }
+
     const [investment] = await db
       .insert(investments)
       .values({
@@ -293,6 +306,10 @@ export class DatabaseStorage implements IStorage {
         startDate,
         endDate,
         currentProfit: "0",
+        usdAmount: usdAmount || null,
+        grossProfit: "0",
+        performanceFee: "0",
+        netProfit: "0",
         isActive: true,
       })
       .returning();
@@ -306,6 +323,25 @@ export class DatabaseStorage implements IStorage {
     const [investment] = await db
       .update(investments)
       .set({ currentProfit: profit })
+      .where(eq(investments.id, id))
+      .returning();
+    return investment || undefined;
+  }
+
+  async updateInvestmentProfitDetails(id: number, details: { 
+    currentProfit: string; 
+    grossProfit?: string; 
+    performanceFee?: string; 
+    netProfit?: string; 
+  }): Promise<Investment | undefined> {
+    const [investment] = await db
+      .update(investments)
+      .set({
+        currentProfit: details.currentProfit,
+        grossProfit: details.grossProfit,
+        performanceFee: details.performanceFee,
+        netProfit: details.netProfit,
+      })
       .where(eq(investments.id, id))
       .returning();
     return investment || undefined;

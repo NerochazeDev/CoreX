@@ -641,13 +641,50 @@ async function processAutomaticUpdates(): Promise<void> {
 
       if (profitIncrease > 0) {
         const newProfit = currentProfit + profitIncrease;
-        await storage.updateInvestmentProfit(investment.id, newProfit.toFixed(8));
+        
+        // Check if this is a USD-based investment with performance fees
+        const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
+        const performanceFeePercentage = plan.performanceFeePercentage || 0;
+        
+        // Calculate actual profit to credit (after fees for USD investments)
+        let actualProfitToCredit = profitIncrease;
+        let netProfitIncreaseForDisplay = profitIncrease;
+        
+        if (isUsdInvestment && performanceFeePercentage > 0) {
+          // For USD investments, calculate gross profit, fee, and net profit
+          const usdAmount = investment.usdAmount ? parseFloat(investment.usdAmount) : 0;
+          const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
+          const usdProfitIncrease = usdAmount * intervalRate;
+          const newGrossProfit = currentGrossProfit + usdProfitIncrease;
+          
+          // Calculate performance fee on this interval's profit
+          const feeOnThisProfit = usdProfitIncrease * (performanceFeePercentage / 100);
+          const netProfitIncrease = usdProfitIncrease - feeOnThisProfit;
+          
+          // Calculate total accumulated values
+          const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
+          const totalNetProfit = newGrossProfit - totalPerformanceFee;
+          
+          // Update actual profit to credit (net profit after fees)
+          actualProfitToCredit = netProfitIncrease;
+          netProfitIncreaseForDisplay = netProfitIncrease;
+          
+          await storage.updateInvestmentProfitDetails(investment.id, {
+            currentProfit: newProfit.toFixed(8),
+            grossProfit: newGrossProfit.toFixed(2),
+            performanceFee: totalPerformanceFee.toFixed(2),
+            netProfit: totalNetProfit.toFixed(2),
+          });
+        } else {
+          // Legacy BTC investment - only update currentProfit
+          await storage.updateInvestmentProfit(investment.id, newProfit.toFixed(8));
+        }
 
-        // Update user's balance with the profit
+        // Update user's balance with the ACTUAL profit (after fees for USD investments)
         const user = await storage.getUser(investment.userId);
         if (user) {
           const currentBalance = parseFloat(user.balance);
-          const newBalance = currentBalance + profitIncrease;
+          const newBalance = currentBalance + actualProfitToCredit;
           await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
 
           // Create investment growth notifications more frequently and broadcast immediately
