@@ -904,18 +904,20 @@ async function initializeDefaultPlans(): Promise<void> {
     const existingPlanNames = existingPlans.map(p => p.name);
     
     // Get current Bitcoin price to calculate accurate BTC amounts
-    let bitcoinPrice = 100000; // Fallback price
+    let bitcoinPrice = 121000; // Updated fallback price
     try {
       const priceData = await fetchBitcoinPrice();
       bitcoinPrice = priceData.usd.price;
-      console.log(`Using Bitcoin price $${bitcoinPrice} for plan calculations`);
+      console.log(`Using Bitcoin price $${bitcoinPrice.toFixed(2)} for plan calculations`);
     } catch (error) {
-      console.warn('Could not fetch Bitcoin price, using fallback $100,000');
+      console.warn('Could not fetch Bitcoin price, using fallback $121,000');
     }
     
     // Calculate BTC amounts based on USD values and current BTC price
     const calculateBtcAmount = (usdAmount: number): string => {
-      return (usdAmount / bitcoinPrice).toFixed(8);
+      const btcAmount = usdAmount / bitcoinPrice;
+      console.log(`Converting $${usdAmount} to ${btcAmount.toFixed(8)} BTC at price $${bitcoinPrice.toFixed(2)}`);
+      return btcAmount.toFixed(8);
     };
     
     const plansToCreate = [
@@ -1042,7 +1044,14 @@ async function initializeDefaultPlans(): Promise<void> {
     ];
 
     for (const plan of plansToCreate) {
-      if (!existingPlanNames.includes(plan.name)) {
+      const existingPlan = existingPlans.find(p => p.name === plan.name);
+      if (existingPlan) {
+        // Update existing plan with correct BTC amount
+        if (existingPlan.minAmount !== plan.minAmount || existingPlan.usdMinAmount !== plan.usdMinAmount) {
+          console.log(`Updating ${plan.name}: $${plan.usdMinAmount} = ${plan.minAmount} BTC (was ${existingPlan.minAmount} BTC)`);
+          await storage.updateInvestmentPlanAmount(existingPlan.id, plan.minAmount, plan.usdMinAmount);
+        }
+      } else {
         console.log(`Creating USD investment plan: ${plan.name}...`);
         await storage.createInvestmentPlan(plan);
       }

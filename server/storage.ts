@@ -265,10 +265,15 @@ export class DatabaseStorage implements IStorage {
     return plan;
   }
 
-  async updateInvestmentPlanAmount(planId: number, minAmount: string): Promise<InvestmentPlan | undefined> {
+  async updateInvestmentPlanAmount(planId: number, minAmount: string, usdMinAmount?: string): Promise<InvestmentPlan | undefined> {
+    const updateData: any = { minAmount };
+    if (usdMinAmount) {
+      updateData.usdMinAmount = usdMinAmount;
+    }
+    
     const [plan] = await db
       .update(investmentPlans)
-      .set({ minAmount })
+      .set(updateData)
       .where(eq(investmentPlans.id, planId))
       .returning();
     return plan || undefined;
