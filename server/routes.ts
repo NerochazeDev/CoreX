@@ -607,6 +607,23 @@ async function fetchBitcoinPrice() {
 }
 
 // Advanced investment growth system
+// 
+// PROFIT CALCULATION EXPLANATION:
+// ================================
+// 1. Each plan has a dailyReturnRate (e.g., 0.0286 = 2.86% per day)
+// 2. This rate is divided by 144 to get the rate per 10-minute interval (144 intervals per day)
+// 3. For each 10-minute interval: profit = investment_amount × interval_rate
+// 4. For USD-based plans with performance fees:
+//    - Gross Profit = investment_amount × interval_rate
+//    - Performance Fee = gross_profit × (performanceFeePercentage / 100)
+//    - Net Profit = gross_profit - performance_fee
+//    - User receives NET PROFIT in their balance
+// 5. Example: $100 plan (20% ROI over 30 days, 10% performance fee)
+//    - Daily rate: 0.67% (20% ÷ 30 days)
+//    - 10-min rate: 0.67% ÷ 144 = 0.00465%
+//    - Gross profit per interval: $100 × 0.00465% = $0.00465
+//    - Performance fee: $0.00465 × 10% = $0.000465
+//    - Net profit to user: $0.00465 - $0.000465 = $0.004185
 async function processAutomaticUpdates(): Promise<void> {
   try {
     // Reduced processing logging
@@ -633,7 +650,7 @@ async function processAutomaticUpdates(): Promise<void> {
 
       // Calculate investment growth based on plan's daily return rate
       const dailyRate = parseFloat(plan.dailyReturnRate);
-      const intervalRate = dailyRate / 144; // 10-minute intervals
+      const intervalRate = dailyRate / 144; // 10-minute intervals (144 per day)
 
       const investmentAmount = parseFloat(investment.amount);
       const currentProfit = parseFloat(investment.currentProfit);
@@ -886,22 +903,37 @@ async function initializeDefaultPlans(): Promise<void> {
     
     const existingPlanNames = existingPlans.map(p => p.name);
     
+    // Get current Bitcoin price to calculate accurate BTC amounts
+    let bitcoinPrice = 100000; // Fallback price
+    try {
+      const priceData = await fetchBitcoinPrice();
+      bitcoinPrice = priceData.usd.price;
+      console.log(`Using Bitcoin price $${bitcoinPrice} for plan calculations`);
+    } catch (error) {
+      console.warn('Could not fetch Bitcoin price, using fallback $100,000');
+    }
+    
+    // Calculate BTC amounts based on USD values and current BTC price
+    const calculateBtcAmount = (usdAmount: number): string => {
+      return (usdAmount / bitcoinPrice).toFixed(8);
+    };
+    
     const plansToCreate = [
       {
         name: "$10 Plan",
-        minAmount: "0.0001",
+        minAmount: calculateBtcAmount(10),
         usdMinAmount: "10",
         roiPercentage: 20,
         durationDays: 7,
         color: "#A78BFA",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0286",
+        dailyReturnRate: "0.0286", // 2.86% daily = 20% over 7 days
         performanceFeePercentage: 10,
         isActive: true,
       },
       {
         name: "$20 Plan",
-        minAmount: "0.0002",
+        minAmount: calculateBtcAmount(20),
         usdMinAmount: "20",
         roiPercentage: 20,
         durationDays: 7,
@@ -913,19 +945,19 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$50 Plan",
-        minAmount: "0.0005",
+        minAmount: calculateBtcAmount(50),
         usdMinAmount: "50",
         roiPercentage: 20,
         durationDays: 30,
         color: "#D946EF",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0067",
+        dailyReturnRate: "0.0067", // 0.67% daily = 20% over 30 days
         performanceFeePercentage: 10,
         isActive: true,
       },
       {
         name: "$100 Plan",
-        minAmount: "0.001",
+        minAmount: calculateBtcAmount(100),
         usdMinAmount: "100",
         roiPercentage: 20,
         durationDays: 30,
@@ -937,19 +969,19 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$300 Plan",
-        minAmount: "0.003",
+        minAmount: calculateBtcAmount(300),
         usdMinAmount: "300",
         roiPercentage: 20,
         durationDays: 15,
         color: "#F0ABFC",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0133",
+        dailyReturnRate: "0.0133", // 1.33% daily = 20% over 15 days
         performanceFeePercentage: 10,
         isActive: true,
       },
       {
         name: "$500 Plan",
-        minAmount: "0.005",
+        minAmount: calculateBtcAmount(500),
         usdMinAmount: "500",
         roiPercentage: 20,
         durationDays: 30,
@@ -961,7 +993,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$1,000 Plan",
-        minAmount: "0.01",
+        minAmount: calculateBtcAmount(1000),
         usdMinAmount: "1000",
         roiPercentage: 20,
         durationDays: 30,
@@ -973,19 +1005,19 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$3,000 Plan",
-        minAmount: "0.03",
+        minAmount: calculateBtcAmount(3000),
         usdMinAmount: "3000",
         roiPercentage: 20,
         durationDays: 60,
         color: "#FCD34D",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0033",
+        dailyReturnRate: "0.0033", // 0.33% daily = 20% over 60 days
         performanceFeePercentage: 20,
         isActive: true,
       },
       {
         name: "$6,000 Plan",
-        minAmount: "0.06",
+        minAmount: calculateBtcAmount(6000),
         usdMinAmount: "6000",
         roiPercentage: 20,
         durationDays: 60,
@@ -997,7 +1029,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$12,000 Plan",
-        minAmount: "0.12",
+        minAmount: calculateBtcAmount(12000),
         usdMinAmount: "12000",
         roiPercentage: 20,
         durationDays: 60,
