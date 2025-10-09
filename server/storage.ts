@@ -24,6 +24,7 @@ export interface IStorage {
   createInvestmentPlan(plan: InsertInvestmentPlan): Promise<InvestmentPlan>;
   updateInvestmentPlanAmount(planId: number, minAmount: string): Promise<InvestmentPlan | undefined>;
   updateInvestmentPlanRate(planId: number, dailyReturnRate: string): Promise<InvestmentPlan | undefined>;
+  updateInvestmentPlanStatus(planId: number, isActive: boolean): Promise<InvestmentPlan | undefined>;
 
   // Investment operations
   getUserInvestments(userId: number): Promise<Investment[]>;
@@ -145,9 +146,9 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return user;
     });
-    
+
     // Real-time sync to backup databases - disabled for Replit environment
-    
+
     return user;
   }
 
@@ -160,9 +161,9 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return user || undefined;
     });
-    
+
     // Real-time sync to backup databases - disabled for Replit environment
-    
+
     return user;
   }
 
@@ -244,6 +245,7 @@ export class DatabaseStorage implements IStorage {
 
   async getInvestmentPlans(): Promise<InvestmentPlan[]> {
     return await executeQuery(async () => {
+      // Fetch only active plans
       return await db.select().from(investmentPlans).where(eq(investmentPlans.isActive, true));
     });
   }
@@ -281,6 +283,15 @@ export class DatabaseStorage implements IStorage {
     return plan || undefined;
   }
 
+  async updateInvestmentPlanStatus(planId: number, isActive: boolean): Promise<InvestmentPlan | undefined> {
+    const [updated] = await db
+      .update(investmentPlans)
+      .set({ isActive })
+      .where(eq(investmentPlans.id, planId))
+      .returning();
+    return updated;
+  }
+
   async getUserInvestments(userId: number): Promise<Investment[]> {
     return await db.select().from(investments).where(eq(investments.userId, userId));
   }
@@ -313,9 +324,9 @@ export class DatabaseStorage implements IStorage {
         isActive: true,
       })
       .returning();
-    
+
     // Real-time sync to backup databases - disabled for Replit environment
-    
+
     return investment;
   }
 
@@ -662,9 +673,9 @@ export class DatabaseStorage implements IStorage {
 
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     const created = await db.insert(transactions).values(transaction).returning();
-    
+
     // Real-time sync to backup databases - disabled for Replit environment
-    
+
     return created[0];
   }
 

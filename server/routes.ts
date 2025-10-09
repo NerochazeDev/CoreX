@@ -874,10 +874,19 @@ function broadcastToClients(data: any) {
 async function initializeDefaultPlans(): Promise<void> {
   try {
     const existingPlans = await storage.getInvestmentPlans();
+    
+    // First, deactivate any old BTC-based plans
+    const btcPlanNames = ['Quick Start', 'Rapid Growth', '30-Day Builder', 'Foundation Plan', 'Growth Plan', 'Premium Plan', 'Institutional Plan'];
+    for (const plan of existingPlans) {
+      if (btcPlanNames.includes(plan.name) && plan.isActive) {
+        console.log(`Deactivating old BTC plan: ${plan.name}...`);
+        await storage.updateInvestmentPlanStatus(plan.id, false);
+      }
+    }
+    
     const existingPlanNames = existingPlans.map(p => p.name);
     
     const plansToCreate = [
-      // USD-based plans with performance fees
       {
         name: "$10 Plan",
         minAmount: "0.0001",
@@ -1002,16 +1011,12 @@ async function initializeDefaultPlans(): Promise<void> {
 
     for (const plan of plansToCreate) {
       if (!existingPlanNames.includes(plan.name)) {
-        console.log(`Creating investment plan: ${plan.name}...`);
+        console.log(`Creating USD investment plan: ${plan.name}...`);
         await storage.createInvestmentPlan(plan);
       }
     }
 
-    if (existingPlans.length === 0) {
-      console.log('Default investment plans created successfully');
-    } else if (existingPlans.length < plansToCreate.length) {
-      console.log(`Added ${plansToCreate.length - existingPlans.length} new investment plans`);
-    }
+    console.log('USD-based investment plans initialized successfully');
   } catch (error) {
     console.error('Error initializing default plans:', error);
   }
