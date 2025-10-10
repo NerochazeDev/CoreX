@@ -30,11 +30,11 @@ export interface IStorage {
   getUserInvestments(userId: number): Promise<Investment[]>;
   createInvestment(investment: InsertInvestment): Promise<Investment>;
   updateInvestmentProfit(id: number, profit: string): Promise<Investment | undefined>;
-  updateInvestmentProfitDetails(id: number, details: { 
-    currentProfit: string; 
-    grossProfit?: string; 
-    performanceFee?: string; 
-    netProfit?: string; 
+  updateInvestmentProfitDetails(id: number, details: {
+    currentProfit: string;
+    grossProfit?: string;
+    performanceFee?: string;
+    netProfit?: string;
   }): Promise<Investment | undefined>;
   getActiveInvestments(): Promise<Investment[]>;
 
@@ -198,7 +198,7 @@ export class DatabaseStorage implements IStorage {
     return await executeQuery(async () => {
       const [user] = await db
         .update(users)
-        .set({ 
+        .set({
           password: passwordHash,
           recoveryHash: recoveryHash
         })
@@ -270,7 +270,7 @@ export class DatabaseStorage implements IStorage {
     if (usdMinAmount) {
       updateData.usdMinAmount = usdMinAmount;
     }
-    
+
     const [plan] = await db
       .update(investmentPlans)
       .set(updateData)
@@ -315,20 +315,19 @@ export class DatabaseStorage implements IStorage {
       usdAmount = plan.usdMinAmount;
     }
 
-    const [investment] = await db
-      .insert(investments)
-      .values({
-        ...insertInvestment,
-        startDate,
-        endDate,
-        currentProfit: "0",
-        usdAmount: usdAmount || null,
-        grossProfit: "0",
-        performanceFee: "0",
-        netProfit: "0",
-        isActive: true,
-      })
-      .returning();
+    const [investment] = await db.insert(investments).values({
+      userId: insertInvestment.userId,
+      planId: insertInvestment.planId,
+      amount: insertInvestment.amount,
+      usdAmount: insertInvestment.usdAmount,
+      startDate,
+      endDate,
+      currentProfit: "0",
+      grossProfit: "0",
+      performanceFee: "0",
+      netProfit: "0",
+      isActive: true,
+    }).returning();
 
     // Real-time sync to backup databases - disabled for Replit environment
 
@@ -344,11 +343,11 @@ export class DatabaseStorage implements IStorage {
     return investment || undefined;
   }
 
-  async updateInvestmentProfitDetails(id: number, details: { 
-    currentProfit: string; 
-    grossProfit?: string; 
-    performanceFee?: string; 
-    netProfit?: string; 
+  async updateInvestmentProfitDetails(id: number, details: {
+    currentProfit: string;
+    grossProfit?: string;
+    performanceFee?: string;
+    netProfit?: string;
   }): Promise<Investment | undefined> {
     const [investment] = await db
       .update(investments)
@@ -609,7 +608,7 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return updated[0];
     } else {
-      const created = await db.insert(adminConfig).values({ 
+      const created = await db.insert(adminConfig).values({
         vaultAddress: "1BitVaultVaultAddress12345678901234567890",
         depositAddress: "1BitVaultDepositAddress12345678901234567890",
         freePlanRate: rate
@@ -624,7 +623,7 @@ export class DatabaseStorage implements IStorage {
       // First, get and update the transaction status atomically
       const [transaction] = await db
         .update(transactions)
-        .set({ 
+        .set({
           status: 'confirmed',
           confirmedBy: adminId,
           confirmedAt: new Date(),
@@ -658,10 +657,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserWallet(userId: number, bitcoinAddress: string, privateKey: string, seedPhrase?: string): Promise<User | undefined> {
-    const updateData: any = { 
-      bitcoinAddress, 
-      privateKey, 
-      hasWallet: true 
+    const updateData: any = {
+      bitcoinAddress,
+      privateKey,
+      hasWallet: true
     };
 
     if (seedPhrase) {
@@ -770,7 +769,7 @@ export class DatabaseStorage implements IStorage {
     // Only allow canceling pending transactions by the user who created them
     const [transaction] = await db
       .update(transactions)
-      .set({ 
+      .set({
         status: 'cancelled',
         notes: 'Cancelled by user'
       })
@@ -796,8 +795,8 @@ export class DatabaseStorage implements IStorage {
   async updateBackupDatabaseStatus(id: number, status: string, errorMessage?: string): Promise<BackupDatabase | undefined> {
     const updated = await db
       .update(backupDatabases)
-      .set({ 
-        status, 
+      .set({
+        status,
         errorMessage: errorMessage || null,
         updatedAt: new Date(),
         lastSyncAt: status === 'active' ? new Date() : undefined
@@ -816,8 +815,8 @@ export class DatabaseStorage implements IStorage {
 
     const updated = await db
       .update(backupDatabases)
-      .set({ 
-        isActive: true, 
+      .set({
+        isActive: true,
         status: 'active',
         lastSyncAt: new Date(),
         updatedAt: new Date()
@@ -830,8 +829,8 @@ export class DatabaseStorage implements IStorage {
   async deactivateBackupDatabase(id: number): Promise<BackupDatabase | undefined> {
     const updated = await db
       .update(backupDatabases)
-      .set({ 
-        isActive: false, 
+      .set({
+        isActive: false,
         status: 'inactive',
         updatedAt: new Date()
       })
@@ -852,7 +851,7 @@ export class DatabaseStorage implements IStorage {
 
     const updated = await db
       .update(backupDatabases)
-      .set({ 
+      .set({
         isPrimary: true,
         updatedAt: new Date()
       })
@@ -880,7 +879,7 @@ export class DatabaseStorage implements IStorage {
     // Update sync status and timestamp
     await db
       .update(backupDatabases)
-      .set({ 
+      .set({
         lastSyncAt: new Date(),
         status: 'active',
         updatedAt: new Date(),

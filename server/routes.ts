@@ -657,6 +657,24 @@ async function processAutomaticUpdates(): Promise<void> {
       const profitIncrease = investmentAmount * intervalRate;
 
       if (profitIncrease > 0) {
+        // Check if this is a USD-based investment
+        const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
+        const performanceFeePercentage = plan.performanceFeePercentage || 0;
+        const usdAmount = investment.usdAmount ? parseFloat(investment.usdAmount) : 0;
+        
+        // Calculate maximum expected profit based on plan ROI
+        const maxGrossProfit = usdAmount * (plan.roiPercentage / 100);
+        const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
+        
+        // Check if we've already reached the maximum expected profit
+        if (isUsdInvestment && currentGrossProfit >= maxGrossProfit) {
+          // Max profit reached - skip this interval
+          if (Math.random() < 0.05) { // Only log occasionally
+            console.log(`Investment #${investment.id} - Max profit reached (${currentGrossProfit.toFixed(2)} >= ${maxGrossProfit.toFixed(2)})`);
+          }
+          continue;
+        }
+        
         // Implement 70% success / 30% failure rate for realistic trading simulation
         const tradeSuccessful = Math.random() < 0.7; // 70% success rate
         
@@ -707,39 +725,61 @@ Investment #${investment.id} trading update:
         // Trade successful - proceed with profit addition
         const newProfit = currentProfit + profitIncrease;
         
-        // Check if this is a USD-based investment with performance fees
-        const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
-        const performanceFeePercentage = plan.performanceFeePercentage || 0;
-        
         // Calculate actual profit to credit (after fees for USD investments)
         let actualProfitToCredit = profitIncrease;
         let netProfitIncreaseForDisplay = profitIncrease;
         
         if (isUsdInvestment && performanceFeePercentage > 0) {
           // For USD investments, calculate gross profit, fee, and net profit
-          const usdAmount = investment.usdAmount ? parseFloat(investment.usdAmount) : 0;
-          const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
           const usdProfitIncrease = usdAmount * intervalRate;
-          const newGrossProfit = currentGrossProfit + usdProfitIncrease;
+          let newGrossProfit = currentGrossProfit + usdProfitIncrease;
           
-          // Calculate performance fee on this interval's profit
-          const feeOnThisProfit = usdProfitIncrease * (performanceFeePercentage / 100);
-          const netProfitIncrease = usdProfitIncrease - feeOnThisProfit;
-          
-          // Calculate total accumulated values
-          const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
-          const totalNetProfit = newGrossProfit - totalPerformanceFee;
-          
-          // Update actual profit to credit (net profit after fees)
-          actualProfitToCredit = netProfitIncrease;
-          netProfitIncreaseForDisplay = netProfitIncrease;
-          
-          await storage.updateInvestmentProfitDetails(investment.id, {
-            currentProfit: newProfit.toFixed(8),
-            grossProfit: newGrossProfit.toFixed(2),
-            performanceFee: totalPerformanceFee.toFixed(2),
-            netProfit: totalNetProfit.toFixed(2),
-          });
+          // Cap gross profit at maximum expected
+          if (newGrossProfit > maxGrossProfit) {
+            const actualIncrease = maxGrossProfit - currentGrossProfit;
+            newGrossProfit = maxGrossProfit;
+            
+            // Adjust USD profit increase to match cap
+            const usdProfitIncreaseAdjusted = actualIncrease;
+            
+            // Calculate performance fee on actual profit earned
+            const feeOnThisProfit = usdProfitIncreaseAdjusted * (performanceFeePercentage / 100);
+            const netProfitIncrease = usdProfitIncreaseAdjusted - feeOnThisProfit;
+            
+            // Calculate total accumulated values
+            const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
+            const totalNetProfit = newGrossProfit - totalPerformanceFee;
+            
+            // Update actual profit to credit (net profit after fees)
+            actualProfitToCredit = netProfitIncrease;
+            netProfitIncreaseForDisplay = netProfitIncrease;
+            
+            await storage.updateInvestmentProfitDetails(investment.id, {
+              currentProfit: newProfit.toFixed(8),
+              grossProfit: newGrossProfit.toFixed(2),
+              performanceFee: totalPerformanceFee.toFixed(2),
+              netProfit: totalNetProfit.toFixed(2),
+            });
+          } else {
+            // Normal profit calculation - not capped yet
+            const feeOnThisProfit = usdProfitIncrease * (performanceFeePercentage / 100);
+            const netProfitIncrease = usdProfitIncrease - feeOnThisProfit;
+            
+            // Calculate total accumulated values
+            const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
+            const totalNetProfit = newGrossProfit - totalPerformanceFee;
+            
+            // Update actual profit to credit (net profit after fees)
+            actualProfitToCredit = netProfitIncrease;
+            netProfitIncreaseForDisplay = netProfitIncrease;
+            
+            await storage.updateInvestmentProfitDetails(investment.id, {
+              currentProfit: newProfit.toFixed(8),
+              grossProfit: newGrossProfit.toFixed(2),
+              performanceFee: totalPerformanceFee.toFixed(2),
+              netProfit: totalNetProfit.toFixed(2),
+            });
+          }
         } else {
           // Legacy BTC investment - only update currentProfit
           await storage.updateInvestmentProfit(investment.id, newProfit.toFixed(8));
@@ -1780,26 +1820,27 @@ You will receive a notification once your deposit is confirmed and added to your
       const newBalance = userBalance - investmentAmount;
       await storage.updateUserBalance(userId, newBalance.toFixed(8));
 
-      // Create the investment directly (no need for admin approval)
+      // Get current Bitcoin price for USD calculation
+      let bitcoinPrice = 121000; // Default fallback
+      try {
+        const priceData = await fetchBitcoinPrice();
+        bitcoinPrice = priceData.usd.price;
+      } catch (error) {
+        console.log('Could not fetch Bitcoin price, using fallback');
+      }
+
+      // Calculate USD amount
+      const usdAmount = parseFloat(plan.usdMinAmount || "0");
+      
+      // Create the investment with USD tracking
       const investment = await storage.createInvestment({
         userId: userId,
         planId: planId,
-        amount: amount
+        amount: amount,
+        usdAmount: usdAmount.toFixed(2)
       });
 
-      // Get current Bitcoin price for USD equivalent
-      let bitcoinPrice = 67000; // Default fallback
-      try {
-        const priceResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-        if (priceResponse.ok) {
-          const priceData = await priceResponse.json();
-          bitcoinPrice = priceData.bitcoin.usd;
-        }
-      } catch (error) {
-        console.log('Could not fetch Bitcoin price for notification, using fallback');
-      }
-
-      const usdEquivalent = (parseFloat(amount) * bitcoinPrice).toLocaleString('en-US', {
+      const usdEquivalent = usdAmount.toLocaleString('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 2,
@@ -1810,7 +1851,7 @@ You will receive a notification once your deposit is confirmed and added to your
       await storage.createNotification({
         userId: userId,
         title: 'Investment Submitted',
-        message: `Your investment of ${amount} BTC (≈ ${usdEquivalent}) in ${plan.name} has been submitted.`,
+        message: `Your investment of ${amount} BTC (${usdEquivalent}) in ${plan.name} has been submitted.`,
         type: 'info',
         isRead: false,
       });
