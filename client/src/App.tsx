@@ -45,8 +45,9 @@ import InvestmentDashboard from "@/pages/investment-dashboard";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
-      <Route path="/dashboard" component={Home} />
+      <Route path="/" component={Home} />
+      <Route path="/landing" component={Landing} />
+      <Route path="/dashboard" component={InvestmentDashboard} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/oauth-success" component={OAuthSuccess} />
@@ -61,7 +62,6 @@ function Router() {
       <Route path="/Hello10122" component={SecureAdmin} />
       <Route path="/Hello10122add" component={AdminUserManagement} />
       <Route path="/investment" component={Investment} />
-      <Route path="/dashboard" component={InvestmentDashboard} />
       <Route path="/history" component={History} />
       <Route path="/transactions" component={Transactions} />
       <Route path="/settings" component={Settings} />
