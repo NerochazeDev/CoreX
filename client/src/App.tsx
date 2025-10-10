@@ -45,7 +45,8 @@ import InvestmentDashboard from "@/pages/investment-dashboard";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={Home} />
+      <Route path="/welcome" component={Landing} />
       <Route path="/dashboard" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />

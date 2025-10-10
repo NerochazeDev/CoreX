@@ -11,10 +11,10 @@ export default function Landing() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Redirect authenticated users to dashboard
+  // Redirect authenticated users to homepage
   useEffect(() => {
     if (user) {
-      setLocation('/dashboard');
+      setLocation('/');
     }
   }, [user, setLocation]);
 

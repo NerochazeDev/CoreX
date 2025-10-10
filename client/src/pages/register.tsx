@@ -132,7 +132,7 @@ export default function Register() {
         description: "Your account has been created successfully and your secure Bitcoin wallet is ready. You can now start investing!",
         variant: "default",
       });
-      setLocation('/dashboard');
+      setLocation('/');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Registration failed";
       
