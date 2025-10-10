@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/contexts/theme-context";
 import { SidebarProvider } from "@/contexts/sidebar-context";
 import { RealtimeConnection } from "@/components/realtime-connection";
 import { ErrorBoundary } from "@/components/error-boundary";
+import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -44,7 +45,8 @@ import InvestmentDashboard from "@/pages/investment-dashboard";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={Landing} />
+      <Route path="/dashboard" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/oauth-success" component={OAuthSuccess} />
