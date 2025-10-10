@@ -27,15 +27,19 @@ export default function Login() {
       console.log('Starting login process...');
       await login(email, password);
       console.log('Login completed, showing success toast...');
+      
+      // Wait for auth state to propagate before redirecting
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       toast({
         title: "🎉 Welcome Back!",
         description: "You've successfully signed in to your BitVault Pro account. Your investments await!",
         variant: "default",
       });
+      
       console.log('Redirecting to home page...');
-      setTimeout(() => {
-        setLocation('/');
-      }, 100);
+      // Use window.location for full page reload to ensure auth state is fresh
+      window.location.href = '/';
     } catch (error) {
       console.error('Login error in component:', error);
       const errorMessage = error instanceof Error ? error.message : "Invalid credentials provided";

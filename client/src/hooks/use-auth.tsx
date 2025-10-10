@@ -124,6 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('bitvault_user', JSON.stringify(userData));
     localStorage.setItem('bitvault_last_activity', Date.now().toString());
 
+    // Store in localStorage with activity timestamp
+    localStorage.setItem('bitvault_user', JSON.stringify(userData));
+    localStorage.setItem('bitvault_last_activity', Date.now().toString());
+    
     // Set user state
     setUser(userData);
 
