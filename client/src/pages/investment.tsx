@@ -437,64 +437,78 @@ export default function Investment() {
                             </div>
                             <div className="space-y-2">
                               <div className="flex justify-between text-sm">
-                                <span>Investment Amount:</span>
+                                <span>Plan Capital:</span>
                                 <div className="text-right">
-                                  <div>{formatBitcoin(plan.minAmount)} BTC</div>
+                                  <div className="font-medium">${plan.usdMinAmount || '0'}</div>
                                   {bitcoinPrice && (
                                     <div className="text-xs opacity-75">
-                                      {formatCurrency(
-                                        calculateCurrencyValue(
-                                          plan.minAmount, 
-                                          currency === 'USD' ? bitcoinPrice.usd.price : 
-                                          currency === 'GBP' ? bitcoinPrice.gbp.price : 
-                                          bitcoinPrice.eur.price
-                                        ), 
-                                        currency
-                                      )}
+                                      ≈ {formatBitcoin((parseFloat(plan.usdMinAmount || '0') / bitcoinPrice.usd.price).toString())} BTC
                                     </div>
                                   )}
                                 </div>
                               </div>
                               <div className="flex justify-between text-sm">
-                                <span>Profit ({plan.roiPercentage}%):</span>
+                                <span>Hold Days:</span>
+                                <div className="text-right font-medium">{plan.durationDays} days</div>
+                              </div>
+                              <div className="flex justify-between text-sm border-t border-white/20 pt-2">
+                                <span>Profit (Before Fee):</span>
                                 <div className="text-right text-green-300">
-                                  <div>+{formatBitcoin((parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString())} BTC</div>
-                                  {bitcoinPrice && (
-                                    <div className="text-xs opacity-75">
-                                      +{formatCurrency(
-                                        calculateCurrencyValue(
-                                          (parseFloat(plan.minAmount) * plan.roiPercentage / 100).toString(), 
-                                          currency === 'USD' ? bitcoinPrice.usd.price : 
-                                          currency === 'GBP' ? bitcoinPrice.gbp.price : 
-                                          bitcoinPrice.eur.price
-                                        ), 
-                                        currency
-                                      )}
-                                    </div>
-                                  )}
+                                  <div className="font-medium">+${(parseFloat(plan.usdMinAmount || '0') * plan.roiPercentage / 100).toFixed(2)}</div>
+                                  <div className="text-xs opacity-75">{plan.roiPercentage}% ROI</div>
                                 </div>
                               </div>
+                              {plan.performanceFeePercentage && plan.performanceFeePercentage > 0 && (
+                                <>
+                                  <div className="flex justify-between text-sm text-yellow-300">
+                                    <span>Fee % (on Profit):</span>
+                                    <div className="text-right font-medium">{plan.performanceFeePercentage}%</div>
+                                  </div>
+                                  <div className="flex justify-between text-sm text-yellow-300">
+                                    <span>Fee Amount:</span>
+                                    <div className="text-right">
+                                      <div className="font-medium">-${(parseFloat(plan.usdMinAmount || '0') * plan.roiPercentage / 100 * plan.performanceFeePercentage / 100).toFixed(2)}</div>
+                                      <div className="text-xs opacity-75">On Profit Only</div>
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-between text-sm text-green-400 border-t border-white/20 pt-2">
+                                    <span className="font-semibold">Net Profit:</span>
+                                    <div className="text-right">
+                                      <div className="font-bold">+${(parseFloat(plan.usdMinAmount || '0') * plan.roiPercentage / 100 * (1 - plan.performanceFeePercentage / 100)).toFixed(2)}</div>
+                                      <div className="text-xs opacity-75">After {plan.performanceFeePercentage}% Fee</div>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
                               <div className="flex justify-between text-base font-semibold border-t border-white/20 pt-2">
-                                <span>Total Return:</span>
+                                <span>Total After Trade:</span>
                                 <div className="text-right text-green-300">
-                                  <div>{formatBitcoin((parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString())} BTC</div>
-                                  {bitcoinPrice && (
-                                    <div className="text-xs opacity-75">
-                                      {formatCurrency(
-                                        calculateCurrencyValue(
-                                          (parseFloat(plan.minAmount) * (1 + plan.roiPercentage / 100)).toString(), 
-                                          currency === 'USD' ? bitcoinPrice.usd.price : 
-                                          currency === 'GBP' ? bitcoinPrice.gbp.price : 
-                                          bitcoinPrice.eur.price
-                                        ), 
-                                        currency
+                                  {plan.performanceFeePercentage && plan.performanceFeePercentage > 0 ? (
+                                    <>
+                                      <div className="font-bold text-lg">${(parseFloat(plan.usdMinAmount || '0') + parseFloat(plan.usdMinAmount || '0') * plan.roiPercentage / 100 * (1 - plan.performanceFeePercentage / 100)).toFixed(2)}</div>
+                                      {bitcoinPrice && (
+                                        <div className="text-xs opacity-75">
+                                          ≈ {formatBitcoin(((parseFloat(plan.usdMinAmount || '0') + parseFloat(plan.usdMinAmount || '0') * plan.roiPercentage / 100 * (1 - plan.performanceFeePercentage / 100)) / bitcoinPrice.usd.price).toString())} BTC
+                                        </div>
                                       )}
-                                    </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="font-bold text-lg">${(parseFloat(plan.usdMinAmount || '0') * (1 + plan.roiPercentage / 100)).toFixed(2)}</div>
+                                      {bitcoinPrice && (
+                                        <div className="text-xs opacity-75">
+                                          ≈ {formatBitcoin(((parseFloat(plan.usdMinAmount || '0') * (1 + plan.roiPercentage / 100)) / bitcoinPrice.usd.price).toString())} BTC
+                                        </div>
+                                      )}
+                                    </>
                                   )}
                                 </div>
                               </div>
-                              <div className="text-xs opacity-75 mt-2">
-                                *Returns in BTC after {plan.durationDays} days
+                              <div className="text-xs opacity-75 mt-2 text-center">
+                                {plan.performanceFeePercentage && plan.performanceFeePercentage > 0 
+                                  ? `Daily Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}% | Fee applies to profits only`
+                                  : `Daily Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}% | ${plan.durationDays} days hold`
+                                }
                               </div>
                             </div>
                           </div>
