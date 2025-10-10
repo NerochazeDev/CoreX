@@ -73,24 +73,52 @@ export const adminConfig = pgTable("admin_config", {
   vaultAddress: text("vault_address").notNull(),
   depositAddress: text("deposit_address").notNull(),
   freePlanRate: decimal("free_plan_rate", { precision: 8, scale: 6 }).notNull().default("0.0001"), // Free plan earning rate per 10 minutes
-  // Platform baseline statistics
-  baselineUsers: integer("baseline_users").notNull().default(420),
-  baselineActiveInvestments: integer("baseline_active_investments").notNull().default(804),
-  baselineTotalBalance: decimal("baseline_total_balance", { precision: 18, scale: 8 }).notNull().default("70275.171605"),
-  baselineTotalProfit: decimal("baseline_total_profit", { precision: 18, scale: 8 }).notNull().default("460.347340"),
-  // Plan baseline data
-  growthPlanActive: integer("growth_plan_active").notNull().default(227),
-  growthPlanAmount: decimal("growth_plan_amount", { precision: 18, scale: 8 }).notNull().default("11004.9901"),
-  growthPlanProfit: decimal("growth_plan_profit", { precision: 18, scale: 8 }).notNull().default("101.649889"),
-  institutionalPlanActive: integer("institutional_plan_active").notNull().default(210),
-  institutionalPlanAmount: decimal("institutional_plan_amount", { precision: 18, scale: 8 }).notNull().default("9228.4977"),
-  institutionalPlanProfit: decimal("institutional_plan_profit", { precision: 18, scale: 8 }).notNull().default("205.248890"),
-  premiumPlanActive: integer("premium_plan_active").notNull().default(198),
-  premiumPlanAmount: decimal("premium_plan_amount", { precision: 18, scale: 8 }).notNull().default("9274.8974"),
-  premiumPlanProfit: decimal("premium_plan_profit", { precision: 18, scale: 8 }).notNull().default("114.419514"),
-  foundationPlanActive: integer("foundation_plan_active").notNull().default(169),
-  foundationPlanAmount: decimal("foundation_plan_amount", { precision: 18, scale: 8 }).notNull().default("7436.5081"),
-  foundationPlanProfit: decimal("foundation_plan_profit", { precision: 18, scale: 8 }).notNull().default("39.029047"),
+  // Baseline statistics for platform metrics (realistic organic growth 0.3-0.7% daily)
+  baselineUsers: integer("baseline_users").default(9850),
+  baselineActiveInvestments: integer("baseline_active_investments").default(15420),
+  baselineTotalBalance: text("baseline_total_balance").default("845.67342158"),
+  baselineTotalProfit: text("baseline_total_profit").default("127.84501632"),
+
+  // USD Plan-specific baseline statistics ($10-$12,000 plans)
+  plan10Active: integer("plan_10_active").default(3240),
+  plan10Amount: text("plan_10_amount").default("26.59680000"),
+  plan10Profit: text("plan_10_profit").default("2.63142400"),
+
+  plan20Active: integer("plan_20_active").default(2850),
+  plan20Amount: text("plan_20_amount").default("46.79100000"),
+  plan20Profit: text("plan_20_profit").default("4.60951020"),
+
+  plan50Active: integer("plan_50_active").default(2410),
+  plan50Amount: text("plan_50_amount").default("98.77450000"),
+  plan50Profit: text("plan_50_profit").default("9.81986130"),
+
+  plan100Active: integer("plan_100_active").default(1980),
+  plan100Amount: text("plan_100_amount").default("162.54180000"),
+  plan100Profit: text("plan_100_profit").default("16.37471736"),
+
+  plan300Active: integer("plan_300_active").default(1620),
+  plan300Amount: text("plan_300_amount").default("398.91600000"),
+  plan300Profit: text("plan_300_profit").default("39.15205120"),
+
+  plan500Active: integer("plan_500_active").default(1350),
+  plan500Amount: text("plan_500_amount").default("554.04225000"),
+  plan500Profit: text("plan_500_profit").default("56.56110963"),
+
+  plan1000Active: integer("plan_1000_active").default(1140),
+  plan1000Amount: text("plan_1000_amount").default("935.84562000"),
+  plan1000Profit: text("plan_1000_profit").default("91.37287076"),
+
+  plan3000Active: integer("plan_3000_active").default(580),
+  plan3000Amount: text("plan_3000_amount").default("1428.29550000"),
+  plan3000Profit: text("plan_3000_profit").default("283.39430400"),
+
+  plan6000Active: integer("plan_6000_active").default(175),
+  plan6000Amount: text("plan_6000_amount").default("862.01250000"),
+  plan6000Profit: text("plan_6000_profit").default("203.72494500"),
+
+  plan12000Active: integer("plan_12000_active").default(75),
+  plan12000Amount: text("plan_12000_amount").default("738.62850000"),
+  plan12000Profit: text("plan_12000_profit").default("147.72570000"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

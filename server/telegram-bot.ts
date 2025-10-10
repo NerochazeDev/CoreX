@@ -171,13 +171,15 @@ export async function sendDailyStatsToChannel(): Promise<void> {
 
     // Get baseline values from database for daily stats
     const adminConfiguration = await storage.getAdminConfig();
-    let baselineUsers = adminConfiguration?.baselineUsers || 420;
-    let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 804;
-    let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '70275.171605');
-    let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '460.347340');
+    
+    // Realistic baseline matching "10,000+ Active Investors" from landing page
+    let baselineUsers = adminConfiguration?.baselineUsers || 9850;
+    let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 15420;
+    let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '845.67342158');
+    let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '127.84501632');
 
-    // Apply 0.9% growth to baseline statistics
-    const growthRate = 1.009; // 0.9% increase
+    // Apply realistic growth: 0.3-0.7% daily (organic growth pattern)
+    const growthRate = 1 + (0.003 + Math.random() * 0.004); // 0.3% to 0.7% random growth
     baselineUsers = Math.floor(baselineUsers * growthRate);
     baselineActiveInvestments = Math.floor(baselineActiveInvestments * growthRate);
     baselineTotalBalance = baselineTotalBalance * growthRate;
@@ -191,29 +193,59 @@ export async function sendDailyStatsToChannel(): Promise<void> {
       baselineTotalProfit: baselineTotalProfit.toFixed(8)
     });
 
-    console.log(`📈 Applied 0.9% growth: Users +${Math.floor((baselineUsers / growthRate) * 0.009)}, Investments +${Math.floor((baselineActiveInvestments / growthRate) * 0.009)}, Balance +${(baselineTotalBalance * 0.009).toFixed(4)} BTC`);
+    console.log(`📈 Applied ${((growthRate - 1) * 100).toFixed(2)}% organic growth: Users +${Math.floor((baselineUsers / growthRate) * (growthRate - 1))}, Investments +${Math.floor((baselineActiveInvestments / growthRate) * (growthRate - 1))}, Balance +${(baselineTotalBalance * (growthRate - 1)).toFixed(4)} BTC`);
 
-    // Plan baseline data from database for daily stats
+    // Plan baseline data matching new USD investment plans ($10-$12,000)
     const planBaselines: Record<string, { active: number; amount: number; profit: number }> = {
-      'Growth Plan': { 
-        active: adminConfiguration?.growthPlanActive || 227, 
-        amount: parseFloat(adminConfiguration?.growthPlanAmount || '11004.9901'), 
-        profit: parseFloat(adminConfiguration?.growthPlanProfit || '101.649889') 
+      '$10 Plan': { 
+        active: adminConfiguration?.plan10Active || 3240, 
+        amount: parseFloat(adminConfiguration?.plan10Amount || '26.59680000'), 
+        profit: parseFloat(adminConfiguration?.plan10Profit || '2.63142400') 
       },
-      'Institutional Plan': { 
-        active: adminConfiguration?.institutionalPlanActive || 210, 
-        amount: parseFloat(adminConfiguration?.institutionalPlanAmount || '9228.4977'), 
-        profit: parseFloat(adminConfiguration?.institutionalPlanProfit || '205.248890') 
+      '$20 Plan': { 
+        active: adminConfiguration?.plan20Active || 2850, 
+        amount: parseFloat(adminConfiguration?.plan20Amount || '46.79100000'), 
+        profit: parseFloat(adminConfiguration?.plan20Profit || '4.60951020') 
       },
-      'Premium Plan': { 
-        active: adminConfiguration?.premiumPlanActive || 198, 
-        amount: parseFloat(adminConfiguration?.premiumPlanAmount || '9274.8974'), 
-        profit: parseFloat(adminConfiguration?.premiumPlanProfit || '114.419514') 
+      '$50 Plan': { 
+        active: adminConfiguration?.plan50Active || 2410, 
+        amount: parseFloat(adminConfiguration?.plan50Amount || '98.77450000'), 
+        profit: parseFloat(adminConfiguration?.plan50Profit || '9.81986130') 
       },
-      'Foundation Plan': { 
-        active: adminConfiguration?.foundationPlanActive || 169, 
-        amount: parseFloat(adminConfiguration?.foundationPlanAmount || '7436.5081'), 
-        profit: parseFloat(adminConfiguration?.foundationPlanProfit || '39.029047') 
+      '$100 Plan': { 
+        active: adminConfiguration?.plan100Active || 1980, 
+        amount: parseFloat(adminConfiguration?.plan100Amount || '162.54180000'), 
+        profit: parseFloat(adminConfiguration?.plan100Profit || '16.37471736') 
+      },
+      '$300 Plan': { 
+        active: adminConfiguration?.plan300Active || 1620, 
+        amount: parseFloat(adminConfiguration?.plan300Amount || '398.91600000'), 
+        profit: parseFloat(adminConfiguration?.plan300Profit || '39.15205120') 
+      },
+      '$500 Plan': { 
+        active: adminConfiguration?.plan500Active || 1350, 
+        amount: parseFloat(adminConfiguration?.plan500Amount || '554.04225000'), 
+        profit: parseFloat(adminConfiguration?.plan500Profit || '56.56110963') 
+      },
+      '$1,000 Plan': { 
+        active: adminConfiguration?.plan1000Active || 1140, 
+        amount: parseFloat(adminConfiguration?.plan1000Amount || '935.84562000'), 
+        profit: parseFloat(adminConfiguration?.plan1000Profit || '91.37287076') 
+      },
+      '$3,000 Plan': { 
+        active: adminConfiguration?.plan3000Active || 580, 
+        amount: parseFloat(adminConfiguration?.plan3000Amount || '1428.29550000'), 
+        profit: parseFloat(adminConfiguration?.plan3000Profit || '283.39430400') 
+      },
+      '$6,000 Plan': { 
+        active: adminConfiguration?.plan6000Active || 175, 
+        amount: parseFloat(adminConfiguration?.plan6000Amount || '862.01250000'), 
+        profit: parseFloat(adminConfiguration?.plan6000Profit || '203.72494500') 
+      },
+      '$12,000 Plan': { 
+        active: adminConfiguration?.plan12000Active || 75, 
+        amount: parseFloat(adminConfiguration?.plan12000Amount || '738.62850000'), 
+        profit: parseFloat(adminConfiguration?.plan12000Profit || '147.72570000') 
       }
     };
 
@@ -413,15 +445,15 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           const allUsers = await storage.getAllUsers();
           const allInvestments = await storage.getAllInvestments();
 
-          // Get baseline values from database for live updates with 0.9% growth
+          // Get baseline values from database for live updates with realistic growth
           const adminConfiguration = await storage.getAdminConfig();
-          let baselineUsers = adminConfiguration?.baselineUsers || 420;
-          let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 804;
-          let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '70275.171605');
-          let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '460.347340');
+          let baselineUsers = adminConfiguration?.baselineUsers || 9850;
+          let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 15420;
+          let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '845.67342158');
+          let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '127.84501632');
 
-          // Apply 0.9% growth to baseline statistics for investment updates
-          const growthRate = 1.009; // 0.9% increase
+          // Apply realistic growth: 0.3-0.7% (matches organic platform growth)
+          const growthRate = 1 + (0.003 + Math.random() * 0.004);
           baselineUsers = Math.floor(baselineUsers * growthRate);
           baselineActiveInvestments = Math.floor(baselineActiveInvestments * growthRate);
           baselineTotalBalance = baselineTotalBalance * growthRate;
@@ -435,29 +467,59 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
             baselineTotalProfit: baselineTotalProfit.toFixed(8)
           });
 
-          console.log(`🚀 Investment update with 0.9% growth applied to platform stats`);
+          console.log(`🚀 Investment update with ${((growthRate - 1) * 100).toFixed(2)}% organic growth applied`);
 
-          // Plan baseline data from database for live updates
+          // Plan baseline data matching new USD investment plans
           const planBaselines: Record<string, { active: number; amount: number; profit: number }> = {
-            'Growth Plan': { 
-              active: adminConfiguration?.growthPlanActive || 227, 
-              amount: parseFloat(adminConfiguration?.growthPlanAmount || '11004.9901'), 
-              profit: parseFloat(adminConfiguration?.growthPlanProfit || '101.649889') 
+            '$10 Plan': { 
+              active: adminConfiguration?.plan10Active || 3240, 
+              amount: parseFloat(adminConfiguration?.plan10Amount || '26.59680000'), 
+              profit: parseFloat(adminConfiguration?.plan10Profit || '2.63142400') 
             },
-            'Institutional Plan': { 
-              active: adminConfiguration?.institutionalPlanActive || 210, 
-              amount: parseFloat(adminConfiguration?.institutionalPlanAmount || '9228.4977'), 
-              profit: parseFloat(adminConfiguration?.institutionalPlanProfit || '205.248890') 
+            '$20 Plan': { 
+              active: adminConfiguration?.plan20Active || 2850, 
+              amount: parseFloat(adminConfiguration?.plan20Amount || '46.79100000'), 
+              profit: parseFloat(adminConfiguration?.plan20Profit || '4.60951020') 
             },
-            'Premium Plan': { 
-              active: adminConfiguration?.premiumPlanActive || 198, 
-              amount: parseFloat(adminConfiguration?.premiumPlanAmount || '9274.8974'), 
-              profit: parseFloat(adminConfiguration?.premiumPlanProfit || '114.419514') 
+            '$50 Plan': { 
+              active: adminConfiguration?.plan50Active || 2410, 
+              amount: parseFloat(adminConfiguration?.plan50Amount || '98.77450000'), 
+              profit: parseFloat(adminConfiguration?.plan50Profit || '9.81986130') 
             },
-            'Foundation Plan': { 
-              active: adminConfiguration?.foundationPlanActive || 169, 
-              amount: parseFloat(adminConfiguration?.foundationPlanAmount || '7436.5081'), 
-              profit: parseFloat(adminConfiguration?.foundationPlanProfit || '39.029047') 
+            '$100 Plan': { 
+              active: adminConfiguration?.plan100Active || 1980, 
+              amount: parseFloat(adminConfiguration?.plan100Amount || '162.54180000'), 
+              profit: parseFloat(adminConfiguration?.plan100Profit || '16.37471736') 
+            },
+            '$300 Plan': { 
+              active: adminConfiguration?.plan300Active || 1620, 
+              amount: parseFloat(adminConfiguration?.plan300Amount || '398.91600000'), 
+              profit: parseFloat(adminConfiguration?.plan300Profit || '39.15205120') 
+            },
+            '$500 Plan': { 
+              active: adminConfiguration?.plan500Active || 1350, 
+              amount: parseFloat(adminConfiguration?.plan500Amount || '554.04225000'), 
+              profit: parseFloat(adminConfiguration?.plan500Profit || '56.56110963') 
+            },
+            '$1,000 Plan': { 
+              active: adminConfiguration?.plan1000Active || 1140, 
+              amount: parseFloat(adminConfiguration?.plan1000Amount || '935.84562000'), 
+              profit: parseFloat(adminConfiguration?.plan1000Profit || '91.37287076') 
+            },
+            '$3,000 Plan': { 
+              active: adminConfiguration?.plan3000Active || 580, 
+              amount: parseFloat(adminConfiguration?.plan3000Amount || '1428.29550000'), 
+              profit: parseFloat(adminConfiguration?.plan3000Profit || '283.39430400') 
+            },
+            '$6,000 Plan': { 
+              active: adminConfiguration?.plan6000Active || 175, 
+              amount: parseFloat(adminConfiguration?.plan6000Amount || '862.01250000'), 
+              profit: parseFloat(adminConfiguration?.plan6000Profit || '203.72494500') 
+            },
+            '$12,000 Plan': { 
+              active: adminConfiguration?.plan12000Active || 75, 
+              amount: parseFloat(adminConfiguration?.plan12000Amount || '738.62850000'), 
+              profit: parseFloat(adminConfiguration?.plan12000Profit || '147.72570000') 
             }
           };
 
@@ -601,15 +663,15 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
         const allUsers = await storage.getAllUsers();
         const allInvestments = await storage.getAllInvestments();
 
-        // Get baseline values from database for live updates with 0.9% growth
+        // Get baseline values from database for live updates with realistic growth
         const adminConfiguration = await storage.getAdminConfig();
-        let baselineUsers = adminConfiguration?.baselineUsers || 420;
-        let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 804;
-        let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '70275.171605');
-        let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '460.347340');
+        let baselineUsers = adminConfiguration?.baselineUsers || 9850;
+        let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 15420;
+        let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '845.67342158');
+        let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '127.84501632');
 
-        // Apply 0.9% growth to baseline statistics for fallback updates
-        const growthRate = 1.009; // 0.9% increase
+        // Apply realistic growth: 0.3-0.7% (organic growth pattern)
+        const growthRate = 1 + (0.003 + Math.random() * 0.004);
         baselineUsers = Math.floor(baselineUsers * growthRate);
         baselineActiveInvestments = Math.floor(baselineActiveInvestments * growthRate);
         baselineTotalBalance = baselineTotalBalance * growthRate;
@@ -623,29 +685,59 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           baselineTotalProfit: baselineTotalProfit.toFixed(8)
         });
 
-        console.log(`📊 Fallback update with 0.9% growth applied to baseline stats`);
+        console.log(`📊 Fallback update with ${((growthRate - 1) * 100).toFixed(2)}% organic growth applied`);
 
-        // Plan baseline data from database for live updates
+        // Plan baseline data matching new USD investment plans
         const planBaselines: Record<string, { active: number; amount: number; profit: number }> = {
-          'Growth Plan': { 
-            active: adminConfiguration?.growthPlanActive || 227, 
-            amount: parseFloat(adminConfiguration?.growthPlanAmount || '11004.9901'), 
-            profit: parseFloat(adminConfiguration?.growthPlanProfit || '101.649889') 
+          '$10 Plan': { 
+            active: adminConfiguration?.plan10Active || 3240, 
+            amount: parseFloat(adminConfiguration?.plan10Amount || '26.59680000'), 
+            profit: parseFloat(adminConfiguration?.plan10Profit || '2.63142400') 
           },
-          'Institutional Plan': { 
-            active: adminConfiguration?.institutionalPlanActive || 210, 
-            amount: parseFloat(adminConfiguration?.institutionalPlanAmount || '9228.4977'), 
-            profit: parseFloat(adminConfiguration?.institutionalPlanProfit || '205.248890') 
+          '$20 Plan': { 
+            active: adminConfiguration?.plan20Active || 2850, 
+            amount: parseFloat(adminConfiguration?.plan20Amount || '46.79100000'), 
+            profit: parseFloat(adminConfiguration?.plan20Profit || '4.60951020') 
           },
-          'Premium Plan': { 
-            active: adminConfiguration?.premiumPlanActive || 198, 
-            amount: parseFloat(adminConfiguration?.premiumPlanAmount || '9274.8974'), 
-            profit: parseFloat(adminConfiguration?.premiumPlanProfit || '114.419514') 
+          '$50 Plan': { 
+            active: adminConfiguration?.plan50Active || 2410, 
+            amount: parseFloat(adminConfiguration?.plan50Amount || '98.77450000'), 
+            profit: parseFloat(adminConfiguration?.plan50Profit || '9.81986130') 
           },
-          'Foundation Plan': { 
-            active: adminConfiguration?.foundationPlanActive || 169, 
-            amount: parseFloat(adminConfiguration?.foundationPlanAmount || '7436.5081'), 
-            profit: parseFloat(adminConfiguration?.foundationPlanProfit || '39.029047') 
+          '$100 Plan': { 
+            active: adminConfiguration?.plan100Active || 1980, 
+            amount: parseFloat(adminConfiguration?.plan100Amount || '162.54180000'), 
+            profit: parseFloat(adminConfiguration?.plan100Profit || '16.37471736') 
+          },
+          '$300 Plan': { 
+            active: adminConfiguration?.plan300Active || 1620, 
+            amount: parseFloat(adminConfiguration?.plan300Amount || '398.91600000'), 
+            profit: parseFloat(adminConfiguration?.plan300Profit || '39.15205120') 
+          },
+          '$500 Plan': { 
+            active: adminConfiguration?.plan500Active || 1350, 
+            amount: parseFloat(adminConfiguration?.plan500Amount || '554.04225000'), 
+            profit: parseFloat(adminConfiguration?.plan500Profit || '56.56110963') 
+          },
+          '$1,000 Plan': { 
+            active: adminConfiguration?.plan1000Active || 1140, 
+            amount: parseFloat(adminConfiguration?.plan1000Amount || '935.84562000'), 
+            profit: parseFloat(adminConfiguration?.plan1000Profit || '91.37287076') 
+          },
+          '$3,000 Plan': { 
+            active: adminConfiguration?.plan3000Active || 580, 
+            amount: parseFloat(adminConfiguration?.plan3000Amount || '1428.29550000'), 
+            profit: parseFloat(adminConfiguration?.plan3000Profit || '283.39430400') 
+          },
+          '$6,000 Plan': { 
+            active: adminConfiguration?.plan6000Active || 175, 
+            amount: parseFloat(adminConfiguration?.plan6000Amount || '862.01250000'), 
+            profit: parseFloat(adminConfiguration?.plan6000Profit || '203.72494500') 
+          },
+          '$12,000 Plan': { 
+            active: adminConfiguration?.plan12000Active || 75, 
+            amount: parseFloat(adminConfiguration?.plan12000Amount || '738.62850000'), 
+            profit: parseFloat(adminConfiguration?.plan12000Profit || '147.72570000') 
           }
         };
 
