@@ -32,7 +32,7 @@ export default function Login() {
         description: "You've successfully signed in to your BitVault Pro account. Your investments await!",
         variant: "default",
       });
-      console.log('Redirecting to homepage...');
+      console.log('Redirecting to home page...');
       setTimeout(() => {
         setLocation('/');
       }, 100);
