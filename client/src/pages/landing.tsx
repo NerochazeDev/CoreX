@@ -1,11 +1,23 @@
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BitVaultLogo } from "@/components/bitvault-logo";
 import { Shield, TrendingUp, Lock, Zap, ArrowRight, ExternalLink, CheckCircle, BarChart3, Wallet, Users, Clock, DollarSign } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Landing() {
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (user) {
+      setLocation('/dashboard');
+    }
+  }, [user, setLocation]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}

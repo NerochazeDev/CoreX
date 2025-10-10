@@ -36,9 +36,9 @@ export default function OAuthSuccess() {
             variant: "default",
           });
           
-          // Navigate to homepage (same as regular login)
+          // Navigate to dashboard (same as regular login)
           setTimeout(() => {
-            setLocation('/');
+            setLocation('/dashboard');
           }, 100);
           
         } catch (error) {

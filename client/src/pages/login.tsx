@@ -32,9 +32,9 @@ export default function Login() {
         description: "You've successfully signed in to your BitVault Pro account. Your investments await!",
         variant: "default",
       });
-      console.log('Redirecting to home page...');
+      console.log('Redirecting to dashboard...');
       setTimeout(() => {
-        setLocation('/');
+        setLocation('/dashboard');
       }, 100);
     } catch (error) {
       console.error('Login error in component:', error);
