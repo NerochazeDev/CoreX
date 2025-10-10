@@ -666,7 +666,7 @@ async function processAutomaticUpdates(): Promise<void> {
         const maxGrossProfit = usdAmount * (plan.roiPercentage / 100);
         const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
         
-        // Check if we've already reached the maximum expected profit
+        // Check if we've already reached the maximum expected profit BEFORE calculating new profit
         if (isUsdInvestment && currentGrossProfit >= maxGrossProfit) {
           // Max profit reached - skip this interval
           if (Math.random() < 0.05) { // Only log occasionally
@@ -731,55 +731,37 @@ Investment #${investment.id} trading update:
         
         if (isUsdInvestment && performanceFeePercentage > 0) {
           // For USD investments, calculate gross profit, fee, and net profit
-          const usdProfitIncrease = usdAmount * intervalRate;
-          let newGrossProfit = currentGrossProfit + usdProfitIncrease;
+          let usdProfitIncrease = usdAmount * intervalRate;
           
-          // Cap gross profit at maximum expected
-          if (newGrossProfit > maxGrossProfit) {
-            const actualIncrease = maxGrossProfit - currentGrossProfit;
-            newGrossProfit = maxGrossProfit;
-            
-            // Adjust USD profit increase to match cap
-            const usdProfitIncreaseAdjusted = actualIncrease;
-            
-            // Calculate performance fee on actual profit earned
-            const feeOnThisProfit = usdProfitIncreaseAdjusted * (performanceFeePercentage / 100);
-            const netProfitIncrease = usdProfitIncreaseAdjusted - feeOnThisProfit;
-            
-            // Calculate total accumulated values
-            const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
-            const totalNetProfit = newGrossProfit - totalPerformanceFee;
-            
-            // Update actual profit to credit (net profit after fees)
-            actualProfitToCredit = netProfitIncrease;
-            netProfitIncreaseForDisplay = netProfitIncrease;
-            
-            await storage.updateInvestmentProfitDetails(investment.id, {
-              currentProfit: newProfit.toFixed(8),
-              grossProfit: newGrossProfit.toFixed(2),
-              performanceFee: totalPerformanceFee.toFixed(2),
-              netProfit: totalNetProfit.toFixed(2),
-            });
-          } else {
-            // Normal profit calculation - not capped yet
-            const feeOnThisProfit = usdProfitIncrease * (performanceFeePercentage / 100);
-            const netProfitIncrease = usdProfitIncrease - feeOnThisProfit;
-            
-            // Calculate total accumulated values
-            const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
-            const totalNetProfit = newGrossProfit - totalPerformanceFee;
-            
-            // Update actual profit to credit (net profit after fees)
-            actualProfitToCredit = netProfitIncrease;
-            netProfitIncreaseForDisplay = netProfitIncrease;
-            
-            await storage.updateInvestmentProfitDetails(investment.id, {
-              currentProfit: newProfit.toFixed(8),
-              grossProfit: newGrossProfit.toFixed(2),
-              performanceFee: totalPerformanceFee.toFixed(2),
-              netProfit: totalNetProfit.toFixed(2),
-            });
+          // IMPORTANT: Cap the profit increase BEFORE it's added
+          // This ensures we never exceed maxGrossProfit
+          const potentialNewGrossProfit = currentGrossProfit + usdProfitIncrease;
+          if (potentialNewGrossProfit > maxGrossProfit) {
+            // Adjust the profit increase to exactly reach the cap, not exceed it
+            usdProfitIncrease = Math.max(0, maxGrossProfit - currentGrossProfit);
           }
+          
+          // Now calculate with the capped profit increase
+          const newGrossProfit = currentGrossProfit + usdProfitIncrease;
+          
+          // Calculate performance fee on the profit earned this interval
+          const feeOnThisProfit = usdProfitIncrease * (performanceFeePercentage / 100);
+          const netProfitIncrease = usdProfitIncrease - feeOnThisProfit;
+          
+          // Calculate total accumulated values
+          const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
+          const totalNetProfit = newGrossProfit - totalPerformanceFee;
+          
+          // Update actual profit to credit (net profit after fees)
+          actualProfitToCredit = netProfitIncrease;
+          netProfitIncreaseForDisplay = netProfitIncrease;
+          
+          await storage.updateInvestmentProfitDetails(investment.id, {
+            currentProfit: newProfit.toFixed(8),
+            grossProfit: newGrossProfit.toFixed(2),
+            performanceFee: totalPerformanceFee.toFixed(2),
+            netProfit: totalNetProfit.toFixed(2),
+          });
         } else {
           // Legacy BTC investment - only update currentProfit
           await storage.updateInvestmentProfit(investment.id, newProfit.toFixed(8));
