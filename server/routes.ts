@@ -657,6 +657,54 @@ async function processAutomaticUpdates(): Promise<void> {
       const profitIncrease = investmentAmount * intervalRate;
 
       if (profitIncrease > 0) {
+        // Implement 70% success / 30% failure rate for realistic trading simulation
+        const tradeSuccessful = Math.random() < 0.7; // 70% success rate
+        
+        if (!tradeSuccessful) {
+          // Trade failed - notify user but don't deduct balance
+          const user = await storage.getUser(investment.userId);
+          if (user) {
+            const failureReasons = [
+              "Market volatility caused unfavorable conditions",
+              "Liquidity constraints limited execution",
+              "Risk management protocols prevented trade",
+              "Market spread exceeded threshold parameters",
+              "Technical analysis indicated suboptimal entry point",
+              "Order book depth was insufficient for execution"
+            ];
+            const randomReason = failureReasons[Math.floor(Math.random() * failureReasons.length)];
+            
+            // Create failure notification (less frequently to avoid spam)
+            if (Math.random() < 0.4) { // 40% chance to notify on failure
+              await storage.createNotification({
+                userId: investment.userId,
+                title: "📊 Trade Update - No Profit This Interval",
+                message: `⚠️ ${plan.name} Trade Status
+  
+Investment #${investment.id} trading update:
+  
+❌ This interval: No profit generated
+📉 Reason: ${randomReason}
+💼 Your Balance: ${user.balance} BTC (Unchanged)
+🔒 Principal Protected: 100% Safe
+  
+ℹ️ Note: In professional trading, not every interval yields profit. Your capital remains secure while we wait for optimal market conditions.
+  
+📊 Next trading cycle: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}`,
+                type: 'info',
+                isRead: false,
+              });
+            }
+            
+            // Log occasional failures
+            if (Math.random() < 0.15) {
+              console.log(`Investment #${investment.id} - Trade unsuccessful this interval (70/30 simulation)`);
+            }
+          }
+          continue; // Skip to next investment without adding profit
+        }
+        
+        // Trade successful - proceed with profit addition
         const newProfit = currentProfit + profitIncrease;
         
         // Check if this is a USD-based investment with performance fees
