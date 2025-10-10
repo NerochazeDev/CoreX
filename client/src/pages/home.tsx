@@ -317,7 +317,7 @@ export default function Home() {
                       variant="ghost"
                       size="sm"
                       className="h-16 flex flex-col gap-1 bg-gradient-to-br from-orange-600/20 to-orange-700/20 hover:from-orange-600/30 hover:to-orange-700/30 border border-orange-400/30 rounded-2xl shadow-lg shadow-orange-600/10 text-orange-200 hover:text-orange-100"
-                      onClick={() => setLocation('/investment')}
+                      onClick={() => setLocation('/invest')}
                     >
                       <Zap className="w-6 h-6" />
                       <span className="text-xs font-medium">Invest</span>
