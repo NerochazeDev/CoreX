@@ -37,9 +37,9 @@ export default function Login() {
         variant: "default",
       });
       
-      console.log('Redirecting to home page...');
+      console.log('Redirecting to dashboard...');
       // Use window.location for full page reload to ensure auth state is fresh
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Login error in component:', error);
       const errorMessage = error instanceof Error ? error.message : "Invalid credentials provided";
