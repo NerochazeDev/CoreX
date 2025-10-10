@@ -61,7 +61,6 @@ function Router() {
       <Route path="/Hello10122" component={SecureAdmin} />
       <Route path="/Hello10122add" component={AdminUserManagement} />
       <Route path="/investment" component={Investment} />
-      <Route path="/dashboard" component={InvestmentDashboard} />
       <Route path="/history" component={History} />
       <Route path="/transactions" component={Transactions} />
       <Route path="/settings" component={Settings} />
