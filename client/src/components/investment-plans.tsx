@@ -164,7 +164,7 @@ export function InvestmentPlans() {
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span>Capital Investment:</span>
+                    <span>Plan Capital:</span>
                     <div className="text-right">
                       <div className="font-medium">${plan.usdMinAmount}</div>
                       {bitcoinPrice && (
@@ -173,22 +173,24 @@ export function InvestmentPlans() {
                     </div>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span>Hold Period:</span>
+                    <span>Hold Days:</span>
                     <div className="text-right font-medium">{plan.durationDays} days</div>
                   </div>
                   <div className="flex justify-between text-xs border-t border-white/20 pt-1">
-                    <span>Gross Profit ({plan.roiPercentage}%):</span>
+                    <span>Profit (Before Fee):</span>
                     <div className="text-right text-green-300">
                       <div className="font-medium">+${(parseFloat(plan.usdMinAmount) * plan.roiPercentage / 100).toFixed(2)}</div>
-                      {bitcoinPrice && (
-                        <div className="text-xs opacity-75">≈ +{formatBitcoin((parseFloat(plan.usdMinAmount) * plan.roiPercentage / 100) / bitcoinPrice.usd.price)} BTC</div>
-                      )}
+                      <div className="text-xs opacity-75">{plan.roiPercentage}% ROI</div>
                     </div>
                   </div>
-                  {plan.usdMinAmount && plan.performanceFeePercentage && plan.performanceFeePercentage > 0 && (
+                  {plan.performanceFeePercentage && plan.performanceFeePercentage > 0 && (
                     <>
                       <div className="flex justify-between text-xs text-yellow-300">
-                        <span>Performance Fee ({plan.performanceFeePercentage}%):</span>
+                        <span>Fee %:</span>
+                        <div className="text-right font-medium">{plan.performanceFeePercentage}%</div>
+                      </div>
+                      <div className="flex justify-between text-xs text-yellow-300">
+                        <span>Fee (on Profit):</span>
                         <div className="text-right">
                           <div className="font-medium">-${(parseFloat(plan.usdMinAmount) * plan.roiPercentage / 100 * plan.performanceFeePercentage / 100).toFixed(2)}</div>
                           <div className="text-xs opacity-75">On Profit Only</div>

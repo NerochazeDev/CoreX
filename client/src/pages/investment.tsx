@@ -461,11 +461,11 @@ export default function Investment() {
                               {plan.performanceFeePercentage && plan.performanceFeePercentage > 0 && (
                                 <>
                                   <div className="flex justify-between text-sm text-yellow-300">
-                                    <span>Fee % (on Profit):</span>
+                                    <span>Fee %:</span>
                                     <div className="text-right font-medium">{plan.performanceFeePercentage}%</div>
                                   </div>
                                   <div className="flex justify-between text-sm text-yellow-300">
-                                    <span>Fee Amount:</span>
+                                    <span>Fee (on Profit):</span>
                                     <div className="text-right">
                                       <div className="font-medium">-${(parseFloat(plan.usdMinAmount || '0') * plan.roiPercentage / 100 * plan.performanceFeePercentage / 100).toFixed(2)}</div>
                                       <div className="text-xs opacity-75">On Profit Only</div>
