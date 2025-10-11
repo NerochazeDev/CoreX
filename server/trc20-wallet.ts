@@ -1,6 +1,4 @@
-import * as TronWebModule from 'tronweb';
-
-const TronWeb = (TronWebModule as any).default || TronWebModule;
+import { TronWeb } from 'tronweb';
 
 const TRON_MAINNET = {
   fullNode: 'https://api.trongrid.io',
@@ -24,6 +22,10 @@ export class TRC20WalletManager {
   generateHDWallet(): { mnemonic: string; vaultAddress: string } {
     const hdWallet = TronWeb.createRandom();
     
+    if (!hdWallet.mnemonic) {
+      throw new Error('Failed to generate HD wallet mnemonic');
+    }
+    
     return {
       mnemonic: hdWallet.mnemonic.phrase,
       vaultAddress: hdWallet.address,
@@ -34,7 +36,13 @@ export class TRC20WalletManager {
     const derivationPath = `${TRON_DERIVATION_PATH_PREFIX}${index}`;
     const wallet = TronWeb.fromMnemonic(mnemonic, derivationPath);
     
-    return typeof wallet.address === 'string' ? wallet.address : wallet.address.base58;
+    const address = wallet.address;
+    if (typeof address === 'string') {
+      return address;
+    } else if (address && typeof address === 'object' && 'base58' in address) {
+      return (address as any).base58;
+    }
+    throw new Error('Failed to derive TRON address');
   }
 
   async getTRC20Balance(address: string, tokenContract: string): Promise<string> {

@@ -7,7 +7,7 @@ if (!process.env.DATABASE_URL) {
 let databaseUrl = process.env.DATABASE_URL.trim();
 
 if (databaseUrl.startsWith('DATABASE_URL=')) {
-  databaseUrl = databaseUrl.substring('DATABASE_URL='.length);
+  databaseUrl = databaseUrl.substring('DATABASE_URL='.length).trim();
 }
 
 databaseUrl = databaseUrl.replace(/\/\.s\.PGSQL\.\d+$/, '');

@@ -56,6 +56,53 @@ async function addMissingColumns(): Promise<void> {
     await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS trc20_vault_address TEXT`);
     await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS min_deposit_usd DECIMAL(10, 2) DEFAULT 10.00`);
     
+    // Add baseline statistics columns
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS baseline_users INTEGER DEFAULT 9850`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS baseline_active_investments INTEGER DEFAULT 15420`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS baseline_total_balance TEXT DEFAULT '845.67342158'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS baseline_total_profit TEXT DEFAULT '127.84501632'`);
+    
+    // Add plan-specific baseline statistics columns
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan10_active INTEGER DEFAULT 3240`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan10_amount TEXT DEFAULT '26.59680000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan10_profit TEXT DEFAULT '2.63142400'`);
+    
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan20_active INTEGER DEFAULT 2850`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan20_amount TEXT DEFAULT '46.79100000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan20_profit TEXT DEFAULT '4.60951020'`);
+    
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan50_active INTEGER DEFAULT 2410`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan50_amount TEXT DEFAULT '98.77450000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan50_profit TEXT DEFAULT '9.81986130'`);
+    
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan100_active INTEGER DEFAULT 1980`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan100_amount TEXT DEFAULT '162.54180000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan100_profit TEXT DEFAULT '16.37471736'`);
+    
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan300_active INTEGER DEFAULT 1620`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan300_amount TEXT DEFAULT '398.91600000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan300_profit TEXT DEFAULT '39.15205120'`);
+    
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan500_active INTEGER DEFAULT 1350`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan500_amount TEXT DEFAULT '554.04225000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan500_profit TEXT DEFAULT '56.56110963'`);
+    
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan1000_active INTEGER DEFAULT 1140`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan1000_amount TEXT DEFAULT '935.84562000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan1000_profit TEXT DEFAULT '91.37287076'`);
+    
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan3000_active INTEGER DEFAULT 580`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan3000_amount TEXT DEFAULT '1428.29550000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan3000_profit TEXT DEFAULT '283.39430400'`);
+    
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan6000_active INTEGER DEFAULT 175`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan6000_amount TEXT DEFAULT '862.01250000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan6000_profit TEXT DEFAULT '203.72494500'`);
+    
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan12000_active INTEGER DEFAULT 75`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan12000_amount TEXT DEFAULT '738.62850000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan12000_profit TEXT DEFAULT '147.72570000'`);
+    
     console.log('✅ Missing columns added successfully');
   } catch (error) {
     console.warn('⚠️ Error adding missing columns:', error);
