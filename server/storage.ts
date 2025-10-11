@@ -51,6 +51,7 @@ export interface IStorage {
 
   // Wallet operations
   updateUserWallet(userId: number, bitcoinAddress: string, privateKey: string, seedPhrase?: string): Promise<User | undefined>;
+  updateUserTRC20Address(userId: number, trc20DepositAddress: string): Promise<User | undefined>;
 
   // Transaction operations
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
@@ -670,6 +671,15 @@ export class DatabaseStorage implements IStorage {
     const updated = await db
       .update(users)
       .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+    return updated[0];
+  }
+
+  async updateUserTRC20Address(userId: number, trc20DepositAddress: string): Promise<User | undefined> {
+    const updated = await db
+      .update(users)
+      .set({ trc20DepositAddress })
       .where(eq(users.id, userId))
       .returning();
     return updated[0];

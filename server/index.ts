@@ -159,6 +159,9 @@ process.on('uncaughtException', (error) => {
         await runSafeMigrations();
         dbInitialized = true;
         console.log('✅ Database initialized successfully');
+        
+        const { initializeTRC20System } = await import('./trc20-init');
+        await initializeTRC20System();
       } else {
         throw new Error('Database connection test failed');
       }

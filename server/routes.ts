@@ -1540,75 +1540,52 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(404).json({ error: "User not found." });
       }
 
-      // Create Bitcoin address automatically if user doesn't have one
-      if (!user.bitcoinAddress) {
+      if (!user.trc20DepositAddress) {
         try {
-          const bitcoin = await import('bitcoinjs-lib');
-          const bip39 = await import('bip39');
-          const bip32 = await import('bip32');
-          const ECPair = (await import('ecpair')).ECPairFactory(await import('tiny-secp256k1'));
-
-          // Generate mnemonic and Bitcoin address
-          const mnemonic = bip39.generateMnemonic();
-          const seed = await bip39.mnemonicToSeed(mnemonic);
-          const root = bip32.BIP32Factory(await import('tiny-secp256k1')).fromSeed(seed);
-          const account = root.derivePath("m/44'/0'/0'/0/0");
-          const keyPair = ECPair.fromPrivateKey(Buffer.from(account.privateKey!));
-          const publicKeyBuffer = Buffer.isBuffer(keyPair.publicKey) 
-            ? keyPair.publicKey 
-            : Buffer.from(keyPair.publicKey);
-          const { address } = bitcoin.payments.p2pkh({ pubkey: publicKeyBuffer });
-
-          if (!address) {
-            throw new Error('Failed to generate Bitcoin address');
+          const { assignUserTRC20Address } = await import('./trc20-init');
+          const trc20Address = await assignUserTRC20Address(userId);
+          
+          if (!trc20Address) {
+            return res.status(500).json({ error: "Failed to create TRC20 deposit address. Please try again." });
           }
-
-          // SECURITY: Store user's address but deposits will go to vault
-          await storage.updateUserWallet(userId, address, Buffer.from(keyPair.privateKey!).toString('hex'), mnemonic);
-
-          // Get updated user
-          const updatedUser = await storage.getUser(userId);
-          if (!updatedUser?.bitcoinAddress) {
-            return res.status(500).json({ error: "Failed to create Bitcoin wallet. Please try again." });
-          }
-          user.bitcoinAddress = updatedUser.bitcoinAddress;
+          
+          user.trc20DepositAddress = trc20Address;
         } catch (error) {
-          console.error('Error creating Bitcoin wallet:', error);
-          return res.status(500).json({ error: "Failed to create Bitcoin wallet. Please try again." });
+          console.error('Error creating TRC20 address:', error);
+          return res.status(500).json({ error: "Failed to create TRC20 deposit address. Please try again." });
         }
       }
 
       const { amount } = createDepositSessionSchema.parse(req.body);
 
-      // Validate amount
       const amountNum = parseFloat(amount);
       if (isNaN(amountNum) || amountNum <= 0) {
         return res.status(400).json({ error: "Invalid amount. Amount must be greater than 0." });
       }
 
-      if (amountNum < 0.001) {
-        return res.status(400).json({ error: "Minimum deposit amount is 0.001 BTC." });
+      const adminConfig = await storage.getAdminConfig();
+      const minDepositUsd = parseFloat(adminConfig?.minDepositUsd || '10');
+      
+      if (amountNum < minDepositUsd) {
+        return res.status(400).json({ error: `Minimum deposit amount is $${minDepositUsd} USDT.` });
       }
 
-      // Create deposit session
       const session = await storage.createDepositSession({
         userId,
-        depositAddress: user.bitcoinAddress,
+        depositAddress: user.trc20DepositAddress,
         amount: amount
       });
 
-      // SECURITY: Always use vault address for deposits, not user's individual address
-      const adminConfig = await storage.getAdminConfig();
-      const actualDepositAddress = adminConfig?.vaultAddress || session.depositAddress;
-      
       res.json({
         sessionToken: session.sessionToken,
-        depositAddress: actualDepositAddress, // Use vault address directly
+        depositAddress: user.trc20DepositAddress,
         amount: session.amount,
         expiresAt: session.expiresAt,
         status: session.status,
         timeRemaining: Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000)),
-        notice: "All deposits are secured in our vault system for maximum security"
+        currency: "USDT",
+        network: "TRC20",
+        notice: "Send USDT (TRC20) to this address. Each user has a unique deposit address."
       });
 
     } catch (error: any) {
