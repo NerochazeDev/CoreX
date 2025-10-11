@@ -38,6 +38,7 @@ async function addMissingColumns(): Promise<void> {
     await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`);
     await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS website TEXT`);
     await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT`);
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS trc20_deposit_address TEXT`);
     
     // Add missing columns to investments table
     await db.execute(sql`ALTER TABLE investments ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE`);
@@ -49,6 +50,11 @@ async function addMissingColumns(): Promise<void> {
     // Add missing columns to investment_plans table
     await db.execute(sql`ALTER TABLE investment_plans ADD COLUMN IF NOT EXISTS usd_min_amount DECIMAL(18, 2)`);
     await db.execute(sql`ALTER TABLE investment_plans ADD COLUMN IF NOT EXISTS performance_fee_percentage INTEGER DEFAULT 0`);
+    
+    // Add missing columns to admin_config table
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS trc20_hd_seed TEXT`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS trc20_vault_address TEXT`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS min_deposit_usd DECIMAL(10, 2) DEFAULT 10.00`);
     
     console.log('✅ Missing columns added successfully');
   } catch (error) {

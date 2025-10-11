@@ -17,6 +17,7 @@ export const users = pgTable("users", {
   bitcoinAddress: text("bitcoin_address"), // nullable until wallet is set up
   privateKey: text("private_key"), // nullable until wallet is set up
   seedPhrase: text("seed_phrase"),
+  trc20DepositAddress: text("trc20_deposit_address"), // TRC20 USDT deposit address
   balance: decimal("balance", { precision: 18, scale: 8 }).notNull().default("0"),
   currentPlanId: integer("current_plan_id"), // null for free plan
   isAdmin: boolean("is_admin").notNull().default(false), // Full admin access
@@ -72,6 +73,9 @@ export const adminConfig = pgTable("admin_config", {
   id: serial("id").primaryKey(),
   vaultAddress: text("vault_address").notNull(),
   depositAddress: text("deposit_address").notNull(),
+  trc20HdSeed: text("trc20_hd_seed"), // HD wallet seed for generating TRC20 addresses
+  trc20VaultAddress: text("trc20_vault_address"), // TRC20 USDT vault address
+  minDepositUsd: decimal("min_deposit_usd", { precision: 10, scale: 2 }).default("10.00"), // Minimum deposit in USD
   freePlanRate: decimal("free_plan_rate", { precision: 8, scale: 6 }).notNull().default("0.0001"), // Free plan earning rate per 10 minutes
   // Baseline statistics for platform metrics (realistic organic growth 0.3-0.7% daily)
   baselineUsers: integer("baseline_users").default(9850),
