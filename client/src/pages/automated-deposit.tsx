@@ -9,7 +9,6 @@ import { Copy, CheckCircle, Clock, Loader2, AlertTriangle, RefreshCw, ArrowUpDow
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 
 interface DepositSession {
   sessionToken: string;
@@ -28,14 +27,11 @@ interface DepositSession {
 
 export default function AutomatedDeposit() {
   const [amount, setAmount] = useState("");
-  const [inputMode, setInputMode] = useState<'BTC' | 'USD'>('BTC');
-  const [fiatAmount, setFiatAmount] = useState("");
   const [currentSession, setCurrentSession] = useState<DepositSession | null>(null);
   const [step, setStep] = useState<"input" | "session" | "monitoring" | "completed">("input");
   const [timeRemaining, setTimeRemaining] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: bitcoinPrice } = useBitcoinPrice();
 
   // Create deposit session mutation
   const createSessionMutation = useMutation({
@@ -49,7 +45,7 @@ export default function AutomatedDeposit() {
       setStep("session");
       toast({
         title: "✅ Deposit Session Created",
-        description: `Your automated deposit session for ${session.amount} BTC has been created.`,
+        description: `Your deposit session for $${session.amount} USDT (TRC20) has been created.`,
       });
     },
     onError: (error: any) => {
@@ -105,7 +101,7 @@ export default function AutomatedDeposit() {
         setStep("completed");
         toast({
           title: "🎉 Deposit Completed!",
-          description: `Your deposit of ${sessionDetails.amountReceived || sessionDetails.amount} BTC has been confirmed and added to your balance.`,
+          description: `Your deposit of $${sessionDetails.amountReceived || sessionDetails.amount} USDT has been confirmed and added to your balance.`,
         });
       } else if (sessionDetails.status === "expired") {
         setStep("input");
@@ -166,61 +162,11 @@ export default function AutomatedDeposit() {
     }
   };
 
-  // Calculate USD equivalent
-  const getUsdEquivalent = (btcAmount: string): string => {
-    if (!bitcoinPrice?.usd?.price) return "~";
-    const usd = parseFloat(btcAmount) * bitcoinPrice.usd.price;
-    return `≈ $${usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
-  // Convert between BTC and USD
-  const convertBtcToUsd = (btcAmount: string): string => {
-    if (!bitcoinPrice?.usd?.price || !btcAmount) return "";
-    const usd = parseFloat(btcAmount) * bitcoinPrice.usd.price;
-    return usd.toFixed(2);
-  };
-
-  const convertUsdToBtc = (usdAmount: string): string => {
-    if (!bitcoinPrice?.usd?.price || !usdAmount) return "";
-    const btc = parseFloat(usdAmount) / bitcoinPrice.usd.price;
-    return btc.toFixed(8);
-  };
-
-  // Handle input mode change
-  const handleInputModeToggle = () => {
-    if (inputMode === 'BTC') {
-      // Convert current BTC amount to USD
-      if (amount) {
-        setFiatAmount(convertBtcToUsd(amount));
-      }
-      setInputMode('USD');
-    } else {
-      // Convert current USD amount to BTC
-      if (fiatAmount) {
-        setAmount(convertUsdToBtc(fiatAmount));
-      }
-      setInputMode('BTC');
-    }
-  };
-
-  // Handle amount changes
-  const handleAmountChange = (value: string) => {
-    if (inputMode === 'BTC') {
-      setAmount(value);
-      setFiatAmount(convertBtcToUsd(value));
-    } else {
-      setFiatAmount(value);
-      setAmount(convertUsdToBtc(value));
-    }
-  };
-
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Always use the BTC amount for validation and submission
-    const btcAmount = inputMode === 'BTC' ? amount : convertUsdToBtc(fiatAmount);
-    const amountNum = parseFloat(btcAmount);
+    const amountNum = parseFloat(amount);
 
     if (isNaN(amountNum) || amountNum <= 0) {
       toast({
@@ -231,16 +177,16 @@ export default function AutomatedDeposit() {
       return;
     }
 
-    if (amountNum < 0.001) {
+    if (amountNum < 10) {
       toast({
         title: "❌ Amount Too Small",
-        description: "Minimum deposit amount is 0.001 BTC",
+        description: "Minimum deposit amount is $10 USDT",
         variant: "destructive",
       });
       return;
     }
 
-    createSessionMutation.mutate(btcAmount);
+    createSessionMutation.mutate(amount);
   };
 
   // Start new session
@@ -248,7 +194,6 @@ export default function AutomatedDeposit() {
     setStep("input");
     setCurrentSession(null);
     setAmount("");
-    setFiatAmount("");
     setTimeRemaining(0);
   };
 
@@ -257,10 +202,10 @@ export default function AutomatedDeposit() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent mb-4">
-            💰 Deposit Bitcoin
+            💰 Deposit USDT
           </h1>
           <p className="text-lg text-orange-600/80 dark:text-orange-400/80 font-medium max-w-2xl mx-auto">
-            Send Bitcoin to your personal wallet address and get instant verification when confirmed on the blockchain
+            Send USDT (TRC20) to your unique deposit address. Each user has their own address for instant tracking.
           </p>
         </div>
 
@@ -274,75 +219,38 @@ export default function AutomatedDeposit() {
                   <span className="bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">Enter Deposit Amount</span>
                 </CardTitle>
                 <CardDescription className="text-orange-600/70 dark:text-orange-400/70">
-                  Specify how much Bitcoin you want to deposit. We'll create a secure session for your deposit.
+                  Specify how much USDT you want to deposit. Minimum deposit is $10 USDT on TRC20 network.
                 </CardDescription>
               </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="amount">Deposit Amount</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleInputModeToggle}
-                    className="h-8 px-3"
-                    data-testid="button-toggle-currency"
-                  >
-                    <ArrowUpDown className="h-3 w-3 mr-1" />
-                    {inputMode}
-                  </Button>
+                <Label htmlFor="amount">Deposit Amount (USDT)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    min="10"
+                    placeholder="10.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    disabled={createSessionMutation.isPending}
+                    className="pl-8"
+                    data-testid="input-deposit-amount-usdt"
+                  />
                 </div>
-
-                <div className="space-y-3">
-                  {inputMode === 'BTC' ? (
-                    <div>
-                      <Input
-                        id="amount"
-                        type="number"
-                        step="0.00000001"
-                        min="0.001"
-                        placeholder="0.001"
-                        value={amount}
-                        onChange={(e) => handleAmountChange(e.target.value)}
-                        disabled={createSessionMutation.isPending}
-                        data-testid="input-deposit-amount-btc"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {fiatAmount && `≈ $${parseFloat(fiatAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
-                        <Input
-                          id="amount-usd"
-                          type="number"
-                          step="0.01"
-                          min="100"
-                          placeholder="100.00"
-                          value={fiatAmount}
-                          onChange={(e) => handleAmountChange(e.target.value)}
-                          disabled={createSessionMutation.isPending}
-                          className="pl-8"
-                          data-testid="input-deposit-amount-usd"
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {amount && `≈ ${parseFloat(amount).toFixed(8)} BTC`}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Minimum deposit: $10 USDT on TRC20 network
+                </p>
               </div>
 
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Your Personal Address:</strong> This creates a 30-minute deposit session using your personal Bitcoin wallet address. 
-                  Send the exact amount and confirm when sent. Your balance will be updated automatically when the transaction is confirmed on the blockchain.
+                  <strong>Your Unique Address:</strong> Each user has a unique TRC20 deposit address. 
+                  Send the exact amount of USDT and confirm when sent. Your balance will be updated automatically.
                 </AlertDescription>
               </Alert>
 
@@ -373,15 +281,15 @@ export default function AutomatedDeposit() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">2</div>
-                Send Bitcoin Payment
+                Send USDT Payment (TRC20)
               </CardTitle>
               <CardDescription>
-                Send exactly {currentSession.amount} BTC to your personal wallet address below within {formatTimeRemaining(timeRemaining)}
+                Send ${currentSession.amount} USDT (TRC20) to your unique deposit address below within {formatTimeRemaining(timeRemaining)}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Your Personal Bitcoin Address</Label>
+                <Label>Your TRC20 Deposit Address</Label>
                 <div className="flex gap-2">
                   <Input 
                     value={currentSession.depositAddress} 
@@ -417,9 +325,6 @@ export default function AutomatedDeposit() {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {getUsdEquivalent(currentSession.amount)}
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -442,8 +347,8 @@ export default function AutomatedDeposit() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Important:</strong> Send exactly {currentSession.amount} BTC to your personal address above. 
-                  Any other amount may not be recognized automatically. This is your secure wallet address managed by BitVault Pro.
+                  <strong>Important:</strong> Send exactly ${currentSession.amount} USDT (TRC20) to your deposit address above. 
+                  Make sure to use the TRC20 network. Any other network or token will result in loss of funds.
                 </AlertDescription>
               </Alert>
 
@@ -487,7 +392,7 @@ export default function AutomatedDeposit() {
               Monitoring Blockchain
             </CardTitle>
             <CardDescription>
-              We're monitoring the Bitcoin blockchain for your transaction. This usually takes 1-10 minutes.
+              We're monitoring the TRON blockchain for your transaction. This usually takes 1-5 minutes.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -496,7 +401,7 @@ export default function AutomatedDeposit() {
                 <Loader2 className="h-12 w-12 animate-spin text-orange-500 mx-auto" />
                 <p className="text-lg font-semibold">Waiting for blockchain confirmation...</p>
                 <p className="text-sm text-muted-foreground">
-                  Amount: {currentSession.amount} BTC ({getUsdEquivalent(currentSession.amount)})
+                  Amount: ${currentSession.amount} USDT
                 </p>
                 {currentSession.blockchainTxHash && (
                   <div className="space-y-2">
@@ -549,10 +454,7 @@ export default function AutomatedDeposit() {
           <CardContent className="space-y-4">
             <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg space-y-2">
               <p className="text-lg font-semibold text-green-800 dark:text-green-200">
-                {currentSession.amountReceived || currentSession.amount} BTC deposited
-              </p>
-              <p className="text-sm text-green-600 dark:text-green-400">
-                {getUsdEquivalent(currentSession.amountReceived || currentSession.amount)}
+                ${currentSession.amountReceived || currentSession.amount} USDT deposited
               </p>
               {currentSession.blockchainTxHash && (
                 <p className="text-xs font-mono text-green-600 dark:text-green-400">

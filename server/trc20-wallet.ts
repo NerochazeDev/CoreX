@@ -1,4 +1,6 @@
-const TronWeb = require('tronweb');
+import * as TronWebModule from 'tronweb';
+
+const TronWeb = (TronWebModule as any).default || TronWebModule;
 
 const TRON_MAINNET = {
   fullNode: 'https://api.trongrid.io',
