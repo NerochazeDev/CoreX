@@ -475,90 +475,48 @@ export class DatabaseStorage implements IStorage {
           break;
 
         case 'investment':
-          updates.baselineActiveInvestments = (config.baselineActiveInvestments || 15420) + 1;
+          updates.baselineActiveInvestments = (config.baselineActiveInvestments || 804) + 1;
           if (amount && planName) {
-            // Update plan-specific stats for USD plans
+            // Update plan-specific stats
             switch (planName) {
-              case '$10 Plan':
-                updates.plan10Active = (config.plan10Active || 3240) + 1;
-                updates.plan10Amount = ((parseFloat(config.plan10Amount || '26.59680000')) + amount).toString();
+              case 'Growth Plan':
+                updates.growthPlanActive = (config.growthPlanActive || 227) + 1;
+                updates.growthPlanAmount = ((parseFloat(config.growthPlanAmount || '11004.9901')) + amount).toString();
                 break;
-              case '$20 Plan':
-                updates.plan20Active = (config.plan20Active || 2850) + 1;
-                updates.plan20Amount = ((parseFloat(config.plan20Amount || '46.79100000')) + amount).toString();
+              case 'Institutional Plan':
+                updates.institutionalPlanActive = (config.institutionalPlanActive || 210) + 1;
+                updates.institutionalPlanAmount = ((parseFloat(config.institutionalPlanAmount || '9228.4977')) + amount).toString();
                 break;
-              case '$50 Plan':
-                updates.plan50Active = (config.plan50Active || 2410) + 1;
-                updates.plan50Amount = ((parseFloat(config.plan50Amount || '98.77450000')) + amount).toString();
+              case 'Premium Plan':
+                updates.premiumPlanActive = (config.premiumPlanActive || 198) + 1;
+                updates.premiumPlanAmount = ((parseFloat(config.premiumPlanAmount || '9274.8974')) + amount).toString();
                 break;
-              case '$100 Plan':
-                updates.plan100Active = (config.plan100Active || 1980) + 1;
-                updates.plan100Amount = ((parseFloat(config.plan100Amount || '162.54180000')) + amount).toString();
-                break;
-              case '$300 Plan':
-                updates.plan300Active = (config.plan300Active || 1620) + 1;
-                updates.plan300Amount = ((parseFloat(config.plan300Amount || '398.91600000')) + amount).toString();
-                break;
-              case '$500 Plan':
-                updates.plan500Active = (config.plan500Active || 1350) + 1;
-                updates.plan500Amount = ((parseFloat(config.plan500Amount || '554.04225000')) + amount).toString();
-                break;
-              case '$1,000 Plan':
-                updates.plan1000Active = (config.plan1000Active || 1140) + 1;
-                updates.plan1000Amount = ((parseFloat(config.plan1000Amount || '935.84562000')) + amount).toString();
-                break;
-              case '$3,000 Plan':
-                updates.plan3000Active = (config.plan3000Active || 580) + 1;
-                updates.plan3000Amount = ((parseFloat(config.plan3000Amount || '1428.29550000')) + amount).toString();
-                break;
-              case '$6,000 Plan':
-                updates.plan6000Active = (config.plan6000Active || 175) + 1;
-                updates.plan6000Amount = ((parseFloat(config.plan6000Amount || '862.01250000')) + amount).toString();
-                break;
-              case '$12,000 Plan':
-                updates.plan12000Active = (config.plan12000Active || 75) + 1;
-                updates.plan12000Amount = ((parseFloat(config.plan12000Amount || '738.62850000')) + amount).toString();
+              case 'Foundation Plan':
+                updates.foundationPlanActive = (config.foundationPlanActive || 169) + 1;
+                updates.foundationPlanAmount = ((parseFloat(config.foundationPlanAmount || '7436.5081')) + amount).toString();
                 break;
             }
           }
           break;
 
         case 'investment_baseline':
-          updates.baselineActiveInvestments = (config.baselineActiveInvestments || 15420) + (amount || 1);
-          // Also randomly distribute increases across USD plans
-          const usdPlans = ['$10 Plan', '$20 Plan', '$50 Plan', '$100 Plan', '$300 Plan', '$500 Plan', '$1,000 Plan', '$3,000 Plan', '$6,000 Plan', '$12,000 Plan'];
-          const randomPlan = usdPlans[Math.floor(Math.random() * usdPlans.length)];
-          const planIncrease = Math.floor((amount || 1) / 10) + 1; // Distribute the increase
+          updates.baselineActiveInvestments = (config.baselineActiveInvestments || 804) + (amount || 1);
+          // Also randomly distribute increases across plans
+          const planUpdates = ['Growth Plan', 'Institutional Plan', 'Premium Plan', 'Foundation Plan'];
+          const randomPlan = planUpdates[Math.floor(Math.random() * planUpdates.length)];
+          const planIncrease = Math.floor((amount || 1) / 4) + 1; // Distribute the increase
           switch (randomPlan) {
-            case '$10 Plan':
-              updates.plan10Active = (config.plan10Active || 3240) + planIncrease;
+            case 'Growth Plan':
+              updates.growthPlanActive = (config.growthPlanActive || 227) + planIncrease;
               break;
-            case '$20 Plan':
-              updates.plan20Active = (config.plan20Active || 2850) + planIncrease;
+            case 'Institutional Plan':
+              updates.institutionalPlanActive = (config.institutionalPlanActive || 210) + planIncrease;
               break;
-            case '$50 Plan':
-              updates.plan50Active = (config.plan50Active || 2410) + planIncrease;
+            case 'Premium Plan':
+              updates.premiumPlanActive = (config.premiumPlanActive || 198) + planIncrease;
               break;
-            case '$100 Plan':
-              updates.plan100Active = (config.plan100Active || 1980) + planIncrease;
-              break;
-            case '$300 Plan':
-              updates.plan300Active = (config.plan300Active || 1620) + planIncrease;
-              break;
-            case '$500 Plan':
-              updates.plan500Active = (config.plan500Active || 1350) + planIncrease;
-              break;
-            case '$1,000 Plan':
-              updates.plan1000Active = (config.plan1000Active || 1140) + planIncrease;
-              break;
-            case '$3,000 Plan':
-              updates.plan3000Active = (config.plan3000Active || 580) + planIncrease;
-              break;
-            case '$6,000 Plan':
-              updates.plan6000Active = (config.plan6000Active || 175) + planIncrease;
-              break;
-            case '$12,000 Plan':
-              updates.plan12000Active = (config.plan12000Active || 75) + planIncrease;
+            case 'Foundation Plan':
+              updates.foundationPlanActive = (config.foundationPlanActive || 169) + planIncrease;
               break;
           }
           break;
