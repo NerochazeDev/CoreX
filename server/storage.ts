@@ -584,14 +584,77 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Update baseline statistics with 0.9% growth (for telegram bot)
-  async updateBaselineStatistics(updates: {
-    baselineUsers?: number;
-    baselineActiveInvestments?: number;
-    baselineTotalBalance?: string;
-    baselineTotalProfit?: string;
-  }): Promise<void> {
+  async updateBaselineStatistics(stats: any): Promise<void> {
     try {
-      await this.updateAdminConfig(updates);
+      const existingConfig = await this.getAdminConfig();
+
+      if (existingConfig) {
+        await db.query(`
+        UPDATE admin_config SET
+          baseline_users = $1,
+          baseline_active_investments = $2,
+          baseline_total_balance = $3,
+          baseline_total_profit = $4,
+          growth_plan_active = $5,
+          growth_plan_amount = $6,
+          growth_plan_profit = $7,
+          institutional_plan_active = $8,
+          institutional_plan_amount = $9,
+          institutional_plan_profit = $10,
+          premium_plan_active = $11,
+          premium_plan_amount = $12,
+          premium_plan_profit = $13,
+          foundation_plan_active = $14,
+          foundation_plan_amount = $15,
+          foundation_plan_profit = $16
+        WHERE id = $17
+      `, [
+          stats.baselineUsers,
+          stats.baselineActiveInvestments,
+          stats.baselineTotalBalance,
+          stats.baselineTotalProfit,
+          stats.growthPlanActive,
+          stats.growthPlanAmount,
+          stats.growthPlanProfit,
+          stats.institutionalPlanActive,
+          stats.institutionalPlanAmount,
+          stats.institutionalPlanProfit,
+          stats.premiumPlanActive,
+          stats.premiumPlanAmount,
+          stats.premiumPlanProfit,
+          stats.foundationPlanActive,
+          stats.foundationPlanAmount,
+          stats.foundationPlanProfit,
+          existingConfig.id
+        ]);
+      } else {
+        await db.query(`
+        INSERT INTO admin_config (
+          baseline_users, baseline_active_investments, baseline_total_balance, baseline_total_profit,
+          growth_plan_active, growth_plan_amount, growth_plan_profit,
+          institutional_plan_active, institutional_plan_amount, institutional_plan_profit,
+          premium_plan_active, premium_plan_amount, premium_plan_profit,
+          foundation_plan_active, foundation_plan_amount, foundation_plan_profit
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      `, [
+          stats.baselineUsers,
+          stats.baselineActiveInvestments,
+          stats.baselineTotalBalance,
+          stats.baselineTotalProfit,
+          stats.growthPlanActive,
+          stats.growthPlanAmount,
+          stats.growthPlanProfit,
+          stats.institutionalPlanActive,
+          stats.institutionalPlanAmount,
+          stats.institutionalPlanProfit,
+          stats.premiumPlanActive,
+          stats.premiumPlanAmount,
+          stats.premiumPlanProfit,
+          stats.foundationPlanActive,
+          stats.foundationPlanAmount,
+          stats.foundationPlanProfit
+        ]);
+      }
       console.log('✅ Baseline statistics updated with 0.9% growth');
     } catch (error) {
       console.error('Error updating baseline statistics:', error);

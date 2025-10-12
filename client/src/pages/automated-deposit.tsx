@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { Copy, CheckCircle, Clock, Loader2, AlertTriangle, RefreshCw, ArrowUpDown } from "lucide-react";
+import { Copy, CheckCircle, Clock, Loader2, AlertTriangle, RefreshCw, ArrowUpDown, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -280,6 +280,15 @@ export default function AutomatedDeposit() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={startNewSession}
+                  className="mr-2"
+                  data-testid="button-back-to-input"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
                 <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">2</div>
                 Send USDT Payment (TRC20)
               </CardTitle>
@@ -312,7 +321,7 @@ export default function AutomatedDeposit() {
                 <Label>Amount to Send</Label>
                 <div className="flex gap-2">
                   <Input 
-                    value={`${currentSession.amount} BTC`} 
+                    value={`${currentSession.amount} USDT`} 
                     readOnly
                     data-testid="text-amount-to-send"
                   />
