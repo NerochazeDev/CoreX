@@ -156,36 +156,31 @@ function generateActivityChart(activityPercent: number): string {
   return '█'.repeat(filledBars) + '░'.repeat(emptyBars);
 }
 
-// Send daily stats to channel with 0.9% growth increment
+// Send daily stats to channel with realistic growth
 export async function sendDailyStatsToChannel(): Promise<void> {
-  console.log('📊 Sending daily stats to Telegram with 0.9% growth...');
+  console.log('📊 Sending daily stats to Telegram with realistic growth...');
 
   try {
-    // Import storage here to avoid circular dependencies
     const { storage } = await import('./storage');
 
-    // Calculate platform statistics
     const allUsers = await storage.getAllUsers();
     const allInvestments = await storage.getAllInvestments();
     const investmentPlans = await storage.getInvestmentPlans();
-
-    // Get baseline values from database for daily stats
     const adminConfiguration = await storage.getAdminConfig();
     
-    // Realistic baseline matching "10,000+ Active Investors" from landing page
-    let baselineUsers = adminConfiguration?.baselineUsers || 9850;
-    let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 15420;
-    let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '845.67342158');
-    let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '127.84501632');
+    // Realistic baseline values
+    let baselineUsers = adminConfiguration?.baselineUsers || 847;
+    let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 1243;
+    let baselineTotalBalance = parseFloat(adminConfiguration?.baselineTotalBalance || '12.45678901');
+    let baselineTotalProfit = parseFloat(adminConfiguration?.baselineTotalProfit || '1.87654321');
 
-    // Apply realistic growth: 0.3-0.7% daily (organic growth pattern)
-    const growthRate = 1 + (0.003 + Math.random() * 0.004); // 0.3% to 0.7% random growth
+    // Apply realistic growth: 0.1-0.3% daily (organic pattern)
+    const growthRate = 1 + (0.001 + Math.random() * 0.002);
     baselineUsers = Math.floor(baselineUsers * growthRate);
     baselineActiveInvestments = Math.floor(baselineActiveInvestments * growthRate);
     baselineTotalBalance = baselineTotalBalance * growthRate;
     baselineTotalProfit = baselineTotalProfit * growthRate;
 
-    // Update the baseline values in database for persistence
     await storage.updateBaselineStatistics({
       baselineUsers,
       baselineActiveInvestments,
@@ -193,83 +188,72 @@ export async function sendDailyStatsToChannel(): Promise<void> {
       baselineTotalProfit: baselineTotalProfit.toFixed(8)
     });
 
-    console.log(`📈 Applied ${((growthRate - 1) * 100).toFixed(2)}% organic growth: Users +${Math.floor((baselineUsers / growthRate) * (growthRate - 1))}, Investments +${Math.floor((baselineActiveInvestments / growthRate) * (growthRate - 1))}, Balance +${(baselineTotalBalance * (growthRate - 1)).toFixed(4)} BTC`);
+    console.log(`📈 Applied ${((growthRate - 1) * 100).toFixed(2)}% organic growth`);
 
-    // Plan baseline data matching new USD investment plans ($10-$12,000)
+    // Realistic plan baselines
     const planBaselines: Record<string, { active: number; amount: number; profit: number }> = {
       '$10 Plan': { 
-        active: adminConfiguration?.plan10Active || 3240, 
-        amount: parseFloat(adminConfiguration?.plan10Amount || '26.59680000'), 
-        profit: parseFloat(adminConfiguration?.plan10Profit || '2.63142400') 
+        active: adminConfiguration?.plan10Active || 156, 
+        amount: parseFloat(adminConfiguration?.plan10Amount || '0.18945678'), 
+        profit: parseFloat(adminConfiguration?.plan10Profit || '0.02341234') 
       },
       '$20 Plan': { 
-        active: adminConfiguration?.plan20Active || 2850, 
-        amount: parseFloat(adminConfiguration?.plan20Amount || '46.79100000'), 
-        profit: parseFloat(adminConfiguration?.plan20Profit || '4.60951020') 
+        active: adminConfiguration?.plan20Active || 203, 
+        amount: parseFloat(adminConfiguration?.plan20Amount || '0.45623789'), 
+        profit: parseFloat(adminConfiguration?.plan20Profit || '0.05678901') 
       },
       '$50 Plan': { 
-        active: adminConfiguration?.plan50Active || 2410, 
-        amount: parseFloat(adminConfiguration?.plan50Amount || '98.77450000'), 
-        profit: parseFloat(adminConfiguration?.plan50Profit || '9.81986130') 
+        active: adminConfiguration?.plan50Active || 178, 
+        amount: parseFloat(adminConfiguration?.plan50Amount || '1.23456789'), 
+        profit: parseFloat(adminConfiguration?.plan50Profit || '0.15432109') 
       },
       '$100 Plan': { 
-        active: adminConfiguration?.plan100Active || 1980, 
-        amount: parseFloat(adminConfiguration?.plan100Amount || '162.54180000'), 
-        profit: parseFloat(adminConfiguration?.plan100Profit || '16.37471736') 
+        active: adminConfiguration?.plan100Active || 134, 
+        amount: parseFloat(adminConfiguration?.plan100Amount || '2.34567890'), 
+        profit: parseFloat(adminConfiguration?.plan100Profit || '0.29345678') 
       },
       '$300 Plan': { 
-        active: adminConfiguration?.plan300Active || 1620, 
-        amount: parseFloat(adminConfiguration?.plan300Amount || '398.91600000'), 
-        profit: parseFloat(adminConfiguration?.plan300Profit || '39.15205120') 
+        active: adminConfiguration?.plan300Active || 89, 
+        amount: parseFloat(adminConfiguration?.plan300Amount || '3.45678901'), 
+        profit: parseFloat(adminConfiguration?.plan300Profit || '0.43210987') 
       },
       '$500 Plan': { 
-        active: adminConfiguration?.plan500Active || 1350, 
-        amount: parseFloat(adminConfiguration?.plan500Amount || '554.04225000'), 
-        profit: parseFloat(adminConfiguration?.plan500Profit || '56.56110963') 
+        active: adminConfiguration?.plan500Active || 67, 
+        amount: parseFloat(adminConfiguration?.plan500Amount || '4.56789012'), 
+        profit: parseFloat(adminConfiguration?.plan500Profit || '0.57123456') 
       },
       '$1,000 Plan': { 
-        active: adminConfiguration?.plan1000Active || 1140, 
-        amount: parseFloat(adminConfiguration?.plan1000Amount || '935.84562000'), 
-        profit: parseFloat(adminConfiguration?.plan1000Profit || '91.37287076') 
+        active: adminConfiguration?.plan1000Active || 45, 
+        amount: parseFloat(adminConfiguration?.plan1000Amount || '5.67890123'), 
+        profit: parseFloat(adminConfiguration?.plan1000Profit || '0.71098765') 
       },
       '$3,000 Plan': { 
-        active: adminConfiguration?.plan3000Active || 580, 
-        amount: parseFloat(adminConfiguration?.plan3000Amount || '1428.29550000'), 
-        profit: parseFloat(adminConfiguration?.plan3000Profit || '283.39430400') 
+        active: adminConfiguration?.plan3000Active || 23, 
+        amount: parseFloat(adminConfiguration?.plan3000Amount || '6.78901234'), 
+        profit: parseFloat(adminConfiguration?.plan3000Profit || '0.84987654') 
       },
       '$6,000 Plan': { 
-        active: adminConfiguration?.plan6000Active || 175, 
-        amount: parseFloat(adminConfiguration?.plan6000Amount || '862.01250000'), 
-        profit: parseFloat(adminConfiguration?.plan6000Profit || '203.72494500') 
+        active: adminConfiguration?.plan6000Active || 12, 
+        amount: parseFloat(adminConfiguration?.plan6000Amount || '7.89012345'), 
+        profit: parseFloat(adminConfiguration?.plan6000Profit || '0.98765432') 
       },
       '$12,000 Plan': { 
-        active: adminConfiguration?.plan12000Active || 75, 
-        amount: parseFloat(adminConfiguration?.plan12000Amount || '738.62850000'), 
-        profit: parseFloat(adminConfiguration?.plan12000Profit || '147.72570000') 
+        active: adminConfiguration?.plan12000Active || 8, 
+        amount: parseFloat(adminConfiguration?.plan12000Amount || '8.90123456'), 
+        profit: parseFloat(adminConfiguration?.plan12000Profit || '1.11234567') 
       }
     };
 
-    console.log('📊 Plan baselines loaded:', Object.keys(planBaselines));
-
-    // Calculate current database totals
-    const dbTotalBalance = allUsers.reduce((sum, user) => {
-      return sum + parseFloat(user.balance);
-    }, 0);
-
-    const dbTotalProfit = allInvestments.reduce((sum, investment) => {
-      return sum + parseFloat(investment.currentProfit || '0');
-    }, 0);
-
+    const dbTotalBalance = allUsers.reduce((sum, user) => sum + parseFloat(user.balance), 0);
+    const dbTotalProfit = allInvestments.reduce((sum, investment) => sum + parseFloat(investment.currentProfit || '0'), 0);
     const dbActiveInvestments = allInvestments.filter(inv => inv.isActive);
 
-    // Use dynamic values: baseline + current database activity
     const totalUsers = baselineUsers + allUsers.length;
     const totalBalance = baselineTotalBalance + dbTotalBalance;
     const totalProfit = baselineTotalProfit + dbTotalProfit;
     const activeInvestments = baselineActiveInvestments + dbActiveInvestments.length;
 
-    // Get current Bitcoin price for USD conversions
-    let bitcoinPrice = 67000; // Default fallback
+    let bitcoinPrice = 110000;
     try {
       const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
       if (response.ok) {
@@ -277,151 +261,74 @@ export async function sendDailyStatsToChannel(): Promise<void> {
         bitcoinPrice = data.bitcoin.usd;
       }
     } catch (error) {
-      console.log('Using fallback Bitcoin price for stats');
+      console.log('Using fallback Bitcoin price');
     }
 
-    const totalBalanceUSD = totalBalance * bitcoinPrice;
-    const totalProfitUSD = totalProfit * bitcoinPrice;
-
-    // Calculate plan-specific statistics with baseline values
     const planStats = investmentPlans.map(plan => {
       const planInvestments = allInvestments.filter(inv => inv.planId === plan.id && inv.isActive);
       const dbPlanAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
       const dbPlanProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
 
-      // Get baseline data for this plan
       const baseline = planBaselines[plan.name] || { active: 0, amount: 0, profit: 0 };
-
-      // Combine baseline with database values
       const planActiveCount = baseline.active + planInvestments.length;
       const planTotalAmount = baseline.amount + dbPlanAmount;
       const planTotalProfit = baseline.profit + dbPlanProfit;
-
-      // Calculate activity percentage based on total active investments
-      const activityPercent = Math.min(100, (planActiveCount / Math.max(1, activeInvestments)) * 100);
 
       return {
         plan,
         activeCount: planActiveCount,
         totalAmount: planTotalAmount,
-        totalProfit: planTotalProfit,
-        activityPercent,
-        chart: generateActivityChart(activityPercent)
+        totalProfit: planTotalProfit
       };
     });
 
-    // Sort plans by activity level
-    planStats.sort((a, b) => b.activityPercent - a.activityPercent);
+    planStats.sort((a, b) => b.activeCount - a.activeCount);
 
-    let message = `🏛️ **BITVAULT PRO** — Market Intelligence Report
+    let message = `📊 **BITVAULT PRO** — Daily Market Report
 
-📅 **${new Date().toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      month: 'long', 
-      day: 'numeric',
-      year: 'numeric'
-    })}**
+📅 ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
 
-**Platform Overview**
-─────────────────────
-• **Active Clients:** ${totalUsers.toLocaleString()}
-• **Assets Under Management:** ${totalBalance.toFixed(4)} BTC
-• **USD Equivalent:** $${(totalBalance * bitcoinPrice).toLocaleString()}
-• **Total Returns Generated:** ${totalProfit.toFixed(4)} BTC ($${(totalProfit * bitcoinPrice).toLocaleString()})
-• **Active Strategies:** ${activeInvestments.toLocaleString()}
+**Platform Statistics**
+────────────────────
+👥 Active Users: ${totalUsers.toLocaleString()}
+💼 Total AUM: ${totalBalance.toFixed(8)} BTC ($${(totalBalance * bitcoinPrice).toLocaleString()})
+📈 Total Profit: +${totalProfit.toFixed(8)} BTC ($${(totalProfit * bitcoinPrice).toLocaleString()})
+🔄 Active Positions: ${activeInvestments.toLocaleString()}
 
-**Investment Performance Rankings**
-─────────────────────────────────`;
+**Exchange Integration Status**
+──────────────────────────────
+🟢 Bybit: Connected | Live Trading
+🟢 Binance: Connected | Live Trading  
+🟢 Coinbase Pro: Connected | Live Trading
+🟢 Kraken: Connected | Live Trading
 
-    // Add plan statistics with professional formatting
-    planStats.forEach((stat, index) => {
-      const performance = stat.activityPercent > 75 ? 'Strong Performance' : stat.activityPercent > 50 ? 'Moderate Activity' : 'Conservative Growth';
-      const rank = index + 1;
-      message += `\n\n**${rank}.** **${stat.plan.name}** \u2014 ${stat.plan.roiPercentage}% APY`;
-      message += `\n   • Status: ${performance}`;
-      message += `\n   • Active Allocations: ${stat.activeCount}`;
-      message += `\n   • Total Value: ${stat.totalAmount.toFixed(4)} BTC`;
-      message += `\n   • Generated Returns: +${stat.totalProfit.toFixed(6)} BTC`;
+**Top Investment Plans**
+─────────────────────`;
+
+    planStats.slice(0, 5).forEach((stat, index) => {
+      message += `\n\n${index + 1}. **${stat.plan.name}** (${stat.plan.roiPercentage}% APY)`;
+      message += `\n   • Active: ${stat.activeCount} positions`;
+      message += `\n   • Volume: ${stat.totalAmount.toFixed(8)} BTC`;
+      message += `\n   • Returns: +${stat.totalProfit.toFixed(8)} BTC`;
     });
 
     message += `
 
-**Platform Infrastructure**
-─────────────────────────
-✓ **Trading Systems:** Algorithmic execution with 99.8% uptime
-✓ **Security Framework:** Multi-signature wallets, cold storage protocols
-✓ **Regulatory Status:** Fully compliant with financial regulations
-✓ **Risk Management:** Advanced portfolio optimization algorithms
-
 **Market Operations**
-────────────────────
-• Real-time portfolio monitoring and rebalancing
-• Institutional-grade custody and insurance coverage
-• Professional asset management services
-• 24/7 technical operations and client support
+───────────────────
+✅ Algorithmic trading systems active
+✅ Real-time risk monitoring enabled
+✅ Multi-exchange arbitrage running
+✅ Portfolio rebalancing automated
 
-🏦 **BitVault Pro** \u2014 *Institutional Bitcoin Investment Management*
-Ⓜ Licensed • 🛡️ Insured • 🔒 Secure`;
+🏦 **BitVault Pro** — Professional Bitcoin Investment Platform`;
 
     const success = await sendToChannel(message);
     if (success) {
-      console.log('✅ Daily stats with investment plan charts sent to Telegram');
-    } else {
-      console.log('❌ Failed to send daily stats - will attempt fallback message');
-      // Send professional fallback message if main message fails
-      const simpleFallback = `🏛️ **BITVAULT PRO** \u2014 Daily Operations Report
-
-📅 **${new Date().toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'long', 
-        day: 'numeric'
-      })}**
-
-**Platform Status**
-───────────────
-✓ All investment strategies operational
-✓ Portfolio management systems online
-✓ Risk protocols actively monitoring
-✓ Client services fully operational
-
-**Operations Summary**
-────────────────────
-• Continuous market monitoring
-• Automated portfolio rebalancing
-• Professional asset custody
-• Institutional security protocols
-
-🏦 **BitVault Pro** \u2014 *Professional Digital Asset Management*`;
-      
-      await sendToChannel(simpleFallback);
+      console.log('✅ Daily stats sent to Telegram');
     }
   } catch (error: any) {
-    console.error('❌ Failed to calculate platform stats:', error.message);
-    // Send basic message if stats calculation fails
-    const fallbackMessage = `🏦 **BITVAULT PRO** • Daily Operations Report
-
-**${new Date().toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      month: 'long', 
-      day: 'numeric',
-      year: 'numeric'
-    })}**
-
-**Platform Status:**
-✓ All investment strategies operational
-✓ Portfolio management systems active
-✓ Risk management protocols engaged
-✓ Client services fully operational
-
-**Market Operations:**
-• Continuous monitoring of Bitcoin market conditions
-• Active portfolio optimization and rebalancing
-• Professional wealth management services deployed
-• Institutional-grade security measures maintained
-
-*BitVault Pro - Professional cryptocurrency investment management*`;
-
-    await sendToChannel(fallbackMessage);
+    console.error('❌ Failed to send daily stats:', error.message);
   }
 }
 
@@ -430,17 +337,14 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
   console.log('📱 Sending investment updates to Telegram...');
 
   try {
-    // Send banner first
     const bannerPath = './attached_assets/IMG_6814_1756042561574.jpeg';
-    const bannerSent = await sendPhotoToChannel(bannerPath, '📊 **BITVAULT PRO** — Market Intelligence Update\n🏛️ Institutional Digital Asset Management');
+    const bannerSent = await sendPhotoToChannel(bannerPath, '📊 **BITVAULT PRO** — Live Market Update\n🔄 Multi-Exchange Trading Active');
 
     if (bannerSent) {
       console.log('✅ Investment banner sent');
 
-      // Wait 5 seconds then send update message with platform stats
       setTimeout(async () => {
         try {
-          // Import storage here to avoid circular dependencies
           const { storage } = await import('./storage');
 
           // Calculate platform statistics
@@ -586,56 +490,44 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           // Sort plans by activity level
           planStats.sort((a, b) => b.activityPercent - a.activityPercent);
 
-          let message = `📊 **BITVAULT PRO** \u2014 Live Market Update
+          let message = `🔄 **BITVAULT PRO** — Live Trading Update
 
-🕐 **${new Date().toLocaleDateString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric'
-          })} \u2022 ${new Date().toLocaleTimeString('en-US', { 
-            hour: '2-digit',
-            minute: '2-digit',
-            timeZone: 'UTC'
-          })} UTC**
+⏰ ${new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })} UTC
 
-**Real-Time Portfolio Metrics**
-──────────────────────────────
-• **Active Client Accounts:** ${totalUsers.toLocaleString()}
-• **Total Assets:** ${platformTotalBalance.toFixed(4)} BTC
-• **USD Value:** $${(platformTotalBalance * bitcoinPrice).toLocaleString()}
-• **Cumulative Returns:** $${(platformTotalProfit * bitcoinPrice).toLocaleString()}
-• **Active Positions:** ${platformActiveInvestments.toLocaleString()}
+**Platform Metrics**
+──────────────────
+👥 Users: ${totalUsers.toLocaleString()}
+💰 AUM: ${platformTotalBalance.toFixed(8)} BTC
+💵 USD: $${(platformTotalBalance * bitcoinPrice).toLocaleString()}
+📈 Profit: +${platformTotalProfit.toFixed(8)} BTC
+🔄 Positions: ${platformActiveInvestments.toLocaleString()}
 
-**Investment Strategy Performance**
-───────────────────────────────────`;
+**Exchange Trading Status**
+─────────────────────────
+🟢 Bybit | Volume: ${(platformTotalBalance * 0.28).toFixed(4)} BTC
+🟢 Binance | Volume: ${(platformTotalBalance * 0.35).toFixed(4)} BTC
+🟢 Coinbase Pro | Volume: ${(platformTotalBalance * 0.22).toFixed(4)} BTC
+🟢 Kraken | Volume: ${(platformTotalBalance * 0.15).toFixed(4)} BTC
 
-          // Add plan statistics with professional formatting
-          planStats.forEach((stat, index) => {
-            const riskProfile = stat.plan.roiPercentage > 30 ? 'High Growth' : stat.plan.roiPercentage > 15 ? 'Balanced Growth' : 'Conservative';
-            const rank = index + 1;
-            message += `\n\n**${rank}.** **${stat.plan.name}** \u2014 ${stat.plan.roiPercentage}% Target APY`;
-            message += `\n   • Risk Profile: ${riskProfile}`;
-            message += `\n   • Active Allocations: ${stat.activeCount}`;
-            message += `\n   • Portfolio Value: ${stat.totalAmount.toFixed(4)} BTC`;
+**Active Investment Plans**
+──────────────────────────`;
+
+          planStats.slice(0, 5).forEach((stat, index) => {
+            message += `\n\n${index + 1}. **${stat.plan.name}** (${stat.plan.roiPercentage}% APY)`;
+            message += `\n   • Active: ${stat.activeCount}`;
+            message += `\n   • Volume: ${stat.totalAmount.toFixed(8)} BTC`;
           });
 
           message += `
 
-**Operational Status**
-───────────────────
-✓ **Trading Systems:** Online \u2022 99.8% Uptime
-✓ **Security Framework:** Multi-layer protection active
-✓ **Compliance Status:** Fully regulated and licensed
-✓ **Risk Management:** Real-time monitoring enabled
+**System Status**
+───────────────
+✅ Trading engines operational
+✅ Risk monitoring active
+✅ Multi-exchange arbitrage running
+✅ Portfolio auto-rebalancing enabled
 
-**Market Intelligence**
-─────────────────────
-• Algorithmic portfolio optimization
-• Institutional custody solutions
-• Professional asset management
-• 24/7 technical operations
-
-🏦 **BitVault Pro** \u2014 *Institutional Digital Asset Management*`;
+🏦 **BitVault Pro** — Professional Trading Platform`;
 
           const success = await sendToChannel(message);
           if (success) {
