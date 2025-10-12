@@ -1562,6 +1562,9 @@ You will receive a notification once your deposit is confirmed and added to your
     }
   });
 
+  // Rate limiting map for deposit session creation (prevent spam attacks)
+  const depositSessionRateLimits = new Map<number, { count: number; resetTime: number }>();
+  
   // Automated Deposit Session Endpoints
   app.post("/api/deposit/session", async (req, res) => {
     try {
@@ -1570,9 +1573,42 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(401).json({ error: "Authentication required. Please log in again." });
       }
 
+      // SECURITY: Rate limiting - max 3 deposit sessions per hour per user
+      const now = Date.now();
+      const userRateLimit = depositSessionRateLimits.get(userId);
+      
+      if (userRateLimit) {
+        if (now < userRateLimit.resetTime) {
+          if (userRateLimit.count >= 3) {
+            return res.status(429).json({ 
+              error: "Too many deposit attempts. Please wait before creating another session.",
+              retryAfter: Math.ceil((userRateLimit.resetTime - now) / 1000 / 60) + " minutes"
+            });
+          }
+          userRateLimit.count++;
+        } else {
+          depositSessionRateLimits.set(userId, { count: 1, resetTime: now + 3600000 });
+        }
+      } else {
+        depositSessionRateLimits.set(userId, { count: 1, resetTime: now + 3600000 });
+      }
+
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found." });
+      }
+
+      // SECURITY: Check for active pending sessions (prevent duplicate sessions)
+      const existingActiveSessions = await storage.getUserDepositSessions(userId);
+      const activePending = existingActiveSessions.filter(s => 
+        s.status === 'pending' && new Date(s.expiresAt) > new Date()
+      );
+      
+      if (activePending.length > 0) {
+        return res.status(400).json({ 
+          error: "You already have an active deposit session. Please complete or wait for it to expire.",
+          activeSession: activePending[0].sessionToken
+        });
       }
 
       if (!user.trc20DepositAddress) {
@@ -1598,6 +1634,11 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(400).json({ error: "Invalid amount. Amount must be greater than 0." });
       }
 
+      // SECURITY: Validate amount is reasonable (prevent extremely large or small values)
+      if (amountNum > 100000) {
+        return res.status(400).json({ error: "Maximum deposit amount is $100,000 USDT. Please contact support for larger deposits." });
+      }
+
       const adminConfig = await storage.getAdminConfig();
       const minDepositUsd = parseFloat(adminConfig?.minDepositUsd || '10');
 
@@ -1610,6 +1651,9 @@ You will receive a notification once your deposit is confirmed and added to your
         depositAddress: user.trc20DepositAddress,
         amount: amount
       });
+
+      // SECURITY: Log deposit session creation for audit trail
+      console.log(`🔐 Deposit session created - User: ${userId}, Amount: $${amount}, Token: ${session.sessionToken.substring(0, 10)}...`);
 
       res.json({
         sessionToken: session.sessionToken,
@@ -1685,6 +1729,9 @@ You will receive a notification once your deposit is confirmed and added to your
     }
   });
 
+  // Rate limiting for confirm requests (prevent spam confirmations)
+  const confirmRateLimits = new Map<string, { count: number; resetTime: number }>();
+
   app.post("/api/deposit/session/:token/confirm", async (req, res) => {
     try {
       const userId = getUserIdFromRequest(req);
@@ -1693,9 +1740,33 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       const { token } = req.params;
+      
+      // SECURITY: Rate limiting on confirmation attempts (max 5 per 10 minutes per IP)
+      const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+      const rateLimitKey = `${clientIp}-${userId}`;
+      const now = Date.now();
+      const confirmLimit = confirmRateLimits.get(rateLimitKey);
+      
+      if (confirmLimit) {
+        if (now < confirmLimit.resetTime) {
+          if (confirmLimit.count >= 5) {
+            console.warn(`⚠️ Rate limit exceeded for confirmation - IP: ${clientIp}, User: ${userId}`);
+            return res.status(429).json({ 
+              error: "Too many confirmation attempts. Please wait before trying again."
+            });
+          }
+          confirmLimit.count++;
+        } else {
+          confirmRateLimits.set(rateLimitKey, { count: 1, resetTime: now + 600000 });
+        }
+      } else {
+        confirmRateLimits.set(rateLimitKey, { count: 1, resetTime: now + 600000 });
+      }
+
       const session = await storage.getDepositSession(token);
 
       if (!session || session.userId !== userId) {
+        console.warn(`⚠️ Unauthorized deposit confirmation attempt - Token: ${token}, User: ${userId}`);
         return res.status(404).json({ error: "Deposit session not found" });
       }
 
@@ -1704,10 +1775,17 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       // Check if session has expired
-      const now = new Date();
-      if (now > new Date(session.expiresAt)) {
+      const nowDate = new Date();
+      if (nowDate > new Date(session.expiresAt)) {
         await storage.updateDepositSessionStatus(token, 'expired');
         return res.status(400).json({ error: "Deposit session has expired" });
+      }
+
+      // SECURITY: Check if user already confirmed (prevent duplicate confirmations)
+      if (session.userConfirmedSent) {
+        return res.status(400).json({ 
+          error: "You have already confirmed this deposit. Please wait for blockchain verification." 
+        });
       }
 
       // Mark user as confirmed sent
@@ -1717,11 +1795,14 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(500).json({ error: "Failed to update session" });
       }
 
+      // SECURITY: Log confirmation for audit trail
+      console.log(`🔐 Deposit confirmation - User: ${userId}, Token: ${token.substring(0, 10)}..., Amount: $${session.amount}`);
+
       // Create notification for user
       await storage.createNotification({
         userId,
         title: "🔍 Payment Confirmation Received",
-        message: `We're now monitoring the blockchain for your ${session.amount} BTC deposit. You'll be notified once your transaction is confirmed.`,
+        message: `We're now monitoring the blockchain for your $${session.amount} USDT deposit. You'll be notified once your transaction is confirmed.`,
         type: "info"
       });
 

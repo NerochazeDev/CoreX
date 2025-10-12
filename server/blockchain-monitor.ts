@@ -279,7 +279,21 @@ export class BlockchainMonitor {
   // Process a confirmed deposit
   private async processConfirmedDeposit(session: DepositSession, actualAmount: string, txHash: string): Promise<void> {
     try {
-      console.log(`✅ Processing confirmed deposit for user ${session.userId}: ${actualAmount} BTC`);
+      console.log(`✅ Processing confirmed deposit for user ${session.userId}: ${actualAmount} USDT`);
+
+      // SECURITY: Final fraud check before processing
+      const fraudCheck = await this.performFinalFraudCheck(session, actualAmount, txHash);
+      if (!fraudCheck.safe) {
+        console.error(`🚨 FRAUD DETECTED - ${fraudCheck.reason}`);
+        await storage.updateDepositSessionStatus(session.sessionToken, 'declined', new Date());
+        await storage.createNotification({
+          userId: session.userId,
+          title: '⚠️ Deposit Security Alert',
+          message: `Your deposit could not be processed due to security concerns. Please contact support. Reference: ${txHash.substring(0, 16)}`,
+          type: 'error'
+        });
+        return;
+      }
 
       // Update user balance
       const user = await storage.getUser(session.userId);
@@ -294,11 +308,14 @@ export class BlockchainMonitor {
       // Mark session as confirmed
       await storage.updateDepositSessionStatus(session.sessionToken, 'confirmed', new Date());
 
+      // SECURITY: Create audit log entry
+      console.log(`🔐 AUDIT: Deposit confirmed - User: ${session.userId}, Amount: $${actualAmount}, TxHash: ${txHash}, Session: ${session.sessionToken}`);
+
       // Create success notification
       await storage.createNotification({
         userId: session.userId,
         title: '💰 Deposit Confirmed!',
-        message: `Your deposit of ${actualAmount} BTC has been confirmed and added to your balance.`,
+        message: `Your deposit of $${actualAmount} USDT has been confirmed and added to your balance.`,
         type: 'success'
       });
 
@@ -309,6 +326,50 @@ export class BlockchainMonitor {
 
     } catch (error) {
       console.error('❌ Error processing confirmed deposit:', error);
+    }
+  }
+
+  // Final fraud detection before processing deposit
+  private async performFinalFraudCheck(session: DepositSession, actualAmount: string, txHash: string): Promise<{
+    safe: boolean;
+    reason?: string;
+  }> {
+    try {
+      // Check 1: Verify transaction hash hasn't been used before
+      const existingSession = await storage.getDepositSessionByTxHash(txHash);
+      if (existingSession && existingSession.sessionToken !== session.sessionToken) {
+        return { safe: false, reason: 'Transaction hash already used for another deposit' };
+      }
+
+      // Check 2: Verify amount matches within tolerance
+      const expectedAmount = parseFloat(session.amount);
+      const receivedAmount = parseFloat(actualAmount);
+      const tolerance = 0.01; // 1% tolerance
+      
+      if (Math.abs(receivedAmount - expectedAmount) > (expectedAmount * tolerance)) {
+        return { safe: false, reason: `Amount mismatch: expected $${expectedAmount}, received $${receivedAmount}` };
+      }
+
+      // Check 3: Verify session hasn't expired
+      if (new Date() > new Date(session.expiresAt)) {
+        return { safe: false, reason: 'Session expired before confirmation' };
+      }
+
+      // Check 4: Verify this user's deposit pattern (prevent rapid multiple deposits)
+      const userSessions = await storage.getUserDepositSessions(session.userId);
+      const recentConfirmed = userSessions.filter(s => 
+        s.status === 'confirmed' && 
+        new Date(s.completedAt || 0).getTime() > (Date.now() - 3600000) // Last hour
+      );
+      
+      if (recentConfirmed.length >= 5) {
+        return { safe: false, reason: 'Suspicious activity: Too many deposits in short time' };
+      }
+
+      return { safe: true };
+    } catch (error) {
+      console.error('❌ Fraud check error:', error);
+      return { safe: false, reason: 'Fraud check failed' };
     }
   }
 
