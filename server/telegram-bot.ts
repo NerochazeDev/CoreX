@@ -249,6 +249,8 @@ export async function sendDailyStatsToChannel(): Promise<void> {
       }
     };
 
+    console.log('📊 Plan baselines loaded:', Object.keys(planBaselines));
+
     // Calculate current database totals
     const dbTotalBalance = allUsers.reduce((sum, user) => {
       return sum + parseFloat(user.balance);
