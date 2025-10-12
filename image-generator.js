@@ -44,20 +44,20 @@ async function generateInvestmentUpdateBanner() {
   ctx.strokeRect(10, 10, width - 20, height - 20);
   ctx.shadowBlur = 0;
 
-  // Main title
+  // Main title with icon
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 64px Arial, sans-serif';
+  ctx.font = 'bold 72px Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.shadowColor = '#000000';
   ctx.shadowBlur = 4;
   ctx.shadowOffsetX = 2;
   ctx.shadowOffsetY = 2;
-  ctx.fillText('BITVAULT PRO', width / 2, 120);
+  ctx.fillText('🏦 BITVAULT PRO', width / 2, 110);
 
   // Subtitle
   ctx.fillStyle = '#f39c12';
-  ctx.font = 'bold 42px Arial, sans-serif';
-  ctx.fillText('INVESTMENT UPDATE', width / 2, 180);
+  ctx.font = 'bold 36px Arial, sans-serif';
+  ctx.fillText('Professional Digital Asset Management', width / 2, 170);
 
   // Add Bitcoin symbol
   ctx.fillStyle = '#f7931a';
@@ -65,17 +65,39 @@ async function generateInvestmentUpdateBanner() {
   ctx.fillText('₿', 150, 350);
   ctx.fillText('₿', width - 150, 350);
 
+  // Decorative line
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(150, 200);
+  ctx.lineTo(width - 150, 200);
+  ctx.stroke();
+
   // Performance indicators
   ctx.fillStyle = '#00ff88';
-  ctx.font = 'bold 32px Arial, sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('📈 LIVE PROFITS', 200, 280);
+  ctx.font = 'bold 38px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('⚡ LIVE UPDATE', width / 2, 260);
   
   ctx.fillStyle = '#ffffff';
-  ctx.font = '28px Arial, sans-serif';
-  ctx.fillText('🎯 Automated Returns Active', 200, 320);
-  ctx.fillText('💎 24/7 Market Monitoring', 200, 360);
-  ctx.fillText('🚀 Institutional Grade Security', 200, 400);
+  ctx.font = '30px Arial, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('✅ Automated Returns', 180, 330);
+  ctx.fillText('✅ 24/7 Monitoring', 180, 380);
+  ctx.fillText('✅ Institutional Security', 180, 430);
+  
+  ctx.textAlign = 'right';
+  ctx.fillText('99.8% Uptime', width - 180, 330);
+  ctx.fillText('Real-time Data', width - 180, 380);
+  ctx.fillText('Multi-Sig Protected', width - 180, 430);
+
+  // Decorative line
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(150, 470);
+  ctx.lineTo(width - 150, 470);
+  ctx.stroke();
 
   // Add current date
   const now = new Date();
@@ -87,19 +109,19 @@ async function generateInvestmentUpdateBanner() {
   });
   
   ctx.fillStyle = '#cccccc';
-  ctx.font = '24px Arial, sans-serif';
+  ctx.font = '22px Arial, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(dateString, width / 2, 480);
-
-  // Success rate indicator
-  ctx.fillStyle = '#00ff88';
-  ctx.font = 'bold 28px Arial, sans-serif';
-  ctx.fillText('SUCCESS RATE: 99.9%', width / 2, 520);
+  ctx.fillText(dateString, width / 2, 510);
 
   // Bottom tagline
   ctx.fillStyle = '#f39c12';
-  ctx.font = 'bold 20px Arial, sans-serif';
-  ctx.fillText('WHERE BITCOIN WEALTH IS BUILT SYSTEMATICALLY', width / 2, 580);
+  ctx.font = 'bold 24px Arial, sans-serif';
+  ctx.fillText('Where Bitcoin Wealth is Built Systematically', width / 2, 560);
+
+  // Status badges
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '18px Arial, sans-serif';
+  ctx.fillText('🔒 Licensed  |  🛡️ Insured  |  ⚡ Secure', width / 2, 595);
 
   // Reset shadow
   ctx.shadowColor = 'transparent';

@@ -311,55 +311,68 @@ export async function sendDailyStatsToChannel(): Promise<void> {
     // Sort plans by activity level
     planStats.sort((a, b) => b.activityPercent - a.activityPercent);
 
-    let message = `🏛️ **BITVAULT PRO** — Market Intelligence Report
+    let message = `🏦 **BITVAULT PRO**
+*Professional Digital Asset Management*
 
-📅 **${new Date().toLocaleDateString('en-US', { 
+📊 **DAILY MARKET INTELLIGENCE**
+${new Date().toLocaleDateString('en-US', { 
       weekday: 'long', 
       month: 'long', 
       day: 'numeric',
       year: 'numeric'
-    })}**
+    })}
 
-**Platform Overview**
-─────────────────────
-• **Active Clients:** ${totalUsers.toLocaleString()}
-• **Assets Under Management:** ${totalBalance.toFixed(4)} BTC
-• **USD Equivalent:** $${(totalBalance * bitcoinPrice).toLocaleString()}
-• **Total Returns Generated:** ${totalProfit.toFixed(4)} BTC ($${(totalProfit * bitcoinPrice).toLocaleString()})
-• **Active Strategies:** ${activeInvestments.toLocaleString()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**Investment Performance Rankings**
-─────────────────────────────────`;
+**📈 PLATFORM PERFORMANCE**
+
+💼 Active Investors: *${totalUsers.toLocaleString()}*
+💰 Total AUM: *${totalBalance.toFixed(4)} BTC*
+💵 USD Value: *$${(totalBalance * bitcoinPrice).toLocaleString()}*
+📊 Returns Generated: *${totalProfit.toFixed(4)} BTC*
+🎯 Active Positions: *${activeInvestments.toLocaleString()}*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**🏆 INVESTMENT STRATEGIES**`;
 
     // Add plan statistics with professional formatting
     planStats.forEach((stat, index) => {
-      const performance = stat.activityPercent > 75 ? 'Strong Performance' : stat.activityPercent > 50 ? 'Moderate Activity' : 'Conservative Growth';
+      const performance = stat.activityPercent > 75 ? '🟢 Strong' : stat.activityPercent > 50 ? '🟡 Moderate' : '🔵 Conservative';
       const rank = index + 1;
-      message += `\n\n**${rank}.** **${stat.plan.name}** \u2014 ${stat.plan.roiPercentage}% APY`;
-      message += `\n   • Status: ${performance}`;
-      message += `\n   • Active Allocations: ${stat.activeCount}`;
-      message += `\n   • Total Value: ${stat.totalAmount.toFixed(4)} BTC`;
-      message += `\n   • Generated Returns: +${stat.totalProfit.toFixed(6)} BTC`;
+      message += `\n\n**${rank}. ${stat.plan.name}** | *${stat.plan.roiPercentage}% APY*`;
+      message += `\n   Status: ${performance}`;
+      message += `\n   Positions: ${stat.activeCount} active`;
+      message += `\n   Value: ${stat.totalAmount.toFixed(4)} BTC`;
+      message += `\n   Returns: +${stat.totalProfit.toFixed(6)} BTC`;
     });
 
     message += `
 
-**Platform Infrastructure**
-─────────────────────────
-✓ **Trading Systems:** Algorithmic execution with 99.8% uptime
-✓ **Security Framework:** Multi-signature wallets, cold storage protocols
-✓ **Regulatory Status:** Fully compliant with financial regulations
-✓ **Risk Management:** Advanced portfolio optimization algorithms
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**Market Operations**
-────────────────────
-• Real-time portfolio monitoring and rebalancing
-• Institutional-grade custody and insurance coverage
-• Professional asset management services
-• 24/7 technical operations and client support
+**⚙️ SYSTEM STATUS**
 
-🏦 **BitVault Pro** \u2014 *Institutional Bitcoin Investment Management*
-Ⓜ Licensed • 🛡️ Insured • 🔒 Secure`;
+✅ Trading: 99.8% Uptime
+✅ Security: Multi-Sig Active
+✅ Compliance: Fully Licensed
+✅ Risk Mgmt: AI-Optimized
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**💎 SERVICES**
+
+• Real-time Portfolio Management
+• Institutional Custody Solutions
+• 24/7 Technical Support
+• Professional Asset Advisory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏦 **BITVAULT PRO**
+*Where Bitcoin Wealth is Built Systematically*
+
+🔒 Licensed | 🛡️ Insured | ⚡ Secure`;
 
     const success = await sendToChannel(message);
     if (success) {
@@ -584,28 +597,33 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
           // Sort plans by activity level
           planStats.sort((a, b) => b.activityPercent - a.activityPercent);
 
-          let message = `📊 **BITVAULT PRO** \u2014 Live Market Update
+          let message = `🏦 **BITVAULT PRO**
+*Professional Digital Asset Management*
 
-🕐 **${new Date().toLocaleDateString('en-US', { 
+⚡ **LIVE UPDATE**
+${new Date().toLocaleDateString('en-US', { 
             weekday: 'short', 
             month: 'short', 
             day: 'numeric'
-          })} \u2022 ${new Date().toLocaleTimeString('en-US', { 
+          })} • ${new Date().toLocaleTimeString('en-US', { 
             hour: '2-digit',
             minute: '2-digit',
             timeZone: 'UTC'
-          })} UTC**
+          })} UTC
 
-**Real-Time Portfolio Metrics**
-──────────────────────────────
-• **Active Client Accounts:** ${totalUsers.toLocaleString()}
-• **Total Assets:** ${platformTotalBalance.toFixed(4)} BTC
-• **USD Value:** $${(platformTotalBalance * bitcoinPrice).toLocaleString()}
-• **Cumulative Returns:** $${(platformTotalProfit * bitcoinPrice).toLocaleString()}
-• **Active Positions:** ${platformActiveInvestments.toLocaleString()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**Investment Strategy Performance**
-───────────────────────────────────`;
+**📊 REAL-TIME METRICS**
+
+👥 Investors: *${totalUsers.toLocaleString()}*
+₿ Assets: *${platformTotalBalance.toFixed(4)} BTC*
+💵 USD: *$${(platformTotalBalance * bitcoinPrice).toLocaleString()}*
+📈 Returns: *$${(platformTotalProfit * bitcoinPrice).toLocaleString()}*
+🎯 Positions: *${platformActiveInvestments.toLocaleString()}*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**💼 STRATEGY PERFORMANCE**`;
 
           // Add plan statistics with professional formatting
           planStats.forEach((stat, index) => {
@@ -619,21 +637,28 @@ export async function sendBatchedUpdatesToChannel(): Promise<void> {
 
           message += `
 
-**Operational Status**
-───────────────────
-✓ **Trading Systems:** Online \u2022 99.8% Uptime
-✓ **Security Framework:** Multi-layer protection active
-✓ **Compliance Status:** Fully regulated and licensed
-✓ **Risk Management:** Real-time monitoring enabled
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**Market Intelligence**
-─────────────────────
-• Algorithmic portfolio optimization
-• Institutional custody solutions
-• Professional asset management
-• 24/7 technical operations
+**⚙️ OPERATIONS**
 
-🏦 **BitVault Pro** \u2014 *Institutional Digital Asset Management*`;
+✅ Trading: *Online* | 99.8% Uptime
+✅ Security: *Active* | Multi-Layer
+✅ Compliance: *Licensed*
+✅ Risk Mgmt: *Real-Time*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**💎 ACTIVE SERVICES**
+
+• AI Portfolio Optimization
+• Institutional Custody
+• Professional Management
+• 24/7 Operations
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏦 **BITVAULT PRO**
+*Institutional Digital Asset Management*`;
 
           const success = await sendToChannel(message);
           if (success) {
