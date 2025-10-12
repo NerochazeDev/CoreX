@@ -1635,8 +1635,8 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       // SECURITY: Validate amount is reasonable (prevent extremely large or small values)
-      if (amountNum > 100000) {
-        return res.status(400).json({ error: "Maximum deposit amount is $100,000 USDT. Please contact support for larger deposits." });
+      if (amountNum > 1000000) {
+        return res.status(400).json({ error: "Maximum deposit amount is $1,000,000 USDT. Please contact support for larger deposits." });
       }
 
       const adminConfig = await storage.getAdminConfig();

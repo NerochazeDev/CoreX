@@ -254,6 +254,7 @@ export default function AutomatedDeposit() {
                     type="number"
                     step="0.01"
                     min="10"
+                    max="1000000"
                     placeholder="10.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
@@ -263,8 +264,7 @@ export default function AutomatedDeposit() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Minimum deposit: $10 USDT on TRC20 network
-                </p>
+                  Minimum: $10 USDT | Maximum: $1,000,000 USDT (TRC20 network)</p>
               </div>
 
               <Alert>
