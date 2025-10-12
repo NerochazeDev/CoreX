@@ -202,10 +202,10 @@ export default function AutomatedDeposit() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent mb-4">
-            💰 Deposit USDT
+            💰 USDT Deposit
           </h1>
           <p className="text-lg text-orange-600/80 dark:text-orange-400/80 font-medium max-w-2xl mx-auto">
-            Send USDT (TRC20) to your unique deposit address. Each user has their own address for instant tracking.
+            Secure your investment by depositing USDT (TRC20) to your exclusive deposit address. Each BitVault Pro member receives a unique address for seamless transaction tracking.
           </p>
         </div>
 
@@ -216,10 +216,10 @@ export default function AutomatedDeposit() {
               <CardHeader className="text-center">
                 <CardTitle className="flex items-center justify-center gap-3 text-xl">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center text-lg font-bold shadow-lg">1</div>
-                  <span className="bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">Enter Deposit Amount</span>
+                  <span className="bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">Enter Investment Amount</span>
                 </CardTitle>
                 <CardDescription className="text-orange-600/70 dark:text-orange-400/70">
-                  Specify how much USDT you want to deposit. Minimum deposit is $10 USDT on TRC20 network.
+                  Specify your investment amount in USDT. Minimum investment requirement is $10 USDT via TRC20 network for optimal security.
                 </CardDescription>
               </CardHeader>
           <CardContent>
@@ -249,8 +249,8 @@ export default function AutomatedDeposit() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Your Unique Address:</strong> Each user has a unique TRC20 deposit address. 
-                  Send the exact amount of USDT and confirm when sent. Your balance will be updated automatically.
+                  <strong>Exclusive Member Address:</strong> Each BitVault Pro member is assigned a unique TRC20 deposit address for enhanced security. 
+                  Transfer the exact USDT amount and confirm completion. Your account balance will be credited automatically upon blockchain confirmation.
                 </AlertDescription>
               </Alert>
 
@@ -290,10 +290,10 @@ export default function AutomatedDeposit() {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">2</div>
-                Send USDT Payment (TRC20)
+                Complete USDT Transfer (TRC20)
               </CardTitle>
               <CardDescription>
-                Send ${currentSession.amount} USDT (TRC20) to your unique deposit address below within {formatTimeRemaining(timeRemaining)}
+                Transfer ${currentSession.amount} USDT (TRC20) to your exclusive deposit address below within {formatTimeRemaining(timeRemaining)}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -356,8 +356,8 @@ export default function AutomatedDeposit() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Important:</strong> Send exactly ${currentSession.amount} USDT (TRC20) to your deposit address above. 
-                  Make sure to use the TRC20 network. Any other network or token will result in loss of funds.
+                  <strong>Critical Instructions:</strong> Transfer exactly ${currentSession.amount} USDT (TRC20) to your designated deposit address above. 
+                  Ensure you select the TRC20 network exclusively. Transfers via alternative networks or tokens will result in irreversible fund loss.
                 </AlertDescription>
               </Alert>
 
@@ -370,12 +370,12 @@ export default function AutomatedDeposit() {
                 {confirmPaymentMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Confirming...
+                    Verifying Transfer...
                   </>
                 ) : (
                   <>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    I've Sent the Payment
+                    Confirm Transfer Completed
                   </>
                 )}
               </Button>
@@ -398,17 +398,17 @@ export default function AutomatedDeposit() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold">3</div>
-              Monitoring Blockchain
+              Blockchain Verification in Progress
             </CardTitle>
             <CardDescription>
-              We're monitoring the TRON blockchain for your transaction. This usually takes 1-5 minutes.
+              Our advanced system is monitoring the TRON blockchain for your transaction. Verification typically completes within 1-5 minutes.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-center p-8">
               <div className="text-center space-y-4">
                 <Loader2 className="h-12 w-12 animate-spin text-orange-500 mx-auto" />
-                <p className="text-lg font-semibold">Waiting for blockchain confirmation...</p>
+                <p className="text-lg font-semibold">Awaiting blockchain confirmation...</p>
                 <p className="text-sm text-muted-foreground">
                   Amount: ${currentSession.amount} USDT
                 </p>
@@ -454,10 +454,10 @@ export default function AutomatedDeposit() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-600">
               <CheckCircle className="h-6 w-6" />
-              Deposit Completed Successfully!
+              Investment Deposit Confirmed!
             </CardTitle>
             <CardDescription>
-              Your Bitcoin deposit has been confirmed and added to your balance.
+              Your USDT deposit has been successfully verified and credited to your BitVault Pro account balance.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
