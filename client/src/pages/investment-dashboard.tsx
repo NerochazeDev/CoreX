@@ -43,10 +43,10 @@ import { useToast } from "@/hooks/use-toast";
 // Memoized chart component for better performance
 const OptimizedChart = memo(({ chartType, data, showValues, showIndicators, totalInvestedAmount }: any) => {
   const chartData = useMemo(() => data, [data]);
-  
+
   const renderChart = useCallback(() => {
     if (!chartData || chartData.length === 0) return null;
-    
+
     switch (chartType) {
       case 'advanced':
         return (
@@ -89,7 +89,7 @@ const OptimizedChart = memo(({ chartType, data, showValues, showIndicators, tota
         );
     }
   }, [chartType, chartData, showValues, showIndicators, totalInvestedAmount]);
-  
+
   return renderChart();
 });
 
@@ -101,7 +101,7 @@ export default function InvestmentDashboard() {
   const { toast } = useToast();
   const { currency } = useCurrency();
   const { data: bitcoinPrice } = useBitcoinPrice();
-  
+
   // Dashboard states
   const [isLiveMode, setIsLiveMode] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -112,7 +112,9 @@ export default function InvestmentDashboard() {
   const [selectedTimeframe, setSelectedTimeframe] = useState<'1m' | '5m' | '15m' | '1h' | '4h' | '1d' | '1w'>('5m');
   const [showIndicators, setShowIndicators] = useState<string[]>(['SMA', 'RSI']);
   const [portfolioView, setPortfolioView] = useState<'overview' | 'analytics' | 'risk' | 'performance'>('overview');
-  
+  const [performanceMetrics, setPerformanceMetrics] = useState<any>({});
+  const [realTimeActivity, setRealTimeActivity] = useState<any[]>([]);
+
   // Real-time data state
   const [liveData, setLiveData] = useState<any[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -121,12 +123,74 @@ export default function InvestmentDashboard() {
   const [technicalIndicators, setTechnicalIndicators] = useState<any>({});
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const activityIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Redirect to login if not authenticated
+  // Redirect if not authenticated
   if (!user) {
     setLocation('/login');
     return null;
   }
+
+  // Calculate real performance metrics from actual investments
+  useEffect(() => {
+    if (actualActiveInvestments.length > 0) {
+      const metrics = {
+        totalROI: (totalProfit / totalInvestedAmount) * 100,
+        dailyAverage: totalProfit / 30, // Approximate daily average
+        bestPerforming: Math.max(...actualActiveInvestments.map(inv => 
+          (parseFloat(inv.currentProfit) / parseFloat(inv.amount)) * 100
+        )),
+        worstPerforming: Math.min(...actualActiveInvestments.filter(inv => parseFloat(inv.currentProfit) > 0).map(inv => 
+          (parseFloat(inv.currentProfit) / parseFloat(inv.amount)) * 100
+        )),
+        avgHoldTime: actualActiveInvestments.reduce((sum, inv) => {
+          const days = Math.floor((Date.now() - new Date(inv.startDate).getTime()) / (1000 * 60 * 60 * 24));
+          return sum + days;
+        }, 0) / actualActiveInvestments.length,
+        profitGrowthRate: totalProfit / totalInvestedAmount * 365 * 100 // Annualized
+      };
+      setPerformanceMetrics(metrics);
+    }
+  }, [actualActiveInvestments, totalProfit, totalInvestedAmount]);
+
+  // Track real-time investment activity
+  useEffect(() => {
+    if (actualActiveInvestments.length === 0) return;
+
+    const updateActivity = () => {
+      const newActivity = actualActiveInvestments.map((investment, index) => {
+        const plan = investmentPlans?.find(p => p.id === investment.planId);
+        const profitChange = parseFloat(investment.amount) * (plan ? parseFloat(plan.dailyReturnRate) / 144 : 0);
+        const roi = (parseFloat(investment.currentProfit) / parseFloat(investment.amount)) * 100;
+
+        return {
+          id: investment.id,
+          planName: plan?.name || `Plan ${investment.planId}`,
+          timestamp: new Date().toISOString(),
+          amount: parseFloat(investment.amount),
+          profit: parseFloat(investment.currentProfit),
+          profitChange: profitChange,
+          roi: roi,
+          status: roi > 10 ? 'Excellent' : roi > 5 ? 'Good' : roi > 0 ? 'Active' : 'New',
+          trend: profitChange > 0 ? 'up' : 'stable'
+        };
+      });
+
+      setRealTimeActivity(prev => {
+        const updated = [...newActivity, ...prev.slice(0, 20)];
+        return updated.slice(0, 25); // Keep last 25 activities
+      });
+    };
+
+    updateActivity();
+    activityIntervalRef.current = setInterval(updateActivity, 10000); // Update every 10 seconds
+
+    return () => {
+      if (activityIntervalRef.current) {
+        clearInterval(activityIntervalRef.current);
+      }
+    };
+  }, [actualActiveInvestments, investmentPlans]);
 
   const { data: activeInvestments, isLoading: loadingInvestments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user.id],
@@ -178,7 +242,7 @@ export default function InvestmentDashboard() {
           return sum + (plan ? parseFloat(plan.dailyReturnRate) * 100 : 0);
         }, 0) / actualActiveInvestments.length 
       : 3.67;
-    
+
     return {
       actualActiveInvestments,
       totalInvestedAmount,
@@ -188,7 +252,7 @@ export default function InvestmentDashboard() {
       dailyGrowthRate
     };
   }, [activeInvestments, investmentPlans]);
-  
+
   const { actualActiveInvestments, totalInvestedAmount, totalProfit, totalValue, profitMargin, dailyGrowthRate } = investmentMetrics;
 
   // Calculate technical indicators
@@ -239,149 +303,108 @@ export default function InvestmentDashboard() {
   const calculateBollingerBands = (data: any[], period: number = 20, multiplier: number = 2) => {
     const sma = calculateSMA(data, period);
     const bands = { upper: [] as number[], lower: [] as number[], middle: sma };
-    
+
     for (let i = period - 1; i < data.length; i++) {
       const slice = data.slice(i - period + 1, i + 1);
       const mean = sma[i - period + 1];
       const variance = slice.reduce((acc, val) => acc + Math.pow(val.value - mean, 2), 0) / period;
       const stdDev = Math.sqrt(variance);
-      
+
       bands.upper.push(mean + (stdDev * multiplier));
       bands.lower.push(mean - (stdDev * multiplier));
     }
-    
+
     return bands;
   };
 
-  // Generate professional trading data with multiple timeframes
-  const generateAdvancedChartData = () => {
-    console.log('🎯 Generating chart data with baseAmount:', Math.max(totalInvestedAmount || 0.1, 0.01));
-    console.log('Total invested amount for chart:', totalInvestedAmount);
-    
-    const data: any[] = [];
-    const baseAmount = Math.max(totalInvestedAmount || 0.1, 0.01);
-    const now = new Date();
-    const timeframeMs = {
-      '1m': 60000,
-      '5m': 300000,
-      '15m': 900000,
-      '1h': 3600000,
-      '4h': 14400000,
-      '1d': 86400000,
-      '1w': 604800000
-    };
-    const interval = timeframeMs[selectedTimeframe];
-    const dataPoints = isLiveMode ? 200 : 100;
+  // Generate advanced chart data with real investment data
+  const generateAdvancedChartData = useCallback(() => {
+    if (actualActiveInvestments.length === 0) {
+      return [];
+    }
 
-    // Generate market cycles and trends
-    const marketCycle = Math.sin(now.getTime() / (24 * 60 * 60 * 1000)) * 0.1; // Daily cycle
-    const weeklyTrend = Math.sin(now.getTime() / (7 * 24 * 60 * 60 * 1000)) * 0.05; // Weekly trend
-    
-    for (let i = dataPoints - 1; i >= 0; i--) {
-      const timestamp = new Date(now.getTime() - i * interval);
-      
-      // Advanced market simulation with multiple factors
-      const baseVariation = (Math.random() - 0.5) * 0.03; // Market volatility
-      const trendGrowth = (dataPoints - i) * (dailyGrowthRate / 100) / dataPoints;
-      const cyclicalEffect = Math.sin(i * 0.1) * 0.015; // Cyclical market behavior
-      const momentumEffect = i < 20 ? (20 - i) * 0.001 : 0; // Recent momentum
-      const newsEvent = Math.random() < 0.05 ? (Math.random() - 0.5) * 0.08 : 0; // Random news events
-      
-      const growthFactor = 1 + trendGrowth + baseVariation + cyclicalEffect + momentumEffect + newsEvent + marketCycle + weeklyTrend;
-      const value = baseAmount * growthFactor;
-      const profit = Math.max(value - baseAmount, 0);
-      
-      // Professional volume simulation with patterns
-      const baseVolume = 800000 + Math.sin(i * 0.2) * 200000; // Volume patterns
-      const volumeSpike = Math.abs(newsEvent) > 0.03 ? 2.5 : 1; // Volume spikes on news
-      const volume = Math.floor((baseVolume * (0.8 + Math.random() * 0.4)) * volumeSpike);
-      
-      // Professional OHLC data with proper relationships
-      const volatility = 0.008 + Math.abs(newsEvent) * 0.5; // Dynamic volatility
-      const open: number = i === dataPoints - 1 ? value : data[data.length - 1]?.close || value;
-      const direction = Math.random() > 0.5 ? 1 : -1;
-      const range = value * volatility * (0.5 + Math.random());
-      
-      const high = Math.max(open, value) + (range * 0.3 * Math.random());
-      const low = Math.min(open, value) - (range * 0.3 * Math.random());
-      const close = value;
-      
-      // Bid/Ask spread simulation
-      const spread = value * 0.001; // 0.1% spread
-      const bid = value - spread / 2;
-      const ask = value + spread / 2;
+    const data = [];
+    const now = Date.now();
+    const baseValue = totalValue;
 
-      data.unshift({
-        timestamp: timestamp.getTime(),
-        date: selectedTimeframe.includes('m') || selectedTimeframe.includes('h')
-          ? timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-          : timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    // Calculate weighted average daily return rate from actual investments
+    const totalWeight = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+    const weightedDailyRate = actualActiveInvestments.reduce((sum, inv) => {
+      const plan = investmentPlans?.find(p => p.id === inv.planId);
+      const weight = parseFloat(inv.amount) / totalWeight;
+      return sum + (plan ? parseFloat(plan.dailyReturnRate) * weight : 0);
+    }, 0);
+
+    for (let i = 199; i >= 0; i--) {
+      const timestamp = now - i * 5 * 60 * 1000;
+      const date = new Date(timestamp);
+
+      // Calculate realistic price movement based on actual performance
+      const minutesElapsed = (199 - i) * 5;
+      const actualGrowth = (weightedDailyRate / 1440) * minutesElapsed; // Growth per minute
+      const volatility = 0.005; // Reduced volatility for more realistic movement
+      const randomChange = (Math.random() - 0.5) * volatility;
+      const value = baseValue * (1 + actualGrowth + randomChange);
+
+      // Calculate actual profit from real investments
+      const profit = actualActiveInvestments.reduce((sum, inv) => {
+        const plan = investmentPlans?.find(p => p.id === inv.planId);
+        const invAmount = parseFloat(inv.amount);
+        const dailyRate = plan ? parseFloat(plan.dailyReturnRate) : 0;
+        const invProfit = invAmount * (dailyRate / 1440) * minutesElapsed;
+        return sum + invProfit;
+      }, 0);
+
+      // Technical indicators
+      const sma20 = i < 180 ? data.slice(Math.max(0, data.length - 20)).reduce((sum, d) => sum + d.value, 0) / Math.min(20, data.length) : value;
+      const rsi = 50 + (randomChange * 100);
+
+      data.push({
+        timestamp,
+        date: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         value: parseFloat(value.toFixed(8)),
         profit: parseFloat(profit.toFixed(8)),
-        portfolio: parseFloat((baseAmount + profit).toFixed(8)),
-        volume: volume,
-        open: parseFloat(open.toFixed(8)),
-        high: parseFloat(high.toFixed(8)),
-        low: parseFloat(low.toFixed(8)),
-        close: parseFloat(close.toFixed(8)),
-        bid: parseFloat(bid.toFixed(8)),
-        ask: parseFloat(ask.toFixed(8)),
-        spread: parseFloat(spread.toFixed(8)),
-        change: data.length > 0 ? parseFloat((close - (data[0] as any).close).toFixed(8)) : 0,
-        changePercent: data.length > 0 ? parseFloat(((close - (data[0] as any).close) / (data[0] as any).close * 100).toFixed(4)) : 0,
-        volatility: parseFloat((volatility * 100).toFixed(2)),
-        usdValue: bitcoinPrice ? parseFloat((value * (currency === 'USD' ? bitcoinPrice.usd.price : currency === 'GBP' ? bitcoinPrice.gbp.price : bitcoinPrice.eur.price)).toFixed(2)) : 0
+        portfolio: parseFloat((value + profit).toFixed(8)),
+        volume: Math.floor(Math.random() * 500000) + 500000,
+        open: parseFloat((value * (1 - Math.abs(randomChange) * 0.5)).toFixed(8)),
+        high: parseFloat((value * (1 + Math.abs(randomChange))).toFixed(8)),
+        low: parseFloat((value * (1 - Math.abs(randomChange))).toFixed(8)),
+        close: parseFloat(value.toFixed(8)),
+        bid: parseFloat((value * 0.9995).toFixed(8)),
+        ask: parseFloat((value * 1.0005).toFixed(8)),
+        spread: parseFloat((value * 0.001).toFixed(8)),
+        change: parseFloat((randomChange * value).toFixed(8)),
+        changePercent: parseFloat((randomChange * 100).toFixed(2)),
+        volatility: volatility,
+        sma20: parseFloat(sma20.toFixed(8)),
+        rsi: Math.max(0, Math.min(100, rsi)),
+        usdValue: bitcoinPrice ? parseFloat((value * bitcoinPrice.usd.price).toFixed(2)) : 0,
+        profitRate: parseFloat((actualGrowth * 100).toFixed(4))
       });
     }
-    
-    // Calculate technical indicators
-    if (data.length >= 26) {
-      const sma20 = calculateSMA(data, 20);
-      const sma50 = calculateSMA(data, 50);
-      const rsi = calculateRSI(data);
-      const macd = calculateMACD(data);
-      const bollinger = calculateBollingerBands(data);
-      
-      // Add indicators to data points
-      data.forEach((point: any, i) => {
-        if (i >= 19) point.sma20 = sma20[i - 19];
-        if (i >= 49) point.sma50 = sma50[i - 49];
-        if (i >= 14) point.rsi = rsi[i - 14];
-        if (i >= 25) {
-          point.macd = macd.macd[i - 25];
-          point.macdSignal = macd.signal[i - 25];
-          point.macdHistogram = macd.macd[i - 25] - macd.signal[i - 25];
-        }
-        if (i >= 19) {
-          point.bbUpper = bollinger.upper[i - 19];
-          point.bbLower = bollinger.lower[i - 19];
-          point.bbMiddle = bollinger.middle[i - 19];
-        }
-      });
-    }
-    
+
     return data;
-  };
+  }, [actualActiveInvestments, totalValue, totalInvestedAmount, investmentPlans, bitcoinPrice]);
 
   // Generate market depth data
   const generateMarketDepth = () => {
     const currentPrice = chartData[chartData.length - 1]?.value || totalValue;
     const depth = [];
-    
+
     // Generate bid orders (buy orders below current price)
     for (let i = 0; i < 15; i++) {
       const price = currentPrice * (1 - (i + 1) * 0.002); // 0.2% steps
       const size = (Math.random() * 2 + 0.5) * (1 + i * 0.1); // Increasing size with distance
       depth.push({ price: parseFloat(price.toFixed(8)), size: parseFloat(size.toFixed(4)), side: 'bid', total: 0 });
     }
-    
+
     // Generate ask orders (sell orders above current price)
     for (let i = 0; i < 15; i++) {
       const price = currentPrice * (1 + (i + 1) * 0.002); // 0.2% steps
       const size = (Math.random() * 2 + 0.5) * (1 + i * 0.1); // Increasing size with distance
       depth.push({ price: parseFloat(price.toFixed(8)), size: parseFloat(size.toFixed(4)), side: 'ask', total: 0 });
     }
-    
+
     // Calculate cumulative totals
     let bidTotal = 0, askTotal = 0;
     depth.forEach(order => {
@@ -393,7 +416,7 @@ export default function InvestmentDashboard() {
         order.total = askTotal;
       }
     });
-    
+
     return depth;
   };
 
@@ -402,7 +425,7 @@ export default function InvestmentDashboard() {
     const currentPrice = chartData[chartData.length - 1]?.value || totalValue;
     const bids = [];
     const asks = [];
-    
+
     // Generate realistic bid/ask orders
     for (let i = 0; i < 10; i++) {
       bids.push({
@@ -410,19 +433,19 @@ export default function InvestmentDashboard() {
         size: parseFloat((Math.random() * 5 + 1).toFixed(4)),
         total: 0
       });
-      
+
       asks.push({
         price: parseFloat((currentPrice * (1 + (i + 1) * 0.001)).toFixed(8)),
         size: parseFloat((Math.random() * 5 + 1).toFixed(4)),
         total: 0
       });
     }
-    
+
     // Calculate totals
     let bidTotal = 0, askTotal = 0;
     bids.forEach(bid => { bidTotal += bid.size; bid.total = bidTotal; });
     asks.forEach(ask => { askTotal += ask.size; ask.total = askTotal; });
-    
+
     return { bids, asks };
   };
 
@@ -433,23 +456,23 @@ export default function InvestmentDashboard() {
         const newData = generateAdvancedChartData();
         const newDepth = generateMarketDepth();
         const newOrderBook = generateOrderBook();
-        
+
         setLiveData(newData);
         setChartData(newData);
         setMarketDepth(newDepth);
         setOrderBook(newOrderBook);
-        
+
         // Enhanced portfolio metrics calculation
         if (newData.length > 1) {
           const latest = newData[newData.length - 1];
           const previous = newData[newData.length - 2];
           const historical = newData.slice(-30); // Last 30 data points
-          
+
           // Calculate advanced technical indicators
           const avgVolatility = historical.reduce((sum, point) => sum + (point.volatility || 0), 0) / historical.length;
           const priceVelocity = historical.length > 5 ? 
             (latest.value - historical[historical.length - 6].value) / 5 : 0;
-          
+
           setTechnicalIndicators({
             rsi: (latest as any).rsi || 50,
             macd: (latest as any).macd || 0,
@@ -461,19 +484,19 @@ export default function InvestmentDashboard() {
             momentum: latest.changePercent > 0 ? 'bullish' : 'bearish',
             strength: Math.abs(latest.changePercent)
           });
-          
+
           // Enhanced sound alerts with different tones
           if (soundEnabled) {
             const priceChange = Math.abs(latest.changePercent);
             const volumeSpike = latest.volume > (previous.volume * 1.5);
             const rsiExtreme = (latest as any).rsi && ((latest as any).rsi > 80 || (latest as any).rsi < 20);
             const bigMove = priceChange > 2.0;
-            
+
             if (bigMove || volumeSpike || rsiExtreme) {
               if (audioRef.current) {
                 audioRef.current.play().catch(() => {});
               }
-              
+
               // Show toast notification for significant events
               toast({
                 title: bigMove ? "📈 Significant Price Movement" : volumeSpike ? "📊 Volume Spike" : "⚠️ RSI Alert",
@@ -516,7 +539,7 @@ export default function InvestmentDashboard() {
   const currentChartData = (isLiveMode && liveData.length > 0) ? liveData : chartData;
   console.log('📊 Current chart data length:', currentChartData.length);
   console.log('📊 Chart data sample:', currentChartData.slice(0, 2));
-  
+
   // Ensure chart data is always available
   useEffect(() => {
     if (currentChartData.length === 0 && !loadingInvestments) {
@@ -547,7 +570,7 @@ export default function InvestmentDashboard() {
       + currentChartData.map(row => 
           `${row.date},${row.value},${row.profit},${row.changePercent},${row.volume},${row.usdValue}`
         ).join("\n");
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -555,7 +578,7 @@ export default function InvestmentDashboard() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     toast({
       title: "Data Exported",
       description: "Investment data has been exported to CSV file",
@@ -797,7 +820,7 @@ export default function InvestmentDashboard() {
             </ResponsiveContainer>
           </div>
         );
-        
+
       case 'depth':
         // Generate investment source breakdown data
         const investmentSources = actualActiveInvestments.map((investment, index) => {
@@ -864,7 +887,7 @@ export default function InvestmentDashboard() {
           </ResponsiveContainer>
           </div>
         );
-        
+
       case 'advanced':
         return (
           <div style={{ width: '100%', height: '400px' }}>
@@ -989,7 +1012,7 @@ export default function InvestmentDashboard() {
             </ResponsiveContainer>
           </div>
         );
-        
+
       case 'distribution':
         const distributionData = actualActiveInvestments.map((investment, index) => {
           const plan = investmentPlans?.find(p => p.id === investment.planId);
@@ -1002,7 +1025,7 @@ export default function InvestmentDashboard() {
             percentage: (parseFloat(investment.amount) / totalInvestedAmount * 100).toFixed(1)
           };
         });
-        
+
         return (
           <div style={{ width: '100%', height: '400px' }}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
@@ -1047,7 +1070,7 @@ export default function InvestmentDashboard() {
                 />
                 </RechartsPieChart>
               </ResponsiveContainer>
-              
+
               <ResponsiveContainer width="100%" height="100%">
                 <RadialBarChart 
                   cx="50%" 
@@ -1078,14 +1101,14 @@ export default function InvestmentDashboard() {
             </div>
           </div>
         );
-        
+
       case 'comparison':
         const comparisonData = actualActiveInvestments.map((investment, index) => {
           const plan = investmentPlans?.find(p => p.id === investment.planId);
           const roi = (parseFloat(investment.currentProfit) / parseFloat(investment.amount) * 100);
           const dailyRate = plan ? parseFloat(plan.dailyReturnRate) * 100 : 0;
           const projectedMonthly = parseFloat(investment.amount) * (dailyRate / 100) * 30;
-          
+
           return {
             name: plan?.name || `Plan ${investment.planId}`,
             invested: parseFloat(investment.amount),
@@ -1096,7 +1119,7 @@ export default function InvestmentDashboard() {
             efficiency: roi / (dailyRate || 1)
           };
         });
-        
+
         return (
           <div style={{ width: '100%', height: '400px' }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -1186,7 +1209,7 @@ export default function InvestmentDashboard() {
           volume: point.volume,
           change: point.changePercent
         }));
-        
+
         return (
           <div style={{ width: '100%', height: '400px' }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -1266,7 +1289,7 @@ export default function InvestmentDashboard() {
                   {isLiveMode ? (isStreaming ? 'STREAMING' : 'LIVE') : 'PAUSED'}
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
@@ -1302,7 +1325,7 @@ export default function InvestmentDashboard() {
 
       {/* Main Dashboard */}
       <main className={`max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 ${isFullscreen ? 'py-2' : 'py-4 md:py-6'} lg:ml-64 pb-20 lg:pb-6`}>
-        
+
         {/* Professional Trading Header */}
         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 ${isFullscreen ? 'mb-3' : 'mb-4 md:mb-6'}`}>
           {/* Price & Change */}
@@ -1508,7 +1531,10 @@ export default function InvestmentDashboard() {
                 </p>
               </div>
               <div className={`w-10 h-10 rounded-xl ${technicalIndicators.momentum === 'bullish' ? 'bg-green-500/20' : 'bg-red-500/20'} flex items-center justify-center`}>
-                <Activity className={`w-5 h-5 ${technicalIndicators.momentum === 'bullish' ? 'text-green-400' : 'text-red-400'}`} />
+                {technicalIndicators.momentum === 'bullish' ? 
+                  <Activity className="w-5 h-5 text-green-400" /> : 
+                  <Activity className="w-5 h-5 text-red-400" />
+                }
               </div>
             </div>
           </Card>
@@ -1724,7 +1750,7 @@ export default function InvestmentDashboard() {
           </div>
 
           <div className={`relative p-3 md:p-4 ${isFullscreen ? 'h-[70vh]' : 'h-[250px] sm:h-[350px] md:h-[450px]'} overflow-hidden`}>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none rounded-lg"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-pink-500/5 rounded-lg pointer-events-none"></div>
             {loadingInvestments ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
@@ -1787,7 +1813,7 @@ export default function InvestmentDashboard() {
                   </div>
                 )}
                 {renderChart()}
-                
+
                 {/* Chart Overlay Information */}
                 {currentChartData && currentChartData.length > 0 && (
                   <div className="absolute bottom-2 left-2 z-10">
@@ -1817,7 +1843,7 @@ export default function InvestmentDashboard() {
         {/* Professional Portfolio Analytics */}
         {!isFullscreen && actualActiveInvestments.length > 0 && (
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 md:gap-6 mt-4 md:mt-6">
-            
+
             {/* Portfolio Analytics Panel */}
             <div className="xl:col-span-8 space-y-4 md:space-y-6">
               <Card className="bg-black/40 border-blue-500/30 backdrop-blur-lg">
@@ -1839,7 +1865,7 @@ export default function InvestmentDashboard() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-4 md:p-6">
                   {portfolioView === 'overview' && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1848,37 +1874,37 @@ export default function InvestmentDashboard() {
                           <TrendingUp className="w-6 h-6 text-green-400" />
                         </div>
                         <p className="text-xs text-gray-400 mb-1">Total Return</p>
-                        <p className="text-xl font-bold text-green-400">{profitMargin.toFixed(2)}%</p>
+                        <p className="text-xl font-bold text-green-400">{performanceMetrics.totalROI ? performanceMetrics.totalROI.toFixed(2) : '...'}%</p>
                         <p className="text-xs text-gray-500">All time</p>
                       </div>
-                      
+
                       <div className="text-center p-4 bg-gray-800/30 rounded-lg border border-gray-700/30">
                         <div className="w-12 h-12 mx-auto mb-3 bg-blue-500/20 rounded-full flex items-center justify-center">
                           <Target className="w-6 h-6 text-blue-400" />
                         </div>
                         <p className="text-xs text-gray-400 mb-1">Sharpe Ratio</p>
-                        <p className="text-xl font-bold text-blue-400">{(profitMargin * 0.2).toFixed(2)}</p>
+                        <p className="text-xl font-bold text-blue-400">{performanceMetrics.totalROI ? (performanceMetrics.totalROI * 0.2).toFixed(2) : '...'}</p>
                         <p className="text-xs text-gray-500">Risk adjusted</p>
                       </div>
-                      
+
                       <div className="text-center p-4 bg-gray-800/30 rounded-lg border border-gray-700/30">
                         <div className="w-12 h-12 mx-auto mb-3 bg-purple-500/20 rounded-full flex items-center justify-center">
                           <Activity className="w-6 h-6 text-purple-400" />
                         </div>
                         <p className="text-xs text-gray-400 mb-1">Volatility</p>
-                        <p className="text-xl font-bold text-purple-400">{(dailyGrowthRate * 0.3).toFixed(1)}%</p>
+                        <p className="text-xl font-bold text-purple-400">{performanceMetrics.profitGrowthRate ? (performanceMetrics.profitGrowthRate * 0.3).toFixed(1) : '...'}%</p>
                         <p className="text-xs text-gray-500">30-day avg</p>
                       </div>
                     </div>
                   )}
-                  
+
                   {portfolioView === 'analytics' && (
                     <div className="space-y-6">
                       {/* Performance Metrics */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="bg-gray-800/30 rounded-lg p-3 border border-gray-700/30">
                           <p className="text-xs text-gray-400 mb-1">Alpha</p>
-                          <p className="text-lg font-bold text-green-400">+{(profitMargin * 0.15).toFixed(2)}%</p>
+                          <p className="text-lg font-bold text-green-400">{performanceMetrics.totalROI ? `+${(performanceMetrics.totalROI * 0.15).toFixed(2)}%` : '...'}</p>
                         </div>
                         <div className="bg-gray-800/30 rounded-lg p-3 border border-gray-700/30">
                           <p className="text-xs text-gray-400 mb-1">Beta</p>
@@ -1893,7 +1919,7 @@ export default function InvestmentDashboard() {
                           <p className="text-lg font-bold text-orange-400">{(85 + Math.random() * 10).toFixed(0)}%</p>
                         </div>
                       </div>
-                      
+
                       {/* Correlation Matrix */}
                       <div>
                         <h4 className="text-sm font-semibold text-gray-300 mb-3">Asset Correlation</h4>
@@ -1920,7 +1946,7 @@ export default function InvestmentDashboard() {
                       </div>
                     </div>
                   )}
-                  
+
                   {portfolioView === 'risk' && (
                     <div className="space-y-6">
                       {/* Risk Metrics */}
@@ -1951,7 +1977,7 @@ export default function InvestmentDashboard() {
                             })}
                           </div>
                         </div>
-                        
+
                         <div>
                           <h4 className="text-sm font-semibold text-gray-300 mb-3">Risk Distribution</h4>
                           <div className="space-y-3">
@@ -1960,7 +1986,7 @@ export default function InvestmentDashboard() {
                               const riskWeight = parseFloat(investment.amount) / totalInvestedAmount * 100;
                               const riskLevel = i % 3 === 0 ? 'Low' : i % 3 === 1 ? 'Medium' : 'High';
                               const riskColor = riskLevel === 'Low' ? 'green' : riskLevel === 'Medium' ? 'yellow' : 'red';
-                              
+
                               return (
                                 <div key={investment.id} className="bg-gray-800/30 rounded-lg p-3 border border-gray-700/30">
                                   <div className="flex justify-between items-center mb-2">
@@ -1987,7 +2013,7 @@ export default function InvestmentDashboard() {
                       </div>
                     </div>
                   )}
-                  
+
                   {portfolioView === 'performance' && (
                     <div className="space-y-6">
                       {/* Performance Attribution */}
@@ -1996,9 +2022,9 @@ export default function InvestmentDashboard() {
                         <div className="space-y-3">
                           {actualActiveInvestments.map((investment, i) => {
                             const plan = investmentPlans?.find(p => p.id === investment.planId);
-                            const contribution = (parseFloat(investment.currentProfit) / totalProfit * 100) || 0;
+                            const contribution = totalProfit > 0 ? (parseFloat(investment.currentProfit) / totalProfit * 100) || 0 : 0;
                             const performance = (parseFloat(investment.currentProfit) / parseFloat(investment.amount) * 100) || 0;
-                            
+
                             return (
                               <div key={investment.id} className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/30">
                                 <div className="flex justify-between items-start mb-3">
@@ -2015,7 +2041,7 @@ export default function InvestmentDashboard() {
                                     <p className="text-xs text-gray-400">Return</p>
                                   </div>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-3 gap-4 text-xs">
                                   <div>
                                     <p className="text-gray-400 mb-1">Profit</p>
@@ -2034,7 +2060,7 @@ export default function InvestmentDashboard() {
                                     </p>
                                   </div>
                                 </div>
-                                
+
                                 <div className="mt-3">
                                   <div className="w-full bg-gray-700 rounded-full h-1">
                                     <div 
@@ -2053,125 +2079,93 @@ export default function InvestmentDashboard() {
                 </div>
               </Card>
             </div>
-            
+
             {/* Investment Activity & Live Feed */}
             <div className="xl:col-span-4 space-y-6">
               {/* Live Investment Activity */}
               <Card className="bg-black/40 border-green-500/30 backdrop-blur-lg">
                 <div className="p-4 border-b border-green-500/20">
-                  <h3 className="text-sm font-semibold text-green-400">Live Investment Activity</h3>
-                  <p className="text-xs text-gray-500">Real-time income tracking</p>
+                  <h3 className="text-sm font-semibold text-green-400 flex items-center gap-2">
+                    <Activity className="w-4 h-4" />
+                    Live Investment Activity
+                  </h3>
+                  <p className="text-xs text-gray-500">Real-time tracking • {realTimeActivity.length} activities</p>
                 </div>
-                <div className="p-4">
-                  <div className="space-y-3">
-                    {/* Active Investment Sources */}
-                    <div className="space-y-2">
-                      <h4 className="text-xs text-green-400 font-medium mb-2">Active Income Sources</h4>
-                      {actualActiveInvestments.slice(0, 5).map((investment, i) => {
-                        const plan = investmentPlans?.find(p => p.id === investment.planId);
-                        const dailyIncome = parseFloat(investment.amount) * (plan ? parseFloat(plan.dailyReturnRate) : 0.01);
-                        const hourlyIncome = dailyIncome / 24;
-                        
-                        return (
-                          <div key={investment.id} className="flex justify-between items-center text-xs py-2 px-3 bg-green-500/10 rounded border border-green-500/20">
-                            <div>
-                              <span className="text-green-400 font-medium">
-                                {plan?.name || `Plan ${investment.planId}`}
-                              </span>
-                              <div className="text-gray-400 text-xs">
-                                {showValues ? `${formatBitcoin(investment.amount)} BTC` : '••••••••'}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-green-300 font-mono">
-                                {showValues ? `+${hourlyIncome.toFixed(8)}` : '••••••••'}
-                              </div>
-                              <div className="text-gray-500 text-xs">per hour</div>
-                            </div>
+                <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
+                  {realTimeActivity.length > 0 ? (
+                    realTimeActivity.slice(0, 10).map((activity, index) => (
+                      <div key={`${activity.id}-${index}`} className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg border border-gray-700/30 hover:border-green-500/30 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-2 h-2 rounded-full ${
+                            activity.status === 'Excellent' ? 'bg-green-400' :
+                            activity.status === 'Good' ? 'bg-blue-400' :
+                            activity.status === 'Active' ? 'bg-yellow-400' : 'bg-gray-400'
+                          } animate-pulse`}></div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-200">{activity.planName}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(activity.timestamp).toLocaleTimeString()}
+                            </p>
                           </div>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Current Earning Rate */}
-                    <div className="my-3 p-3 bg-orange-500/20 rounded border border-orange-500/30">
-                      <div className="text-center">
-                        <p className="text-xs text-orange-400">Current Earning Rate</p>
-                        <p className="text-lg font-bold text-white">
-                          +{dailyGrowthRate.toFixed(3)}%
-                        </p>
-                        <p className="text-xs text-gray-400">per day</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-green-400">
+                            {showValues ? `+${activity.profitChange.toFixed(8)}` : '••••••'}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            ROI: {activity.roi.toFixed(2)}%
+                          </p>
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">No activity yet</p>
+                      <p className="text-xs">Start investing to see real-time updates</p>
                     </div>
-                    
-                    {/* Recent Income Events */}
-                    <div className="space-y-2">
-                      <h4 className="text-xs text-blue-400 font-medium mb-2">Recent Income Events</h4>
-                      {Array.from({ length: 5 }, (_, i) => {
-                        const timeAgo = `${Math.floor(Math.random() * 60)} min ago`;
-                        const randomInvestment = actualActiveInvestments[Math.floor(Math.random() * actualActiveInvestments.length)];
-                        const plan = investmentPlans?.find(p => p.id === randomInvestment?.planId);
-                        const income = randomInvestment ? parseFloat(randomInvestment.amount) * 0.0001 : 0;
-                        
-                        return (
-                          <div key={i} className="flex justify-between items-center text-xs py-2 px-3 bg-blue-500/10 rounded border border-blue-500/20">
-                            <div>
-                              <span className="text-blue-400">
-                                {plan?.name || 'Investment Plan'}
-                              </span>
-                              <div className="text-gray-500 text-xs">{timeAgo}</div>
-                            </div>
-                            <div className="text-green-300 font-mono">
-                              {showValues ? `+${income.toFixed(8)} BTC` : '+••••••••'}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </Card>
-              
-              {/* Investment Performance Metrics */}
-              <Card className="bg-black/40 border-purple-500/30 backdrop-blur-lg p-4">
-                <h3 className="text-sm font-semibold text-purple-400 mb-3">Investment Performance</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">Total Invested</span>
-                    <span className="text-sm font-bold text-white">
-                      {showValues ? `${formatBitcoin(totalInvestedAmount.toString())} BTC` : '••••••••'}
-                    </span>
+
+              {/* Real Performance Metrics */}
+              {performanceMetrics.totalROI && (
+                <Card className="bg-black/40 border-blue-500/30 backdrop-blur-lg">
+                  <div className="p-4 border-b border-blue-500/20">
+                    <h3 className="text-sm font-semibold text-blue-400 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      Performance Metrics
+                    </h3>
+                    <p className="text-xs text-gray-500">Based on your actual investments</p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">Total Income</span>
-                    <span className="text-sm font-bold text-green-400">
-                      {showValues ? `+${formatBitcoin(totalProfit.toString())} BTC` : '••••••••'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">Daily Growth</span>
-                    <span className="text-sm font-bold text-blue-400">
-                      +{dailyGrowthRate.toFixed(3)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">Active Plans</span>
-                    <span className="text-sm font-bold text-yellow-400">{actualActiveInvestments.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">Total ROI</span>
-                    <span className="text-sm font-bold text-purple-400">+{profitMargin.toFixed(2)}%</span>
-                  </div>
-                  <div className="mt-4 p-3 bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg border border-green-500/30">
-                    <div className="text-center">
-                      <p className="text-xs text-gray-300">Projected Monthly Income</p>
+                  <div className="p-4 grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-lg border border-green-500/20">
+                      <p className="text-xs text-gray-400 mb-1">Total ROI</p>
                       <p className="text-lg font-bold text-green-400">
-                        {showValues ? `+${(totalInvestedAmount * dailyGrowthRate / 100 * 30).toFixed(8)} BTC` : '••••••••'}
+                        {showValues ? `${performanceMetrics.totalROI.toFixed(2)}%` : '••••'}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-lg border border-blue-500/20">
+                      <p className="text-xs text-gray-400 mb-1">Daily Avg</p>
+                      <p className="text-lg font-bold text-blue-400">
+                        {showValues ? formatBitcoin(performanceMetrics.dailyAverage.toFixed(8)) : '••••'}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 rounded-lg border border-yellow-500/20">
+                      <p className="text-xs text-gray-400 mb-1">Best Performer</p>
+                      <p className="text-lg font-bold text-yellow-400">
+                        {showValues ? `${performanceMetrics.bestPerforming.toFixed(2)}%` : '••••'}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-lg border border-purple-500/20">
+                      <p className="text-xs text-gray-400 mb-1">Ann. Growth</p>
+                      <p className="text-lg font-bold text-purple-400">
+                        {showValues ? `${performanceMetrics.profitGrowthRate.toFixed(1)}%` : '••••'}
                       </p>
                     </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              )}
             </div>
           </div>
         )}
@@ -2180,7 +2174,7 @@ export default function InvestmentDashboard() {
 
       {/* Hidden audio element for notifications */}
       <audio ref={audioRef} preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAo=" type="audio/wav" />
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC2T2/LMeSwFJHfH8N2QQAo=" type="audio/wav" />
       </audio>
 
       {/* Bottom Navigation - Hidden in fullscreen */}
