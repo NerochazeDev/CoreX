@@ -2670,11 +2670,8 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(400).json({ error: "TRC20 address and amount are required" });
       }
 
-      // Import TRC20 wallet manager for address validation
-      const { trc20WalletManager } = await import('./trc20-wallet');
-
-      // Validate TRC20 address format
-      if (!trc20WalletManager.validateAddress(address)) {
+      // Validate TRC20 address format (basic validation)
+      if (!address.startsWith('T') || address.length !== 34) {
         return res.status(400).json({ error: "Invalid TRC20 address format. Please provide a valid TRON address starting with 'T'." });
       }
 
@@ -2683,7 +2680,9 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(404).json({ error: "User account not found" });
       }
 
-      const userBalance = parseFloat(user.balance);
+      // Get Bitcoin price to convert balance to USD
+      const bitcoinPrice = await getCurrentBitcoinPrice();
+      const userBalanceUSD = parseFloat(user.balance) * bitcoinPrice;
       const withdrawAmount = parseFloat(amount);
 
       // Enhanced amount validation
@@ -2695,7 +2694,7 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(400).json({ error: "Minimum withdrawal amount is $10 USDT" });
       }
 
-      if (withdrawAmount > userBalance) {
+      if (withdrawAmount > userBalanceUSD) {
         return res.status(400).json({ error: "Insufficient balance for this withdrawal" });
       }
 
@@ -2728,14 +2727,16 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       // CRITICAL FIX: Deduct balance IMMEDIATELY when creating withdrawal (atomic operation)
-      const newBalance = (userBalance - withdrawAmount).toFixed(2);
+      // Convert withdrawal amount from USD to BTC for balance deduction
+      const btcToDeduct = withdrawAmount / bitcoinPrice;
+      const newBalance = (parseFloat(user.balance) - btcToDeduct).toFixed(8);
       await storage.updateUserBalance(userId, newBalance);
 
       // Create withdrawal transaction record with proper withdrawal address field
       const transaction = await storage.createTransaction({
         userId: userId,
         type: "withdrawal",
-        amount: amount,
+        amount: amount, // Store USD amount
         status: "pending",
         withdrawalAddress: address, // Proper field for TRC20 withdrawal address
         transactionHash: null, // Will be set after actual blockchain transaction
@@ -2744,18 +2745,25 @@ You will receive a notification once your deposit is confirmed and added to your
       // Create security notification
       await storage.createNotification({
         userId: userId,
-        title: "🔒 Withdrawal Security Review",
-        message: `Your withdrawal request for $${amount} USDT (TRC20) to ${address.substring(0, 8)}...${address.slice(-6)} is under security review. Funds have been reserved. This typically takes 2-24 hours for your protection.`,
+        title: "🔒 Withdrawal Submitted - Pending Review",
+        message: `Your withdrawal request for $${amount} USDT to ${address.substring(0, 10)}...${address.slice(-6)} has been submitted.
+
+✅ Balance deducted: ${btcToDeduct.toFixed(8)} BTC (≈ $${amount})
+⏳ Status: Pending admin approval
+🔐 Your funds are secure and reserved
+
+Admin will review and process your withdrawal shortly. You'll receive a confirmation once the USDT is sent to your address.`,
         type: "info"
       });
 
-      console.log(`💰 [WITHDRAWAL] User ${userId} TRC20 withdrawal created: $${amount} USDT | Balance: $${userBalance} → $${newBalance}`);
+      console.log(`💰 [WITHDRAWAL] User ${userId} withdrawal created: $${amount} USDT | BTC deducted: ${btcToDeduct.toFixed(8)} | New balance: ${newBalance} BTC`);
 
       res.json({
-        message: "Withdrawal request submitted successfully. Security review in progress.",
+        message: "Withdrawal submitted successfully. Awaiting admin approval.",
         transaction,
-        estimatedProcessingTime: "2-24 hours",
+        estimatedProcessingTime: "1-24 hours",
         newBalance,
+        deductedBTC: btcToDeduct.toFixed(8),
         network: "TRC20 (TRON)"
       });
     } catch (error: any) {

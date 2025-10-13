@@ -27,19 +27,12 @@ export default function Withdraw() {
   const { data: bitcoinPrice } = useBitcoinPrice();
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
-  const [networkSpeed, setNetworkSpeed] = useState<NetworkSpeed>('normal');
   const [savedAddresses, setSavedAddresses] = useState<string[]>([]);
   const [showAddressBook, setShowAddressBook] = useState(false);
 
-  // Network fee structure
-  const networkFees = {
-    slow: { fee: 0.00001, time: '30-60 min', satPerByte: 1 },
-    normal: { fee: 0.00002, time: '10-20 min', satPerByte: 5 },
-    fast: { fee: 0.00005, time: '1-5 min', satPerByte: 10 }
-  };
-
-  const selectedFee = networkFees[networkSpeed];
-  const totalAmount = amount ? parseFloat(amount) + selectedFee.fee : 0;
+  // TRC20 USDT has minimal network fees (around 1-2 USDT)
+  const networkFee = 1; // Fixed fee in USD
+  const totalAmount = amount ? parseFloat(amount) : 0;
 
   // Load saved addresses from localStorage
   useEffect(() => {
@@ -116,16 +109,41 @@ export default function Withdraw() {
       return;
     }
 
-    if (parseFloat(amount) + selectedFee.fee > parseFloat(user.balance)) {
+    // Validate TRC20 address format
+    if (!address.startsWith('T') || address.length !== 34) {
       toast({
-        title: "Insufficient Balance",
-        description: "Amount + network fee exceeds your balance",
+        title: "Invalid Address",
+        description: "Please enter a valid TRC20 (TRON) address",
         variant: "destructive",
       });
       return;
     }
 
-    withdrawMutation.mutate({ address, amount, networkSpeed });
+    const withdrawAmount = parseFloat(amount);
+    const minWithdraw = 10;
+
+    if (withdrawAmount < minWithdraw) {
+      toast({
+        title: "Amount Too Low",
+        description: `Minimum withdrawal is $${minWithdraw} USDT`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Convert balance from BTC to USD for comparison
+    const balanceUSD = bitcoinPrice ? parseFloat(user.balance) * bitcoinPrice.usd.price : 0;
+    
+    if (withdrawAmount > balanceUSD) {
+      toast({
+        title: "Insufficient Balance",
+        description: "Withdrawal amount exceeds your balance",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    withdrawMutation.mutate({ address, amount });
   };
 
   const saveAddress = () => {
@@ -279,25 +297,29 @@ export default function Withdraw() {
                       </div>
 
                       <div>
-                        <Label htmlFor="amount">Amount (BTC)</Label>
+                        <Label htmlFor="amount">Amount (USD)</Label>
                         <Input
                           id="amount"
                           type="number"
-                          step="0.00000001"
+                          step="0.01"
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
-                          placeholder="0.00000000"
+                          placeholder="0.00"
                           className="mt-2"
                         />
                         <div className="flex justify-between items-center mt-2">
                           <p className="text-xs text-muted-foreground">
-                            Available: {formatBitcoin(user.balance)} BTC
+                            Available: ${bitcoinPrice ? (parseFloat(user.balance) * bitcoinPrice.usd.price).toFixed(2) : '0.00'} USD
                           </p>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => setAmount((parseFloat(user.balance) - selectedFee.fee).toFixed(8))}
+                            onClick={() => {
+                              if (bitcoinPrice) {
+                                setAmount((parseFloat(user.balance) * bitcoinPrice.usd.price).toFixed(2));
+                              }
+                            }}
                             className="text-xs"
                           >
                             Max
@@ -305,54 +327,16 @@ export default function Withdraw() {
                         </div>
                       </div>
 
-                      {/* Network Speed Selection */}
-                      <div>
-                        <Label>Transaction Speed</Label>
-                        <div className="grid grid-cols-3 gap-3 mt-2">
-                          <button
-                            type="button"
-                            onClick={() => setNetworkSpeed('slow')}
-                            className={`p-4 rounded-lg border-2 transition-all ${
-                              networkSpeed === 'slow' 
-                                ? 'border-primary bg-primary/10' 
-                                : 'border-border hover:border-primary/50'
-                            }`}
-                          >
-                            <Turtle className="w-5 h-5 mx-auto mb-2 text-primary" />
-                            <p className="text-sm font-semibold">Slow</p>
-                            <p className="text-xs text-muted-foreground mt-1">{networkFees.slow.time}</p>
-                            <p className="text-xs font-medium mt-1">{networkFees.slow.fee} BTC</p>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setNetworkSpeed('normal')}
-                            className={`p-4 rounded-lg border-2 transition-all ${
-                              networkSpeed === 'normal' 
-                                ? 'border-primary bg-primary/10' 
-                                : 'border-border hover:border-primary/50'
-                            }`}
-                          >
-                            <Clock className="w-5 h-5 mx-auto mb-2 text-primary" />
-                            <p className="text-sm font-semibold">Normal</p>
-                            <p className="text-xs text-muted-foreground mt-1">{networkFees.normal.time}</p>
-                            <p className="text-xs font-medium mt-1">{networkFees.normal.fee} BTC</p>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setNetworkSpeed('fast')}
-                            className={`p-4 rounded-lg border-2 transition-all ${
-                              networkSpeed === 'fast' 
-                                ? 'border-primary bg-primary/10' 
-                                : 'border-border hover:border-primary/50'
-                            }`}
-                          >
-                            <Zap className="w-5 h-5 mx-auto mb-2 text-primary" />
-                            <p className="text-sm font-semibold">Fast</p>
-                            <p className="text-xs text-muted-foreground mt-1">{networkFees.fast.time}</p>
-                            <p className="text-xs font-medium mt-1">{networkFees.fast.fee} BTC</p>
-                          </button>
+                      {/* Network Info */}
+                      <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Info className="w-4 h-4 text-primary" />
+                          <span className="font-medium">Network: TRC20 (TRON)</span>
+                        </div>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p>• Processing Time: 1-5 minutes</p>
+                          <p>• Network Fee: ~${networkFee} USDT (included)</p>
+                          <p>• Min. Withdrawal: $10 USDT</p>
                         </div>
                       </div>
 
@@ -377,20 +361,20 @@ export default function Withdraw() {
                   <CardContent className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Amount</span>
-                      <span className="font-semibold">{amount || '0.00000000'} BTC</span>
+                      <span className="font-semibold">${amount || '0.00'} USDT</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Network Fee</span>
-                      <span className="font-semibold">{selectedFee.fee} BTC</span>
+                      <span className="font-semibold text-green-600">Included</span>
                     </div>
                     <div className="border-t pt-3 flex justify-between">
-                      <span className="font-medium">Total Deducted</span>
-                      <span className="font-bold text-lg">{totalAmount.toFixed(8)} BTC</span>
+                      <span className="font-medium">You Will Receive</span>
+                      <span className="font-bold text-lg">${totalAmount.toFixed(2)} USDT</span>
                     </div>
-                    {bitcoinPrice && amount && (
+                    {bitcoinPrice && (
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>USD Value</span>
-                        <span>≈ {formatCurrency(totalAmount * bitcoinPrice.usd.price, currency)}</span>
+                        <span>Your Balance</span>
+                        <span>≈ ${(parseFloat(user.balance) * bitcoinPrice.usd.price).toFixed(2)} USD</span>
                       </div>
                     )}
                   </CardContent>
@@ -401,11 +385,12 @@ export default function Withdraw() {
                     <div className="flex gap-2">
                       <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                       <div className="text-xs text-blue-700 dark:text-blue-300 space-y-2">
-                        <p><strong>Processing Time:</strong> {selectedFee.time}</p>
-                        <p><strong>Network:</strong> Bitcoin (TRC20)</p>
-                        <p><strong>Confirmations:</strong> 6 required</p>
+                        <p><strong>Processing Time:</strong> 1-5 minutes (fast)</p>
+                        <p><strong>Network:</strong> TRC20 (TRON Network)</p>
+                        <p><strong>Token:</strong> USDT</p>
+                        <p><strong>Admin Review:</strong> Required for security</p>
                         <p className="text-[10px] text-blue-600 dark:text-blue-400">
-                          Withdrawals are processed automatically. Please ensure the address is correct before submitting.
+                          Your withdrawal will be reviewed and processed by our admin team. Funds are deducted immediately to prevent double-spending. Please ensure your TRC20 address is correct.
                         </p>
                       </div>
                     </div>
