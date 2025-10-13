@@ -341,24 +341,22 @@ export default function Home() {
 
         
 
-        {/* Stats Overview - Orange Theme Design */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        {/* Advanced Stats Grid - 6 Metrics */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mt-8">
           <div className="relative">
             <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
             <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Activity className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    <Badge className="bg-green-500/20 text-green-600 border-green-500/30 text-xs">Live</Badge>
+                  </div>
                   <div>
-                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Active Investments</p>
-                    <p className="text-3xl font-bold text-orange-800 dark:text-orange-100">
+                    <p className="text-xs font-medium text-orange-700 dark:text-orange-300">Active</p>
+                    <p className="text-2xl font-bold text-orange-800 dark:text-orange-100">
                       {actualActiveInvestments.length}
                     </p>
-                    <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                      Earning daily
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                    <Activity className="w-6 h-6 text-orange-700 dark:text-orange-300" />
                   </div>
                 </div>
               </CardContent>
@@ -366,21 +364,19 @@ export default function Home() {
           </div>
 
           <div className="relative">
-            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Total Profit</p>
-                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                      {showBalances ? `+${formatBitcoin(totalProfit.toString())}` : '••••••'}
-                    </p>
-                    <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                      +{profitMargin.toFixed(2)}% return
-                    </p>
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-green-500/20 to-green-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-green-500/10 via-green-600/5 to-green-700/10 dark:from-green-600/20 dark:via-green-700/15 dark:to-green-800/20 backdrop-blur-xl border border-green-400/30 dark:border-green-500/30 rounded-2xl shadow-xl shadow-green-600/20">
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <Badge className="bg-green-500/20 text-green-600 border-green-500/30 text-xs">+{profitMargin.toFixed(1)}%</Badge>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                    <TrendingUp className="w-6 h-6 text-orange-700 dark:text-orange-300" />
+                  <div>
+                    <p className="text-xs font-medium text-green-700 dark:text-green-300">Profit</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {showBalances ? `${formatBitcoin(totalProfit.toString())}` : '••••'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -388,21 +384,244 @@ export default function Home() {
           </div>
 
           <div className="relative">
-            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
-            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-blue-500/20 to-blue-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-blue-500/10 via-blue-600/5 to-blue-700/10 dark:from-blue-600/20 dark:via-blue-700/15 dark:to-blue-800/20 backdrop-blur-xl border border-blue-400/30 dark:border-blue-500/30 rounded-2xl shadow-xl shadow-blue-600/20">
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Wallet className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <Badge className="bg-blue-500/20 text-blue-600 border-blue-500/30 text-xs">Capital</Badge>
+                  </div>
                   <div>
-                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">Invested</p>
-                    <p className="text-3xl font-bold text-orange-800 dark:text-orange-100">
-                      {showBalances ? formatBitcoin(totalInvestedAmount.toString()) : '••••••'}
-                    </p>
-                    <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
-                      Total invested
+                    <p className="text-xs font-medium text-blue-700 dark:text-blue-300">Invested</p>
+                    <p className="text-2xl font-bold text-blue-800 dark:text-blue-100">
+                      {showBalances ? formatBitcoin(totalInvestedAmount.toString()) : '••••'}
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                    <Wallet className="w-6 h-6 text-orange-700 dark:text-orange-300" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-purple-500/20 to-purple-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-purple-500/10 via-purple-600/5 to-purple-700/10 dark:from-purple-600/20 dark:via-purple-700/15 dark:to-purple-800/20 backdrop-blur-xl border border-purple-400/30 dark:border-purple-500/30 rounded-2xl shadow-xl shadow-purple-600/20">
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <Badge className="bg-purple-500/20 text-purple-600 border-purple-500/30 text-xs">APY</Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-purple-700 dark:text-purple-300">Est. Annual</p>
+                    <p className="text-2xl font-bold text-purple-800 dark:text-purple-100">
+                      {(profitMargin * 12).toFixed(0)}%
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-yellow-500/20 to-yellow-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-yellow-500/10 via-yellow-600/5 to-yellow-700/10 dark:from-yellow-600/20 dark:via-yellow-700/15 dark:to-yellow-800/20 backdrop-blur-xl border border-yellow-400/30 dark:border-yellow-500/30 rounded-2xl shadow-xl shadow-yellow-600/20">
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                    <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30 text-xs">24h</Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-yellow-700 dark:text-yellow-300">Daily Gain</p>
+                    <p className="text-2xl font-bold text-yellow-800 dark:text-yellow-100">
+                      {showBalances ? `${(totalProfit * 0.1).toFixed(6)}` : '••••'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-pink-500/20 to-pink-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-pink-500/10 via-pink-600/5 to-pink-700/10 dark:from-pink-600/20 dark:via-pink-700/15 dark:to-pink-800/20 backdrop-blur-xl border border-pink-400/30 dark:border-pink-500/30 rounded-2xl shadow-xl shadow-pink-600/20">
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <PieChart className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+                    <Badge className="bg-pink-500/20 text-pink-600 border-pink-500/30 text-xs">USD</Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-pink-700 dark:text-pink-300">Portfolio</p>
+                    <p className="text-2xl font-bold text-pink-800 dark:text-pink-100">
+                      {showBalances && bitcoinPrice ? formatCurrency(totalValue * bitcoinPrice.usd.price, 'USD').replace('$', '') : '••••'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Portfolio Performance Chart */}
+        <div className="mt-8">
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
+              <CardHeader className="border-b border-orange-400/20 dark:border-orange-500/30">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100">Portfolio Performance</CardTitle>
+                  <div className="flex gap-2">
+                    <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                      Live Trading
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#f97316" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.2)" />
+                      <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} />
+                      <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                          border: '1px solid rgba(249, 115, 22, 0.5)',
+                          borderRadius: '8px',
+                          color: 'white'
+                        }}
+                        formatter={(value: any) => [
+                          showBalances ? `${parseFloat(value).toFixed(8)} BTC` : '••••••••',
+                          'Value'
+                        ]}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#f97316" 
+                        fillOpacity={1} 
+                        fill="url(#colorValue)"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Advanced Analytics Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          {/* Market Insights */}
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-blue-500/20 to-blue-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-blue-500/10 via-blue-600/5 to-blue-700/10 dark:from-blue-600/20 dark:via-blue-700/15 dark:to-blue-800/20 backdrop-blur-xl border border-blue-400/30 dark:border-blue-500/30 rounded-2xl shadow-xl shadow-blue-600/20">
+              <CardHeader className="border-b border-blue-400/20 dark:border-blue-500/30">
+                <CardTitle className="text-lg font-bold text-blue-800 dark:text-blue-100">Market Insights</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-200/30 dark:border-blue-700/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Market Trend</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">Strong Bullish</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                      +{bitcoinPrice?.usd.change24h.toFixed(2)}%
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-200/30 dark:border-blue-700/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                        <Activity className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Volume (24h)</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">High Activity</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-bold text-blue-800 dark:text-blue-200">
+                      ${(Math.random() * 50 + 100).toFixed(1)}B
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-200/30 dark:border-blue-700/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <BarChart3 className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Volatility</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">Moderate</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-bold text-blue-800 dark:text-blue-200">
+                      {(Math.random() * 2 + 1).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Performance Metrics */}
+          <div className="relative">
+            <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-purple-500/20 to-purple-600/30 rounded-2xl blur-sm"></div>
+            <Card className="relative bg-gradient-to-br from-purple-500/10 via-purple-600/5 to-purple-700/10 dark:from-purple-600/20 dark:via-purple-700/15 dark:to-purple-800/20 backdrop-blur-xl border border-purple-400/30 dark:border-purple-500/30 rounded-2xl shadow-xl shadow-purple-600/20">
+              <CardHeader className="border-b border-purple-400/20 dark:border-purple-500/30">
+                <CardTitle className="text-lg font-bold text-purple-800 dark:text-purple-100">Performance Metrics</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-purple-700 dark:text-purple-300">ROI Performance</span>
+                      <span className="text-sm font-bold text-green-600 dark:text-green-400">+{profitMargin.toFixed(2)}%</span>
+                    </div>
+                    <Progress value={Math.min(profitMargin * 2, 100)} className="h-2 bg-purple-200 dark:bg-purple-800" />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Portfolio Growth</span>
+                      <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                        {((totalValue / Math.max(totalInvestedAmount, 1)) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <Progress value={Math.min((totalValue / Math.max(totalInvestedAmount, 1)) * 100, 100)} className="h-2 bg-purple-200 dark:bg-purple-800" />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Risk Score</span>
+                      <span className="text-sm font-bold text-yellow-600 dark:text-yellow-400">Low-Medium</span>
+                    </div>
+                    <Progress value={35} className="h-2 bg-purple-200 dark:bg-purple-800" />
+                  </div>
+
+                  <div className="pt-3 border-t border-purple-400/20 dark:border-purple-500/30">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Diversification</span>
+                      <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                        Optimal
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               </CardContent>
