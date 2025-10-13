@@ -66,9 +66,10 @@ async function checkSuspiciousWithdrawalActivity(userId: number, amount: number,
     }
 
     // Check for repeated use of same address (potential reused/compromised address)
+    // CRITICAL FIX: Check both withdrawalAddress (new) and transactionHash (legacy) fields
     const sameAddressUsage = userTransactions.filter(t => 
       t.type === 'withdrawal' && 
-      t.transactionHash === address &&
+      (t.withdrawalAddress === address || t.transactionHash === address) &&
       t.status !== 'cancelled'
     );
 
