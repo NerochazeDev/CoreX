@@ -1330,11 +1330,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$10 Plan",
         minAmount: (10 / bitcoinPrice).toFixed(8),
         usdMinAmount: "10",
-        roiPercentage: 9.9, // $0.99 profit before 10% fee = $0.89 net
+        roiPercentage: 9.9, // $0.99 profit before 10% fee = $0.89 net profit
         durationDays: 7,
         color: "#A78BFA",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0141", // 1.41% daily = 9.9% over 7 days
+        dailyReturnRate: (9.9 / 7 / 100).toFixed(6), // 1.414286% daily
         performanceFeePercentage: 10,
         isActive: true,
       },
@@ -1342,11 +1342,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$20 Plan",
         minAmount: (20 / bitcoinPrice).toFixed(8),
         usdMinAmount: "20",
-        roiPercentage: 9.85, // $1.97 profit before 10% fee = $1.77 net
+        roiPercentage: 9.85, // $1.97 profit before 10% fee = $1.77 net profit
         durationDays: 7,
         color: "#C084FC",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0141", // 1.41% daily = 9.85% over 7 days
+        dailyReturnRate: (9.85 / 7 / 100).toFixed(6), // 1.407143% daily
         performanceFeePercentage: 10,
         isActive: true,
       },
@@ -1354,11 +1354,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$50 Plan",
         minAmount: (50 / bitcoinPrice).toFixed(8),
         usdMinAmount: "50",
-        roiPercentage: 9.94, // $4.97 profit before 10% fee = $4.47 net
+        roiPercentage: 9.94, // $4.97 profit before 10% fee = $4.47 net profit
         durationDays: 30,
         color: "#D946EF",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0033", // 0.33% daily = 9.94% over 30 days
+        dailyReturnRate: (9.94 / 30 / 100).toFixed(6), // 0.331333% daily
         performanceFeePercentage: 10,
         isActive: true,
       },
@@ -1366,11 +1366,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$100 Plan",
         minAmount: (100 / bitcoinPrice).toFixed(8),
         usdMinAmount: "100",
-        roiPercentage: 10.08, // $10.08 profit before 10% fee = $9.07 net
+        roiPercentage: 10.08, // $10.08 profit before 10% fee = $9.07 net profit
         durationDays: 30,
         color: "#E879F9",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0034", // 0.34% daily = 10.08% over 30 days
+        dailyReturnRate: (10.08 / 30 / 100).toFixed(6), // 0.336% daily
         performanceFeePercentage: 10,
         isActive: true,
       },
@@ -1378,11 +1378,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$300 Plan",
         minAmount: (300 / bitcoinPrice).toFixed(8),
         usdMinAmount: "300",
-        roiPercentage: 9.82, // $29.46 profit before 10% fee = $26.51 net
+        roiPercentage: 9.82, // $29.46 profit before 10% fee = $26.51 net profit
         durationDays: 15,
         color: "#F0ABFC",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0065", // 0.65% daily = 9.82% over 15 days
+        dailyReturnRate: (9.82 / 15 / 100).toFixed(6), // 0.654667% daily
         performanceFeePercentage: 10,
         isActive: true,
       },
@@ -1390,11 +1390,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$500 Plan",
         minAmount: (500 / bitcoinPrice).toFixed(8),
         usdMinAmount: "500",
-        roiPercentage: 10.21, // $51.05 profit before 20% fee = $40.84 net
+        roiPercentage: 10.21, // $51.05 profit before 20% fee = $40.84 net profit
         durationDays: 30,
         color: "#FB923C",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0034", // 0.34% daily = 10.21% over 30 days
+        dailyReturnRate: (10.21 / 30 / 100).toFixed(6), // 0.340333% daily
         performanceFeePercentage: 20,
         isActive: true,
       },
@@ -1402,11 +1402,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$1,000 Plan",
         minAmount: (1000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "1000",
-        roiPercentage: 9.76, // $97.60 profit before 20% fee = $78.08 net
+        roiPercentage: 9.76, // $97.60 profit before 20% fee = $78.08 net profit
         durationDays: 30,
         color: "#FDBA74",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0033", // 0.33% daily = 9.76% over 30 days
+        dailyReturnRate: (9.76 / 30 / 100).toFixed(6), // 0.325333% daily
         performanceFeePercentage: 20,
         isActive: true,
       },
@@ -1414,11 +1414,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$3,000 Plan",
         minAmount: (3000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "3000",
-        roiPercentage: 19.84, // $595.20 profit before 20% fee = $476.16 net
+        roiPercentage: 19.84, // $595.20 profit before 20% fee = $476.16 net profit
         durationDays: 60,
         color: "#FCD34D",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0033", // 0.33% daily = 19.84% over 60 days
+        dailyReturnRate: (19.84 / 60 / 100).toFixed(6), // 0.330667% daily
         performanceFeePercentage: 20,
         isActive: true,
       },
@@ -1426,11 +1426,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$6,000 Plan",
         minAmount: (6000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "6000",
-        roiPercentage: 20.13, // $1,207.80 profit before 20% fee = $966.24 net
+        roiPercentage: 20.13, // $1,207.80 profit before 20% fee = $966.24 net profit
         durationDays: 60,
         color: "#FDE047",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0034", // 0.34% daily = 20.13% over 60 days
+        dailyReturnRate: (20.13 / 60 / 100).toFixed(6), // 0.3355% daily
         performanceFeePercentage: 20,
         isActive: true,
       },
@@ -1438,11 +1438,11 @@ async function initializeDefaultPlans(): Promise<void> {
         name: "$12,000 Plan",
         minAmount: (12000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "12000",
-        roiPercentage: 19.99, // $2,398.67 profit before 20% fee = $1,918.94 net
+        roiPercentage: 19.9889, // $2,398.67 profit before 20% fee = $1,918.94 net profit (19.9889% for exact $2398.67)
         durationDays: 60,
         color: "#FEF08A",
         updateIntervalMinutes: 60,
-        dailyReturnRate: "0.0033", // 0.33% daily = 19.99% over 60 days
+        dailyReturnRate: (19.9889 / 60 / 100).toFixed(6), // 0.333148% daily
         performanceFeePercentage: 20,
         isActive: true,
       },
