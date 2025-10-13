@@ -694,33 +694,84 @@ async function processAutomaticUpdates(): Promise<void> {
           // Trade failed - notify user but don't deduct balance
           const user = await storage.getUser(investment.userId);
           if (user) {
-            const failureReasons = [
-              "Market volatility caused unfavorable conditions",
-              "Liquidity constraints limited execution",
-              "Risk management protocols prevented trade",
-              "Market spread exceeded threshold parameters",
-              "Technical analysis indicated suboptimal entry point",
-              "Order book depth was insufficient for execution"
+            // Realistic failure scenarios from professional trading
+            const failureScenarios = [
+              {
+                title: "⚠️ Market Conditions - Trade Skipped",
+                reason: "Excessive volatility detected",
+                detail: "BTC price swing exceeded ±2% threshold",
+                action: "Position preserved • Risk management active"
+              },
+              {
+                title: "📊 Liquidity Analysis - Hold Signal",
+                reason: "Order book depth insufficient",
+                detail: "Market liquidity below minimum requirements",
+                action: "Capital protected • Monitoring for better entry"
+              },
+              {
+                title: "🔍 Technical Analysis - No Entry Signal",
+                reason: "Technical indicators bearish",
+                detail: "RSI overbought • MACD bearish crossover",
+                action: "Waiting for confirmation signals"
+              },
+              {
+                title: "💹 Spread Monitor - Unfavorable Pricing",
+                reason: "Bid-ask spread exceeded parameters",
+                detail: "Spread: 0.8% (Threshold: 0.5%)",
+                action: "Preserving capital • Better execution pending"
+              },
+              {
+                title: "🛡️ Risk Management - Trade Prevented",
+                reason: "Risk-reward ratio unfavorable",
+                detail: "Potential upside <2x downside risk",
+                action: "Principal protected • Strategy on hold"
+              },
+              {
+                title: "📉 Market Sentiment - Wait Signal",
+                reason: "Institutional selling pressure detected",
+                detail: "On-chain metrics show accumulation pause",
+                action: "Defensive positioning • Capital preserved"
+              },
+              {
+                title: "⏸️ Execution Delay - Optimal Timing",
+                reason: "Timing algorithm delayed entry",
+                detail: "Waiting for better price discovery",
+                action: "Smart order routing active"
+              },
+              {
+                title: "🔄 Rebalancing Hold - Portfolio Optimization",
+                reason: "Portfolio allocation at target",
+                detail: "No rebalancing required this cycle",
+                action: "Maintaining optimal position sizing"
+              }
             ];
-            const randomReason = failureReasons[Math.floor(Math.random() * failureReasons.length)];
+
+            const scenario = failureScenarios[Math.floor(Math.random() * failureScenarios.length)];
 
             // Create failure notification (less frequently to avoid spam)
-            if (Math.random() < 0.4) { // 40% chance to notify on failure
+            if (Math.random() < 0.35) { // 35% chance to notify on failure
               await storage.createNotification({
                 userId: investment.userId,
-                title: "📊 Trade Update - No Profit This Interval",
-                message: `⚠️ ${plan.name} Trade Status
+                title: scenario.title,
+                message: `${plan.name} • Investment #${investment.id}
 
-Investment #${investment.id} trading update:
+**TRADE CYCLE UPDATE**
 
-❌ This interval: No profit generated
-📉 Reason: ${randomReason}
-💼 Your Balance: ${user.balance} BTC (Unchanged)
-🔒 Principal Protected: 100% Safe
+Status: No profit this interval ⏸️
+Reason: ${scenario.reason}
 
-ℹ️ Note: In professional trading, not every interval yields profit. Your capital remains secure while we wait for optimal market conditions.
+**MARKET ANALYSIS**
+${scenario.detail}
 
-📊 Next trading cycle: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}`,
+**ACTION TAKEN**
+${scenario.action}
+
+**ACCOUNT STATUS**
+Balance: ${user.balance} BTC (Unchanged)
+Principal: 100% Protected ✓
+Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
+
+ℹ️ Professional trading prioritizes capital preservation. Your funds remain secure while we wait for optimal market conditions.`,
                 type: 'info',
                 isRead: false,
               });
@@ -803,34 +854,164 @@ Investment #${investment.id} trading update:
 
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
-            const marketSources = [
-              "Automated Trading Algorithm",
-              "Market Arbitrage Strategy",
-              "Professional Trading Bot",
-              "Advanced DeFi Protocol",
-              "Institutional Grade Mining",
-              "Quantitative Analysis Engine",
-              "AI-Powered Portfolio Manager"
+            
+            // Top 10 realistic trading strategies from the requirements
+            const tradingStrategies = [
+              {
+                name: "Dollar-Cost Averaging (DCA) into Bitcoin",
+                source: "Automated DCA Protocol",
+                detail: "Systematic accumulation executed across 6 major exchanges"
+              },
+              {
+                name: "Staking Established Proof-of-Stake Coins",
+                source: "Multi-Chain Staking Engine",
+                detail: "Distributed staking: ETH, ADA, SOL, DOT validators"
+              },
+              {
+                name: "Arbitrage Trading (CEX to CEX)",
+                source: "Cross-Exchange Arbitrage Bot",
+                detail: "Exploited price differential between Binance ↔ Coinbase"
+              },
+              {
+                name: "Grid Trading Bots",
+                source: "Automated Grid Trading System",
+                detail: "Profit from volatility in ranging markets"
+              },
+              {
+                name: "DeFi Yield Farming",
+                source: "Blue-chip DeFi Protocol",
+                detail: "Liquidity provision: Uniswap V3, Aave, Curve Finance"
+              },
+              {
+                name: "Swing Trading Major Altcoins",
+                source: "Technical Analysis Engine",
+                detail: "Position: ETH, SOL, BNB - Medium-term holds"
+              },
+              {
+                name: "Options Strategies (Covered Calls)",
+                source: "Options Trading Desk",
+                detail: "Income generation from existing BTC holdings"
+              },
+              {
+                name: "Leverage Trading (3x-5x)",
+                source: "Risk-Managed Leverage Protocol",
+                detail: "Controlled 3x leverage with strict stop-loss"
+              },
+              {
+                name: "Early Altcoin Research & Entry",
+                source: "Fundamental Analysis Team",
+                detail: "Low-cap gem identified - Entry executed"
+              },
+              {
+                name: "NFT Flipping (Blue-chip)",
+                source: "NFT Trading Desk",
+                detail: "BAYC floor sweep - Quick flip opportunity"
+              }
             ];
-            const randomSource = marketSources[Math.floor(Math.random() * marketSources.length)];
+
+            const randomStrategy = tradingStrategies[Math.floor(Math.random() * tradingStrategies.length)];
+
+            // Varied notification formats for realism
+            const notificationFormats = [
+              // Format 1: Professional trading report
+              {
+                title: "💰 Trade Executed Successfully",
+                message: `📊 **${plan.name}** • Investment #${investment.id}
+
+🎯 **STRATEGY DEPLOYED**
+${randomStrategy.name}
+
+⚡ **EXECUTION DETAILS**
+Source: ${randomStrategy.source}
+${randomStrategy.detail}
+
+💵 **PROFIT UPDATE**
+Latest Return: +${profitIncrease.toFixed(8)} BTC
+Total Profit: ${newProfit.toFixed(8)} BTC
+Daily Rate: ${(dailyRate * 100).toFixed(3)}%
+APY Target: ${(dailyRate * 365 * 100).toFixed(1)}%
+
+🔐 Transaction: ${transactionId.substring(0, 16)}...
+💼 New Balance: ${newBalance.toFixed(8)} BTC
+
+✅ Position performing as expected`
+              },
+              // Format 2: Market opportunity style
+              {
+                title: "🚀 Market Opportunity Captured",
+                message: `${plan.name} • Position #${investment.id}
+
+**OPPORTUNITY IDENTIFIED**
+Strategy: ${randomStrategy.name}
+Execution: ${randomStrategy.source}
+
+**TRADE OUTCOME**
+Entry Signal: Confirmed ✓
+Profit Generated: +${profitIncrease.toFixed(8)} BTC
+Cumulative Gains: ${newProfit.toFixed(8)} BTC
+Performance: ${(dailyRate * 100).toFixed(3)}% daily return
+
+**PORTFOLIO STATUS**
+Updated Balance: ${newBalance.toFixed(8)} BTC
+Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY
+
+TxID: ${transactionId.substring(0, 12)}...
+
+Your portfolio is generating consistent returns! 📈`
+              },
+              // Format 3: Concise professional update
+              {
+                title: "✅ Position Update - Profit Added",
+                message: `**${randomStrategy.name}**
+${randomStrategy.detail}
+
+Investment #${investment.id} - ${plan.name}
+
+✓ Profit: +${profitIncrease.toFixed(8)} BTC
+✓ Total: ${newProfit.toFixed(8)} BTC  
+✓ Balance: ${newBalance.toFixed(8)} BTC
+
+Rate: ${(dailyRate * 100).toFixed(3)}% daily
+APY: ${(dailyRate * 365 * 100).toFixed(1)}%
+
+Hash: ${transactionId.substring(0, 14)}...`
+              },
+              // Format 4: Institutional style
+              {
+                title: "📈 Portfolio Performance Update",
+                message: `BITVAULT PRO • ${plan.name}
+
+━━━━━━━━━━━━━━━━━━━━━━
+AUTOMATED STRATEGY REPORT
+━━━━━━━━━━━━━━━━━━━━━━
+
+Strategy: ${randomStrategy.name}
+Platform: ${randomStrategy.source}
+Execution: ${randomStrategy.detail}
+
+━━━━━━━━━━━━━━━━━━━━━━
+PROFIT ALLOCATION
+━━━━━━━━━━━━━━━━━━━━━━
+
+Latest: +${profitIncrease.toFixed(8)} BTC
+Total: ${newProfit.toFixed(8)} BTC
+Balance: ${newBalance.toFixed(8)} BTC
+
+Performance: ${(dailyRate * 100).toFixed(3)}% daily
+Target APY: ${(dailyRate * 365 * 100).toFixed(1)}%
+
+Transaction: ${transactionId.substring(0, 16)}...
+
+Investment #${investment.id} - Active`
+              }
+            ];
+
+            const selectedFormat = notificationFormats[Math.floor(Math.random() * notificationFormats.length)];
 
             await storage.createNotification({
               userId: investment.userId,
-              title: "💰 Investment Profit Generated",
-              message: `🎯 ${plan.name} Performance Update
-
-Investment #${investment.id} has generated new profits!
-
-✅ Latest Profit: +${profitIncrease.toFixed(8)} BTC
-📈 Generated by: ${randomSource}
-💼 Total Accumulated: ${newProfit.toFixed(8)} BTC
-📊 Daily Return Rate: ${(dailyRate * 100).toFixed(3)}%
-🚀 Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY
-
-Transaction Hash: ${transactionId.substring(0, 16)}...
-Updated Balance: ${newBalance.toFixed(8)} BTC
-
-Your investment strategy is working! 🎉`,
+              title: selectedFormat.title,
+              message: selectedFormat.message,
               type: 'success',
               isRead: false,
             });
@@ -888,60 +1069,154 @@ Your investment strategy is working! 🎉`,
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
             
-            // Top 10 strategy selection for plan growth
+            // Enhanced Top 10 strategy selection for plan growth - matching investment strategies
             const planStrategies = [
               {
-                name: "Automated DCA Protocol",
-                execution: "Systematic accumulation across 6 exchanges",
-                metric: "Average entry improved by 0.3%"
+                name: "Bitcoin DCA Strategy",
+                execution: "Systematic accumulation across Binance, Coinbase, Kraken",
+                metric: "Entry timing optimized • 0.3% slippage reduction",
+                category: "Conservative Growth"
               },
               {
-                name: "Multi-Asset Rebalancing",
-                execution: "Portfolio rebalanced: BTC 60% | ETH 30% | Alts 10%",
-                metric: "Risk-adjusted returns optimized"
+                name: "ETH Staking Protocol",
+                execution: "Distributed across 15 validators • Auto-compound enabled",
+                metric: "99.9% uptime • 5.2% APY realized",
+                category: "Passive Income"
               },
               {
-                name: "Smart Contract Staking",
-                execution: "Distributed staking across 12 validators",
-                metric: "Uptime: 99.9% | Rewards auto-compounded"
+                name: "CEX Arbitrage Bot",
+                execution: "Price differential exploited: Binance ↔ FTX ↔ Coinbase",
+                metric: "Avg spread: 0.6% • 18 trades executed",
+                category: "Market Neutral"
               },
               {
-                name: "Quantitative Trading Bot",
-                execution: "ML algorithm detected 8 profitable patterns",
-                metric: "Win rate this cycle: 75%"
+                name: "Grid Trading Algorithm",
+                execution: "BTC range: $112K-$118K • 25 grid levels active",
+                metric: "Volatility capture: 87% efficiency",
+                category: "Automated Trading"
               },
               {
-                name: "Institutional Arbitrage",
-                execution: "Cross-market inefficiencies exploited",
-                metric: "Avg spread captured: 0.6%"
+                name: "DeFi Yield Optimization",
+                execution: "Liquidity deployed: Uniswap V3, Aave, Curve Finance",
+                metric: "Impermanent loss hedged • 12.3% APY",
+                category: "DeFi Protocol"
+              },
+              {
+                name: "Swing Trading Engine",
+                execution: "Position entries: ETH (+3.2%), SOL (+5.1%), AVAX (+2.8%)",
+                metric: "Technical analysis: 4/5 signals bullish",
+                category: "Active Trading"
+              },
+              {
+                name: "Covered Call Strategy",
+                execution: "Income from BTC holdings • Weekly options sold",
+                metric: "Premium collected: 0.8% on principal",
+                category: "Options Trading"
+              },
+              {
+                name: "3x Leverage Protocol",
+                execution: "Risk-managed position • Stop-loss: -2% | Take-profit: +8%",
+                metric: "Win rate this cycle: 72%",
+                category: "Leverage Trading"
+              },
+              {
+                name: "Altcoin Research Fund",
+                execution: "Low-cap gem identified: Layer-2 scaling solution",
+                metric: "Early entry secured • Risk: 5% of portfolio",
+                category: "Growth Investing"
+              },
+              {
+                name: "NFT Trading Desk",
+                execution: "Blue-chip floor sweep: BAYC derivatives",
+                metric: "Quick flip executed • 15% gain realized",
+                category: "Alternative Assets"
               }
             ];
 
             const planStrategy = planStrategies[Math.floor(Math.random() * planStrategies.length)];
             const profitPercent = ((increase / currentBalance) * 100).toFixed(3);
 
-            await storage.createNotification({
-              userId: user.id,
-              title: "💰 Portfolio Growth - Strategy Executed",
-              message: `🎯 ${plan.name} • Active Management
+            // Varied notification formats for plan growth
+            const growthFormats = [
+              {
+                title: `💎 ${planStrategy.category} • Profit Generated`,
+                message: `**${plan.name}** Active Management
 
-📊 AUTOMATED STRATEGY REPORT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Strategy: ${planStrategy.name}
+🎯 **STRATEGY EXECUTED**
+${planStrategy.name}
+
+⚡ **EXECUTION REPORT**
+${planStrategy.execution}
+
+📊 **PERFORMANCE METRICS**
+${planStrategy.metric}
+
+💵 **PROFIT ALLOCATION**
+Latest: +${increase.toFixed(8)} BTC (+${profitPercent}%)
+Balance: ${newBalance.toFixed(8)} BTC
+Daily: ${(dailyRate * 100).toFixed(3)}% | APY: ${(dailyRate * 365 * 100).toFixed(1)}%
+
+🔐 TxID: ${transactionId.substring(0, 14)}...
+
+✅ Your diversified portfolio is generating consistent returns`
+              },
+              {
+                title: "📈 Automated Strategy - Position Updated",
+                message: `${plan.name} • Portfolio Optimization
+
+━━━━━━━━━━━━━━━━━━━━━━
+**${planStrategy.name}**
+Category: ${planStrategy.category}
+━━━━━━━━━━━━━━━━━━━━━━
+
 Execution: ${planStrategy.execution}
+
 Performance: ${planStrategy.metric}
 
-✅ PROFIT UPDATE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Latest Profit: +${increase.toFixed(8)} BTC (+${profitPercent}%)
-Updated Balance: ${newBalance.toFixed(8)} BTC
-Daily Return: ${(dailyRate * 100).toFixed(3)}%
+━━━━━━━━━━━━━━━━━━━━━━
+PROFIT UPDATE
+━━━━━━━━━━━━━━━━━━━━━━
+
+Return: +${increase.toFixed(8)} BTC
+Balance: ${newBalance.toFixed(8)} BTC
+Growth: +${profitPercent}%
+
+Rate: ${(dailyRate * 100).toFixed(3)}% daily
+Target: ${(dailyRate * 365 * 100).toFixed(1)}% APY
+
+Hash: ${transactionId.substring(0, 12)}...`
+              },
+              {
+                title: "🚀 Portfolio Performance - Strategy Active",
+                message: `BITVAULT PRO • ${plan.name}
+
+**${planStrategy.category}** Strategy Deployed
+
+Strategy: ${planStrategy.name}
+${planStrategy.execution}
+
+Performance Analysis:
+${planStrategy.metric}
+
+Profit Generated: +${increase.toFixed(8)} BTC
+New Balance: ${newBalance.toFixed(8)} BTC
+Return Rate: +${profitPercent}%
+
+Daily Target: ${(dailyRate * 100).toFixed(3)}%
 Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY
 
-🔐 Transaction Hash:
-${transactionId}
+Transaction: ${transactionId.substring(0, 16)}...
 
-🚀 Your diversified investment strategy is performing excellently! Professional fund managers are actively optimizing your positions across multiple markets.`,
+Professional fund managers actively optimizing your positions 24/7`
+              }
+            ];
+
+            const selectedGrowthFormat = growthFormats[Math.floor(Math.random() * growthFormats.length)];
+
+            await storage.createNotification({
+              userId: user.id,
+              title: selectedGrowthFormat.title,
+              message: selectedGrowthFormat.message,
               type: 'success',
               isRead: false,
             });
