@@ -401,6 +401,22 @@ export default function Investment() {
                 </Badge>
               </div>
             </CardHeader>
+            
+            {/* Professional Financial Disclaimer */}
+            <div className="mx-6 mt-6 mb-4 p-4 bg-orange-50/50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/30 rounded-lg" data-testid="disclaimer-performance">
+              <div className="flex items-start gap-3">
+                <Shield className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-orange-900 dark:text-orange-200">
+                    Performance Disclosure
+                  </p>
+                  <p className="text-xs text-orange-800/80 dark:text-orange-300/70 leading-relaxed">
+                    The projected returns displayed are derived from the platform's historical trading performance and are provided for informational purposes only. Past performance is not indicative of future results. Actual returns may vary based on prevailing market conditions, volatility, and other macroeconomic factors. Cryptocurrency investments carry inherent risks, and investors should carefully assess their risk tolerance before participating.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <CardContent className="p-6">
               {plans?.length ? (
                 <div className="grid gap-4 sm:gap-6">
