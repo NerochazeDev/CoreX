@@ -8,7 +8,6 @@ import { ArrowLeft, Send, Lock, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { formatBitcoin } from "@/lib/utils";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import type { Investment } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -40,7 +39,7 @@ export default function Withdraw() {
     onSuccess: () => {
       toast({
         title: "Withdrawal Initiated",
-        description: "Your Bitcoin withdrawal has been processed successfully.",
+        description: "Your USDT withdrawal has been processed successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       setLocation('/');
@@ -58,7 +57,17 @@ export default function Withdraw() {
     if (!address || !amount) {
       toast({
         title: "Missing Information",
-        description: "Please enter both address and amount",
+        description: "Please enter both TRC20 address and amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Basic TRC20 address validation
+    if (!address.startsWith('T') || address.length !== 34) {
+      toast({
+        title: "Invalid Address",
+        description: "Please enter a valid TRC20 (TRON) address",
         variant: "destructive",
       });
       return;
@@ -86,10 +95,19 @@ export default function Withdraw() {
       return;
     }
 
+    if (amountNum < 10) {
+      toast({
+        title: "Amount Too Low",
+        description: "Minimum withdrawal amount is $10 USDT",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (amountNum > userBalance) {
       toast({
         title: "Insufficient Balance",
-        description: "You don't have enough Bitcoin for this withdrawal",
+        description: "You don't have enough balance for this withdrawal",
         variant: "destructive",
       });
       return;
@@ -121,10 +139,10 @@ export default function Withdraw() {
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent flex items-center gap-2">
                   <Send className="w-5 h-5 text-orange-600" />
-                  Withdraw Bitcoin
+                  Withdraw USDT (TRC20)
                 </h1>
                 <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">
-                  Send Bitcoin to external address
+                  Send USDT to TRC20 address
                 </p>
               </div>
             </div>
@@ -157,7 +175,7 @@ export default function Withdraw() {
             <CardTitle className="text-sm text-muted-foreground">Available Balance</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-bitcoin">{formatBitcoin(user.balance)} BTC</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">${parseFloat(user.balance || "0").toFixed(2)} USDT</p>
             {hasActiveInvestments && (
               <p className="text-sm text-orange-600 dark:text-orange-400 mt-2 flex items-center gap-1">
                 <AlertTriangle className="w-4 h-4" />
@@ -174,24 +192,27 @@ export default function Withdraw() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="address">Destination Address</Label>
+              <Label htmlFor="address">TRC20 Address (TRON Network)</Label>
               <Input
                 id="address"
                 type="text"
-                placeholder="Enter Bitcoin address"
+                placeholder="Enter TRC20 address (starts with T)"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className="mt-1"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Example: TJdZLhUL7p5vEaQRSU7STTXczGJuNwbvhr
+              </p>
             </div>
 
             <div>
-              <Label htmlFor="amount">Amount (BTC)</Label>
+              <Label htmlFor="amount">Amount (USDT)</Label>
               <Input
                 id="amount"
                 type="number"
-                step="0.00000001"
-                placeholder="0.00000000"
+                step="0.01"
+                placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="mt-1"
@@ -202,7 +223,7 @@ export default function Withdraw() {
               <Button 
                 onClick={handleWithdraw}
                 disabled={withdrawMutation.isPending || !address || !amount || hasActiveInvestments}
-                className="w-full bg-bitcoin hover:bg-bitcoin/90 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {withdrawMutation.isPending ? (
                   "Processing..."
@@ -214,16 +235,17 @@ export default function Withdraw() {
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />
-                    Withdraw Bitcoin
+                    Withdraw USDT (TRC20)
                   </>
                 )}
               </Button>
             </div>
 
-            <div className="text-xs text-muted-foreground">
-              <p>• Withdrawals are processed immediately</p>
-              <p>• Network fees will be deducted from your balance</p>
-              <p>• Minimum withdrawal: 0.00001 BTC</p>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>• Network: TRON (TRC20)</p>
+              <p>• Minimum withdrawal: $10 USDT</p>
+              <p>• Processing time: 2-24 hours</p>
+              <p>• Network fee: Deducted from withdrawal amount</p>
             </div>
           </CardContent>
         </Card>

@@ -2675,7 +2675,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Validate TRC20 address format
       if (!trc20WalletManager.validateAddress(address)) {
-        return res.status(400).json({ error: "Invalid TRC20 address format. Please provide a valid TRON address." });
+        return res.status(400).json({ error: "Invalid TRC20 address format. Please provide a valid TRON address starting with 'T'." });
       }
 
       const user = await storage.getUser(userId);
@@ -2700,8 +2700,10 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       // SECURITY: Check for active investments (prevents withdrawal during active investments)
-      const activeInvestments = await storage.getActiveInvestments();
-      if (activeInvestments.length > 0) {
+      const userInvestments = await storage.getUserInvestments(userId);
+      const hasActiveInvestments = userInvestments.some(inv => inv.isActive);
+      
+      if (hasActiveInvestments) {
         return res.status(400).json({ 
           error: "Cannot withdraw funds while you have active investments. Please wait for investments to complete." 
         });
@@ -2743,17 +2745,18 @@ You will receive a notification once your deposit is confirmed and added to your
       await storage.createNotification({
         userId: userId,
         title: "🔒 Withdrawal Security Review",
-        message: `Your withdrawal request for $${amount} USDT to ${address.substring(0, 8)}...${address.slice(-6)} is under security review. Funds have been reserved. This typically takes 2-24 hours for your protection.`,
+        message: `Your withdrawal request for $${amount} USDT (TRC20) to ${address.substring(0, 8)}...${address.slice(-6)} is under security review. Funds have been reserved. This typically takes 2-24 hours for your protection.`,
         type: "info"
       });
 
-      console.log(`💰 [WITHDRAWAL] User ${userId} withdrawal created: $${amount} USDT | Balance: $${userBalance} → $${newBalance}`);
+      console.log(`💰 [WITHDRAWAL] User ${userId} TRC20 withdrawal created: $${amount} USDT | Balance: $${userBalance} → $${newBalance}`);
 
       res.json({
         message: "Withdrawal request submitted successfully. Security review in progress.",
         transaction,
         estimatedProcessingTime: "2-24 hours",
-        newBalance
+        newBalance,
+        network: "TRC20 (TRON)"
       });
     } catch (error: any) {
       console.error('Withdrawal error:', error);
