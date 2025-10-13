@@ -131,10 +131,11 @@ export const transactions = pgTable("transactions", {
   userId: integer("user_id").notNull(),
   type: text("type").notNull(), // 'deposit', 'investment', 'withdrawal'
   amount: decimal("amount", { precision: 18, scale: 8 }).notNull(),
-  address: text("address"), // Bitcoin address for deposits/withdrawals
-  status: text("status").notNull().default("pending"), // 'pending', 'confirmed', 'rejected'
+  address: text("address"), // Bitcoin address for deposits/withdrawals (legacy)
+  withdrawalAddress: text("withdrawal_address"), // TRC20 withdrawal destination address
+  status: text("status").notNull().default("pending"), // 'pending', 'confirmed', 'rejected', 'cancelled'
   planId: integer("plan_id"), // only for investment transactions
-  transactionHash: text("transaction_hash"), // user-provided transaction hash
+  transactionHash: text("transaction_hash"), // actual blockchain transaction hash (after sending)
   notes: text("notes"), // admin notes
   confirmedBy: integer("confirmed_by"), // admin user id who confirmed
   createdAt: timestamp("created_at").notNull().defaultNow(),
