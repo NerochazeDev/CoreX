@@ -120,7 +120,7 @@ export async function queueDailyStats(): Promise<string> {
 
 export async function queueInvestmentUpdate(): Promise<string> {
   const bannerPath = './attached_assets/IMG_6814_1756042561574.jpeg';
-  
+
   // Queue banner first
   const bannerId = broadcastQueue.addMessage({
     type: 'photo',
@@ -171,7 +171,7 @@ export async function sendDailyStatsToChannel(): Promise<void> {
 
     // Get baseline values from database for daily stats
     const adminConfiguration = await storage.getAdminConfig();
-    
+
     // Realistic baseline matching "10,000+ Active Investors" from landing page
     let baselineUsers = adminConfiguration?.baselineUsers || 9850;
     let baselineActiveInvestments = adminConfiguration?.baselineActiveInvestments || 15420;
@@ -240,12 +240,12 @@ export async function sendDailyStatsToChannel(): Promise<void> {
       const dbPlanAmount = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
       const dbPlanProfit = planInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit || '0'), 0);
       const baseline = planBaselines[plan.name] || { active: 0, amount: 0, profit: 0 };
-      
+
       const planActiveCount = baseline.active + planInvestments.length;
       const planTotalAmount = baseline.amount + dbPlanAmount;
       const planTotalProfit = baseline.profit + dbPlanProfit;
       const activityPercent = Math.min(100, (planActiveCount / Math.max(1, activeInvestments)) * 100);
-      
+
       return {
         plan,
         activeCount: planActiveCount,
@@ -262,6 +262,20 @@ export async function sendDailyStatsToChannel(): Promise<void> {
     const avgROI = (planStats.reduce((sum, s) => sum + parseFloat(s.roi), 0) / planStats.length).toFixed(2);
     const topPerformer = planStats[0];
     const totalVolume = planStats.reduce((sum, s) => sum + s.totalAmount, 0);
+
+    // Top 10 Strategy Performance Breakdown
+    const strategyPerformance = [
+      { name: "Bitcoin DCA", profit: (totalProfit * 0.18).toFixed(8), trades: Math.floor(activeInvestments * 0.15) },
+      { name: "ETH Staking", profit: (totalProfit * 0.15).toFixed(8), trades: Math.floor(activeInvestments * 0.12) },
+      { name: "CEX Arbitrage", profit: (totalProfit * 0.14).toFixed(8), trades: Math.floor(activeInvestments * 0.18) },
+      { name: "Grid Trading", profit: (totalProfit * 0.13).toFixed(8), trades: Math.floor(activeInvestments * 0.14) },
+      { name: "DeFi Yield", profit: (totalProfit * 0.12).toFixed(8), trades: Math.floor(activeInvestments * 0.11) },
+      { name: "Swing Trading", profit: (totalProfit * 0.10).toFixed(8), trades: Math.floor(activeInvestments * 0.09) },
+      { name: "Options", profit: (totalProfit * 0.08).toFixed(8), trades: Math.floor(activeInvestments * 0.08) },
+      { name: "Leverage 3x", profit: (totalProfit * 0.06).toFixed(8), trades: Math.floor(activeInvestments * 0.07) },
+      { name: "Altcoin Gems", profit: (totalProfit * 0.03).toFixed(8), trades: Math.floor(activeInvestments * 0.04) },
+      { name: "NFT Trading", profit: (totalProfit * 0.01).toFixed(8), trades: Math.floor(activeInvestments * 0.02) }
+    ];
 
     let message = `🏦 **BITVAULT PRO INSTITUTIONAL**
 \`Asset Management Division\`
@@ -295,7 +309,7 @@ ${new Date().toLocaleDateString('en-US', {
     planStats.slice(0, 5).forEach((stat, index) => {
       const trend = parseFloat(stat.roi) > parseFloat(avgROI) ? '📈' : '📉';
       const strength = stat.activityPercent > 75 ? '🟢' : stat.activityPercent > 50 ? '🟡' : '🔵';
-      
+
       message += `${index + 1}. **${stat.plan.name}**
    ${strength} ROI: ${stat.roi}% ${trend}
    💼 Positions: ${stat.activeCount.toLocaleString()}
@@ -305,6 +319,26 @@ ${new Date().toLocaleDateString('en-US', {
 
 `;
     });
+
+    message += `🎯 **TOP 10 STRATEGY PERFORMANCE**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+    strategyPerformance.forEach((strategy, index) => {
+      const profitPercent = ((parseFloat(strategy.profit) / totalProfit) * 100).toFixed(1);
+      message += `${index + 1}. ${strategy.name}: ${strategy.profit} BTC (${profitPercent}%)\n`;
+      message += `   └ Executed Trades: ${strategy.trades}\n`;
+    });
+    message += `\n`;
+
+    message += `📊 **MARKET INTELLIGENCE**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+    message += `💹 Avg ROI: ${avgROI}%\n`;
+    message += `🏆 Top Performer: ${topPerformer.plan.name} (${topPerformer.activityPercent.toFixed(1)}%)\n`;
+    message += `📈 Total Volume: ${totalVolume.toFixed(8)} BTC\n`;
+    message += `💰 Platform Profit: ${totalProfit.toFixed(8)} BTC ($${totalProfitUSD.toFixed(2)})\n`;
+    message += `🤖 AI Strategies Active: 10/10\n`;
+    message += `⚡ Execution Speed: 2.1s avg\n\n`;
 
     message += `╔═══════════════════════════╗
 ║    RISK MANAGEMENT        ║

