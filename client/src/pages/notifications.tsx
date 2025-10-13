@@ -215,8 +215,8 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      {/* Enhanced Header with Gradient */}
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
@@ -224,23 +224,23 @@ export default function Notifications() {
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setLocation('/')}
-                className="h-10 w-10 p-0 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200"
+                className="h-10 w-10 p-0 rounded-xl bg-white/20 hover:bg-white/30 text-white border border-white/30 shadow-md transition-all duration-200"
                 data-testid="button-back"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-orange-600" />
+                <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Bell className="w-5 h-5" />
                   Notifications
                   {unreadCount > 0 && (
-                    <Badge className="bg-orange-500 text-white text-xs hover:bg-orange-600 border-orange-600">
+                    <Badge className="bg-white text-orange-600 text-xs font-bold">
                       {unreadCount}
                     </Badge>
                   )}
                 </h1>
-                <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">
-                  Stay updated with your account • {notifications?.length || 0}/50 notifications
+                <p className="text-sm text-white/90 font-medium">
+                  {notifications?.length || 0} total notifications • {unreadCount} unread
                 </p>
               </div>
             </div>

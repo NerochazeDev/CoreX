@@ -182,8 +182,8 @@ export default function Withdraw() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">Withdraw Bitcoin</h1>
-              <p className="text-sm text-muted-foreground">Send BTC to external wallet</p>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">Withdraw USDT (TRC20)</h1>
+              <p className="text-sm text-muted-foreground">Send USDT to TRON network address</p>
             </div>
           </div>
         </div>
@@ -219,11 +219,15 @@ export default function Withdraw() {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground mb-2">Available Balance</p>
-                  <h2 className="text-4xl font-bold text-foreground mb-2">{formatBitcoin(user.balance)} BTC</h2>
                   {bitcoinPrice && (
-                    <p className="text-lg text-muted-foreground">
-                      ≈ {formatCurrency(parseFloat(user.balance) * bitcoinPrice.usd.price, currency)}
-                    </p>
+                    <>
+                      <h2 className="text-4xl font-bold text-foreground mb-2">
+                        ${(parseFloat(user.balance) * bitcoinPrice.usd.price).toFixed(2)} USDT
+                      </h2>
+                      <p className="text-lg text-muted-foreground">
+                        {formatBitcoin(user.balance)} BTC
+                      </p>
+                    </>
                   )}
                 </div>
               </CardContent>
@@ -243,7 +247,7 @@ export default function Withdraw() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Label htmlFor="address">Bitcoin Address (TRC20)</Label>
+                          <Label htmlFor="address">TRON Address (TRC20)</Label>
                           <div className="flex gap-2">
                             <Button
                               type="button"
@@ -273,7 +277,7 @@ export default function Withdraw() {
                           type="text"
                           value={address}
                           onChange={(e) => setAddress(e.target.value)}
-                          placeholder="TRC20 USDT address"
+                          placeholder="Enter TRON TRC20 address (starts with T)"
                           className="font-mono text-sm"
                         />
 
@@ -427,7 +431,12 @@ export default function Withdraw() {
                             ) : (
                               <Clock className="w-4 h-4 text-yellow-500" />
                             )}
-                            <span className="font-semibold">{formatBitcoin(tx.amount)} BTC</span>
+                            <div>
+                              <span className="font-semibold block">
+                                ${bitcoinPrice ? (parseFloat(tx.amount) * bitcoinPrice.usd.price).toFixed(2) : '0.00'} USDT
+                              </span>
+                              <span className="text-xs text-muted-foreground">{formatBitcoin(tx.amount)} BTC</span>
+                            </div>
                           </div>
                           <Badge variant={
                             tx.status === 'confirmed' ? 'default' : 
@@ -439,6 +448,7 @@ export default function Withdraw() {
                         </div>
                         <div className="text-xs text-muted-foreground space-y-1">
                           <p>Date: {formatDate(new Date(tx.createdAt))}</p>
+                          <p>Network: TRC20 (TRON)</p>
                           {tx.transactionHash && (
                             <p className="font-mono">
                               To: {tx.transactionHash.substring(0, 10)}...{tx.transactionHash.substring(tx.transactionHash.length - 10)}

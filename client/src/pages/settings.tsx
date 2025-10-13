@@ -512,19 +512,22 @@ function SettingsContent() {
   return (
     <LayoutWrapper>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        {/* Header - Match Home Page Style */}
-        <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        {/* Enhanced Header with Gradient */}
+        <header className="sticky top-0 z-50 bg-gradient-to-r from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700 shadow-lg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center gap-3">
                 <Link href="/">
-                  <Button variant="ghost" size="icon" className="h-10 w-10 p-0 rounded-full hover:bg-primary/10">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 p-0 rounded-xl bg-white/20 hover:bg-white/30 text-white border border-white/30">
                     <ArrowLeft className="w-5 h-5" />
                   </Button>
                 </Link>
-                <div className="hidden sm:block">
-                  <h1 className="text-xl font-bold text-foreground">Settings</h1>
-                  <p className="text-sm text-muted-foreground">Manage your account & preferences</p>
+                <div>
+                  <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                    <SettingsIcon className="w-5 h-5" />
+                    Settings
+                  </h1>
+                  <p className="text-sm text-white/90 font-medium">Manage your account & preferences</p>
                 </div>
               </div>
             </div>
