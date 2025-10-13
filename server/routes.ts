@@ -1025,7 +1025,7 @@ Investment #${investment.id} - Active`
               planName: plan.name,
               profit: profitIncrease.toFixed(8),
               totalProfit: newProfit.toFixed(8),
-              marketSource: randomSource,
+              marketSource: randomStrategy.source, // Fixed: use randomStrategy.source instead of undefined randomSource
               transactionHash: transactionId,
               timestamp: new Date().toISOString()
             });
