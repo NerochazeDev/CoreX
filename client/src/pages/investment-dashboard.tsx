@@ -131,67 +131,6 @@ export default function InvestmentDashboard() {
     return null;
   }
 
-  // Calculate real performance metrics from actual investments
-  useEffect(() => {
-    if (actualActiveInvestments.length > 0) {
-      const metrics = {
-        totalROI: (totalProfit / totalInvestedAmount) * 100,
-        dailyAverage: totalProfit / 30, // Approximate daily average
-        bestPerforming: Math.max(...actualActiveInvestments.map(inv => 
-          (parseFloat(inv.currentProfit) / parseFloat(inv.amount)) * 100
-        )),
-        worstPerforming: Math.min(...actualActiveInvestments.filter(inv => parseFloat(inv.currentProfit) > 0).map(inv => 
-          (parseFloat(inv.currentProfit) / parseFloat(inv.amount)) * 100
-        )),
-        avgHoldTime: actualActiveInvestments.reduce((sum, inv) => {
-          const days = Math.floor((Date.now() - new Date(inv.startDate).getTime()) / (1000 * 60 * 60 * 24));
-          return sum + days;
-        }, 0) / actualActiveInvestments.length,
-        profitGrowthRate: totalProfit / totalInvestedAmount * 365 * 100 // Annualized
-      };
-      setPerformanceMetrics(metrics);
-    }
-  }, [actualActiveInvestments, totalProfit, totalInvestedAmount]);
-
-  // Track real-time investment activity
-  useEffect(() => {
-    if (actualActiveInvestments.length === 0) return;
-
-    const updateActivity = () => {
-      const newActivity = actualActiveInvestments.map((investment, index) => {
-        const plan = investmentPlans?.find(p => p.id === investment.planId);
-        const profitChange = parseFloat(investment.amount) * (plan ? parseFloat(plan.dailyReturnRate) / 144 : 0);
-        const roi = (parseFloat(investment.currentProfit) / parseFloat(investment.amount)) * 100;
-
-        return {
-          id: investment.id,
-          planName: plan?.name || `Plan ${investment.planId}`,
-          timestamp: new Date().toISOString(),
-          amount: parseFloat(investment.amount),
-          profit: parseFloat(investment.currentProfit),
-          profitChange: profitChange,
-          roi: roi,
-          status: roi > 10 ? 'Excellent' : roi > 5 ? 'Good' : roi > 0 ? 'Active' : 'New',
-          trend: profitChange > 0 ? 'up' : 'stable'
-        };
-      });
-
-      setRealTimeActivity(prev => {
-        const updated = [...newActivity, ...prev.slice(0, 20)];
-        return updated.slice(0, 25); // Keep last 25 activities
-      });
-    };
-
-    updateActivity();
-    activityIntervalRef.current = setInterval(updateActivity, 10000); // Update every 10 seconds
-
-    return () => {
-      if (activityIntervalRef.current) {
-        clearInterval(activityIntervalRef.current);
-      }
-    };
-  }, [actualActiveInvestments, investmentPlans]);
-
   const { data: activeInvestments, isLoading: loadingInvestments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user.id],
     queryFn: () => fetch(`/api/investments/user/${user.id}`, {
@@ -254,6 +193,67 @@ export default function InvestmentDashboard() {
   }, [activeInvestments, investmentPlans]);
 
   const { actualActiveInvestments, totalInvestedAmount, totalProfit, totalValue, profitMargin, dailyGrowthRate } = investmentMetrics;
+
+  // Calculate real performance metrics from actual investments
+  useEffect(() => {
+    if (actualActiveInvestments.length > 0) {
+      const metrics = {
+        totalROI: (totalProfit / totalInvestedAmount) * 100,
+        dailyAverage: totalProfit / 30, // Approximate daily average
+        bestPerforming: Math.max(...actualActiveInvestments.map(inv => 
+          (parseFloat(inv.currentProfit) / parseFloat(inv.amount)) * 100
+        )),
+        worstPerforming: Math.min(...actualActiveInvestments.filter(inv => parseFloat(inv.currentProfit) > 0).map(inv => 
+          (parseFloat(inv.currentProfit) / parseFloat(inv.amount)) * 100
+        )),
+        avgHoldTime: actualActiveInvestments.reduce((sum, inv) => {
+          const days = Math.floor((Date.now() - new Date(inv.startDate).getTime()) / (1000 * 60 * 60 * 24));
+          return sum + days;
+        }, 0) / actualActiveInvestments.length,
+        profitGrowthRate: totalProfit / totalInvestedAmount * 365 * 100 // Annualized
+      };
+      setPerformanceMetrics(metrics);
+    }
+  }, [actualActiveInvestments, totalProfit, totalInvestedAmount]);
+
+  // Track real-time investment activity
+  useEffect(() => {
+    if (actualActiveInvestments.length === 0) return;
+
+    const updateActivity = () => {
+      const newActivity = actualActiveInvestments.map((investment, index) => {
+        const plan = investmentPlans?.find(p => p.id === investment.planId);
+        const profitChange = parseFloat(investment.amount) * (plan ? parseFloat(plan.dailyReturnRate) / 144 : 0);
+        const roi = (parseFloat(investment.currentProfit) / parseFloat(investment.amount)) * 100;
+
+        return {
+          id: investment.id,
+          planName: plan?.name || `Plan ${investment.planId}`,
+          timestamp: new Date().toISOString(),
+          amount: parseFloat(investment.amount),
+          profit: parseFloat(investment.currentProfit),
+          profitChange: profitChange,
+          roi: roi,
+          status: roi > 10 ? 'Excellent' : roi > 5 ? 'Good' : roi > 0 ? 'Active' : 'New',
+          trend: profitChange > 0 ? 'up' : 'stable'
+        };
+      });
+
+      setRealTimeActivity(prev => {
+        const updated = [...newActivity, ...prev.slice(0, 20)];
+        return updated.slice(0, 25); // Keep last 25 activities
+      });
+    };
+
+    updateActivity();
+    activityIntervalRef.current = setInterval(updateActivity, 10000); // Update every 10 seconds
+
+    return () => {
+      if (activityIntervalRef.current) {
+        clearInterval(activityIntervalRef.current);
+      }
+    };
+  }, [actualActiveInvestments, investmentPlans]);
 
   // Calculate technical indicators
   const calculateSMA = (data: any[], period: number): number[] => {
