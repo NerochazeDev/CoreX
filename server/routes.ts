@@ -14,10 +14,10 @@ declare module 'express-session' {
   }
 }
 import { storage } from "./storage";
-import { insertUserSchema, insertInvestmentSchema, insertAdminConfigSchema, insertTransactionSchema, insertBackupDatabaseSchema, updateUserProfileSchema, insertDepositSessionSchema, insertSupportMessageSchema } from "@shared/schema";
-import { blockchainMonitor } from './blockchain-monitor';
+import { insertUserSchema, insertInvestmentSchema, insertAdminConfigSchema, insertTransactionSchema, insertBackupDatabaseSchema, updateUserProfileSchema, insertDepositSessionSchema, insertSupportMessageSchema, transactions } from "@shared/schema";
+import { trc20Monitor } from './trc20-monitor';
 import { db } from "./db";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 import * as bitcoin from "bitcoinjs-lib";
 import * as ecc from "tiny-secp256k1";
 import { ECPairFactory } from "ecpair";
@@ -2037,50 +2037,112 @@ You will receive a notification once your deposit is confirmed and added to your
 
       const { transactionId, notes } = confirmTransactionSchema.parse(req.body);
 
-      // Use atomic confirmation with balance update to prevent double processing
+      // Get transaction before processing
+      const transaction = await storage.getTransaction(transactionId);
+      if (!transaction || transaction.status !== "pending") {
+        return res.status(404).json({ error: "Transaction not found or already processed" });
+      }
+
+      // CRITICAL FIX: Handle withdrawals with actual TRC20 sending
+      if (transaction.type === "withdrawal") {
+        // Import withdrawal service
+        const { trc20WithdrawalService } = await import('./trc20-withdrawal');
+        
+        // Get withdrawal address (from new field or fallback to transactionHash for legacy)
+        const withdrawalAddress = transaction.withdrawalAddress || transaction.transactionHash;
+        
+        if (!withdrawalAddress) {
+          return res.status(400).json({ error: "Withdrawal address not found in transaction" });
+        }
+
+        console.log(`🚀 [WITHDRAWAL] Admin confirming withdrawal ${transactionId} - Sending $${transaction.amount} USDT to ${withdrawalAddress}`);
+
+        // Actually send TRC20 USDT on blockchain
+        const sendResult = await trc20WithdrawalService.sendWithdrawalFromVault(
+          withdrawalAddress,
+          transaction.amount
+        );
+
+        if (!sendResult.success) {
+          // Sending failed - reject transaction and refund balance
+          await storage.rejectTransaction(transactionId, adminId, `Failed to send: ${sendResult.error}`);
+          
+          // Refund balance to user
+          const transactionUser = await storage.getUser(transaction.userId);
+          if (transactionUser) {
+            const currentBalance = parseFloat(transactionUser.balance);
+            const refundAmount = parseFloat(transaction.amount);
+            const newBalance = (currentBalance + refundAmount).toFixed(2);
+            await storage.updateUserBalance(transaction.userId, newBalance);
+            
+            console.log(`💸 [WITHDRAWAL] Refunded $${refundAmount} to user ${transaction.userId} | Balance: $${currentBalance} → $${newBalance}`);
+          }
+
+          await storage.createNotification({
+            userId: transaction.userId,
+            title: "❌ Withdrawal Failed",
+            message: `Your withdrawal of $${transaction.amount} USDT failed: ${sendResult.error}. Funds have been returned to your account.`,
+            type: "error"
+          });
+
+          return res.status(500).json({ 
+            error: "Failed to send withdrawal on blockchain: " + sendResult.error,
+            refunded: true
+          });
+        }
+
+        // Sending successful - confirm transaction and store blockchain txHash
+        const confirmedTx = await storage.confirmTransaction(transactionId, adminId, notes);
+        
+        // Update transaction with actual blockchain hash
+        await db.update(transactions)
+          .set({ transactionHash: sendResult.txHash })
+          .where(eq(transactions.id, transactionId));
+
+        console.log(`✅ [WITHDRAWAL] Successfully sent $${transaction.amount} USDT | TxHash: ${sendResult.txHash}`);
+
+        await storage.createNotification({
+          userId: transaction.userId,
+          title: "✅ Withdrawal Completed",
+          message: `Your withdrawal of $${transaction.amount} USDT has been sent successfully! Transaction: ${sendResult.txHash?.substring(0, 10)}...`,
+          type: "success"
+        });
+
+        return res.json({
+          message: "Withdrawal confirmed and sent successfully",
+          transaction: confirmedTx,
+          blockchainTxHash: sendResult.txHash
+        });
+      }
+
+      // Handle deposits and investments (existing logic)
       const result = await storage.confirmTransactionWithBalanceUpdate(transactionId, adminId, notes);
       if (!result) {
         return res.status(404).json({ error: "Transaction not found or already processed" });
       }
 
-      const { transaction, balanceUpdated } = result;
-
-      // Handle other transaction types
-      if (transaction.type === "withdrawal") {
-        const user = await storage.getUser(transaction.userId);
-        if (user) {
-          const currentBalance = parseFloat(user.balance);
-          const withdrawAmount = parseFloat(transaction.amount);
-          const newBalance = Math.max(0, currentBalance - withdrawAmount);
-          await storage.updateUserBalance(transaction.userId, newBalance.toFixed(8));
-        }
-      }
-      // Note: Investment balance deduction is handled when the investment is created, not in transaction confirmation
+      const { transaction: confirmedTransaction, balanceUpdated } = result;
 
       // Create notification for user
       let notificationMessage = "";
       let notificationTitle = "";
 
-      switch (transaction.type) {
+      switch (confirmedTransaction.type) {
         case "deposit":
-          notificationMessage = `Your deposit of ${transaction.amount} BTC has been confirmed and added to your balance.`;
+          notificationMessage = `Your deposit of $${confirmedTransaction.amount} has been confirmed and added to your balance.`;
           notificationTitle = "Deposit Confirmed";
           break;
-        case "withdrawal":
-          notificationMessage = `Your withdrawal of ${transaction.amount} BTC to ${transaction.transactionHash} has been processed successfully.`;
-          notificationTitle = "Withdrawal Completed";
-          break;
         case "investment":
-          notificationMessage = `Your investment of ${transaction.amount} BTC has been confirmed and is now active.`;
+          notificationMessage = `Your investment of $${confirmedTransaction.amount} has been confirmed and is now active.`;
           notificationTitle = "Investment Confirmed";
           break;
         default:
-          notificationMessage = `Your ${transaction.type} of ${transaction.amount} BTC has been confirmed.`;
-          notificationTitle = `${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)} Confirmed`;
+          notificationMessage = `Your ${confirmedTransaction.type} of $${confirmedTransaction.amount} has been confirmed.`;
+          notificationTitle = `${confirmedTransaction.type.charAt(0).toUpperCase() + confirmedTransaction.type.slice(1)} Confirmed`;
       }
 
       await storage.createNotification({
-        userId: transaction.userId,
+        userId: confirmedTransaction.userId,
         title: notificationTitle,
         message: notificationMessage,
         type: "success"
@@ -2088,9 +2150,10 @@ You will receive a notification once your deposit is confirmed and added to your
 
       res.json({
         message: "Transaction confirmed successfully",
-        transaction
+        transaction: confirmedTransaction
       });
     } catch (error: any) {
+      console.error('❌ [WITHDRAWAL] Confirmation error:', error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -2110,24 +2173,66 @@ You will receive a notification once your deposit is confirmed and added to your
 
       const { transactionId, notes } = confirmTransactionSchema.parse(req.body);
 
-      const transaction = await storage.rejectTransaction(transactionId, adminId, notes);
-      if (!transaction) {
+      // Get transaction before rejecting
+      const transaction = await storage.getTransaction(transactionId);
+      if (!transaction || transaction.status !== "pending") {
         return res.status(404).json({ error: "Transaction not found or already processed" });
       }
 
+      // CRITICAL FIX: Refund balance for rejected withdrawals
+      if (transaction.type === "withdrawal") {
+        const transactionUser = await storage.getUser(transaction.userId);
+        if (transactionUser) {
+          const currentBalance = parseFloat(transactionUser.balance);
+          const refundAmount = parseFloat(transaction.amount);
+          const newBalance = (currentBalance + refundAmount).toFixed(2);
+          await storage.updateUserBalance(transaction.userId, newBalance);
+          
+          console.log(`💸 [WITHDRAWAL] Refunded $${refundAmount} to user ${transaction.userId} | Balance: $${currentBalance} → $${newBalance}`);
+        }
+      }
+
+      const rejectedTransaction = await storage.rejectTransaction(transactionId, adminId, notes);
+      if (!rejectedTransaction) {
+        return res.status(404).json({ error: "Failed to reject transaction" });
+      }
+
       // Create notification for user
+      let notificationTitle = "";
+      let notificationMessage = "";
+
+      switch (rejectedTransaction.type) {
+        case "withdrawal":
+          notificationTitle = "Withdrawal Rejected";
+          notificationMessage = `Your withdrawal of $${rejectedTransaction.amount} USDT has been rejected and refunded to your account. ${notes ? `Reason: ${notes}` : ""}`;
+          break;
+        case "deposit":
+          notificationTitle = "Deposit Rejected";
+          notificationMessage = `Your deposit of $${rejectedTransaction.amount} has been rejected. ${notes ? `Reason: ${notes}` : ""}`;
+          break;
+        case "investment":
+          notificationTitle = "Investment Rejected";
+          notificationMessage = `Your investment of $${rejectedTransaction.amount} has been rejected. ${notes ? `Reason: ${notes}` : ""}`;
+          break;
+        default:
+          notificationTitle = `${rejectedTransaction.type.charAt(0).toUpperCase() + rejectedTransaction.type.slice(1)} Rejected`;
+          notificationMessage = `Your ${rejectedTransaction.type} of $${rejectedTransaction.amount} has been rejected. ${notes ? `Reason: ${notes}` : ""}`;
+      }
+
       await storage.createNotification({
-        userId: transaction.userId,
-        title: `${transaction.type === "deposit" ? "Deposit" : "Investment"} Rejected`,
-        message: `Your ${transaction.type} of ${transaction.amount} BTC has been rejected. ${notes ? `Reason: ${notes}` : ""}`,
+        userId: rejectedTransaction.userId,
+        title: notificationTitle,
+        message: notificationMessage,
         type: "error"
       });
 
       res.json({
         message: "Transaction rejected successfully",
-        transaction
+        transaction: rejectedTransaction,
+        refunded: rejectedTransaction.type === "withdrawal"
       });
     } catch (error: any) {
+      console.error('❌ [TRANSACTION] Rejection error:', error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -2245,7 +2350,7 @@ You will receive a notification once your deposit is confirmed and added to your
     }
   });
 
-  // Secure Withdraw route with comprehensive anti-fraud measures
+  // TRC20 USDT Withdraw route with comprehensive anti-fraud measures
   app.post("/api/withdraw", async (req, res) => {
     try {
       const userId = getUserIdFromRequest(req);
@@ -2257,12 +2362,15 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Enhanced input validation
       if (!address || !amount) {
-        return res.status(400).json({ error: "Bitcoin address and amount are required" });
+        return res.status(400).json({ error: "TRC20 address and amount are required" });
       }
 
-      // Validate Bitcoin address format
-      if (!isValidBitcoinAddress(address)) {
-        return res.status(400).json({ error: "Invalid Bitcoin address format" });
+      // Import TRC20 wallet manager for address validation
+      const { trc20WalletManager } = await import('./trc20-wallet');
+      
+      // Validate TRC20 address format
+      if (!trc20WalletManager.validateAddress(address)) {
+        return res.status(400).json({ error: "Invalid TRC20 address format. Please provide a valid TRON address." });
       }
 
       const user = await storage.getUser(userId);
@@ -2278,8 +2386,8 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(400).json({ error: "Invalid withdrawal amount" });
       }
 
-      if (withdrawAmount < 0.001) {
-        return res.status(400).json({ error: "Minimum withdrawal amount is 0.001 BTC" });
+      if (withdrawAmount < 10) {
+        return res.status(400).json({ error: "Minimum withdrawal amount is $10 USDT" });
       }
 
       if (withdrawAmount > userBalance) {
@@ -2294,9 +2402,13 @@ You will receive a notification once your deposit is confirmed and added to your
         });
       }
 
-      // SECURITY: Check for recent withdrawal attempts (rate limiting)
-      const recentWithdrawals = await storage.getRecentUserTransactions(userId, 'withdrawal', 24); // Last 24 hours
-      if (recentWithdrawals.length >= 3) {
+      // SECURITY: Check for recent withdrawal attempts - FIXED to include pending withdrawals
+      const recentWithdrawals = await storage.getRecentUserTransactions(userId, 'withdrawal', 24);
+      const pendingOrConfirmedWithdrawals = recentWithdrawals.filter(
+        tx => tx.status === 'pending' || tx.status === 'confirmed'
+      );
+      
+      if (pendingOrConfirmedWithdrawals.length >= 3) {
         return res.status(429).json({ 
           error: "Too many withdrawal requests. Maximum 3 withdrawals per 24 hours for security." 
         });
@@ -2308,27 +2420,35 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(403).json({ error: suspiciousActivityCheck.reason });
       }
 
-      // Create withdrawal transaction record (pending status)
+      // CRITICAL FIX: Deduct balance IMMEDIATELY when creating withdrawal (atomic operation)
+      const newBalance = (userBalance - withdrawAmount).toFixed(2);
+      await storage.updateUserBalance(userId, newBalance);
+
+      // Create withdrawal transaction record with proper withdrawal address field
       const transaction = await storage.createTransaction({
         userId: userId,
         type: "withdrawal",
         amount: amount,
         status: "pending",
-        transactionHash: address, // Store withdrawal address in transactionHash field
+        withdrawalAddress: address, // Proper field for TRC20 withdrawal address
+        transactionHash: null, // Will be set after actual blockchain transaction
       });
 
       // Create security notification
       await storage.createNotification({
         userId: userId,
         title: "🔒 Withdrawal Security Review",
-        message: `Your withdrawal request for ${amount} BTC to ${address.substring(0, 8)}...${address.substring(-6)} is under security review. This typically takes 2-24 hours for your protection.`,
+        message: `Your withdrawal request for $${amount} USDT to ${address.substring(0, 8)}...${address.slice(-6)} is under security review. Funds have been reserved. This typically takes 2-24 hours for your protection.`,
         type: "info"
       });
+
+      console.log(`💰 [WITHDRAWAL] User ${userId} withdrawal created: $${amount} USDT | Balance: $${userBalance} → $${newBalance}`);
 
       res.json({
         message: "Withdrawal request submitted successfully. Security review in progress.",
         transaction,
-        estimatedProcessingTime: "2-24 hours"
+        estimatedProcessingTime: "2-24 hours",
+        newBalance
       });
     } catch (error: any) {
       console.error('Withdrawal error:', error);
@@ -4860,12 +4980,12 @@ You are now on the free plan and will no longer receive automatic profit updates
   // Start the automatic price update system
   startAutomaticUpdates();
 
-  // Initialize blockchain monitoring for automated deposits
+  // Initialize TRC20 blockchain monitoring for automated deposits
   try {
-    await blockchainMonitor.startMonitoring();
-    console.log('🔗 Blockchain monitoring system initialized successfully');
+    await trc20Monitor.startMonitoring();
+    console.log('🔗 TRC20 blockchain monitoring system initialized successfully');
   } catch (error) {
-    console.error('❌ Failed to initialize blockchain monitoring:', error);
+    console.error('❌ Failed to initialize TRC20 blockchain monitoring:', error);
   }
 
   return httpServer;
