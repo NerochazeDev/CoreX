@@ -33,16 +33,27 @@ import { format } from 'date-fns';
 import { Activity, Award } from "lucide-react";
 
 export default function History() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { currency } = useCurrency();
   const { data: bitcoinPrice } = useBitcoinPrice();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
+  // Redirect to login if not authenticated after loading
+  if (!authLoading && !user) {
+    setLocation('/login');
+    return null;
+  }
+
   const { data: investments, isLoading } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/investments/user/${user?.id}`);
+      const response = await fetch(`/api/investments/user/${user?.id}`, {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch investments');
       }
@@ -55,7 +66,12 @@ export default function History() {
   const { data: notifications, isLoading: loadingNotifications } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
     queryFn: async () => {
-      const response = await fetch(`/api/notifications/${user?.id}`);
+      const response = await fetch(`/api/notifications/${user?.id}`, {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch notifications');
       }
@@ -68,7 +84,12 @@ export default function History() {
   const { data: transactions, isLoading: loadingTransactions } = useQuery<Transaction[]>({
     queryKey: ['/api/transactions'],
     queryFn: async () => {
-      const response = await fetch(`/api/transactions`);
+      const response = await fetch(`/api/transactions`, {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch transactions');
       }
@@ -113,8 +134,12 @@ export default function History() {
     },
   });
 
-  if (!user) {
-    return <div>Please log in to view your history</div>;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
