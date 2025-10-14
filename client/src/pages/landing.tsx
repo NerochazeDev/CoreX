@@ -44,18 +44,21 @@ export default function Landing() {
     return parseFloat(plan.minAmount) * btcUsdPrice;
   };
 
-  // Calculate potential returns based on plan
+  // Calculate potential returns based on plan - matches backend logic exactly
   const calculateReturns = (plan: InvestmentPlan, usdAmount: number) => {
-    const dailyRate = parseFloat(plan.dailyReturnRate) / 100;
-    const dailyProfit = usdAmount * dailyRate;
-    const totalProfit = dailyProfit * plan.durationDays;
-    const performanceFee = (totalProfit * (plan.performanceFeePercentage || 0)) / 100;
-    const netProfit = totalProfit - performanceFee;
+    // Use the plan's ROI percentage directly (this is the total return over the duration)
+    const grossProfit = usdAmount * (plan.roiPercentage / 100);
+    const performanceFee = plan.performanceFeePercentage ? 
+      (grossProfit * (plan.performanceFeePercentage / 100)) : 0;
+    const netProfit = grossProfit - performanceFee;
     const totalReturn = usdAmount + netProfit;
+    
+    // Calculate daily profit based on net profit spread over duration
+    const dailyProfit = netProfit / plan.durationDays;
     
     return {
       dailyProfit,
-      totalProfit,
+      totalProfit: grossProfit,
       performanceFee,
       netProfit,
       totalReturn,
@@ -223,6 +226,11 @@ export default function Landing() {
                 const minUsd = getPlanUsdAmount(plan);
                 const returns = calculateReturns(plan, minUsd);
                 
+                // Ensure ROI matches the plan's actual ROI percentage
+                const actualRoi = plan.roiPercentage;
+                const netRoi = plan.performanceFeePercentage ? 
+                  actualRoi * (1 - plan.performanceFeePercentage / 100) : actualRoi;
+                
                 return (
                   <Card 
                     key={plan.id} 
@@ -266,7 +274,7 @@ export default function Landing() {
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-slate-600 dark:text-slate-400">Total ROI</span>
                           <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                            {returns.roi}%
+                            {netRoi.toFixed(2)}%
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
@@ -489,7 +497,7 @@ export default function Landing() {
                           <div className="flex justify-between items-center">
                             <span className="text-lg font-bold text-slate-900 dark:text-white">Net ROI:</span>
                             <span className="text-2xl font-bold text-green-600 dark:text-green-400">
-                              +{calc.roi}%
+                              +{((calc.netProfit / investAmount) * 100).toFixed(2)}%
                             </span>
                           </div>
                         </div>
