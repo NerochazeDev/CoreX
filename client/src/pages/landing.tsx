@@ -541,9 +541,6 @@ export default function Landing() {
                   <strong>Regulatory Compliance:</strong> BitVault Pro operates in compliance with applicable financial regulations. 
                   By using this platform, you acknowledge that you have read, understood, and agree to our Terms of Service and Risk Disclosure Statement.
                 </p>
-                <p className="text-sm italic">
-                  This platform is intended for informational and educational purposes. Always consult with a qualified financial advisor before making investment decisions.
-                </p>
               </div>
             </div>
           </div>
@@ -814,10 +811,10 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold text-slate-900 dark:text-white mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                <li><a href="#" className="hover:text-orange-600 dark:hover:text-orange-400">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-orange-600 dark:hover:text-orange-400">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-orange-600 dark:hover:text-orange-400">Risk Disclosure</a></li>
-                <li><a href="#" className="hover:text-orange-600 dark:hover:text-orange-400">Compliance</a></li>
+                <li><Link href="/terms"><a className="hover:text-orange-600 dark:hover:text-orange-400">Terms of Service</a></Link></li>
+                <li><Link href="/privacy"><a className="hover:text-orange-600 dark:hover:text-orange-400">Privacy Policy</a></Link></li>
+                <li><Link href="/risk-disclosure"><a className="hover:text-orange-600 dark:hover:text-orange-400">Risk Disclosure</a></Link></li>
+                <li><Link href="/compliance"><a className="hover:text-orange-600 dark:hover:text-orange-400">Compliance</a></Link></li>
               </ul>
             </div>
             <div>
