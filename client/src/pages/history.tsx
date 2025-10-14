@@ -41,28 +41,7 @@ export default function History() {
   const [, setLocation] = useLocation();
   const [hasAttemptedAuth, setHasAttemptedAuth] = React.useState(false);
 
-  // Track when auth check is complete
-  React.useEffect(() => {
-    if (!authLoading) {
-      setHasAttemptedAuth(true);
-    }
-  }, [authLoading]);
-
-  // Show loading state while checking authentication
-  if (authLoading || !hasAttemptedAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  // Only redirect after auth check is definitely complete
-  if (!user && hasAttemptedAuth) {
-    setLocation('/login');
-    return null;
-  }
-
+  // All hooks MUST be declared before any conditional returns
   const { data: investments, isLoading } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user?.id],
     queryFn: async () => {
@@ -143,6 +122,34 @@ export default function History() {
     queryKey: ['/api/investment-plans'],
     queryFn: () => fetch('/api/investment-plans').then(res => res.json()),
   });
+
+  // Track when auth check is complete - AFTER all hooks are declared
+  React.useEffect(() => {
+    if (!authLoading) {
+      setHasAttemptedAuth(true);
+    }
+  }, [authLoading]);
+
+  // Redirect effect - AFTER all hooks are declared
+  React.useEffect(() => {
+    if (!user && hasAttemptedAuth && !authLoading) {
+      setLocation('/login');
+    }
+  }, [user, hasAttemptedAuth, authLoading, setLocation]);
+
+  // Show loading state while checking authentication
+  if (authLoading || !hasAttemptedAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Only show redirect screen after auth check is definitely complete
+  if (!user && hasAttemptedAuth) {
+    return null;
+  }
 
   const cancelTransactionMutation = useMutation({
     mutationFn: async (transactionId: number) => {
