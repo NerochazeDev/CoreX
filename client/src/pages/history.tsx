@@ -1,4 +1,5 @@
 
+import React from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,9 +39,17 @@ export default function History() {
   const { data: bitcoinPrice } = useBitcoinPrice();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [hasAttemptedAuth, setHasAttemptedAuth] = React.useState(false);
+
+  // Track when auth check is complete
+  React.useEffect(() => {
+    if (!authLoading) {
+      setHasAttemptedAuth(true);
+    }
+  }, [authLoading]);
 
   // Show loading state while checking authentication
-  if (authLoading) {
+  if (authLoading || !hasAttemptedAuth) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
@@ -48,8 +57,8 @@ export default function History() {
     );
   }
 
-  // Redirect to login only after loading is complete and user is not authenticated
-  if (!user) {
+  // Only redirect after auth check is definitely complete
+  if (!user && hasAttemptedAuth) {
     setLocation('/login');
     return null;
   }
