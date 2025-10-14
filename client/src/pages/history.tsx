@@ -112,6 +112,24 @@ export default function History() {
     enabled: !!user?.id,
   });
 
+  // Fetch deposit sessions for user
+  const { data: depositSessions } = useQuery<any[]>({
+    queryKey: ['/api/deposit-sessions', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/deposit/sessions`, {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`
+        }
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: investmentPlans } = useQuery({
     queryKey: ['/api/investment-plans'],
     queryFn: () => fetch('/api/investment-plans').then(res => res.json()),
@@ -398,6 +416,94 @@ export default function History() {
               );
             })}
 
+            {/* Deposit Sessions */}
+            {Array.isArray(depositSessions) && depositSessions.map((session) => {
+              const isCompleted = session.status === 'completed';
+              const isPending = session.status === 'pending';
+              const isExpired = session.status === 'expired';
+              
+              return (
+                <div key={`session-${session.sessionToken}`} className="relative">
+                  <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
+                  <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20 hover:shadow-2xl transition-all duration-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
+                            isCompleted ? 'bg-gradient-to-br from-green-400/30 to-green-500/40 shadow-green-500/30' :
+                            isPending ? 'bg-gradient-to-br from-yellow-400/30 to-yellow-500/40 shadow-yellow-500/30' :
+                            'bg-gradient-to-br from-red-400/30 to-red-500/40 shadow-red-500/30'
+                          }`}>
+                            <ArrowDownLeft className={`w-6 h-6 ${
+                              isCompleted ? 'text-green-600 dark:text-green-400' :
+                              isPending ? 'text-yellow-600 dark:text-yellow-400' :
+                              'text-red-600 dark:text-red-400'
+                            }`} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-orange-800 dark:text-orange-100 text-lg">
+                              TRC20 USDT Deposit
+                            </p>
+                            <p className="text-sm text-orange-600 dark:text-orange-400">
+                              {format(new Date(session.createdAt), 'MMM dd, yyyy • HH:mm')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-orange-800 dark:text-orange-100 text-xl">
+                            ${session.amountReceived || session.amount} USDT
+                          </p>
+                          <Badge className={`mt-2 ${
+                            isCompleted ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700/50' :
+                            isPending ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-700/50' :
+                            'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700/50'
+                          }`}>
+                            {session.status}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-orange-400/20 dark:border-orange-500/30 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-orange-600 dark:text-orange-400">Deposit Address</span>
+                          <span className="font-mono text-xs text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded">
+                            {session.depositAddress.substring(0, 10)}...{session.depositAddress.slice(-8)}
+                          </span>
+                        </div>
+                        
+                        {session.blockchainTxHash && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-orange-600 dark:text-orange-400">Blockchain TX</span>
+                            <span className="font-mono text-xs text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded">
+                              {session.blockchainTxHash.substring(0, 10)}...{session.blockchainTxHash.slice(-8)}
+                            </span>
+                          </div>
+                        )}
+
+                        {session.confirmations !== undefined && session.confirmations > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-orange-600 dark:text-orange-400">Confirmations</span>
+                            <span className="text-green-600 dark:text-green-400 font-medium">
+                              {session.confirmations}/6 {session.confirmations >= 6 ? '✓' : '⏳'}
+                            </span>
+                          </div>
+                        )}
+
+                        {session.completedAt && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-orange-600 dark:text-orange-400">Completed</span>
+                            <span className="text-orange-700 dark:text-orange-300 font-medium">
+                              {format(new Date(session.completedAt), 'MMM dd, HH:mm')}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })}
+
             {/* Bitcoin Transactions from Notifications */}
             {Array.isArray(notifications) && notifications
               .filter(notif => notif.title.includes("Bitcoin Received") || notif.title.includes("Bitcoin Sent"))
@@ -482,9 +588,10 @@ export default function History() {
                 );
               })}
 
-            {/* Show empty state only if no transactions, investments, or notifications */}
+            {/* Show empty state only if no transactions, investments, deposit sessions, or notifications */}
             {(!Array.isArray(investments) || investments.length === 0) && 
              (!Array.isArray(transactions) || transactions.length === 0) &&
+             (!Array.isArray(depositSessions) || depositSessions.length === 0) &&
              (!Array.isArray(notifications) || notifications.filter(n => n.title.includes("Bitcoin")).length === 0) && (
               <div className="relative max-w-md mx-auto">
                 <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
