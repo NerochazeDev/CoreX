@@ -57,14 +57,16 @@ export default function History() {
   const { data: investments, isLoading } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/investments/user/${user?.id}`, {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/investments/user/${user.id}`, {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`
         }
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch investments');
+        console.error('Failed to fetch investments:', response.status);
+        return [];
       }
       const data = await response.json();
       return Array.isArray(data) ? data : [];
@@ -93,6 +95,7 @@ export default function History() {
   const { data: transactions, isLoading: loadingTransactions } = useQuery<Transaction[]>({
     queryKey: ['/api/transactions'],
     queryFn: async () => {
+      if (!user?.id) return [];
       const response = await fetch(`/api/transactions`, {
         credentials: 'include',
         headers: {
@@ -100,7 +103,8 @@ export default function History() {
         }
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch transactions');
+        console.error('Failed to fetch transactions:', response.status);
+        return [];
       }
       const data = await response.json();
       return Array.isArray(data) ? data : [];

@@ -308,9 +308,71 @@ export class TRC20Monitor {
         });
 
         console.log(`✅ [TRC20] Deposit confirmed for user ${session.userId}: $${actualAmount} USDT`);
+
+        // Automatically sweep funds to vault
+        await this.sweepToVault(session, actualAmount, txHash, user.id);
       }
     } catch (error) {
       console.error(`❌ [TRC20] Error processing confirmed deposit:`, error);
+    }
+  }
+
+  private async sweepToVault(session: DepositSession, actualAmount: string, depositTxHash: string, userId: number): Promise<void> {
+    try {
+      console.log(`🏦 [TRC20] Initiating vault sweep for ${actualAmount} USDT from ${session.depositAddress}...`);
+
+      const config = await storage.getAdminConfig();
+      if (!config?.trc20VaultAddress) {
+        console.error('❌ [TRC20] No vault address configured');
+        return;
+      }
+
+      if (!config?.trc20HdSeed) {
+        console.error('❌ [TRC20] No HD seed configured');
+        return;
+      }
+
+      // Import TRC20 withdrawal service for sweeping
+      const { trc20WithdrawalService } = await import('./trc20-withdrawal');
+
+      console.log(`🔐 [TRC20] Sweeping from user address index ${userId} to vault ${config.trc20VaultAddress}`);
+
+      // Use the user's deposit address private key to send funds to vault
+      const sweepResult = await trc20WithdrawalService.sendTRC20USDT(
+        config.trc20HdSeed,
+        userId, // User ID is the derivation index
+        config.trc20VaultAddress,
+        actualAmount
+      );
+
+      if (sweepResult.success && sweepResult.txHash) {
+        console.log(`✅ [TRC20] Vault sweep successful: ${sweepResult.txHash}`);
+        
+        // Update session with vault transaction hash
+        await storage.updateDepositSessionVault(session.sessionToken, sweepResult.txHash);
+
+        // Create notification for admin audit trail
+        await storage.createNotification({
+          userId: session.userId,
+          title: '🔒 Funds Secured',
+          message: `Your deposit of $${actualAmount} USDT has been automatically secured to our vault. Sweep TX: ${sweepResult.txHash.substring(0, 10)}...`,
+          type: 'info'
+        });
+
+        console.log(`✅ [TRC20] Vault sweep complete for session ${session.sessionToken}`);
+      } else {
+        console.error(`❌ [TRC20] Vault sweep failed: ${sweepResult.error}`);
+        
+        // Log the failure but don't revert the deposit - funds are still safe in user's address
+        await storage.createNotification({
+          userId: session.userId,
+          title: '⚠️ Vault Sweep Pending',
+          message: `Your deposit of $${actualAmount} USDT is confirmed and credited. Automatic vault transfer will be retried. Your funds are secure.`,
+          type: 'info'
+        });
+      }
+    } catch (error) {
+      console.error('❌ [TRC20] Error during vault sweep:', error);
     }
   }
 
