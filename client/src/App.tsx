@@ -41,11 +41,19 @@ import ForgotPasswordPage from "@/pages/forgot-password-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
 import RecoverySettingsPage from "@/pages/recovery-settings-page";
 import InvestmentDashboard from "@/pages/investment-dashboard";
+import TermsOfService from "@/pages/terms";
+import PrivacyPolicy from "@/pages/privacy";
+import RiskDisclosure from "@/pages/risk-disclosure";
+import Compliance from "@/pages/compliance";
 
 function Router() {
   return (
     <Switch>
       <Route path="/invest" component={Landing} />
+      <Route path="/terms" component={TermsOfService} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/risk-disclosure" component={RiskDisclosure} />
+      <Route path="/compliance" component={Compliance} />
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={InvestmentDashboard} />
       <Route path="/login" component={Login} />
