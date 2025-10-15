@@ -131,7 +131,7 @@ export default function InvestmentDashboard() {
     return null;
   }
 
-  const { data: activeInvestments, isLoading: loadingInvestments } = useQuery<Investment[]>({
+  const { data: allInvestments, isLoading: loadingInvestments } = useQuery<Investment[]>({
     queryKey: ['/api/investments/user', user.id],
     queryFn: () => fetch(`/api/investments/user/${user.id}`, {
       credentials: 'include',
@@ -150,6 +150,9 @@ export default function InvestmentDashboard() {
     staleTime: 15000, // Cache for 15 seconds
     refetchOnWindowFocus: false, // Reduce unnecessary calls
   });
+
+  // Filter for active investments
+  const activeInvestments = allInvestments?.filter(inv => inv.isActive === true) || [];
 
   const { data: investmentPlans } = useQuery<InvestmentPlan[]>({
     queryKey: ['/api/investment-plans'],
@@ -170,20 +173,19 @@ export default function InvestmentDashboard() {
 
   // Memoized investment metrics for performance
   const investmentMetrics = useMemo(() => {
-    const actualActiveInvestments = activeInvestments?.filter(inv => inv.isActive === true) || [];
-    const totalInvestedAmount = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
-    const totalProfit = actualActiveInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit), 0);
+    const totalInvestedAmount = activeInvestments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+    const totalProfit = activeInvestments.reduce((sum, inv) => sum + parseFloat(inv.currentProfit), 0);
     const totalValue = totalInvestedAmount + totalProfit;
     const profitMargin = totalInvestedAmount > 0 ? (totalProfit / totalInvestedAmount) * 100 : 0;
-    const dailyGrowthRate = actualActiveInvestments.length > 0 
-      ? actualActiveInvestments.reduce((sum, inv) => {
+    const dailyGrowthRate = activeInvestments.length > 0 
+      ? activeInvestments.reduce((sum, inv) => {
           const plan = investmentPlans?.find(p => p.id === inv.planId);
           return sum + (plan ? parseFloat(plan.dailyReturnRate) * 100 : 0);
-        }, 0) / actualActiveInvestments.length 
+        }, 0) / activeInvestments.length 
       : 3.67;
 
     return {
-      actualActiveInvestments,
+      actualActiveInvestments: activeInvestments,
       totalInvestedAmount,
       totalProfit,
       totalValue,
