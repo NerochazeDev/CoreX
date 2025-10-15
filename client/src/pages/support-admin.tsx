@@ -55,7 +55,9 @@ export default function SupportAdmin() {
       return response.json();
     },
     enabled: accessGranted,
-    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
+    refetchInterval: 30000, // Optimized: Refresh every 30 seconds (was 5s)
+    staleTime: 20000, // Cache for 20 seconds
+    refetchOnWindowFocus: false, // Don't refetch on every tab switch
   });
 
   const respondMutation = useMutation({

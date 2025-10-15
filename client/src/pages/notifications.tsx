@@ -37,10 +37,12 @@ export default function Notifications() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: notifications, isLoading } = useQuery<Notification[]>({
-    queryKey: ['/api/notifications'],
+    queryKey: ['/api/notifications', user?.id],
     queryFn: () => fetch(`/api/notifications/${user?.id}`).then(res => res.json()),
     enabled: !!user?.id,
-    refetchInterval: 10000, // Refresh every 10 seconds for real-time updates
+    refetchInterval: 30000, // Optimized: Refresh every 30 seconds (was 10s)
+    staleTime: 20000, // Cache for 20 seconds
+    refetchOnWindowFocus: false, // Don't refetch on every tab switch
   });
 
   const { data: transactions } = useQuery<Transaction[]>({
@@ -48,12 +50,14 @@ export default function Notifications() {
     enabled: !!user?.id,
   });
 
-  // Fetch unread notification count separately for real-time updates
+  // Fetch unread notification count with optimized polling
   const { data: unreadNotificationCount } = useQuery<{ count: number }>({
     queryKey: ['/api/notifications', user?.id, 'unread-count'],
     queryFn: () => fetch(`/api/notifications/${user?.id}/unread-count`).then(res => res.json()),
     enabled: !!user?.id,
-    refetchInterval: 5000, // Refresh unread count more frequently
+    refetchInterval: 30000, // Optimized: Refresh every 30 seconds (was 5s)
+    staleTime: 20000, // Cache for 20 seconds
+    refetchOnWindowFocus: false, // Don't refetch on every tab switch
   });
 
 
@@ -70,7 +74,7 @@ export default function Notifications() {
         title: "All notifications marked as read",
         description: "Your notification center is now up to date.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications', user?.id, 'unread-count'] });
     },
   });
@@ -84,7 +88,7 @@ export default function Notifications() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications', user?.id, 'unread-count'] });
     },
   });
@@ -102,7 +106,8 @@ export default function Notifications() {
         title: "All notifications cleared",
         description: "Your notification center is now empty.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications', user?.id, 'unread-count'] });
     },
   });
 
@@ -125,7 +130,8 @@ export default function Notifications() {
         description: "Your transaction has been cancelled successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications', user?.id, 'unread-count'] });
     },
     onError: (error) => {
       toast({

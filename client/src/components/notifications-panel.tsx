@@ -15,15 +15,15 @@ export function NotificationsPanel() {
   const queryClient = useQueryClient();
 
   const { data: notifications, isLoading } = useQuery<Notification[]>({
-    queryKey: ['/api/notifications'],
+    queryKey: ['/api/notifications', user?.id],
     queryFn: () => fetch(`/api/notifications/${user?.id}`).then(res => {
       if (!res.ok) throw new Error('Failed to fetch notifications');
       return res.json();
     }),
     enabled: !!user?.id,
-    refetchInterval: 5000, // Refresh every 5 seconds
-    staleTime: 0, // Always consider data stale
-    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Optimized: Refresh every 30 seconds (was 5s)
+    staleTime: 20000, // Cache data for 20 seconds to reduce unnecessary fetches
+    refetchOnWindowFocus: false, // Don't refetch on every tab switch
     refetchOnMount: true,
   });
 
@@ -34,9 +34,9 @@ export function NotificationsPanel() {
       return res.json();
     }),
     enabled: !!user?.id,
-    refetchInterval: 3000, // Refresh every 3 seconds for instant updates
-    staleTime: 0, // Always consider data stale
-    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Optimized: Refresh every 30 seconds (was 3s)
+    staleTime: 20000, // Cache data for 20 seconds to reduce unnecessary fetches
+    refetchOnWindowFocus: false, // Don't refetch on every tab switch
     refetchOnMount: true,
   });
 
