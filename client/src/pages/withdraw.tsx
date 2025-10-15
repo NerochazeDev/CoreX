@@ -109,6 +109,16 @@ export default function Withdraw() {
       return;
     }
 
+    // Check for active investments
+    if (hasActiveInvestments) {
+      toast({
+        title: "Withdrawal Blocked",
+        description: "You cannot withdraw funds while you have active investments. Please wait for your investments to complete.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate TRC20 address format
     if (!address.startsWith('T') || address.length !== 34) {
       toast({
@@ -409,9 +419,8 @@ export default function Withdraw() {
                         <p><strong>Processing Time:</strong> 1-5 minutes (fast)</p>
                         <p><strong>Network:</strong> TRC20 (TRON Network)</p>
                         <p><strong>Token:</strong> USDT</p>
-                        <p><strong>Admin Review:</strong> Required for security</p>
                         <p className="text-[10px] text-blue-600 dark:text-blue-400">
-                          Your withdrawal will be reviewed and processed by our admin team. Funds are deducted immediately to prevent double-spending. Please ensure your TRC20 address is correct.
+                          Funds are deducted immediately to prevent double-spending. Please ensure your TRC20 address is correct before submitting.
                         </p>
                       </div>
                     </div>
