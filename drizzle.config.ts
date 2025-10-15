@@ -22,5 +22,8 @@ export default defineConfig({
   dialect: "postgresql",
   dbCredentials: {
     url: databaseUrl,
+    ssl: databaseUrl.includes('sslmode=require') ? {
+      rejectUnauthorized: false,
+    } : false,
   },
 });
