@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useCurrency } from "@/hooks/use-currency";
-import { ArrowLeft, Clock, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft, DollarSign } from "lucide-react";
+import { ArrowLeft, Clock, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft, DollarSign, History as HistoryIcon } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -123,34 +123,7 @@ export default function History() {
     queryFn: () => fetch('/api/investment-plans').then(res => res.json()),
   });
 
-  // Track when auth check is complete - AFTER all hooks are declared
-  React.useEffect(() => {
-    if (!authLoading) {
-      setHasAttemptedAuth(true);
-    }
-  }, [authLoading]);
-
-  // Redirect effect - AFTER all hooks are declared
-  React.useEffect(() => {
-    if (!user && hasAttemptedAuth && !authLoading) {
-      setLocation('/login');
-    }
-  }, [user, hasAttemptedAuth, authLoading, setLocation]);
-
-  // Show loading state while checking authentication
-  if (authLoading || !hasAttemptedAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  // Only show redirect screen after auth check is definitely complete
-  if (!user && hasAttemptedAuth) {
-    return null;
-  }
-
+  // IMPORTANT: All hooks must be declared before any conditional returns
   const cancelTransactionMutation = useMutation({
     mutationFn: async (transactionId: number) => {
       const response = await fetch(`/api/transactions/${transactionId}/cancel`, {
@@ -181,6 +154,34 @@ export default function History() {
     },
   });
 
+  // Track when auth check is complete - AFTER all hooks are declared
+  React.useEffect(() => {
+    if (!authLoading) {
+      setHasAttemptedAuth(true);
+    }
+  }, [authLoading]);
+
+  // Redirect effect - AFTER all hooks are declared
+  React.useEffect(() => {
+    if (!user && hasAttemptedAuth && !authLoading) {
+      setLocation('/login');
+    }
+  }, [user, hasAttemptedAuth, authLoading, setLocation]);
+
+  // Show loading state while checking authentication
+  if (authLoading || !hasAttemptedAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Only show redirect screen after auth check is definitely complete
+  if (!user && hasAttemptedAuth) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Enhanced Header with Gradient */}
@@ -195,7 +196,7 @@ export default function History() {
               </Link>
               <div>
                 <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                  <History className="w-5 h-5" />
+                  <HistoryIcon className="w-5 h-5" />
                   Transaction History
                 </h1>
                 <p className="text-sm text-white/90 font-medium">Complete record of your activities</p>
