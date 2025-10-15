@@ -190,6 +190,23 @@ export default function Withdraw() {
       </header>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
+        {/* TRC20 Info Banner */}
+        <Card className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 border-emerald-200 dark:border-emerald-800">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <Zap className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <p className="font-semibold text-emerald-900 dark:text-emerald-100">
+                  ⚡ Fast & Low-Cost Withdrawals with TRC20 USDT
+                </p>
+                <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                  We use TRC20 USDT on the TRON network for instant withdrawals with <span className="font-semibold">3-second processing</span> and <span className="font-semibold">network fees as low as $1</span>. Your funds arrive faster and you keep more of your profits compared to traditional networks that charge $10-$50 in fees!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Tabs defaultValue="withdraw" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="withdraw">New Withdrawal</TabsTrigger>

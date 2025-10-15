@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { Copy, CheckCircle, Clock, Loader2, AlertTriangle, RefreshCw, ArrowUpDown, ArrowLeft } from "lucide-react";
+import { Copy, CheckCircle, Clock, Loader2, AlertTriangle, RefreshCw, ArrowUpDown, ArrowLeft, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -229,6 +229,21 @@ export default function AutomatedDeposit() {
             Secure your investment by depositing USDT (TRC20) to your exclusive deposit address. Each BitVault Pro member receives a unique address for seamless transaction tracking.
           </p>
         </div>
+
+        {/* TRC20 Info Banner */}
+        <Alert className="mb-8 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 border-emerald-200 dark:border-emerald-800">
+          <Zap className="h-5 w-5 text-emerald-600" />
+          <AlertDescription className="ml-2">
+            <div className="space-y-2">
+              <p className="font-semibold text-emerald-900 dark:text-emerald-100">
+                ⚡ Why TRC20 USDT? Fast & Cost-Effective Transactions
+              </p>
+              <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                We use TRC20 USDT on the TRON network for lightning-fast deposits with <span className="font-semibold">3-second confirmations</span> and <span className="font-semibold">network fees as low as $1</span> - compared to $10-$50 on other networks. This means more of your money goes into your investment, not transaction fees!
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
 
         {step === "input" && (
           <div className="relative">

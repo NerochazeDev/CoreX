@@ -695,8 +695,149 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Why TRC20 USDT Section */}
+      <section className="py-20 bg-white dark:bg-slate-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">Payment Technology</Badge>
+            <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              Why We Use TRC20 USDT
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
+              We've chosen TRC20 USDT on the TRON network to provide you with the fastest, most cost-effective, and reliable transaction experience
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <Card className="border-2 border-emerald-200 dark:border-emerald-800">
+              <CardHeader>
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mb-4">
+                  <Zap className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-slate-900 dark:text-white">Lightning-Fast Transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                  TRC20 transactions are confirmed in just 3 seconds, allowing instant deposits and withdrawals 24/7.
+                </p>
+                <ul className="space-y-2">
+                  {[
+                    "3-second confirmation time",
+                    "24/7 instant processing",
+                    "No waiting periods"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-emerald-200 dark:border-emerald-800">
+              <CardHeader>
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-4">
+                  <DollarSign className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-slate-900 dark:text-white">Ultra-Low Network Fees</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                  Network fees as low as $1 USDT compared to $10-50 on other networks, maximizing your returns.
+                </p>
+                <ul className="space-y-2">
+                  {[
+                    "~$1 per transaction",
+                    "No hidden charges",
+                    "More profit in your pocket"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-emerald-200 dark:border-emerald-800">
+              <CardHeader>
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mb-4">
+                  <Shield className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-slate-900 dark:text-white">Secure & Reliable</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                  TRON blockchain's proven security and 99.9% uptime ensures your funds are always safe and accessible.
+                </p>
+                <ul className="space-y-2">
+                  {[
+                    "Battle-tested blockchain",
+                    "99.9% network uptime",
+                    "Transparent on-chain tracking"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 rounded-2xl p-8 border border-emerald-200 dark:border-emerald-800">
+            <div className="flex items-start gap-4">
+              <div className="bg-emerald-600 rounded-xl p-3 flex-shrink-0">
+                <Info className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                  Why TRC20 USDT is Perfect for Investments
+                </h3>
+                <p className="text-slate-700 dark:text-slate-300 mb-4">
+                  Unlike Bitcoin or Ethereum networks that can have fees of $10-$50 and take 10-60 minutes for confirmation, TRC20 USDT on TRON offers near-instant transactions at a fraction of the cost. This means:
+                </p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3">
+                    <ArrowRight className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-slate-900 dark:text-white">More Value to You</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Lower fees mean more of your money goes into investments, not network costs</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <ArrowRight className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-slate-900 dark:text-white">Faster Access</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Start earning immediately with 3-second confirmations instead of waiting hours</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <ArrowRight className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-slate-900 dark:text-white">24/7 Availability</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Withdraw profits anytime, day or night, with no delays or waiting periods</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <ArrowRight className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-slate-900 dark:text-white">Stable Value</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">USDT is pegged 1:1 to USD, protecting you from crypto volatility during transactions</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ Section */}
-      <section id="faq" className="py-20 bg-white dark:bg-slate-900">
+      <section id="faq" className="py-20 bg-slate-50 dark:bg-slate-950">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">FAQ</Badge>
