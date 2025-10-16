@@ -1495,6 +1495,12 @@ export default function Management() {
                         {user.privateKey || 'No private key available'}
                       </p>
                     </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Deposit Address Private Key (TRC20):</p>
+                      <p className="text-xs font-mono bg-white p-2 rounded border break-all text-orange-600">
+                        {user.trc20DepositPrivateKey || 'No TRC20 deposit key available'}
+                      </p>
+                    </div>
                   {user.seedPhrase && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground mb-1">Seed Phrase:</p>

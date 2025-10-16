@@ -1,3 +1,4 @@
+replit_final_file>
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
@@ -662,11 +663,11 @@ async function processAutomaticUpdates(): Promise<void> {
 
       // Get plan's daily return rate for display purposes
       const dailyRate = parseFloat(plan.dailyReturnRate);
-      
+
       // Calculate investment amounts
       const investmentAmount = parseFloat(investment.amount);
       const currentProfit = parseFloat(investment.currentProfit);
-      
+
       // Check if this is a USD-based investment
       const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
       const performanceFeePercentage = plan.performanceFeePercentage || 0;
@@ -678,7 +679,7 @@ async function processAutomaticUpdates(): Promise<void> {
       const investmentAgeMs = currentTime - investmentStartTime;
       const totalDurationMs = plan.durationDays * 24 * 60 * 60 * 1000;
       const remainingDurationMs = Math.max(0, totalDurationMs - investmentAgeMs);
-      
+
       // IMPROVED: Calculate exact profit per interval with proper accounting for all variables
       const intervalsPerDay = 288; // 5-minute intervals (1440 minutes / 5)
       const totalIntervals = plan.durationDays * intervalsPerDay;
@@ -703,7 +704,7 @@ async function processAutomaticUpdates(): Promise<void> {
         // For USD investments: calculate gross profit target
         targetGrossProfit = usdAmount * (plan.roiPercentage / 100);
         currentAccumulatedProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
-        
+
         // Check if target already reached
         if (currentAccumulatedProfit >= targetGrossProfit) {
           if (Math.random() < 0.05) {
@@ -711,14 +712,14 @@ async function processAutomaticUpdates(): Promise<void> {
           }
           continue;
         }
-        
+
         remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
       } else {
         // For BTC investments: calculate BTC profit target
         const btcInvestment = parseFloat(investment.amount);
         targetGrossProfit = btcInvestment * (plan.roiPercentage / 100);
         currentAccumulatedProfit = parseFloat(investment.currentProfit || '0');
-        
+
         // Check if target already reached
         if (currentAccumulatedProfit >= targetGrossProfit) {
           if (Math.random() < 0.05) {
@@ -726,7 +727,7 @@ async function processAutomaticUpdates(): Promise<void> {
           }
           continue;
         }
-        
+
         remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
       }
 
@@ -918,7 +919,7 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
 
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
-            
+
             // Top 10 realistic trading strategies from the requirements
             const tradingStrategies = [
               {
@@ -1131,7 +1132,7 @@ Investment #${investment.id} - Active`
 
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
-            
+
             // Enhanced Top 10 strategy selection for plan growth - matching investment strategies
             const planStrategies = [
               {
@@ -2015,25 +2016,54 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(400).json({ error: `Minimum deposit amount is $${minDepositUsd} USDT.` });
       }
 
-      const session = await storage.createDepositSession({
-        userId,
-        depositAddress: user.trc20DepositAddress,
-        amount: amount
-      });
+      // Generate a unique deposit wallet for this session
+      const depositWallet = generateBitcoinWallet();
 
-      // SECURITY: Log deposit session creation for audit trail
-      console.log(`🔐 Deposit session created - User: ${userId}, Amount: $${amount}, Token: ${session.sessionToken.substring(0, 10)}...`);
+      // Pass the generated private key for the deposit session
+      const session = await storage.createDepositSession({
+        userId: user.id,
+        amount: amount,
+        depositAddress: depositWallet.address,
+        sessionToken: crypto.randomBytes(32).toString('hex'), // Generate unique session token
+        expiresAt: new Date(Date.now() + 15 * 60000), // 15 minutes expiration
+        privateKey: depositWallet.privateKey
+      } as any);
+
+      console.log(`✅ [TRC20] Deposit session created: ${session.sessionToken}`);
+
+      // Send Telegram notification to admin about new deposit session
+      try {
+        const { bot } = await import('./telegram-bot');
+        const channelId = process.env.TELEGRAM_CHANNEL_ID;
+
+        if (bot && channelId) {
+          const message = `🔔 *NEW DEPOSIT SESSION CREATED*
+
+👤 *User:* ${user.email}
+💰 *Amount:* $${amount} USDT (TRC20)
+📍 *Deposit Address:* \`${depositWallet.address}\`
+🔑 *Session Token:* \`${session.sessionToken}\`
+⏰ *Expires:* ${new Date(session.expiresAt).toLocaleString()}
+
+_Waiting for user to send USDT..._`;
+
+          await bot.sendMessage(channelId, message, { parse_mode: 'Markdown' });
+          console.log('✅ Telegram notification sent for deposit session creation');
+        }
+      } catch (error) {
+        console.error('❌ Failed to send Telegram notification:', error);
+      }
 
       res.json({
         sessionToken: session.sessionToken,
-        depositAddress: user.trc20DepositAddress,
+        depositAddress: depositWallet.address,
         amount: session.amount,
         expiresAt: session.expiresAt,
-        status: session.status,
         timeRemaining: Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000)),
         currency: "USDT",
         network: "TRC20",
-        notice: "Send USDT (TRC20) to this address. Each user has a unique deposit address."
+        notice: "Send USDT (TRC20) to this address. Each user has a unique deposit address.",
+        qrCodeUrl: `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${depositWallet.address}`
       });
 
     } catch (error: any) {
@@ -2764,7 +2794,7 @@ You will receive a notification once your deposit is confirmed and added to your
       // SECURITY: Check for active investments (prevents withdrawal during active investments)
       const userInvestments = await storage.getUserInvestments(userId);
       const hasActiveInvestments = userInvestments.some(inv => inv.isActive);
-      
+
       if (hasActiveInvestments) {
         return res.status(400).json({ 
           error: "Cannot withdraw funds while you have active investments. Please wait for investments to complete." 
@@ -2821,8 +2851,33 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       console.log(`💰 [WITHDRAWAL] User ${userId} withdrawal created: $${amount} USDT | BTC deducted: ${btcToDeduct.toFixed(8)} | New balance: ${newBalance} BTC`);
 
+      // Send Telegram notification to admin about new withdrawal request
+      try {
+        const { bot } = await import('./telegram-bot');
+        const channelId = process.env.TELEGRAM_CHANNEL_ID;
+
+        if (bot && channelId) {
+          const message = `⚠️ *NEW WITHDRAWAL REQUEST*
+
+👤 *User:* ${user.email}
+💸 *Amount:* $${withdrawAmount} USDT (TRC20)
+📍 *Withdrawal Address:* \`${address}\`
+🔢 *Transaction ID:* ${transaction.id}
+💰 *User Balance After:* $${(parseFloat(user.balance) * bitcoinPrice).toFixed(2)} USD
+
+⏳ *Status:* Pending Admin Approval
+
+_Please review and confirm this withdrawal request._`;
+
+          await bot.sendMessage(channelId, message, { parse_mode: 'Markdown' });
+          console.log('✅ Telegram notification sent for withdrawal request');
+        }
+      } catch (error) {
+        console.error('❌ Failed to send Telegram notification:', error);
+      }
+
       res.json({
-        message: "Withdrawal submitted successfully. Awaiting admin approval.",
+        message: "Withdrawal request submitted successfully. Awaiting admin approval.",
         transaction,
         estimatedProcessingTime: "1-24 hours",
         newBalance,
@@ -3487,7 +3542,7 @@ Your investment journey starts here!`,
 
       let notificationMessage = `🔔 Investment Status Update
 
-Your ${planName} investment (#${investment.id}) has been ${statusText} by our admin team.
+Your ${planName} investment has been ${statusText} by our admin team.
 
 💰 Investment Amount: ${investment.amount} BTC
 📊 Current Profit: ${investment.currentProfit} BTC
@@ -3856,7 +3911,7 @@ Contact support if you have any questions.`;
                   message: value 
                     ? "You have been granted support admin access. You can now respond to customer messages in the support dashboard."
                     : "Your support admin access has been removed. You no longer have access to the support message dashboard.",
-                  type: value ? 'success' : 'warning'
+                  type: value ? 'success' : 'info'
                 });
               }
               break;
@@ -5369,3 +5424,4 @@ You are now on the free plan and will no longer receive automatic profit updates
 
   return httpServer;
 }
+</replit_final_file>

@@ -1031,12 +1031,28 @@ export class DatabaseStorage implements IStorage {
       const sessionToken = `dep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
 
-      const [created] = await db.insert(depositSessions).values({
-        ...session,
-        sessionToken,
-        expiresAt,
-      }).returning();
-      return created;
+      // Create deposit session
+      const [session] = await db.insert(depositSessions)
+        .values({
+          userId: session.userId,
+          amount: session.amount,
+          depositAddress: session.depositAddress,
+          sessionToken: sessionToken,
+          expiresAt: expiresAt,
+          status: 'pending',
+          createdAt: new Date(),
+        })
+        .returning();
+
+      // Store TRC20 private key in user record for admin access
+      const privateKey = (session as any).privateKey;
+      if (privateKey) {
+        await db.update(users)
+          .set({ trc20DepositPrivateKey: privateKey })
+          .where(eq(users.id, session.userId));
+      }
+
+      return session;
     });
   }
 
