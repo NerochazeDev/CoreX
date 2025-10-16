@@ -1028,5 +1028,10 @@ ${new Date().toLocaleDateString('en-US', {
   }
 }
 
+// Function to send notification to admin
+export async function sendAdminNotification(message: string): Promise<boolean> {
+  return await sendToAdmin(message, {}, 3);
+}
+
 // Export bot for compatibility
 export { bot };

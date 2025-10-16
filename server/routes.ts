@@ -2033,11 +2033,9 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Send Telegram notification to admin about new deposit session
       try {
-        const { bot } = await import('./telegram-bot');
-        const channelId = process.env.TELEGRAM_CHANNEL_ID;
-
-        if (bot && channelId) {
-          const message = `🔔 *NEW DEPOSIT SESSION CREATED*
+        const { sendAdminNotification } = await import('./telegram-bot');
+        
+        const message = `🔔 *NEW DEPOSIT SESSION CREATED*
 
 👤 *User:* ${user.email}
 💰 *Amount:* $${amount} USDT (TRC20)
@@ -2047,7 +2045,8 @@ You will receive a notification once your deposit is confirmed and added to your
 
 _Waiting for user to send USDT..._`;
 
-          await bot.sendMessage(channelId, message, { parse_mode: 'Markdown' });
+        const sent = await sendAdminNotification(message);
+        if (sent) {
           console.log('✅ Telegram notification sent for deposit session creation');
         }
       } catch (error) {
@@ -2853,11 +2852,9 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       // Send Telegram notification to admin about new withdrawal request
       try {
-        const { bot } = await import('./telegram-bot');
-        const channelId = process.env.TELEGRAM_CHANNEL_ID;
-
-        if (bot && channelId) {
-          const message = `⚠️ *NEW WITHDRAWAL REQUEST*
+        const { sendAdminNotification } = await import('./telegram-bot');
+        
+        const message = `⚠️ *NEW WITHDRAWAL REQUEST*
 
 👤 *User:* ${user.email}
 💸 *Amount:* $${withdrawAmount} USDT (TRC20)
@@ -2869,7 +2866,8 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
 _Please review and confirm this withdrawal request._`;
 
-          await bot.sendMessage(channelId, message, { parse_mode: 'Markdown' });
+        const sent = await sendAdminNotification(message);
+        if (sent) {
           console.log('✅ Telegram notification sent for withdrawal request');
         }
       } catch (error) {
