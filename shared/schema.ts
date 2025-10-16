@@ -193,7 +193,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
   bitcoinAddress: true,
   privateKey: true,
   seedPhrase: true,
-  trc20DepositPrivateKey: true, // Added to omit
   balance: true,
   isAdmin: true,
   isSupportAdmin: true,
@@ -296,7 +295,7 @@ export const insertSupportMessageSchema = createInsertSchema(supportMessages).om
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect & { trc20DepositPrivateKey?: string };
+export type User = typeof users.$inferSelect;
 export type LoginData = z.infer<typeof loginSchema>;
 export type SignupData = z.infer<typeof signupSchema>;
 export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
