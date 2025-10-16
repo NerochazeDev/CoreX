@@ -853,9 +853,10 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
 
         if (isUsdInvestment && performanceFeePercentage > 0) {
           // For USD investments, calculate gross profit, fee, and net profit
+          const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
           let usdProfitIncrease = profitThisInterval;
 
-          // IMPORTANT: Cap the profit increase to not exceed maxGrossProfit
+          // IMPORTANT: Cap the profit increase to not exceed targetGrossProfit
           const potentialNewGrossProfit = currentGrossProfit + usdProfitIncrease;
           if (potentialNewGrossProfit > maxGrossProfit) {
             usdProfitIncrease = Math.max(0, maxGrossProfit - currentGrossProfit);
