@@ -81,6 +81,7 @@ export interface IStorage {
   createDepositSession(session: InsertDepositSession): Promise<DepositSession>;
   getDepositSession(sessionToken: string): Promise<DepositSession | undefined>;
   getUserDepositSessions(userId: number): Promise<DepositSession[]>;
+  getAllDepositSessions(): Promise<DepositSession[]>;
   updateDepositSessionStatus(sessionToken: string, status: string, completedAt?: Date): Promise<DepositSession | undefined>;
   updateDepositSessionBlockchain(sessionToken: string, txHash: string, confirmations: number, amountReceived: string): Promise<DepositSession | undefined>;
   markUserConfirmedSent(sessionToken: string): Promise<DepositSession | undefined>;
@@ -1053,6 +1054,15 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(depositSessions)
         .where(eq(depositSessions.userId, userId))
+        .orderBy(desc(depositSessions.createdAt));
+    });
+  }
+
+  async getAllDepositSessions(): Promise<DepositSession[]> {
+    return await executeQuery(async () => {
+      return await db
+        .select()
+        .from(depositSessions)
         .orderBy(desc(depositSessions.createdAt));
     });
   }

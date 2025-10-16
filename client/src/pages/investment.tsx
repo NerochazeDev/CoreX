@@ -135,6 +135,7 @@ export default function Investment() {
 
   // Calculate portfolio statistics
   const totalInvested = investments?.reduce((sum, inv) => sum + parseFloat(inv.amount), 0) || 0;
+  // currentProfit now contains NET profit (after fees) for all investments
   const totalProfit = investments?.reduce((sum, inv) => sum + parseFloat(inv.currentProfit), 0) || 0;
   const totalValue = totalInvested + totalProfit;
   const portfolioReturn = totalInvested > 0 ? ((totalProfit / totalInvested) * 100) : 0;

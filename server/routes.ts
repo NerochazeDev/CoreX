@@ -843,11 +843,10 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
         }
 
         // Trade successful - proceed with profit addition using calculated interval profit
-        const newProfit = currentProfit + profitThisInterval;
-
         // Calculate actual profit to credit (after fees for USD investments)
         let actualProfitToCredit = profitThisInterval;
         let netProfitIncreaseForDisplay = profitThisInterval;
+        let newProfit = currentProfit + profitThisInterval; // Default for BTC investments
 
         if (isUsdInvestment && performanceFeePercentage > 0) {
           // For USD investments, calculate gross profit, fee, and net profit
@@ -879,12 +878,15 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
           const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
           const totalNetProfit = newGrossProfit - totalPerformanceFee;
 
-          // Update actual profit to credit
+          // Update actual profit to credit (NET profit after fees)
           actualProfitToCredit = netProfitIncrease;
           netProfitIncreaseForDisplay = actualProfitToCredit;
 
+          // FIXED: currentProfit now stores NET profit (what user actually gets) in BTC
+          newProfit = currentProfit + actualProfitToCredit;
+
           await storage.updateInvestmentProfitDetails(investment.id, {
-            currentProfit: newProfit.toFixed(8),
+            currentProfit: newProfit.toFixed(8), // NET profit in BTC (after fees)
             grossProfit: newGrossProfit.toFixed(2),
             performanceFee: totalPerformanceFee.toFixed(2),
             netProfit: totalNetProfit.toFixed(2),
@@ -2024,6 +2026,30 @@ You will receive a notification once your deposit is confirmed and added to your
       // SECURITY: Log deposit session creation for audit trail
       console.log(`🔐 Deposit session created - User: ${userId}, Amount: $${amount}, Token: ${session.sessionToken.substring(0, 10)}...`);
 
+      // Send Telegram notification to admin about new deposit session
+      try {
+        const { broadcastQueue } = await import('./broadcast-queue');
+        const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+        const notificationMessage = `🔔 *NEW DEPOSIT SESSION*\n\n` +
+          `👤 *User:* ${userName} (ID: ${userId})\n` +
+          `📧 *Email:* ${user.email}\n` +
+          `💰 *Amount:* $${amount} USDT\n` +
+          `🔑 *Deposit Address:* \`${user.trc20DepositAddress}\`\n` +
+          `🆔 *Session Token:* ${session.sessionToken.substring(0, 15)}...\n` +
+          `⏱️ *Expires:* ${new Date(session.expiresAt).toLocaleString()}\n` +
+          `🌐 *Network:* TRC20\n\n` +
+          `⚠️ Monitor this deposit session in admin dashboard`;
+        
+        broadcastQueue.addMessage({
+          type: 'text',
+          content: notificationMessage,
+          priority: 'high',
+          maxRetries: 2
+        });
+      } catch (error) {
+        console.error('Failed to send Telegram notification for deposit session:', error);
+      }
+
       res.json({
         sessionToken: session.sessionToken,
         depositAddress: user.trc20DepositAddress,
@@ -2821,6 +2847,32 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       console.log(`💰 [WITHDRAWAL] User ${userId} withdrawal created: $${amount} USDT | BTC deducted: ${btcToDeduct.toFixed(8)} | New balance: ${newBalance} BTC`);
 
+      // Send Telegram notification to admin about withdrawal request
+      try {
+        const { broadcastQueue } = await import('./broadcast-queue');
+        const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+        const notificationMessage = `🚨 *WITHDRAWAL REQUEST*\n\n` +
+          `👤 *User:* ${userName} (ID: ${userId})\n` +
+          `📧 *Email:* ${user.email}\n` +
+          `💸 *Amount:* $${amount} USDT\n` +
+          `🏦 *To Address:* \`${address}\`\n` +
+          `💰 *BTC Deducted:* ${btcToDeduct.toFixed(8)} BTC\n` +
+          `📊 *New Balance:* ${newBalance} BTC\n` +
+          `🆔 *Transaction ID:* ${transaction.id}\n` +
+          `🌐 *Network:* TRC20\n` +
+          `⏱️ *Status:* Pending Admin Approval\n\n` +
+          `⚠️ *Action Required:* Review and approve/reject in admin dashboard`;
+        
+        broadcastQueue.addMessage({
+          type: 'text',
+          content: notificationMessage,
+          priority: 'urgent',
+          maxRetries: 3
+        });
+      } catch (error) {
+        console.error('Failed to send Telegram notification for withdrawal:', error);
+      }
+
       res.json({
         message: "Withdrawal submitted successfully. Awaiting admin approval.",
         transaction,
@@ -2889,6 +2941,59 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       });
     } catch (error: any) {
       res.status(500).json({ error: "Failed to get vault address" });
+    }
+  });
+
+  // Get all deposit sessions with private keys (Admin only)
+  app.get("/api/admin/deposit-sessions", async (req, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      // Get all deposit sessions (active and completed)
+      const allSessions = await storage.getAllDepositSessions();
+      
+      // Get admin config for TRC20 HD seed
+      const adminConfig = await storage.getAdminConfig();
+      if (!adminConfig?.trc20HdSeed) {
+        return res.status(500).json({ error: "TRC20 HD seed not initialized" });
+      }
+
+      // Import TRC20 wallet manager to derive private keys
+      const { trc20WalletManager } = await import('./trc20-wallet');
+
+      // Enhance sessions with private keys
+      const sessionsWithKeys = await Promise.all(allSessions.map(async (session) => {
+        // Get user info
+        const sessionUser = await storage.getUser(session.userId);
+        
+        // Derive private key for this user's deposit address
+        let privateKey = 'N/A';
+        try {
+          privateKey = trc20WalletManager.derivePrivateKeyFromSeed(adminConfig.trc20HdSeed, session.userId);
+        } catch (error) {
+          console.error(`Error deriving private key for user ${session.userId}:`, error);
+        }
+
+        return {
+          ...session,
+          userEmail: sessionUser?.email || 'Unknown',
+          userName: `${sessionUser?.firstName || ''} ${sessionUser?.lastName || ''}`.trim() || 'Unknown',
+          privateKey: privateKey
+        };
+      }));
+
+      res.json(sessionsWithKeys);
+    } catch (error: any) {
+      console.error('Get admin deposit sessions error:', error);
+      res.status(500).json({ error: "Failed to get deposit sessions" });
     }
   });
 

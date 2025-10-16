@@ -45,6 +45,30 @@ export class TRC20WalletManager {
     throw new Error('Failed to derive TRON address');
   }
 
+  derivePrivateKeyFromSeed(mnemonic: string, index: number): string {
+    const derivationPath = `${TRON_DERIVATION_PATH_PREFIX}${index}`;
+    const wallet = TronWeb.fromMnemonic(mnemonic, derivationPath);
+    return wallet.privateKey;
+  }
+
+  deriveAddressAndKeyFromSeed(mnemonic: string, index: number): { address: string; privateKey: string } {
+    const derivationPath = `${TRON_DERIVATION_PATH_PREFIX}${index}`;
+    const wallet = TronWeb.fromMnemonic(mnemonic, derivationPath);
+    
+    const address = wallet.address;
+    const addressStr = typeof address === 'string' ? address : 
+      (address && typeof address === 'object' && 'base58' in address) ? (address as any).base58 : '';
+    
+    if (!addressStr) {
+      throw new Error('Failed to derive TRON address');
+    }
+    
+    return {
+      address: addressStr,
+      privateKey: wallet.privateKey
+    };
+  }
+
   async getTRC20Balance(address: string, tokenContract: string): Promise<string> {
     try {
       const contract = await this.tronWeb.contract().at(tokenContract);
