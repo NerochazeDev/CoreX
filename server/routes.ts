@@ -817,8 +817,6 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
           continue;
         }
 
-        const newProfit = currentProfit + cappedProfitIncrease;
-
         // Calculate actual profit to credit (after fees for USD investments)
         let actualProfitToCredit = cappedProfitIncrease;
         let netProfitIncreaseForDisplay = cappedProfitIncrease;
