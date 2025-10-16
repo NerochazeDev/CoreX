@@ -1,6 +1,6 @@
 replit_final_file>
 import type { Express } from "express";
-import { createServer, type Server } from "http";
+import { createServer, Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import { addInvestmentUpdateToBatch, addNewInvestmentToBatch, sendDailyStatsToChannel, sendBatchedUpdatesToChannel } from "./telegram-bot";
