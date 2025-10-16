@@ -23,28 +23,33 @@ function initBot(): TelegramBot | null {
   return bot;
 }
 
-// Send message to channel with enhanced retry logic
-async function sendToChannel(message: string, options: any = {}, retries: number = 3): Promise<boolean> {
+// Send message to bot user (admin) with enhanced retry logic
+async function sendToAdmin(message: string, options: any = {}, retries: number = 3): Promise<boolean> {
   const botInstance = initBot();
-  if (!botInstance || !channelId) return false;
+  const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID; // Admin's personal chat ID
+  
+  if (!botInstance || !adminChatId) {
+    console.warn('⚠️ Bot or admin chat ID not configured');
+    return false;
+  }
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      await botInstance.sendMessage(channelId, message, {
+      await botInstance.sendMessage(adminChatId, message, {
         parse_mode: 'Markdown',
         disable_web_page_preview: true,
         ...options
       });
       if (attempt > 1) {
-        console.log(`✅ Telegram message sent successfully on attempt ${attempt}`);
+        console.log(`✅ Telegram alert sent to admin successfully on attempt ${attempt}`);
       }
       return true;
     } catch (error: any) {
       if (attempt === retries) {
-        console.error(`❌ Telegram message failed after ${retries} attempts:`, error.message);
+        console.error(`❌ Telegram alert failed after ${retries} attempts:`, error.message);
         return false;
       } else {
-        console.warn(`⚠️ Telegram message attempt ${attempt} failed, retrying in ${attempt * 2}s:`, error.message);
+        console.warn(`⚠️ Telegram alert attempt ${attempt} failed, retrying in ${attempt * 2}s:`, error.message);
         await new Promise(resolve => setTimeout(resolve, attempt * 2000)); // Exponential backoff
       }
     }
@@ -52,24 +57,34 @@ async function sendToChannel(message: string, options: any = {}, retries: number
   return false;
 }
 
-// Send photo to channel with enhanced retry logic
-async function sendPhotoToChannel(photoPath: string, caption?: string, retries: number = 3): Promise<boolean> {
+// Backward compatibility - redirect to admin
+async function sendToChannel(message: string, options: any = {}, retries: number = 3): Promise<boolean> {
+  return sendToAdmin(message, options, retries);
+}
+
+// Send photo to admin with enhanced retry logic
+async function sendPhotoToAdmin(photoPath: string, caption?: string, retries: number = 3): Promise<boolean> {
   const botInstance = initBot();
-  if (!botInstance || !channelId) return false;
+  const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+  
+  if (!botInstance || !adminChatId) {
+    console.warn('⚠️ Bot or admin chat ID not configured');
+    return false;
+  }
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      await botInstance.sendPhoto(channelId, photoPath, {
+      await botInstance.sendPhoto(adminChatId, photoPath, {
         caption: caption || '',
         parse_mode: 'Markdown'
       });
       if (attempt > 1) {
-        console.log(`✅ Telegram photo sent successfully on attempt ${attempt}`);
+        console.log(`✅ Telegram photo sent to admin successfully on attempt ${attempt}`);
       }
       return true;
     } catch (error: any) {
       if (attempt === retries) {
-        console.error(`❌ Telegram photo failed after ${retries} attempts:`, error.message);
+        console.error(`❌ Telegram photo to admin failed after ${retries} attempts:`, error.message);
         return false;
       } else {
         console.warn(`⚠️ Telegram photo attempt ${attempt} failed, retrying in ${attempt * 2}s:`, error.message);
@@ -78,6 +93,11 @@ async function sendPhotoToChannel(photoPath: string, caption?: string, retries: 
     }
   }
   return false;
+}
+
+// Backward compatibility
+async function sendPhotoToChannel(photoPath: string, caption?: string, retries: number = 3): Promise<boolean> {
+  return sendPhotoToAdmin(photoPath, caption, retries);
 }
 
 // Investment update functions with enhanced tracking
