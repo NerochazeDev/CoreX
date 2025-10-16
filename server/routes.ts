@@ -674,6 +674,19 @@ async function processAutomaticUpdates(): Promise<void> {
         const performanceFeePercentage = plan.performanceFeePercentage || 0;
         const usdAmount = investment.usdAmount ? parseFloat(investment.usdAmount) : 0;
 
+        // Calculate investment age and remaining duration
+        const investmentStartTime = new Date(investment.startDate).getTime();
+        const currentTime = Date.now();
+        const investmentAgeMs = currentTime - investmentStartTime;
+        const totalDurationMs = plan.durationDays * 24 * 60 * 60 * 1000;
+        const remainingDurationMs = Math.max(0, totalDurationMs - investmentAgeMs);
+        
+        // Calculate exact profit per interval to reach ROI target by end date
+        const intervalsPerDay = 144; // 10-minute intervals
+        const totalIntervals = plan.durationDays * intervalsPerDay;
+        const elapsedIntervals = Math.floor(investmentAgeMs / (10 * 60 * 1000));
+        const remainingIntervals = Math.max(0, totalIntervals - elapsedIntervals);
+
         // CRITICAL FIX: Calculate maximum expected profit based on plan ROI
         const maxGrossProfit = usdAmount * (plan.roiPercentage / 100);
         const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
@@ -681,6 +694,15 @@ async function processAutomaticUpdates(): Promise<void> {
         // CRITICAL FIX: For BTC-only investments, also enforce a maximum profit cap
         const maxBtcProfit = parseFloat(investment.amount) * (plan.roiPercentage / 100);
         const currentBtcProfit = parseFloat(investment.currentProfit || '0');
+
+        // Check if investment duration has ended
+        if (remainingDurationMs <= 0 || remainingIntervals <= 0) {
+          // Investment has reached its end date
+          if (Math.random() < 0.05) {
+            console.log(`Investment #${investment.id} - Duration completed (${plan.durationDays} days elapsed)`);
+          }
+          continue; // Skip to next investment
+        }
 
         // Check if we've already reached the maximum expected profit BEFORE calculating new profit
         if (isUsdInvestment && currentGrossProfit >= maxGrossProfit) {
@@ -699,6 +721,16 @@ async function processAutomaticUpdates(): Promise<void> {
           }
           continue; // Skip to next investment without adding profit
         }
+
+        // Calculate profit for this interval - distribute remaining profit evenly over remaining intervals
+        const remainingProfit = isUsdInvestment 
+          ? (maxGrossProfit - currentGrossProfit)
+          : (maxBtcProfit - currentBtcProfit);
+        
+        // Profit per interval = remaining profit / remaining intervals
+        const profitThisInterval = remainingIntervals > 0 
+          ? remainingProfit / remainingIntervals 
+          : 0;
 
         // Implement 70% success / 30% failure rate for realistic trading simulation
         const tradeSuccessful = Math.random() < 0.7; // 70% success rate
@@ -798,44 +830,28 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
           continue; // Skip to next investment without adding profit
         }
 
-        // Trade successful - proceed with profit addition
-        const newProfit = currentProfit + profitIncrease;
-
-        // CRITICAL FIX: Cap profit increase BEFORE any calculations
-        let cappedProfitIncrease = profitIncrease;
-        
-        // For BTC investments, enforce hard cap
-        const potentialNewBtcProfit = currentBtcProfit + profitIncrease;
-        if (potentialNewBtcProfit > maxBtcProfit) {
-          cappedProfitIncrease = Math.max(0, maxBtcProfit - currentBtcProfit);
-          console.log(`⚠️ Investment #${investment.id} - Capping BTC profit increase from ${profitIncrease.toFixed(8)} to ${cappedProfitIncrease.toFixed(8)} BTC`);
-        }
-
-        // If capped profit is 0 or negative, skip this investment
-        if (cappedProfitIncrease <= 0) {
-          console.log(`Investment #${investment.id} - Max profit reached, skipping`);
-          continue;
-        }
+        // Trade successful - proceed with profit addition using calculated interval profit
+        const newProfit = currentProfit + profitThisInterval;
 
         // Calculate actual profit to credit (after fees for USD investments)
-        let actualProfitToCredit = cappedProfitIncrease;
-        let netProfitIncreaseForDisplay = cappedProfitIncrease;
+        let actualProfitToCredit = profitThisInterval;
+        let netProfitIncreaseForDisplay = profitThisInterval;
 
         if (isUsdInvestment && performanceFeePercentage > 0) {
           // For USD investments, calculate gross profit, fee, and net profit
-          let usdProfitIncrease = usdAmount * intervalRate;
+          let usdProfitIncrease = profitThisInterval;
 
-          // IMPORTANT: Cap the profit increase BEFORE it's added
-          // This ensures we never exceed maxGrossProfit
+          // IMPORTANT: Cap the profit increase to not exceed maxGrossProfit
           const potentialNewGrossProfit = currentGrossProfit + usdProfitIncrease;
           if (potentialNewGrossProfit > maxGrossProfit) {
-            // Adjust the profit increase to exactly reach the cap, not exceed it
             usdProfitIncrease = Math.max(0, maxGrossProfit - currentGrossProfit);
           }
 
           // If USD profit is 0, skip this investment
           if (usdProfitIncrease <= 0) {
-            console.log(`Investment #${investment.id} - Max USD profit reached, skipping`);
+            if (Math.random() < 0.05) {
+              console.log(`Investment #${investment.id} - Max USD profit reached, skipping`);
+            }
             continue;
           }
 
@@ -850,8 +866,8 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
           const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
           const totalNetProfit = newGrossProfit - totalPerformanceFee;
 
-          // CRITICAL: Update actual profit to credit with capped value
-          actualProfitToCredit = Math.min(cappedProfitIncrease, netProfitIncrease);
+          // Update actual profit to credit
+          actualProfitToCredit = netProfitIncrease;
           netProfitIncreaseForDisplay = actualProfitToCredit;
 
           await storage.updateInvestmentProfitDetails(investment.id, {
@@ -861,7 +877,7 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
             netProfit: totalNetProfit.toFixed(2),
           });
         } else {
-          // Legacy BTC investment - only update currentProfit with capped value
+          // Legacy BTC investment - only update currentProfit
           await storage.updateInvestmentProfit(investment.id, newProfit.toFixed(8));
         }
 
@@ -1058,9 +1074,9 @@ Investment #${investment.id} - Active`
               userFirstName: user.firstName || undefined,
               userLastName: user.lastName || undefined,
               planName: plan.name,
-              profit: profitIncrease.toFixed(8),
+              profit: actualProfitToCredit.toFixed(8),
               totalProfit: newProfit.toFixed(8),
-              marketSource: randomStrategy.source, // Fixed: use randomStrategy.source instead of undefined randomSource
+              marketSource: randomStrategy.source,
               transactionHash: transactionId,
               timestamp: new Date().toISOString()
             });
@@ -1068,7 +1084,7 @@ Investment #${investment.id} - Active`
 
           // Reduced logging for performance
           if (Math.random() < 0.1) { // Only log 10% of updates
-            console.log(`Investment #${investment.id} earned +${profitIncrease.toFixed(8)} BTC for user ${investment.userId}`);
+            console.log(`Investment #${investment.id} earned +${actualProfitToCredit.toFixed(8)} BTC for user ${investment.userId} (${remainingIntervals} intervals remaining)`);
           }
         }
       }
