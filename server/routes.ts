@@ -2034,6 +2034,52 @@ You will receive a notification once your deposit is confirmed and added to your
           `👤 *User:* ${userName} (ID: ${userId})\n` +
           `📧 *Email:* ${user.email}\n` +
           `💰 *Amount:* $${amount} USDT\n` +
+          `🔐 *Address:* \`${user.trc20DepositAddress}\`\n` +
+          `⏰ *Time:* ${new Date().toLocaleString()}\n\n` +
+          `User is waiting for deposit confirmation.`;
+
+        // Send to admin chat instead of broadcast queue
+        const TelegramBot = (await import('node-telegram-bot-api')).default;
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+
+        if (botToken && adminChatId) {
+          const bot = new TelegramBot(botToken, { polling: false });
+          await bot.sendMessage(adminChatId, notificationMessage, {
+            parse_mode: 'Markdown'
+          });
+          console.log(`✅ Deposit session notification sent to admin chat`);
+        }
+      } catch (error) {
+        console.error('Failed to send deposit notification:', error);
+      }
+
+      res.json({
+        sessionToken: session.sessionToken,
+        depositAddress: user.trc20DepositAddress,
+        amount: amount,
+        expiresAt: session.expiresAt
+      });
+    } catch (error: any) {
+      console.error('Deposit session creation error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Confirm deposit session with admin approval
+  app.post("/api/deposit/session/:sessionToken/confirm", async (req, res) => {
+    try {
+      if (!req.session?.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const { sessionToken } = req.params;
+      const userId = req.session.userId;
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User:* ${user.email}\n` +
+          `💰 *Amount:* $${amount} USDT\n` +
           `🔑 *Deposit Address:* \`${user.trc20DepositAddress}\`\n` +
           `🆔 *Session Token:* ${session.sessionToken.substring(0, 15)}...\n` +
           `⏱️ *Expires:* ${new Date(session.expiresAt).toLocaleString()}\n` +
@@ -2849,10 +2895,31 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       // Send Telegram notification to admin about withdrawal request
       try {
-        const { broadcastQueue } = await import('./broadcast-queue');
         const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
         const notificationMessage = `🚨 *WITHDRAWAL REQUEST*\n\n` +
           `👤 *User:* ${userName} (ID: ${userId})\n` +
+          `📧 *Email:* ${user.email}\n` +
+          `💰 *Amount:* $${amount} USDT\n` +
+          `₿ *BTC Deducted:* ${btcToDeduct.toFixed(8)} BTC\n` +
+          `📍 *To Address:* \`${address}\`\n` +
+          `⏰ *Time:* ${new Date().toLocaleString()}\n\n` +
+          `⚠️ Status: Pending admin approval`;
+
+        // Send to admin chat directly
+        const TelegramBot = (await import('node-telegram-bot-api')).default;
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+
+        if (botToken && adminChatId) {
+          const bot = new TelegramBot(botToken, { polling: false });
+          await bot.sendMessage(adminChatId, notificationMessage, {
+            parse_mode: 'Markdown'
+          });
+          console.log(`✅ Withdrawal request notification sent to admin chat`);
+        }
+      } catch (error) {
+        console.error('Failed to send withdrawal notification:', error);
+      }` +
           `📧 *Email:* ${user.email}\n` +
           `💸 *Amount:* $${amount} USDT\n` +
           `🏦 *To Address:* \`${address}\`\n` +
