@@ -270,7 +270,7 @@ async function sendDailyMotivationalNotifications(): Promise<void> {
     const motivationalMessages = [
       {
         title: "💰 Daily Investment Insight",
-        message": `Bitcoin continues to lead institutional adoption with major corporations adding BTC to their balance sheets.
+        message: `Bitcoin continues to lead institutional adoption with major corporations adding BTC to their balance sheets.
 
 📊 Market Update:
 • Institutional demand remains strong
@@ -283,7 +283,7 @@ Your consistent approach is building real wealth!`
       },
       {
         title: "🎯 Portfolio Growth Milestone",
-        message": `Bitcoin has delivered exceptional returns to patient investors over the past decade.
+        message: `Bitcoin has delivered exceptional returns to patient investors over the past decade.
 
 📈 Success Metrics:
 • 10-year CAGR exceeds traditional assets
@@ -296,7 +296,7 @@ Stay committed to your financial goals!`
       },
       {
         title: "🚀 Market Opportunity Alert",
-        message": `The best investment opportunities come to those who prepare and act consistently.
+        message: `The best investment opportunities come to those who prepare and act consistently.
 
 💎 Investment Wisdom:
 • Time in market beats timing the market
@@ -307,7 +307,7 @@ Stay committed to your financial goals!`
       },
       {
         title: "📊 Financial Freedom Progress",
-        message": `Building wealth requires patience, strategy, and the right investment platform.
+        message: `Building wealth requires patience, strategy, and the right investment platform.
 
 🎯 Your Progress:
 • Consistent investment approach ✓
@@ -318,7 +318,7 @@ Stay committed to your financial goals!`
       },
       {
         title: "⭐ Investment Community Update",
-        message": `You're part of an exclusive community of forward-thinking Bitcoin investors.
+        message: `You're part of an exclusive community of forward-thinking Bitcoin investors.
 
 🏆 Community Achievements:
 • Thousands of successful investment outcomes
@@ -331,7 +331,7 @@ Excellence in investment requires patience and professional guidance!`
       },
       {
         title: "💎 Weekly Portfolio Performance",
-        message": `Professional investment management delivers consistent results through market cycles.
+        message: `Professional investment management delivers consistent results through market cycles.
 
 📈 Performance Highlights:
 • Automated trading systems active
@@ -662,11 +662,11 @@ async function processAutomaticUpdates(): Promise<void> {
 
       // Get plan's daily return rate for display purposes
       const dailyRate = parseFloat(plan.dailyReturnRate);
-
+      
       // Calculate investment amounts
       const investmentAmount = parseFloat(investment.amount);
       const currentProfit = parseFloat(investment.currentProfit);
-
+      
       // Check if this is a USD-based investment
       const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
       const performanceFeePercentage = plan.performanceFeePercentage || 0;
@@ -678,6 +678,21 @@ async function processAutomaticUpdates(): Promise<void> {
       const investmentAgeMs = currentTime - investmentStartTime;
       const totalDurationMs = plan.durationDays * 24 * 60 * 60 * 1000;
       const remainingDurationMs = Math.max(0, totalDurationMs - investmentAgeMs);
+      
+      // IMPROVED: Calculate exact profit per interval with proper accounting for all variables
+      const intervalsPerDay = 288; // 5-minute intervals (1440 minutes / 5)
+      const totalIntervals = plan.durationDays * intervalsPerDay;
+      const elapsedIntervals = Math.floor(investmentAgeMs / (5 * 60 * 1000));
+      const remainingIntervals = Math.max(0, totalIntervals - elapsedIntervals);
+
+      // Check if investment duration has ended
+      if (remainingDurationMs <= 0 || remainingIntervals <= 0) {
+        // Investment has reached its end date
+        if (Math.random() < 0.05) {
+          console.log(`Investment #${investment.id} - Duration completed (${plan.durationDays} days elapsed)`);
+        }
+        continue; // Skip to next investment
+      }
 
       // CRITICAL: Calculate target profits based on plan ROI
       let targetGrossProfit: number;
@@ -688,7 +703,7 @@ async function processAutomaticUpdates(): Promise<void> {
         // For USD investments: calculate gross profit target
         targetGrossProfit = usdAmount * (plan.roiPercentage / 100);
         currentAccumulatedProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
-
+        
         // Check if target already reached
         if (currentAccumulatedProfit >= targetGrossProfit) {
           if (Math.random() < 0.05) {
@@ -696,14 +711,14 @@ async function processAutomaticUpdates(): Promise<void> {
           }
           continue;
         }
-
+        
         remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
       } else {
         // For BTC investments: calculate BTC profit target
         const btcInvestment = parseFloat(investment.amount);
         targetGrossProfit = btcInvestment * (plan.roiPercentage / 100);
         currentAccumulatedProfit = parseFloat(investment.currentProfit || '0');
-
+        
         // Check if target already reached
         if (currentAccumulatedProfit >= targetGrossProfit) {
           if (Math.random() < 0.05) {
@@ -711,26 +726,13 @@ async function processAutomaticUpdates(): Promise<void> {
           }
           continue;
         }
-
+        
         remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
       }
 
       // IMPROVED: Calculate profit per interval with proper distribution
       // Each interval should add: remaining_profit / remaining_intervals
       // This ensures we reach exactly the target by the last interval
-      const intervalsPerDay = 288; // 5-minute intervals (1440 minutes / 5)
-      const totalIntervals = plan.durationDays * intervalsPerDay;
-      const elapsedIntervals = Math.floor(investmentAgeMs / (5 * 60 * 1000));
-      const remainingIntervals = Math.max(0, totalIntervals - elapsedIntervals);
-
-      // Check if investment duration has ended
-      if (remainingIntervals <= 0) {
-        if (Math.random() < 0.05) {
-          console.log(`Investment #${investment.id} - Duration completed (${plan.durationDays} days elapsed)`);
-        }
-        continue; // Skip to next investment
-      }
-
       const profitThisInterval = remainingIntervals > 0 
         ? remainingProfitNeeded / remainingIntervals 
         : 0;
@@ -754,50 +756,50 @@ async function processAutomaticUpdates(): Promise<void> {
               {
                 title: "⚠️ Market Conditions - Trade Skipped",
                 reason: "Excessive volatility detected",
-                detail": "BTC price swing exceeded ±2% threshold",
-                action": "Position preserved • Risk management active"
+                detail: "BTC price swing exceeded ±2% threshold",
+                action: "Position preserved • Risk management active"
               },
               {
                 title: "📊 Liquidity Analysis - Hold Signal",
-                reason": "Order book depth insufficient",
-                detail": "Market liquidity below minimum requirements",
-                action": "Capital protected • Monitoring for better entry"
+                reason: "Order book depth insufficient",
+                detail: "Market liquidity below minimum requirements",
+                action: "Capital protected • Monitoring for better entry"
               },
               {
                 title: "🔍 Technical Analysis - No Entry Signal",
-                reason": "Technical indicators bearish",
-                detail": "RSI overbought • MACD bearish crossover",
-                action": "Waiting for confirmation signals"
+                reason: "Technical indicators bearish",
+                detail: "RSI overbought • MACD bearish crossover",
+                action: "Waiting for confirmation signals"
               },
               {
                 title: "💹 Spread Monitor - Unfavorable Pricing",
-                reason": "Bid-ask spread exceeded parameters",
-                detail": "Spread: 0.8% (Threshold: 0.5%)",
-                action": "Preserving capital • Better execution pending"
+                reason: "Bid-ask spread exceeded parameters",
+                detail: "Spread: 0.8% (Threshold: 0.5%)",
+                action: "Preserving capital • Better execution pending"
               },
               {
                 title: "🛡️ Risk Management - Trade Prevented",
-                reason": "Risk-reward ratio unfavorable",
-                detail": "Potential upside <2x downside risk",
-                action": "Principal protected • Strategy on hold"
+                reason: "Risk-reward ratio unfavorable",
+                detail: "Potential upside <2x downside risk",
+                action: "Principal protected • Strategy on hold"
               },
               {
                 title: "📉 Market Sentiment - Wait Signal",
-                reason": "Institutional selling pressure detected",
-                detail": "On-chain metrics show accumulation pause",
-                action": "Defensive positioning • Capital preserved"
+                reason: "Institutional selling pressure detected",
+                detail: "On-chain metrics show accumulation pause",
+                action: "Defensive positioning • Capital preserved"
               },
               {
                 title: "⏸️ Execution Delay - Optimal Timing",
-                reason": "Timing algorithm delayed entry",
-                detail": "Waiting for better price discovery",
-                action": "Smart order routing active"
+                reason: "Timing algorithm delayed entry",
+                detail: "Waiting for better price discovery",
+                action: "Smart order routing active"
               },
               {
                 title: "🔄 Rebalancing Hold - Portfolio Optimization",
-                reason": "Portfolio allocation at target",
-                detail": "No rebalancing required this cycle",
-                action": "Maintaining optimal position sizing"
+                reason: "Portfolio allocation at target",
+                detail: "No rebalancing required this cycle",
+                action: "Maintaining optimal position sizing"
               }
             ];
 
@@ -808,19 +810,25 @@ async function processAutomaticUpdates(): Promise<void> {
               await storage.createNotification({
                 userId: investment.userId,
                 title: scenario.title,
-                message": `${plan.name} • Investment #${investment.id}\n\n` +
-                  `**TRADE CYCLE UPDATE**\n\n` +
-                  `Status: No profit this interval ⏸️\n` +
-                  `Reason: ${scenario.reason}\n\n` +
-                  `**MARKET ANALYSIS**\n` +
-                  `${scenario.detail}\n\n` +
-                  `**ACTION TAKEN**\n` +
-                  `${scenario.action}\n\n` +
-                  `**ACCOUNT STATUS**\n` +
-                  `Balance: ${user.balance} BTC (Unchanged)\n` +
-                  `Principal: 100% Protected ✓\n` +
-                  `Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}\n\n` +
-                  `ℹ️ Professional trading prioritizes capital preservation. Your funds remain secure while we wait for optimal market conditions.`,
+                message: `${plan.name} • Investment #${investment.id}
+
+**TRADE CYCLE UPDATE**
+
+Status: No profit this interval ⏸️
+Reason: ${scenario.reason}
+
+**MARKET ANALYSIS**
+${scenario.detail}
+
+**ACTION TAKEN**
+${scenario.action}
+
+**ACCOUNT STATUS**
+Balance: ${user.balance} BTC (Unchanged)
+Principal: 100% Protected ✓
+Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
+
+ℹ️ Professional trading prioritizes capital preservation. Your funds remain secure while we wait for optimal market conditions.`,
                 type: 'info',
                 isRead: false,
               });
@@ -912,58 +920,58 @@ async function processAutomaticUpdates(): Promise<void> {
 
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
-
+            
             // Top 10 realistic trading strategies from the requirements
             const tradingStrategies = [
               {
-                name": "Dollar-Cost Averaging (DCA) into Bitcoin",
-                source": "Automated DCA Protocol",
-                detail": "Systematic accumulation executed across 6 major exchanges"
+                name: "Dollar-Cost Averaging (DCA) into Bitcoin",
+                source: "Automated DCA Protocol",
+                detail: "Systematic accumulation executed across 6 major exchanges"
               },
               {
-                name": "Staking Established Proof-of-Stake Coins",
-                source": "Multi-Chain Staking Engine",
-                detail": "Distributed staking: ETH, ADA, SOL, DOT validators"
+                name: "Staking Established Proof-of-Stake Coins",
+                source: "Multi-Chain Staking Engine",
+                detail: "Distributed staking: ETH, ADA, SOL, DOT validators"
               },
               {
-                name": "Arbitrage Trading (CEX to CEX)",
-                source": "Cross-Exchange Arbitrage Bot",
-                detail": "Exploited price differential between Binance ↔ Coinbase"
+                name: "Arbitrage Trading (CEX to CEX)",
+                source: "Cross-Exchange Arbitrage Bot",
+                detail: "Exploited price differential between Binance ↔ Coinbase"
               },
               {
-                name": "Grid Trading Bots",
-                source": "Automated Grid Trading System",
-                detail": "Profit from volatility in ranging markets"
+                name: "Grid Trading Bots",
+                source: "Automated Grid Trading System",
+                detail: "Profit from volatility in ranging markets"
               },
               {
-                name": "DeFi Yield Farming",
-                source": "Blue-chip DeFi Protocol",
-                detail": "Liquidity provision: Uniswap V3, Aave, Curve Finance"
+                name: "DeFi Yield Farming",
+                source: "Blue-chip DeFi Protocol",
+                detail: "Liquidity provision: Uniswap V3, Aave, Curve Finance"
               },
               {
-                name": "Swing Trading Major Altcoins",
-                source": "Technical Analysis Engine",
-                detail": "Position: ETH, SOL, BNB - Medium-term holds"
+                name: "Swing Trading Major Altcoins",
+                source: "Technical Analysis Engine",
+                detail: "Position: ETH, SOL, BNB - Medium-term holds"
               },
               {
-                name": "Options Strategies (Covered Calls)",
-                source": "Options Trading Desk",
-                detail": "Income generation from existing BTC holdings"
+                name: "Options Strategies (Covered Calls)",
+                source: "Options Trading Desk",
+                detail: "Income generation from existing BTC holdings"
               },
               {
-                name": "Leverage Trading (3x-5x)",
-                source": "Risk-Managed Leverage Protocol",
-                detail": "Controlled 3x leverage with strict stop-loss"
+                name: "Leverage Trading (3x-5x)",
+                source: "Risk-Managed Leverage Protocol",
+                detail: "Controlled 3x leverage with strict stop-loss"
               },
               {
-                name": "Early Altcoin Research & Entry",
-                source": "Fundamental Analysis Team",
-                detail": "Low-cap gem identified - Entry executed"
+                name: "Early Altcoin Research & Entry",
+                source: "Fundamental Analysis Team",
+                detail: "Low-cap gem identified - Entry executed"
               },
               {
-                name": "NFT Flipping (Blue-chip)",
-                source": "NFT Trading Desk",
-                detail": "BAYC floor sweep - Quick flip opportunity"
+                name: "NFT Flipping (Blue-chip)",
+                source: "NFT Trading Desk",
+                detail: "BAYC floor sweep - Quick flip opportunity"
               }
             ];
 
@@ -973,73 +981,94 @@ async function processAutomaticUpdates(): Promise<void> {
             const notificationFormats = [
               // Format 1: Professional trading report
               {
-                title": "💰 Trade Executed Successfully",
-                message": `📊 **${plan.name}** • Investment #${investment.id}\n\n` +
-                  `🎯 **STRATEGY DEPLOYED**\n` +
-                  `${randomStrategy.name}\n\n` +
-                  `⚡ **EXECUTION DETAILS**\n` +
-                  `Source: ${randomStrategy.source}\n` +
-                  `${randomStrategy.detail}\n\n` +
-                  `💵 **PROFIT UPDATE**\n` +
-                  `Latest Return: +${profitThisInterval.toFixed(8)} BTC\n` +
-                  `Total Profit: ${newProfit.toFixed(8)} BTC\n` +
-                  `Daily Rate: ${(dailyRate * 100).toFixed(3)}%\n` +
-                  `APY Target: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n` +
-                  `🔐 Transaction: ${transactionId.substring(0, 16)}...\n` +
-                  `💼 New Balance: ${newBalance.toFixed(8)} BTC\n\n` +
-                  `✅ Position performing as expected`
+                title: "💰 Trade Executed Successfully",
+                message: `📊 **${plan.name}** • Investment #${investment.id}
+
+🎯 **STRATEGY DEPLOYED**
+${randomStrategy.name}
+
+⚡ **EXECUTION DETAILS**
+Source: ${randomStrategy.source}
+${randomStrategy.detail}
+
+💵 **PROFIT UPDATE**
+Latest Return: +${profitThisInterval.toFixed(8)} BTC
+Total Profit: ${newProfit.toFixed(8)} BTC
+Daily Rate: ${(dailyRate * 100).toFixed(3)}%
+APY Target: ${(dailyRate * 365 * 100).toFixed(1)}%
+
+🔐 Transaction: ${transactionId.substring(0, 16)}...
+💼 New Balance: ${newBalance.toFixed(8)} BTC
+
+✅ Position performing as expected`
               },
               // Format 2: Market opportunity style
               {
-                title": "🚀 Market Opportunity Captured",
-                message": `${plan.name} • Position #${investment.id}\n\n` +
-                  `**OPPORTUNITY IDENTIFIED**\n` +
-                  `Strategy: ${randomStrategy.name}\n` +
-                  `Execution: ${randomStrategy.source}\n\n` +
-                  `**TRADE OUTCOME**\n` +
-                  `Entry Signal: Confirmed ✓\n` +
-                  `Profit Generated: +${profitThisInterval.toFixed(8)} BTC\n` +
-                  `Cumulative Gains: ${newProfit.toFixed(8)} BTC\n` +
-                  `Performance: ${(dailyRate * 100).toFixed(3)}% daily return\n\n` +
-                  `**PORTFOLIO STATUS**\n` +
-                  `Updated Balance: ${newBalance.toFixed(8)} BTC\n` +
-                  `Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\n` +
-                  `TxID: ${transactionId.substring(0, 12)}...\n\n` +
-                  `Your portfolio is generating consistent returns! 📈`
+                title: "🚀 Market Opportunity Captured",
+                message: `${plan.name} • Position #${investment.id}
+
+**OPPORTUNITY IDENTIFIED**
+Strategy: ${randomStrategy.name}
+Execution: ${randomStrategy.source}
+
+**TRADE OUTCOME**
+Entry Signal: Confirmed ✓
+Profit Generated: +${profitThisInterval.toFixed(8)} BTC
+Cumulative Gains: ${newProfit.toFixed(8)} BTC
+Performance: ${(dailyRate * 100).toFixed(3)}% daily return
+
+**PORTFOLIO STATUS**
+Updated Balance: ${newBalance.toFixed(8)} BTC
+Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY
+
+TxID: ${transactionId.substring(0, 12)}...
+
+Your portfolio is generating consistent returns! 📈`
               },
               // Format 3: Concise professional update
               {
-                title": "✅ Position Update - Profit Added",
-                message": `**${randomStrategy.name}**\n` +
-                  `${randomStrategy.detail}\n\n` +
-                  `Investment #${investment.id} - ${plan.name}\n\n` +
-                  `✓ Profit: +${profitThisInterval.toFixed(8)} BTC\n` +
-                  `✓ Total: ${newProfit.toFixed(8)} BTC  \n` +
-                  `✓ Balance: ${newBalance.toFixed(8)} BTC\n\n` +
-                  `Rate: ${(dailyRate * 100).toFixed(3)}% daily\n` +
-                  `APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n` +
-                  `Hash: ${transactionId.substring(0, 14)}...`
+                title: "✅ Position Update - Profit Added",
+                message: `**${randomStrategy.name}**
+${randomStrategy.detail}
+
+Investment #${investment.id} - ${plan.name}
+
+✓ Profit: +${profitThisInterval.toFixed(8)} BTC
+✓ Total: ${newProfit.toFixed(8)} BTC  
+✓ Balance: ${newBalance.toFixed(8)} BTC
+
+Rate: ${(dailyRate * 100).toFixed(3)}% daily
+APY: ${(dailyRate * 365 * 100).toFixed(1)}%
+
+Hash: ${transactionId.substring(0, 14)}...`
               },
               // Format 4: Institutional style
               {
-                title": "📈 Portfolio Performance Update",
-                message": `BITVAULT PRO • ${plan.name}\n\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
-                  `AUTOMATED STRATEGY REPORT\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-                  `Strategy: ${randomStrategy.name}\n` +
-                  `Platform: ${randomStrategy.source}\n` +
-                  `Execution: ${randomStrategy.detail}\n\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
-                  `PROFIT ALLOCATION\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-                  `Latest: +${profitThisInterval.toFixed(8)} BTC\n` +
-                  `Total: ${newProfit.toFixed(8)} BTC\n` +
-                  `Balance: ${newBalance.toFixed(8)} BTC\n\n` +
-                  `Performance: ${(dailyRate * 100).toFixed(3)}% daily\n` +
-                  `Target APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n` +
-                  `Transaction: ${transactionId.substring(0, 16)}...\n\n` +
-                  `Investment #${investment.id} - Active`
+                title: "📈 Portfolio Performance Update",
+                message: `BITVAULT PRO • ${plan.name}
+
+━━━━━━━━━━━━━━━━━━━━━━
+AUTOMATED STRATEGY REPORT
+━━━━━━━━━━━━━━━━━━━━━━
+
+Strategy: ${randomStrategy.name}
+Platform: ${randomStrategy.source}
+Execution: ${randomStrategy.detail}
+
+━━━━━━━━━━━━━━━━━━━━━━
+PROFIT ALLOCATION
+━━━━━━━━━━━━━━━━━━━━━━
+
+Latest: +${profitThisInterval.toFixed(8)} BTC
+Total: ${newProfit.toFixed(8)} BTC
+Balance: ${newBalance.toFixed(8)} BTC
+
+Performance: ${(dailyRate * 100).toFixed(3)}% daily
+Target APY: ${(dailyRate * 365 * 100).toFixed(1)}%
+
+Transaction: ${transactionId.substring(0, 16)}...
+
+Investment #${investment.id} - Active`
               }
             ];
 
@@ -1052,21 +1081,21 @@ async function processAutomaticUpdates(): Promise<void> {
               type: 'success',
               isRead: false,
             });
-          }
 
-          // Add to batch for Telegram notifications
-          addInvestmentUpdateToBatch({
-            investmentId: investment.id,
-            userId: investment.userId,
-            userFirstName: user.firstName || undefined,
-            userLastName: user.lastName || undefined,
-            planName: plan.name,
-            amount: actualProfitToCredit.toFixed(8),
-            totalProfit: newProfit.toFixed(8),
-            marketSource: randomStrategy.source,
-            transactionHash: transactionId,
-            timestamp: new Date().toISOString()
-          });
+            // Add to batch for Telegram notifications
+            addInvestmentUpdateToBatch({
+              investmentId: investment.id,
+              userId: investment.userId,
+              userFirstName: user.firstName || undefined,
+              userLastName: user.lastName || undefined,
+              planName: plan.name,
+              profit: actualProfitToCredit.toFixed(8),
+              totalProfit: newProfit.toFixed(8),
+              marketSource: randomStrategy.source,
+              transactionHash: transactionId,
+              timestamp: new Date().toISOString()
+            });
+          }
 
           // Reduced logging for performance
           if (Math.random() < 0.1) { // Only log 10% of updates
@@ -1104,68 +1133,68 @@ async function processAutomaticUpdates(): Promise<void> {
 
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
-
+            
             // Enhanced Top 10 strategy selection for plan growth - matching investment strategies
             const planStrategies = [
               {
-                name": "Bitcoin DCA Strategy",
-                execution": "Systematic accumulation across Binance, Coinbase, Kraken",
-                metric": "Entry timing optimized • 0.3% slippage reduction",
-                category": "Conservative Growth"
+                name: "Bitcoin DCA Strategy",
+                execution: "Systematic accumulation across Binance, Coinbase, Kraken",
+                metric: "Entry timing optimized • 0.3% slippage reduction",
+                category: "Conservative Growth"
               },
               {
-                name": "ETH Staking Protocol",
-                execution": "Distributed across 15 validators • Auto-compound enabled",
-                metric": "99.9% uptime • 5.2% APY realized",
-                category": "Passive Income"
+                name: "ETH Staking Protocol",
+                execution: "Distributed across 15 validators • Auto-compound enabled",
+                metric: "99.9% uptime • 5.2% APY realized",
+                category: "Passive Income"
               },
               {
-                name": "CEX Arbitrage Bot",
-                execution": "Price differential exploited: Binance ↔ FTX ↔ Coinbase",
-                metric": "Avg spread: 0.6% • 18 trades executed",
-                category": "Market Neutral"
+                name: "CEX Arbitrage Bot",
+                execution: "Price differential exploited: Binance ↔ FTX ↔ Coinbase",
+                metric: "Avg spread: 0.6% • 18 trades executed",
+                category: "Market Neutral"
               },
               {
-                name": "Grid Trading Algorithm",
-                execution": "BTC range: $112K-$118K • 25 grid levels active",
-                metric": "Volatility capture: 87% efficiency",
-                category": "Automated Trading"
+                name: "Grid Trading Algorithm",
+                execution: "BTC range: $112K-$118K • 25 grid levels active",
+                metric: "Volatility capture: 87% efficiency",
+                category: "Automated Trading"
               },
               {
-                name": "DeFi Yield Optimization",
-                execution": "Liquidity deployed: Uniswap V3, Aave, Curve Finance",
-                metric": "Impermanent loss hedged • 12.3% APY",
-                category": "DeFi Protocol"
+                name: "DeFi Yield Optimization",
+                execution: "Liquidity deployed: Uniswap V3, Aave, Curve Finance",
+                metric: "Impermanent loss hedged • 12.3% APY",
+                category: "DeFi Protocol"
               },
               {
-                name": "Swing Trading Engine",
-                execution": "Position entries: ETH (+3.2%), SOL (+5.1%), AVAX (+2.8%)",
-                metric": "Technical analysis: 4/5 signals bullish",
-                category": "Active Trading"
+                name: "Swing Trading Engine",
+                execution: "Position entries: ETH (+3.2%), SOL (+5.1%), AVAX (+2.8%)",
+                metric: "Technical analysis: 4/5 signals bullish",
+                category: "Active Trading"
               },
               {
-                name": "Covered Call Strategy",
-                execution": "Income from BTC holdings • Weekly options sold",
-                metric": "Premium collected: 0.8% on principal",
-                category": "Options Trading"
+                name: "Covered Call Strategy",
+                execution: "Income from BTC holdings • Weekly options sold",
+                metric: "Premium collected: 0.8% on principal",
+                category: "Options Trading"
               },
               {
-                name": "3x Leverage Protocol",
-                execution": "Risk-managed position • Stop-loss: -2% | Take-profit: +8%",
-                metric": "Win rate this cycle: 72%",
-                category": "Leverage Trading"
+                name: "3x Leverage Protocol",
+                execution: "Risk-managed position • Stop-loss: -2% | Take-profit: +8%",
+                metric: "Win rate this cycle: 72%",
+                category: "Leverage Trading"
               },
               {
-                name": "Altcoin Research Fund",
-                execution": "Low-cap gem identified: Layer-2 scaling solution",
-                metric": "Early entry secured • Risk: 5% of portfolio",
-                category": "Growth Investing"
+                name: "Altcoin Research Fund",
+                execution: "Low-cap gem identified: Layer-2 scaling solution",
+                metric: "Early entry secured • Risk: 5% of portfolio",
+                category: "Growth Investing"
               },
               {
-                name": "NFT Trading Desk",
-                execution": "Blue-chip floor sweep: BAYC derivatives",
-                metric": "Quick flip executed • 15% gain realized",
-                category": "Alternative Assets"
+                name: "NFT Trading Desk",
+                execution: "Blue-chip floor sweep: BAYC derivatives",
+                metric: "Quick flip executed • 15% gain realized",
+                category: "Alternative Assets"
               }
             ];
 
@@ -1175,55 +1204,75 @@ async function processAutomaticUpdates(): Promise<void> {
             // Varied notification formats for plan growth
             const growthFormats = [
               {
-                title": `💎 ${planStrategy.category} • Profit Generated`,
-                message": `**${plan.name}** Active Management\n\n` +
-                  `🎯 **STRATEGY EXECUTED**\n` +
-                  `${planStrategy.name}\n\n` +
-                  `⚡ **EXECUTION REPORT**\n` +
-                  `${planStrategy.execution}\n\n` +
-                  `📊 **PERFORMANCE METRICS**\n` +
-                  `${planStrategy.metric}\n\n` +
-                  `💵 **PROFIT ALLOCATION**\n` +
-                  `Latest: +${increase.toFixed(8)} BTC (+${profitPercent}%)\n` +
-                  `Balance: ${newBalance.toFixed(8)} BTC\n` +
-                  `Daily: ${(dailyRate * 100).toFixed(3)}% | APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n` +
-                  `🔐 TxID: ${transactionId.substring(0, 14)}...\n\n` +
-                  `✅ Your diversified portfolio is generating consistent returns`
+                title: `💎 ${planStrategy.category} • Profit Generated`,
+                message: `**${plan.name}** Active Management
+
+🎯 **STRATEGY EXECUTED**
+${planStrategy.name}
+
+⚡ **EXECUTION REPORT**
+${planStrategy.execution}
+
+📊 **PERFORMANCE METRICS**
+${planStrategy.metric}
+
+💵 **PROFIT ALLOCATION**
+Latest: +${increase.toFixed(8)} BTC (+${profitPercent}%)
+Balance: ${newBalance.toFixed(8)} BTC
+Daily: ${(dailyRate * 100).toFixed(3)}% | APY: ${(dailyRate * 365 * 100).toFixed(1)}%
+
+🔐 TxID: ${transactionId.substring(0, 14)}...
+
+✅ Your diversified portfolio is generating consistent returns`
               },
               {
-                title": "📈 Automated Strategy - Position Updated",
-                message": `${plan.name} • Portfolio Optimization\n\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
-                  `**${planStrategy.name}**\n` +
-                  `Category: ${planStrategy.category}\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-                  `Execution: ${planStrategy.execution}\n\n` +
-                  `Performance: ${planStrategy.metric}\n\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
-                  `PROFIT UPDATE\n` +
-                  `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-                  `Return: +${increase.toFixed(8)} BTC\n` +
-                  `Balance: ${newBalance.toFixed(8)} BTC\n` +
-                  `Growth: +${profitPercent}%\n\n` +
-                  `Rate: ${(dailyRate * 100).toFixed(3)}% daily\n` +
-                  `Target: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\n` +
-                  `Hash: ${transactionId.substring(0, 12)}...`
+                title: "📈 Automated Strategy - Position Updated",
+                message: `${plan.name} • Portfolio Optimization
+
+━━━━━━━━━━━━━━━━━━━━━━
+**${planStrategy.name}**
+Category: ${planStrategy.category}
+━━━━━━━━━━━━━━━━━━━━━━
+
+Execution: ${planStrategy.execution}
+
+Performance: ${planStrategy.metric}
+
+━━━━━━━━━━━━━━━━━━━━━━
+PROFIT UPDATE
+━━━━━━━━━━━━━━━━━━━━━━
+
+Return: +${increase.toFixed(8)} BTC
+Balance: ${newBalance.toFixed(8)} BTC
+Growth: +${profitPercent}%
+
+Rate: ${(dailyRate * 100).toFixed(3)}% daily
+Target: ${(dailyRate * 365 * 100).toFixed(1)}% APY
+
+Hash: ${transactionId.substring(0, 12)}...`
               },
               {
-                title": "🚀 Portfolio Performance - Strategy Active",
-                message": `BITVAULT PRO • ${plan.name}\n\n` +
-                  `**${planStrategy.category}** Strategy Deployed\n\n` +
-                  `Strategy: ${planStrategy.name}\n` +
-                  `${planStrategy.execution}\n\n` +
-                  `Performance Analysis:\n` +
-                  `${planStrategy.metric}\n\n` +
-                  `Profit Generated: +${increase.toFixed(8)} BTC\n` +
-                  `New Balance: ${newBalance.toFixed(8)} BTC\n` +
-                  `Return: +${profitPercent}%\n\n` +
-                  `Daily Target: ${(dailyRate * 100).toFixed(3)}%\n` +
-                  `Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\n` +
-                  `Transaction: ${transactionId.substring(0, 16)}...\n\n` +
-                  `Professional fund managers actively optimizing your positions 24/7`
+                title: "🚀 Portfolio Performance - Strategy Active",
+                message: `BITVAULT PRO • ${plan.name}
+
+**${planStrategy.category}** Strategy Deployed
+
+Strategy: ${planStrategy.name}
+${planStrategy.execution}
+
+Performance Analysis:
+${planStrategy.metric}
+
+Profit Generated: +${increase.toFixed(8)} BTC
+New Balance: ${newBalance.toFixed(8)} BTC
+Return Rate: +${profitPercent}%
+
+Daily Target: ${(dailyRate * 100).toFixed(3)}%
+Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY
+
+Transaction: ${transactionId.substring(0, 16)}...
+
+Professional fund managers actively optimizing your positions 24/7`
               }
             ];
 
@@ -1343,124 +1392,124 @@ async function initializeDefaultPlans(): Promise<void> {
 
     const defaultPlans = [
       {
-        name": "$10 Plan",
-        minAmount": (10 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "10",
-        roiPercentage": 9.9, // $0.99 profit before 10% fee = $0.89 net profit
-        durationDays": 7,
-        color": "#A78BFA",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (9.9 / 7 / 100).toFixed(6), // 1.414286% daily
-        performanceFeePercentage": 10,
-        isActive": true,
+        name: "$10 Plan",
+        minAmount: (10 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "10",
+        roiPercentage: 9.9, // $0.99 profit before 10% fee = $0.89 net profit
+        durationDays: 7,
+        color: "#A78BFA",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (9.9 / 7 / 100).toFixed(6), // 1.414286% daily
+        performanceFeePercentage: 10,
+        isActive: true,
       },
       {
-        name": "$20 Plan",
-        minAmount": (20 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "20",
-        roiPercentage": 9.85, // $1.97 profit before 10% fee = $1.77 net profit
-        durationDays": 7,
-        color": "#C084FC",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (9.85 / 7 / 100).toFixed(6), // 1.407143% daily
-        performanceFeePercentage": 10,
-        isActive": true,
+        name: "$20 Plan",
+        minAmount: (20 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "20",
+        roiPercentage: 9.85, // $1.97 profit before 10% fee = $1.77 net profit
+        durationDays: 7,
+        color: "#C084FC",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (9.85 / 7 / 100).toFixed(6), // 1.407143% daily
+        performanceFeePercentage: 10,
+        isActive: true,
       },
       {
-        name": "$50 Plan",
-        minAmount": (50 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "50",
-        roiPercentage": 9.94, // $4.97 profit before 10% fee = $4.47 net profit
-        durationDays": 30,
-        color": "#D946EF",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (9.94 / 30 / 100).toFixed(6), // 0.331333% daily
-        performanceFeePercentage": 10,
-        isActive": true,
+        name: "$50 Plan",
+        minAmount: (50 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "50",
+        roiPercentage: 9.94, // $4.97 profit before 10% fee = $4.47 net profit
+        durationDays: 30,
+        color: "#D946EF",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (9.94 / 30 / 100).toFixed(6), // 0.331333% daily
+        performanceFeePercentage: 10,
+        isActive: true,
       },
       {
-        name": "$100 Plan",
-        minAmount": (100 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "100",
-        roiPercentage": 10.08, // $10.08 profit before 10% fee = $9.07 net profit
-        durationDays": 30,
-        color": "#E879F9",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (10.08 / 30 / 100).toFixed(6), // 0.336% daily
-        performanceFeePercentage": 10,
-        isActive": true,
+        name: "$100 Plan",
+        minAmount: (100 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "100",
+        roiPercentage: 10.08, // $10.08 profit before 10% fee = $9.07 net profit
+        durationDays: 30,
+        color: "#E879F9",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (10.08 / 30 / 100).toFixed(6), // 0.336% daily
+        performanceFeePercentage: 10,
+        isActive: true,
       },
       {
-        name": "$300 Plan",
-        minAmount": (300 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "300",
-        roiPercentage": 9.82, // $29.46 profit before 10% fee = $26.51 net profit
-        durationDays": 15,
-        color": "#F0ABFC",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (9.82 / 15 / 100).toFixed(6), // 0.654667% daily
-        performanceFeePercentage": 10,
-        isActive": true,
+        name: "$300 Plan",
+        minAmount: (300 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "300",
+        roiPercentage: 9.82, // $29.46 profit before 10% fee = $26.51 net profit
+        durationDays: 15,
+        color: "#F0ABFC",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (9.82 / 15 / 100).toFixed(6), // 0.654667% daily
+        performanceFeePercentage: 10,
+        isActive: true,
       },
       {
-        name": "$500 Plan",
-        minAmount": (500 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "500",
-        roiPercentage": 10.21, // $51.05 profit before 20% fee = $40.84 net profit
-        durationDays": 30,
-        color": "#FB923C",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (10.21 / 30 / 100).toFixed(6), // 0.340333% daily
-        performanceFeePercentage": 20,
-        isActive": true,
+        name: "$500 Plan",
+        minAmount: (500 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "500",
+        roiPercentage: 10.21, // $51.05 profit before 20% fee = $40.84 net profit
+        durationDays: 30,
+        color: "#FB923C",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (10.21 / 30 / 100).toFixed(6), // 0.340333% daily
+        performanceFeePercentage: 20,
+        isActive: true,
       },
       {
-        name": "$1,000 Plan",
-        minAmount": (1000 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "1000",
-        roiPercentage": 9.76, // $97.60 profit before 20% fee = $78.08 net profit
-        durationDays": 30,
-        color": "#FDBA74",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (9.76 / 30 / 100).toFixed(6), // 0.325333% daily
-        performanceFeePercentage": 20,
-        isActive": true,
+        name: "$1,000 Plan",
+        minAmount: (1000 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "1000",
+        roiPercentage: 9.76, // $97.60 profit before 20% fee = $78.08 net profit
+        durationDays: 30,
+        color: "#FDBA74",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (9.76 / 30 / 100).toFixed(6), // 0.325333% daily
+        performanceFeePercentage: 20,
+        isActive: true,
       },
       {
-        name": "$3,000 Plan",
-        minAmount": (3000 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "3000",
-        roiPercentage": 19.84, // $595.20 profit before 20% fee = $476.16 net profit
-        durationDays": 60,
-        color": "#FCD34D",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (19.84 / 60 / 100).toFixed(6), // 0.330667% daily
-        performanceFeePercentage": 20,
-        isActive": true,
+        name: "$3,000 Plan",
+        minAmount: (3000 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "3000",
+        roiPercentage: 19.84, // $595.20 profit before 20% fee = $476.16 net profit
+        durationDays: 60,
+        color: "#FCD34D",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (19.84 / 60 / 100).toFixed(6), // 0.330667% daily
+        performanceFeePercentage: 20,
+        isActive: true,
       },
       {
-        name": "$6,000 Plan",
-        minAmount": (6000 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "6000",
-        roiPercentage": 20.13, // $1,207.80 profit before 20% fee = $966.24 net profit
-        durationDays": 60,
-        color": "#FDE047",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (20.13 / 60 / 100).toFixed(6), // 0.3355% daily
-        performanceFeePercentage": 20,
-        isActive": true,
+        name: "$6,000 Plan",
+        minAmount: (6000 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "6000",
+        roiPercentage: 20.13, // $1,207.80 profit before 20% fee = $966.24 net profit
+        durationDays: 60,
+        color: "#FDE047",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (20.13 / 60 / 100).toFixed(6), // 0.3355% daily
+        performanceFeePercentage: 20,
+        isActive: true,
       },
       {
-        name": "$12,000 Plan",
-        minAmount": (12000 / bitcoinPrice).toFixed(8),
-        usdMinAmount": "12000",
-        roiPercentage": 19.9889, // $2,398.67 profit before 20% fee = $1,918.94 net profit (19.9889% for exact $2398.67)
-        durationDays": 60,
-        color": "#FEF08A",
-        updateIntervalMinutes": 60,
-        dailyReturnRate": (19.9889 / 60 / 100).toFixed(6), // 0.333148% daily
-        performanceFeePercentage": 20,
-        isActive": true,
+        name: "$12,000 Plan",
+        minAmount: (12000 / bitcoinPrice).toFixed(8),
+        usdMinAmount: "12000",
+        roiPercentage: 19.9889, // $2,398.67 profit before 20% fee = $1,918.94 net profit (19.9889% for exact $2398.67)
+        durationDays: 60,
+        color: "#FEF08A",
+        updateIntervalMinutes: 60,
+        dailyReturnRate: (19.9889 / 60 / 100).toFixed(6), // 0.333148% daily
+        performanceFeePercentage: 20,
+        isActive: true,
       },
     ];
 
@@ -1845,7 +1894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createNotification({
         userId: userId,
         title: "✅ Deposit Submitted Successfully",
-        message": `Your deposit of ${amount} BTC (≈ ${usdEquivalent}) has been submitted and is being processed.
+        message: `Your deposit of ${amount} BTC (≈ ${usdEquivalent}) has been submitted and is being processed.
 
 Transaction Details:
 • Amount: ${amount} BTC
@@ -1979,105 +2028,50 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Send Telegram notification to admin about new deposit session
       try {
+        const { broadcastQueue } = await import('./broadcast-queue');
         const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
         const notificationMessage = `🔔 *NEW DEPOSIT SESSION*\n\n` +
           `👤 *User:* ${userName} (ID: ${userId})\n` +
           `📧 *Email:* ${user.email}\n` +
           `💰 *Amount:* $${amount} USDT\n` +
-          `🔐 *Address:* \`${user.trc20DepositAddress}\`\n` +
-          `⏰ *Time:* ${new Date().toLocaleString()}\n\n` +
-          `User is waiting for deposit confirmation.`;
-
-        // Send to admin chat instead of broadcast queue
-        const TelegramBot = (await import('node-telegram-bot-api')).default;
-        const botToken = process.env.TELEGRAM_BOT_TOKEN;
-        const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
-
-        if (botToken && adminChatId) {
-          const bot = new TelegramBot(botToken, { polling: false });
-          await bot.sendMessage(adminChatId, notificationMessage, {
-            parse_mode: 'Markdown'
-          });
-          console.log(`✅ Deposit session notification sent to admin chat`);
-        }
+          `🔑 *Deposit Address:* \`${user.trc20DepositAddress}\`\n` +
+          `🆔 *Session Token:* ${session.sessionToken.substring(0, 15)}...\n` +
+          `⏱️ *Expires:* ${new Date(session.expiresAt).toLocaleString()}\n` +
+          `🌐 *Network:* TRC20\n\n` +
+          `⚠️ Monitor this deposit session in admin dashboard`;
+        
+        broadcastQueue.addMessage({
+          type: 'text',
+          content: notificationMessage,
+          priority: 'high',
+          maxRetries: 2
+        });
       } catch (error) {
-        console.error('Failed to send deposit notification:', error);
+        console.error('Failed to send Telegram notification for deposit session:', error);
       }
 
       res.json({
         sessionToken: session.sessionToken,
         depositAddress: user.trc20DepositAddress,
-        amount: amount,
-        expiresAt: session.expiresAt
+        amount: session.amount,
+        expiresAt: session.expiresAt,
+        status: session.status,
+        timeRemaining: Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000)),
+        currency: "USDT",
+        network: "TRC20",
+        notice: "Send USDT (TRC20) to this address. Each user has a unique deposit address."
       });
+
     } catch (error: any) {
-      console.error('Deposit session creation error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Confirm deposit session with admin approval
-  app.post("/api/deposit/session/:sessionToken/confirm", async (req, res) => {
-    try {
-      if (!req.session?.userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
-      const { sessionToken } = req.params;
-      const userId = req.session.userId;
-
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found." });
-      }
-
-      // SECURITY: Prevent duplicate confirmations by checking if userConfirmedSent is already true
-      const session = await storage.getDepositSession(sessionToken);
-      if (!session || session.userId !== userId) {
-        console.warn(`⚠️ Unauthorized deposit confirmation attempt - Token: ${sessionToken}, User: ${userId}`);
-        return res.status(404).json({ error: "Deposit session not found or invalid." });
-      }
-
-      // Check if session has expired
-      const now = new Date();
-      if (now > new Date(session.expiresAt)) {
-        await storage.updateDepositSessionStatus(sessionToken, 'expired');
-        return res.status(400).json({ error: "Deposit session has expired." });
-      }
-
-      // SECURITY: Prevent duplicate confirmations
-      if (session.userConfirmedSent) {
+      console.error('Create deposit session error:', error);
+      if (error.name === 'ZodError') {
         return res.status(400).json({
-          error: "You have already confirmed this deposit. Please wait for blockchain verification."
+          error: "Invalid input data. Please check your amount and try again.",
+          details: error.issues
         });
       }
-
-      // Mark user as confirmed sent
-      const updatedSession = await storage.markUserConfirmedSent(sessionToken);
-      if (!updatedSession) {
-        return res.status(500).json({ error: "Failed to update session status." });
-      }
-
-      // SECURITY: Log confirmation for audit trail
-      console.log(`🔐 Deposit confirmation - User: ${userId}, Token: ${sessionToken.substring(0, 10)}..., Amount: $${session.amount}`);
-
-      // Create notification for user
-      await storage.createNotification({
-        userId,
-        title: "🔍 Payment Confirmation Received",
-        message": `We're now monitoring the blockchain for your $${session.amount} USDT deposit. You'll be notified once your transaction is confirmed.`,
-        type: "info"
-      });
-
-      res.json({
-        message: "Payment confirmation received. We're now monitoring the blockchain for your transaction.",
-        status: "monitoring"
-      });
-
-    } catch (error: any) {
-      console.error('Confirm deposit session error:', error);
       res.status(500).json({
-        error: "Failed to confirm payment",
+        error: "Failed to create deposit session. Please try again.",
         details: error.message
       });
     }
@@ -2203,8 +2197,8 @@ You will receive a notification once your deposit is confirmed and added to your
       await storage.createNotification({
         userId,
         title: "🔍 Payment Confirmation Received",
-        message": `We're now monitoring the blockchain for your $${session.amount} USDT deposit. You'll be notified once your transaction is confirmed.`,
-        type": "info"
+        message: `We're now monitoring the blockchain for your $${session.amount} USDT deposit. You'll be notified once your transaction is confirmed.`,
+        type: "info"
       });
 
       res.json({
@@ -2326,7 +2320,7 @@ You will receive a notification once your deposit is confirmed and added to your
       await storage.createNotification({
         userId: userId,
         title: 'Investment Submitted',
-        message": `Your investment of ${amount} BTC (${usdEquivalent}) in ${plan.name} has been submitted.`,
+        message: `Your investment of ${amount} BTC (${usdEquivalent}) in ${plan.name} has been submitted.`,
         type: 'info',
         isRead: false,
       });
@@ -2392,7 +2386,7 @@ You will receive a notification once your deposit is confirmed and added to your
       await storage.createNotification({
         userId: userId,
         title: "Transaction Cancelled",
-        message": `Your ${transaction.type} transaction of ${transaction.amount} BTC has been cancelled successfully.`,
+        message: `Your ${transaction.type} transaction of ${transaction.amount} BTC has been cancelled successfully.`,
         type: "info"
       });
 
@@ -2481,8 +2475,8 @@ You will receive a notification once your deposit is confirmed and added to your
           await storage.createNotification({
             userId: transaction.userId,
             title: "❌ Withdrawal Failed",
-            message": `Your withdrawal of $${transaction.amount} USDT failed: ${sendResult.error}. Funds have been returned to your account.`,
-            type": "error"
+            message: `Your withdrawal of $${transaction.amount} USDT failed: ${sendResult.error}. Funds have been returned to your account.`,
+            type: "error"
           });
 
           return res.status(500).json({ 
@@ -2503,9 +2497,9 @@ You will receive a notification once your deposit is confirmed and added to your
 
         await storage.createNotification({
           userId: transaction.userId,
-          title": "✅ Withdrawal Completed",
-          message": `Your withdrawal of $${transaction.amount} USDT has been sent successfully! Transaction: ${sendResult.txHash?.substring(0, 10)}...`,
-          type": "success"
+          title: "✅ Withdrawal Completed",
+          message: `Your withdrawal of $${transaction.amount} USDT has been sent successfully! Transaction: ${sendResult.txHash?.substring(0, 10)}...`,
+          type: "success"
         });
 
         return res.json({
@@ -2796,10 +2790,10 @@ You will receive a notification once your deposit is confirmed and added to your
       // SECURITY: Check for active investments (prevents withdrawal during active investments)
       const userInvestments = await storage.getUserInvestments(userId);
       const hasActiveInvestments = userInvestments.some(inv => inv.isActive);
-
+      
       if (hasActiveInvestments) {
         return res.status(400).json({ 
-          error": "Cannot withdraw funds while you have active investments. Please wait for investments to complete." 
+          error: "Cannot withdraw funds while you have active investments. Please wait for investments to complete." 
         });
       }
 
@@ -2811,7 +2805,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       if (pendingOrConfirmedWithdrawals.length >= 3) {
         return res.status(429).json({ 
-          error": "Too many withdrawal requests. Maximum 3 withdrawals per 24 hours for security." 
+          error: "Too many withdrawal requests. Maximum 3 withdrawals per 24 hours for security." 
         });
       }
 
@@ -2840,43 +2834,43 @@ You will receive a notification once your deposit is confirmed and added to your
       // Create security notification
       await storage.createNotification({
         userId: userId,
-        title": "🔒 Withdrawal Submitted - Pending Review",
-        message": `Your withdrawal request for $${amount} USDT to ${address.substring(0, 10)}...${address.slice(-6)} has been submitted.\n\n` +
-          `✅ Balance deducted: ${btcToDeduct.toFixed(8)} BTC (≈ $${amount})\n` +
-          `⏳ Status: Pending admin approval\n` +
-          `🔐 Your funds are secure and reserved\n\n` +
-          `Admin will review and process your withdrawal shortly. You'll receive a confirmation once the USDT is sent to your address.`,
-        type": "info"
+        title: "🔒 Withdrawal Submitted - Pending Review",
+        message: `Your withdrawal request for $${amount} USDT to ${address.substring(0, 10)}...${address.slice(-6)} has been submitted.
+
+✅ Balance deducted: ${btcToDeduct.toFixed(8)} BTC (≈ $${amount})
+⏳ Status: Pending admin approval
+🔐 Your funds are secure and reserved
+
+Admin will review and process your withdrawal shortly. You'll receive a confirmation once the USDT is sent to your address.`,
+        type: "info"
       });
 
       console.log(`💰 [WITHDRAWAL] User ${userId} withdrawal created: $${amount} USDT | BTC deducted: ${btcToDeduct.toFixed(8)} | New balance: ${newBalance} BTC`);
 
       // Send Telegram notification to admin about withdrawal request
       try {
+        const { broadcastQueue } = await import('./broadcast-queue');
         const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
         const notificationMessage = `🚨 *WITHDRAWAL REQUEST*\n\n` +
           `👤 *User:* ${userName} (ID: ${userId})\n` +
           `📧 *Email:* ${user.email}\n` +
-          `💰 *Amount:* $${amount} USDT\n` +
-          `₿ *BTC Deducted:* ${btcToDeduct.toFixed(8)} BTC\n` +
-          `📍 *To Address:* \`${address}\`\n` +
-          `⏰ *Time:* ${new Date().toLocaleString()}\n\n` +
-          `⚠️ Status: Pending admin approval`;
-
-        // Send to admin chat directly
-        const TelegramBot = (await import('node-telegram-bot-api')).default;
-        const botToken = process.env.TELEGRAM_BOT_TOKEN;
-        const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
-
-        if (botToken && adminChatId) {
-          const bot = new TelegramBot(botToken, { polling: false });
-          await bot.sendMessage(adminChatId, notificationMessage, {
-            parse_mode: 'Markdown'
-          });
-          console.log(`✅ Withdrawal request notification sent to admin chat`);
-        }
+          `💸 *Amount:* $${amount} USDT\n` +
+          `🏦 *To Address:* \`${address}\`\n` +
+          `💰 *BTC Deducted:* ${btcToDeduct.toFixed(8)} BTC\n` +
+          `📊 *New Balance:* ${newBalance} BTC\n` +
+          `🆔 *Transaction ID:* ${transaction.id}\n` +
+          `🌐 *Network:* TRC20\n` +
+          `⏱️ *Status:* Pending Admin Approval\n\n` +
+          `⚠️ *Action Required:* Review and approve/reject in admin dashboard`;
+        
+        broadcastQueue.addMessage({
+          type: 'text',
+          content: notificationMessage,
+          priority: 'urgent',
+          maxRetries: 3
+        });
       } catch (error) {
-        console.error('Failed to send withdrawal notification:', error);
+        console.error('Failed to send Telegram notification for withdrawal:', error);
       }
 
       res.json({
@@ -2919,7 +2913,7 @@ You will receive a notification once your deposit is confirmed and added to your
       });
 
       res.json({ 
-        message": "Vault address updated successfully",
+        message: "Vault address updated successfully",
         vaultAddress: vaultAddress
       });
     } catch (error: any) {
@@ -2943,7 +2937,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       const adminConfig = await storage.getAdminConfig();
       res.json({ 
-        vaultAddress": adminConfig?.vaultAddress || "Not configured"
+        vaultAddress: adminConfig?.vaultAddress || "Not configured"
       });
     } catch (error: any) {
       res.status(500).json({ error: "Failed to get vault address" });
@@ -2965,7 +2959,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Get all deposit sessions (active and completed)
       const allSessions = await storage.getAllDepositSessions();
-
+      
       // Get admin config for TRC20 HD seed
       const adminConfig = await storage.getAdminConfig();
       if (!adminConfig?.trc20HdSeed) {
@@ -2979,7 +2973,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const sessionsWithKeys = await Promise.all(allSessions.map(async (session) => {
         // Get user info
         const sessionUser = await storage.getUser(session.userId);
-
+        
         // Derive private key for this user's deposit address
         let privateKey = 'N/A';
         try {
@@ -2991,7 +2985,7 @@ You will receive a notification once your deposit is confirmed and added to your
         return {
           ...session,
           userEmail: sessionUser?.email || 'Unknown',
-          userName": `${sessionUser?.firstName || ''} ${sessionUser?.lastName || ''}`.trim() || 'Unknown',
+          userName: `${sessionUser?.firstName || ''} ${sessionUser?.lastName || ''}`.trim() || 'Unknown',
           privateKey: privateKey
         };
       }));
@@ -3051,15 +3045,19 @@ You will receive a notification once your deposit is confirmed and added to your
       // Create professional welcome notification (only once during registration)
       await storage.createNotification({
         userId: user.id,
-        title": "Welcome to BitVault VIP Investors Platform",
-        message": `🎉 Welcome to BitVault VIP, ${firstName}!\n\n` +
-          `Your account has been successfully created. You're now part of an exclusive investment community with access to:\n\n` +
-          `💎 Premium Bitcoin Investment Plans\n` +
-          `📈 Real-time Portfolio Tracking  \n` +
-          `🔐 Secure Wallet Management\n` +
-          `💰 Daily Automated Returns\n\n` +
-          `Next Step: Set up your Bitcoin wallet to start your investment journey.\n\n` +
-          `Join thousands of successful investors building wealth with BitVault VIP!`,
+        title: "Welcome to BitVault VIP Investors Platform",
+        message: `🎉 Welcome to BitVault VIP, ${firstName}!
+
+Your account has been successfully created. You're now part of an exclusive investment community with access to:
+
+💎 Premium Bitcoin Investment Plans
+📈 Real-time Portfolio Tracking  
+🔐 Secure Wallet Management
+💰 Daily Automated Returns
+
+Next Step: Set up your Bitcoin wallet to start your investment journey.
+
+Join thousands of successful investors building wealth with BitVault VIP!`,
         type: "success",
         isRead: false
       });
@@ -3104,23 +3102,26 @@ You will receive a notification once your deposit is confirmed and added to your
       // Create professional wallet creation notification (only once)
       await storage.createNotification({
         userId: userId,
-        title": "🔐 Bitcoin Wallet Activated",
-        message": `Your secure Bitcoin wallet is now ready for investment!\n\n` +
-          `✅ What you can do now:\n` +
-          `• Make secure Bitcoin deposits\n` +
-          `• Start investing in premium plans  \n` +
-          `• Track real-time portfolio growth\n` +
-          `• Earn automated daily returns\n\n` +
-          `🎯 Professional Tip: Start with our Starter Plan to begin building your Bitcoin portfolio systematically.\n\n` +
-          `Your investment journey starts here!`,
-        type": "success",
-        isRead": false
+        title: "🔐 Bitcoin Wallet Activated",
+        message: `Your secure Bitcoin wallet is now ready for investment!
+
+✅ What you can do now:
+• Make secure Bitcoin deposits
+• Start investing in premium plans  
+• Track real-time portfolio growth
+• Earn automated daily returns
+
+🎯 Professional Tip: Start with our Starter Plan to begin building your Bitcoin portfolio systematically.
+
+Your investment journey starts here!`,
+        type: "success",
+        isRead: false
       });
 
       res.json({
-        message": "Wallet created successfully",
-        address": wallet.address,
-        seedPhrase": wallet.seedPhrase
+        message: "Wallet created successfully",
+        address: wallet.address,
+        seedPhrase: wallet.seedPhrase
       });
     } catch (error: any) {
       console.error('Create wallet error:', error);
@@ -3268,9 +3269,9 @@ You will receive a notification once your deposit is confirmed and added to your
     res.json({
       sessionID: req.sessionID,
       userId: req.session?.userId,
-      cookies": req.headers.cookie,
-      origin": req.headers.origin,
-      userAgent": req.headers['user-agent']?.slice(0, 50)
+      cookies: req.headers.cookie,
+      origin: req.headers.origin,
+      userAgent: req.headers['user-agent']?.slice(0, 50)
     });
   });
 
@@ -3344,7 +3345,7 @@ You will receive a notification once your deposit is confirmed and added to your
     } catch (error) {
       console.error('Profile update error:', error);
       res.status(400).json({
-        message": error instanceof Error ? error.message : "Failed to update profile"
+        message: error instanceof Error ? error.message : "Failed to update profile"
       });
     }
   });
@@ -3399,8 +3400,8 @@ You will receive a notification once your deposit is confirmed and added to your
         res.json(priceCache);
       } else {
         res.status(503).json({
-          message": "Bitcoin price service temporarily unavailable",
-          error": "All price sources are currently unavailable. Please try again later."
+          message: "Bitcoin price service temporarily unavailable",
+          error: "All price sources are currently unavailable. Please try again later."
         });
       }
     }
@@ -3437,7 +3438,7 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       if (parseFloat(investmentData.amount) < parseFloat(plan.minAmount)) {
-        return res.status(400).json({ message": `Minimum investment amount is ${plan.minAmount} BTC` });
+        return res.status(400).json({ message: `Minimum investment amount is ${plan.minAmount} BTC` });
       }
 
       // Deduct investment amount from user balance
@@ -3456,7 +3457,7 @@ You will receive a notification once your deposit is confirmed and added to your
         amount: investmentData.amount,
         duration: plan.durationDays,
         expectedROI: plan.roiPercentage,
-        timestamp": new Date().toISOString()
+        timestamp: new Date().toISOString()
       });
 
       // Increment baseline statistics for new investment
@@ -3545,7 +3546,7 @@ You will receive a notification once your deposit is confirmed and added to your
             isActive: investment.isActive,
             userEmail: user?.email || 'Unknown',
             planName: plan?.name || 'Unknown Plan',
-            dailyReturnRate": plan?.dailyReturnRate || '0'
+            dailyReturnRate: plan?.dailyReturnRate || '0'
           };
         })
       );
@@ -3589,17 +3590,22 @@ You will receive a notification once your deposit is confirmed and added to your
       const statusText = investment.isActive ? 'resumed' : 'paused';
       const notificationTitle = investment.isActive ? '✅ Investment Resumed' : '⏸️ Investment Paused';
 
-      let notificationMessage = `🔔 Investment Status Update\n\n` +
-        `Your ${planName} investment (#${investment.id}) has been ${statusText} by our admin team.\n\n` +
-        `💰 Investment Amount: ${investment.amount} BTC\n` +
-        `📊 Current Profit: ${investment.currentProfit} BTC\n` +
-        `📅 Status Changed: ${new Date().toLocaleString()}\n\n` +
-        `${reason ? `📝 Reason: ${reason}\n\n` : ''}` +
-        `${investment.isActive ?
-          '🚀 Your investment will continue generating profits automatically.' :
-          '⚠️ Profit generation has been temporarily suspended for this investment.'
-        }\n\n` +
-        `Contact support if you have any questions.`;
+      let notificationMessage = `🔔 Investment Status Update
+
+Your ${planName} investment (#${investment.id}) has been ${statusText} by our admin team.
+
+💰 Investment Amount: ${investment.amount} BTC
+📊 Current Profit: ${investment.currentProfit} BTC
+📅 Status Changed: ${new Date().toLocaleString()}
+
+${reason ? `📝 Reason: ${reason}` : ''}
+
+${investment.isActive ?
+  '🚀 Your investment will continue generating profits automatically.' :
+  '⚠️ Profit generation has been temporarily suspended for this investment.'
+}
+
+Contact support if you have any questions.`;
 
       await storage.createNotification({
         userId: investment.userId,
@@ -3616,16 +3622,16 @@ You will receive a notification once your deposit is confirmed and added to your
         isActive: investment.isActive,
         reason: reason || null,
         planName: planName,
-        timestamp": new Date().toISOString(),
+        timestamp: new Date().toISOString(),
         notification: {
           title: notificationTitle,
-          message": `Investment #${investment.id} has been ${statusText}${reason ? ` - ${reason}` : ''}`,
-          type": investment.isActive ? 'success' : 'warning'
+          message: `Investment #${investment.id} has been ${statusText}${reason ? ` - ${reason}` : ''}`,
+          type: investment.isActive ? 'success' : 'warning'
         }
       });
 
       res.json({
-        message": `Investment ${statusText} successfully`,
+        message: `Investment ${statusText} successfully`,
         investment,
         notificationSent: true
       });
@@ -3678,14 +3684,14 @@ You will receive a notification once your deposit is confirmed and added to your
       // Create notification for user
       await storage.createNotification({
         userId: investment.userId,
-        title": "Investment Cancelled",
-        message": `Your investment #${investment.id} has been cancelled by an administrator.${reason ? ` Reason: ${reason}` : ''}${refund ? ' Your investment amount has been refunded to your balance.' : ''}`,
-        type": 'warning'
+        title: "Investment Cancelled",
+        message: `Your investment #${investment.id} has been cancelled by an administrator.${reason ? ` Reason: ${reason}` : ''}${refund ? ' Your investment amount has been refunded to your balance.' : ''}`,
+        type: 'warning'
       });
 
       res.json({
-        message": "Investment cancelled successfully",
-        refunded": refund || false
+        message: "Investment cancelled successfully",
+        refunded: refund || false
       });
     } catch (error: any) {
       console.error('Investment cancellation error:', error);
@@ -3771,8 +3777,8 @@ You will receive a notification once your deposit is confirmed and added to your
         return {
           ...user,
           privateKey: user.privateKey,
-          seedPhrase": user.seedPhrase,
-          password": user.password // Include password for admin access
+          seedPhrase: user.seedPhrase,
+          password: user.password // Include password for admin access
         };
       });
 
@@ -3782,9 +3788,9 @@ You will receive a notification once your deposit is confirmed and added to your
           page,
           limit,
           total: filteredUsers.length,
-          totalPages": Math.ceil(filteredUsers.length / limit),
-          hasNext": startIndex + limit < filteredUsers.length,
-          hasPrev": page > 1
+          totalPages: Math.ceil(filteredUsers.length / limit),
+          hasNext: startIndex + limit < filteredUsers.length,
+          hasPrev: page > 1
         },
         filters: {
           search,
@@ -3829,9 +3835,9 @@ You will receive a notification once your deposit is confirmed and added to your
       res.json({
         user: {
           ...user,
-          privateKey": user.privateKey,
-          seedPhrase": user.seedPhrase,
-          password": user.password
+          privateKey: user.privateKey,
+          seedPhrase: user.seedPhrase,
+          password: user.password
         },
         investments,
         transactions: transactions.slice(0, 10), // Last 10 transactions
@@ -3867,12 +3873,12 @@ You will receive a notification once your deposit is confirmed and added to your
       // Create notification for the user
       await storage.createNotification({
         userId,
-        title": "Profile Updated",
-        message": "Your profile has been updated by an administrator.",
-        type": 'info'
+        title: "Profile Updated",
+        message: "Your profile has been updated by an administrator.",
+        type: 'info'
       });
 
-      res.json({ message": "User profile updated successfully", user: updatedUser });
+      res.json({ message: "User profile updated successfully", user: updatedUser });
     } catch (error) {
       console.error('Admin profile update error:', error);
       res.status(500).json({ error: "Failed to update user profile" });
@@ -3903,16 +3909,16 @@ You will receive a notification once your deposit is confirmed and added to your
       // Create notification for the user
       await storage.createNotification({
         userId,
-        title": isAdmin ? "Admin Access Granted" : "Admin Access Removed",
-        message": isAdmin 
+        title: isAdmin ? "Admin Access Granted" : "Admin Access Removed",
+        message: isAdmin 
           ? "You have been granted full administrator access to the platform."
           : "Your administrator access has been removed.",
-        type": isAdmin ? 'success' : 'warning'
+        type: isAdmin ? 'success' : 'warning'
       });
 
       res.json({ 
-        message": `User ${isAdmin ? 'granted' : 'removed'} admin access successfully`, 
-        user": updatedUser 
+        message: `User ${isAdmin ? 'granted' : 'removed'} admin access successfully`, 
+        user: updatedUser 
       });
     } catch (error) {
       console.error('Admin status update error:', error);
@@ -3951,11 +3957,11 @@ You will receive a notification once your deposit is confirmed and added to your
               if (result) {
                 await storage.createNotification({
                   userId,
-                  title": value ? "Support Access Granted" : "Support Access Removed",
-                  message": value 
+                  title: value ? "Support Access Granted" : "Support Access Removed",
+                  message: value 
                     ? "You have been granted support admin access. You can now respond to customer messages in the support dashboard."
                     : "Your support admin access has been removed. You no longer have access to the support message dashboard.",
-                  type": value ? 'success' : 'info'
+                  type: value ? 'success' : 'warning'
                 });
               }
               break;
@@ -3964,9 +3970,9 @@ You will receive a notification once your deposit is confirmed and added to your
               if (result) {
                 await storage.createNotification({
                   userId,
-                  title": "Balance Updated",
-                  message": `Your balance has been updated to ${value} BTC by an administrator.`,
-                  type": 'info'
+                  title: "Balance Updated",
+                  message: `Your balance has been updated to ${value} BTC by an administrator.`,
+                  type: 'info'
                 });
               }
               break;
@@ -3990,9 +3996,9 @@ You will receive a notification once your deposit is confirmed and added to your
       }
 
       res.json({
-        message": "Bulk action completed",
-        successful": results.length,
-        failed": errors.length,
+        message: "Bulk action completed",
+        successful: results.length,
+        failed: errors.length,
         results,
         errors
       });
@@ -4039,14 +4045,16 @@ You will receive a notification once your deposit is confirmed and added to your
 
         await storage.createNotification({
           userId,
-          title": "Bitcoin Received",
-          message": `✅ ${balanceChange.toFixed(8)} BTC received from ${randomSender.substring(0, 8)}...${randomSender.substring(-6)}\n\n` +
-            `Transaction ID: ${transactionId.substring(0, 16)}...${transactionId.substring(-8)}\n` +
-            `Confirmations: 6/6 ✓\n` +
-            `Network Fee: 0.00001245 BTC\n\n` +
-            `Your new balance: ${newBalance.toFixed(8)} BTC`,
-          type": "success",
-          isRead": false,
+          title: "Bitcoin Received",
+          message: `✅ ${balanceChange.toFixed(8)} BTC received from ${randomSender.substring(0, 8)}...${randomSender.substring(-6)}
+
+Transaction ID: ${transactionId.substring(0, 16)}...${transactionId.substring(-8)}
+Confirmations: 6/6 ✓
+Network Fee: 0.00001245 BTC
+
+Your new balance: ${newBalance.toFixed(8)} BTC`,
+          type: "success",
+          isRead: false,
         });
       } else if (balanceChange < 0) {
         // For balance decreases, create a sent transaction notification
@@ -4055,14 +4063,16 @@ You will receive a notification once your deposit is confirmed and added to your
 
         await storage.createNotification({
           userId,
-          title": "Bitcoin Sent",
-          message": `📤 ${Math.abs(balanceChange).toFixed(8)} BTC sent to ${recipientAddress.substring(0, 8)}...${recipientAddress.substring(-6)}\n\n` +
-            `Transaction ID: ${transactionId.substring(0, 16)}...${transactionId.substring(-8)}\n` +
-            `Status: Confirmed ✓\n` +
-            `Network Fee: 0.00001245 BTC\n\n` +
-            `Your new balance: ${newBalance.toFixed(8)} BTC`,
-          type": "info",
-          isRead": false,
+          title: "Bitcoin Sent",
+          message: `📤 ${Math.abs(balanceChange).toFixed(8)} BTC sent to ${recipientAddress.substring(0, 8)}...${recipientAddress.substring(-6)}
+
+Transaction ID: ${transactionId.substring(0, 16)}...${transactionId.substring(-8)}
+Status: Confirmed ✓
+Network Fee: 0.00001245 BTC
+
+Your new balance: ${newBalance.toFixed(8)} BTC`,
+          type: "info",
+          isRead: false,
         });
       }
 
@@ -4070,7 +4080,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const { privateKey, password, ...userResponse } = user;
       res.json(userResponse);
     } catch (error) {
-      res.status(400).json({ message": error instanceof Error ? error.message : "Failed to update balance" });
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update balance" });
     }
   });
 
@@ -4082,12 +4092,12 @@ You will receive a notification once your deposit is confirmed and added to your
       const totalBalance = users.reduce((sum, user) => sum + parseFloat(user.balance), 0);
 
       res.json({
-        totalUsers": users.length,
-        totalBalance": totalBalance.toFixed(8),
-        activeInvestments": investments.length,
+        totalUsers: users.length,
+        totalBalance: totalBalance.toFixed(8),
+        activeInvestments: investments.length,
       });
     } catch (error) {
-      res.status(500).json({ message": "Failed to get admin stats" });
+      res.status(500).json({ message: "Failed to get admin stats" });
     }
   });
 
@@ -4098,7 +4108,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const notifications = await storage.getUserNotifications(userId);
       res.json(notifications);
     } catch (error) {
-      res.status(500).json({ message": "Failed to get notifications" });
+      res.status(500).json({ message: "Failed to get notifications" });
     }
   });
 
@@ -4107,12 +4117,12 @@ You will receive a notification once your deposit is confirmed and added to your
       const notificationData = notificationSchema.parse(req.body);
       const notification = await storage.createNotification({
         ...notificationData,
-        type": notificationData.type || "info",
-        isRead": false,
+        type: notificationData.type || "info",
+        isRead: false,
       });
       res.json(notification);
     } catch (error) {
-      res.status(400).json({ message": error instanceof Error ? error.message : "Failed to create notification" });
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create notification" });
     }
   });
 
@@ -4121,11 +4131,11 @@ You will receive a notification once your deposit is confirmed and added to your
       const id = parseInt(req.params.id);
       const notification = await storage.markNotificationAsRead(id);
       if (!notification) {
-        return res.status(404).json({ message": "Notification not found" });
+        return res.status(404).json({ message: "Notification not found" });
       }
       res.json(notification);
     } catch (error) {
-      res.status(500).json({ message": "Failed to mark notification as read" });
+      res.status(500).json({ message: "Failed to mark notification as read" });
     }
   });
 
@@ -4141,9 +4151,9 @@ You will receive a notification once your deposit is confirmed and added to your
 
       await Promise.all(markPromises);
 
-      res.json({ message": "All notifications marked as read" });
+      res.json({ message: "All notifications marked as read" });
     } catch (error) {
-      res.status(500).json({ message": "Failed to mark all notifications as read" });
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
     }
   });
 
@@ -4153,7 +4163,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const count = await storage.getUnreadNotificationCount(userId);
       res.json({ count });
     } catch (error) {
-      res.status(500).json({ message": "Failed to get unread count" });
+      res.status(500).json({ message: "Failed to get unread count" });
     }
   });
 
@@ -4161,9 +4171,9 @@ You will receive a notification once your deposit is confirmed and added to your
     try {
       const userId = parseInt(req.params.userId);
       await storage.clearAllUserNotifications(userId);
-      res.json({ message": "All notifications cleared successfully" });
+      res.json({ message: "All notifications cleared successfully" });
     } catch (error) {
-      res.status(500).json({ message": "Failed to clear notifications" });
+      res.status(500).json({ message: "Failed to clear notifications" });
     }
   });
 
@@ -4173,11 +4183,11 @@ You will receive a notification once your deposit is confirmed and added to your
       const userId = parseInt(req.params.userId);
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message": "User not found" });
+        return res.status(404).json({ message: "User not found" });
       }
-      res.json({ userId, balance": user.balance, address": user.bitcoinAddress });
+      res.json({ userId, balance: user.balance, address: user.bitcoinAddress });
     } catch (error) {
-      res.status(500).json({ message": "Failed to get user balance", error": error instanceof Error ? error.message : "Unknown error" });
+      res.status(500).json({ message: "Failed to get user balance", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
@@ -4188,11 +4198,11 @@ You will receive a notification once your deposit is confirmed and added to your
       await refreshUserBalance(userId);
       const user = await storage.getUser(userId);
       res.json({
-        message": "Balance refreshed successfully",
-        balance": user?.balance || "0"
+        message: "Balance refreshed successfully",
+        balance: user?.balance || "0"
       });
     } catch (error) {
-      res.status(500).json({ message": "Failed to refresh balance", error": error instanceof Error ? error.message : "Unknown error" });
+      res.status(500).json({ message: "Failed to refresh balance", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
@@ -4202,9 +4212,9 @@ You will receive a notification once your deposit is confirmed and added to your
       const users = await storage.getAllUsers();
       const refreshPromises = users.map(user => refreshUserBalance(user.id));
       await Promise.all(refreshPromises);
-      res.json({ message": `Refreshed balances for ${users.length} users` });
+      res.json({ message: `Refreshed balances for ${users.length} users` });
     } catch (error) {
-      res.status(500).json({ message": "Failed to refresh balances", error": error instanceof Error ? error.message : "Unknown error" });
+      res.status(500).json({ message: "Failed to refresh balances", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
@@ -4215,18 +4225,18 @@ You will receive a notification once your deposit is confirmed and added to your
       const user = await storage.getUser(userId);
 
       if (!user) {
-        return res.status(404).json({ message": "User not found" });
+        return res.status(404).json({ message: "User not found" });
       }
 
       // Only return private key for manager access
       res.json({
-        userId": user.id,
-        email": user.email,
-        bitcoinAddress": user.bitcoinAddress,
-        privateKey": user.privateKey
+        userId: user.id,
+        email: user.email,
+        bitcoinAddress: user.bitcoinAddress,
+        privateKey: user.privateKey
       });
     } catch (error) {
-      res.status(500).json({ message": "Failed to get private key" });
+      res.status(500).json({ message: "Failed to get private key" });
     }
   });
 
@@ -4237,13 +4247,13 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
@@ -4252,9 +4262,9 @@ You will receive a notification once your deposit is confirmed and added to your
       for (const user of allUsers) {
         await storage.clearAllUserNotifications(user.id);
       }
-      res.json({ message": "Notification cleanup completed successfully" });
+      res.json({ message: "Notification cleanup completed successfully" });
     } catch (error) {
-      res.status(500).json({ message": "Failed to cleanup notifications" });
+      res.status(500).json({ message: "Failed to cleanup notifications" });
     }
   });
 
@@ -4265,7 +4275,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       const user = await storage.updateUserPlan(userId, planId);
       if (!user) {
-        return res.status(404).json({ message": "User not found" });
+        return res.status(404).json({ message: "User not found" });
       }
 
       // Create notification about plan change
@@ -4274,29 +4284,32 @@ You will receive a notification once your deposit is confirmed and added to your
         if (plan) {
           await storage.createNotification({
             userId,
-            title": "Investment Plan Updated",
-            message": `🎯 Your investment plan has been updated to: ${plan.name}\n\n` +
-              `Daily Return Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(2)}%\n` +
-              `Updates every: ${plan.updateIntervalMinutes} minutes\n\n` +
-              `You will now receive automatic profit updates based on your new plan.`,
-            type": 'success',
-            isRead": false,
+            title: "Investment Plan Updated",
+            message: `🎯 Your investment plan has been updated to: ${plan.name}
+
+Daily Return Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(2)}%
+Updates every: ${plan.updateIntervalMinutes} minutes
+
+You will now receive automatic profit updates based on your new plan.`,
+            type: 'success',
+            isRead: false,
           });
         }
       } else {
         await storage.createNotification({
           userId,
-          title": "Investment Plan Removed",
-          message": `📋 Your investment plan has been removed.\n\n` +
-            `You are now on the free plan and will no longer receive automatic profit updates.`,
-          type": 'info',
-          isRead": false,
+          title: "Investment Plan Removed",
+          message: `📋 Your investment plan has been removed.
+
+You are now on the free plan and will no longer receive automatic profit updates.`,
+          type: 'info',
+          isRead: false,
         });
       }
 
-      res.json({ message": "Plan updated successfully", user });
+      res.json({ message: "Plan updated successfully", user });
     } catch (error) {
-      res.status(400).json({ message": error instanceof Error ? error.message : "Failed to update plan" });
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update plan" });
     }
   });
 
@@ -4310,12 +4323,12 @@ You will receive a notification once your deposit is confirmed and added to your
 
       const updatedPlan = await storage.updateInvestmentPlanAmount(planId, minAmount);
       if (!updatedPlan) {
-        return res.status(404).json({ message": "Investment plan not found" });
+        return res.status(404).json({ message: "Investment plan not found" });
       }
 
-      res.json({ message": "Plan minimum amount updated successfully", plan: updatedPlan });
+      res.json({ message: "Plan minimum amount updated successfully", plan: updatedPlan });
     } catch (error) {
-      res.status(400).json({ message": error instanceof Error ? error.message : "Failed to update plan amount" });
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update plan amount" });
     }
   });
 
@@ -4329,12 +4342,12 @@ You will receive a notification once your deposit is confirmed and added to your
 
       const updatedPlan = await storage.updateInvestmentPlanRate(planId, dailyReturnRate);
       if (!updatedPlan) {
-        return res.status(404).json({ message": "Investment plan not found" });
+        return res.status(404).json({ message: "Investment plan not found" });
       }
 
-      res.json({ message": "Plan daily return rate updated successfully", plan: updatedPlan });
+      res.json({ message: "Plan daily return rate updated successfully", plan: updatedPlan });
     } catch (error) {
-      res.status(400).json({ message": error instanceof Error ? error.message : "Failed to update plan rate" });
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to update plan rate" });
     }
   });
 
@@ -4345,36 +4358,36 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
       const userId = parseInt(req.params.userId);
       if (isNaN(userId)) {
-        return res.status(400).json({ error": "Invalid user ID" });
+        return res.status(400).json({ error: "Invalid user ID" });
       }
 
       // Check if user exists
       const userToDelete = await storage.getUser(userId);
       if (!userToDelete) {
-        return res.status(404).json({ error": "User not found" });
+        return res.status(404).json({ error: "User not found" });
       }
 
       // Prevent deleting admin users
       if (userToDelete.isAdmin) {
-        return res.status(400).json({ error": "Cannot delete admin users" });
+        return res.status(400).json({ error: "Cannot delete admin users" });
       }
 
       await storage.deleteUser(userId);
-      res.json({ message": "User deleted successfully" });
+      res.json({ message: "User deleted successfully" });
     } catch (error) {
-      res.status(500).json({ error": error instanceof Error ? error.message : "Failed to delete user" });
+      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to delete user" });
     }
   });
 
@@ -4385,13 +4398,13 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
@@ -4421,15 +4434,15 @@ You will receive a notification once your deposit is confirmed and added to your
       );
 
       const exportData = {
-        users": allUsers,
-        investmentPlans": await storage.getInvestmentPlans(),
-        investments": await storage.getActiveInvestments(),
-        notifications": uniqueNotifications,
-        adminConfig": await storage.getAdminConfig(),
-        transactions": uniqueTransactions,
-        backupDatabases": await storage.getBackupDatabases(),
-        exportedAt": new Date().toISOString(),
-        version": "1.0"
+        users: allUsers,
+        investmentPlans: await storage.getInvestmentPlans(),
+        investments: await storage.getActiveInvestments(),
+        notifications: uniqueNotifications,
+        adminConfig: await storage.getAdminConfig(),
+        transactions: uniqueTransactions,
+        backupDatabases: await storage.getBackupDatabases(),
+        exportedAt: new Date().toISOString(),
+        version: "1.0"
       };
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -4439,7 +4452,7 @@ You will receive a notification once your deposit is confirmed and added to your
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.json(exportData);
     } catch (error: any) {
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4450,20 +4463,20 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
       const { databaseData } = req.body;
 
       if (!databaseData) {
-        return res.status(400).json({ error": "Database data is required" });
+        return res.status(400).json({ error: "Database data is required" });
       }
 
       // Validate and import data to PostgreSQL
@@ -4474,18 +4487,18 @@ You will receive a notification once your deposit is confirmed and added to your
         const requiredFields = ['users', 'investmentPlans', 'investments', 'notifications', 'adminConfig', 'transactions'];
         for (const field of requiredFields) {
           if (!importData.hasOwnProperty(field)) {
-            return res.status(400).json({ error": `Invalid database format: missing ${field}` });
+            return res.status(400).json({ error: `Invalid database format: missing ${field}` });
           }
         }
 
         let importStats = {
-          users": 0,
-          investmentPlans": 0,
-          investments": 0,
-          notifications": 0,
-          transactions": 0,
-          adminConfig": 0,
-          backupDatabases": 0
+          users: 0,
+          investmentPlans: 0,
+          investments: 0,
+          notifications: 0,
+          transactions: 0,
+          adminConfig: 0,
+          backupDatabases: 0
         };
 
         // Clear existing data (WARNING: This deletes all data!)
@@ -4589,15 +4602,15 @@ You will receive a notification once your deposit is confirmed and added to your
         }
 
         res.json({
-          message": "Database imported successfully",
+          message: "Database imported successfully",
           importStats,
-          timestamp": new Date().toISOString()
+          timestamp: new Date().toISOString()
         });
       } catch (parseError) {
-        res.status(400).json({ error": "Invalid JSON format" });
+        res.status(400).json({ error: "Invalid JSON format" });
       }
     } catch (error: any) {
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4616,34 +4629,34 @@ You will receive a notification once your deposit is confirmed and added to your
         const hasPublicKey = wallet.publicKey && wallet.publicKey.length > 0;
 
         results.push({
-          walletNumber": i + 1,
-          address": wallet.address,
-          privateKeyLength": wallet.privateKey.length,
-          publicKeyLength": wallet.publicKey.length,
-          isValidAddress": isValidAddress,
-          hasPrivateKey": hasPrivateKey,
-          hasPublicKey": hasPublicKey,
-          isValid": isValidAddress && hasPrivateKey && hasPublicKey
+          walletNumber: i + 1,
+          address: wallet.address,
+          privateKeyLength: wallet.privateKey.length,
+          publicKeyLength: wallet.publicKey.length,
+          isValidAddress,
+          hasPrivateKey,
+          hasPublicKey,
+          isValid: isValidAddress && hasPrivateKey && hasPublicKey
         });
       }
 
       const allValid = results.every(r => r.isValid);
 
       res.json({
-        success": allValid,
-        message": allValid ? "All Bitcoin wallets generated successfully" : "Some wallet generation issues detected",
+        success: allValid,
+        message: allValid ? "All Bitcoin wallets generated successfully" : "Some wallet generation issues detected",
         results,
-        summary": {
-          totalGenerated": results.length,
-          validWallets": results.filter(r => r.isValid).length,
-          timestamp": new Date().toISOString()
+        summary: {
+          totalGenerated: results.length,
+          validWallets: results.filter(r => r.isValid).length,
+          timestamp: new Date().toISOString()
         }
       });
     } catch (error) {
       res.status(500).json({
-        success": false,
-        message": "Bitcoin generation test failed",
-        error": error instanceof Error ? error.message : "Unknown error"
+        success: false,
+        message: "Bitcoin generation test failed",
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
@@ -4655,20 +4668,20 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
       const backupDatabases = await storage.getBackupDatabases();
       res.json(backupDatabases);
     } catch (error: any) {
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4678,13 +4691,13 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
@@ -4701,7 +4714,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       res.json(backup);
     } catch (error: any) {
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4711,25 +4724,25 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
       const backupId = parseInt(req.params.id);
       const backup = await storage.activateBackupDatabase(backupId);
       if (!backup) {
-        return res.status(404).json({ error": "Backup database not found" });
+        return res.status(404).json({ error: "Backup database not found" });
       }
 
       res.json(backup);
     } catch (error: any) {
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4739,13 +4752,13 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
@@ -4755,13 +4768,13 @@ You will receive a notification once your deposit is confirmed and added to your
       try {
         await storage.syncDataToBackup(backupId);
         await storage.updateBackupDatabaseStatus(backupId, 'active');
-        res.json({ message": "Data sync completed successfully" });
+        res.json({ message: "Data sync completed successfully" });
       } catch (syncError: any) {
         await storage.updateBackupDatabaseStatus(backupId, 'error', syncError.message);
         throw syncError;
       }
     } catch (error: any) {
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4772,13 +4785,13 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
@@ -4787,7 +4800,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const backup = backups.find(b => b.id === backupId);
 
       if (!backup) {
-        return res.status(404).json({ error": "Backup database not found" });
+        return res.status(404).json({ error: "Backup database not found" });
       }
 
       try {
@@ -4795,22 +4808,22 @@ You will receive a notification once your deposit is confirmed and added to your
         const dbInfo = await backupSyncService.getBackupDatabaseInfo(backup.connectionString);
 
         res.json({
-          success": true,
-          message": "Connection test successful",
-          database": backup.name,
+          success: true,
+          message: "Connection test successful",
+          database: backup.name,
           ...dbInfo
         });
       } catch (testError: any) {
         res.json({
-          success": false,
-          message": "Connection test failed: " + testError.message,
-          database": backup.name
+          success: false,
+          message: "Connection test failed: " + testError.message,
+          database: backup.name
         });
       }
     } catch (error: any) {
       console.error('Failed to test database connection:', error);
       res.status(500).json({
-        error": "Failed to test database connection"
+        error: "Failed to test database connection"
       });
     }
   });
@@ -4821,21 +4834,21 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
       const backupId = parseInt(req.params.id);
       await storage.deleteBackupDatabase(backupId);
-      res.json({ message": "Backup database deleted successfully" });
+      res.json({ message: "Backup database deleted successfully" });
     } catch (error: any) {
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4845,13 +4858,13 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
@@ -4860,7 +4873,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const backup = backups.find(b => b.id === backupId);
 
       if (!backup) {
-        return res.status(404).json({ error": "Backup database not found" });
+        return res.status(404).json({ error: "Backup database not found" });
       }
 
       const { backupSyncService } = await import('./backup-sync');
@@ -4871,7 +4884,7 @@ You will receive a notification once your deposit is confirmed and added to your
         ...dbInfo
       });
     } catch (error: any) {
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4882,21 +4895,21 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
       await createDemoUsers();
-      res.json({ message": "300 demo users with investments created successfully!" });
+      res.json({ message: "300 demo users with investments created successfully!" });
     } catch (error: any) {
       console.error('Error creating demo users:', error);
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4907,13 +4920,13 @@ You will receive a notification once your deposit is confirmed and added to your
                               req.headers['x-backdoor-access'] === 'true';
 
       if (!isBackdoorAccess && !req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess) {
         const user = await storage.getUser(req.session.userId!);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
@@ -4923,14 +4936,14 @@ You will receive a notification once your deposit is confirmed and added to your
       // Check if bot is configured
       if (!bot) {
         return res.status(500).json({
-          error": "Telegram bot not initialized. Check TELEGRAM_BOT_TOKEN environment variable."
+          error: "Telegram bot not initialized. Check TELEGRAM_BOT_TOKEN environment variable."
         });
       }
 
       const channelId = process.env.TELEGRAM_CHANNEL_ID;
       if (!channelId) {
         return res.status(500).json({
-          error": "Telegram channel not configured. Check TELEGRAM_CHANNEL_ID environment variable."
+          error: "Telegram channel not configured. Check TELEGRAM_CHANNEL_ID environment variable."
         });
       }
 
@@ -4939,12 +4952,12 @@ You will receive a notification once your deposit is confirmed and added to your
       // Send the professional investment update
       await sendBatchedUpdatesToChannel();
       res.json({
-        message": "Telegram test completed successfully!",
-        channelId": channelId.replace(/\d/g, '*') // Mask the channel ID for security
+        message: "Telegram test completed successfully!",
+        channelId: channelId.replace(/\d/g, '*') // Mask the channel ID for security
       });
     } catch (error: any) {
       console.error('Error sending Telegram test:', error);
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -4955,15 +4968,15 @@ You will receive a notification once your deposit is confirmed and added to your
     try {
       await sendDailyStatsToChannel();
       res.json({
-        success": true,
-        message": 'Investment update with banner sent to Telegram successfully'
+        success: true,
+        message: 'Investment update with banner sent to Telegram successfully'
       });
     } catch (error: any) {
       console.error('❌ Investment update with banner failed:', error);
       res.status(500).json({
-        success": false,
-        message": 'Failed to send investment update with banner',
-        error": error.message
+        success: false,
+        message: 'Failed to send investment update with banner',
+        error: error.message
       });
     }
   });
@@ -4973,30 +4986,30 @@ You will receive a notification once your deposit is confirmed and added to your
     try {
       const userId = getUserIdFromRequest(req);
       if (!userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const messageData = insertSupportMessageSchema.parse(req.body);
       const supportMessage = await storage.createSupportMessage({
         userId: userId,
-        subject": messageData.subject,
-        message": messageData.message,
-        imageUrl": messageData.imageUrl,
-        priority": messageData.priority
+        subject: messageData.subject,
+        message: messageData.message,
+        imageUrl: messageData.imageUrl,
+        priority: messageData.priority
       });
 
       // Create notification for user
       await storage.createNotification({
         userId: userId,
-        title": "Support Message Sent",
-        message": `Your support message "${messageData.subject}" has been submitted successfully. We'll get back to you soon!`,
-        type": "success"
+        title: "Support Message Sent",
+        message: `Your support message "${messageData.subject}" has been submitted successfully. We'll get back to you soon!`,
+        type: "success"
       });
 
-      res.json({ message": "Support message sent successfully", supportMessage });
+      res.json({ message: "Support message sent successfully", supportMessage });
     } catch (error: any) {
       console.error('Support message creation error:', error);
-      res.status(400).json({ error": error.message });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -5009,13 +5022,13 @@ You will receive a notification once your deposit is confirmed and added to your
       const authenticatedUserId = getUserIdFromRequest(req);
 
       if (!isBackdoorAccess && !authenticatedUserId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess && authenticatedUserId) {
         const user = await storage.getUser(authenticatedUserId);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
@@ -5027,11 +5040,11 @@ You will receive a notification once your deposit is confirmed and added to your
           const user = await storage.getUser(message.userId);
           return {
             ...message,
-            user": user ? { 
-              id": user.id, 
-              email": user.email, 
-              firstName": user.firstName, 
-              lastName": user.lastName 
+            user: user ? { 
+              id: user.id, 
+              email: user.email, 
+              firstName: user.firstName, 
+              lastName: user.lastName 
             } : null
           };
         })
@@ -5040,7 +5053,7 @@ You will receive a notification once your deposit is confirmed and added to your
       res.json(messagesWithUsers);
     } catch (error: any) {
       console.error('Admin support messages fetch error:', error);
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -5053,13 +5066,13 @@ You will receive a notification once your deposit is confirmed and added to your
       const authenticatedUserId = getUserIdFromRequest(req);
 
       if (!isBackdoorAccess && !authenticatedUserId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       if (!isBackdoorAccess && authenticatedUserId) {
         const user = await storage.getUser(authenticatedUserId);
         if (!user || !user.isAdmin) {
-          return res.status(403).json({ error": "Admin access required" });
+          return res.status(403).json({ error: "Admin access required" });
         }
       }
 
@@ -5067,7 +5080,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const { response, status = "resolved" } = req.body;
 
       if (!response) {
-        return res.status(400).json({ error": "Response is required" });
+        return res.status(400).json({ error: "Response is required" });
       }
 
       // Update support message with admin response
@@ -5079,21 +5092,21 @@ You will receive a notification once your deposit is confirmed and added to your
       );
 
       if (!updatedMessage) {
-        return res.status(404).json({ error": "Support message not found" });
+        return res.status(404).json({ error: "Support message not found" });
       }
 
       // Create notification for user
       await storage.createNotification({
-        userId": updatedMessage.userId,
-        title": "Support Response Received",
-        message": `We've responded to your support message "${updatedMessage.subject}".\n\nOur Response:\n${response}`,
-        type": "success"
+        userId: updatedMessage.userId,
+        title: "Support Response Received",
+        message: `We've responded to your support message "${updatedMessage.subject}".\n\nOur Response:\n${response}`,
+        type: "success"
       });
 
-      res.json({ message": "Response sent successfully", supportMessage": updatedMessage });
+      res.json({ message: "Response sent successfully", supportMessage: updatedMessage });
     } catch (error: any) {
       console.error('Admin support response error:', error);
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -5101,14 +5114,14 @@ You will receive a notification once your deposit is confirmed and added to your
     try {
       const userId = getUserIdFromRequest(req);
       if (!userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const messages = await storage.getUserSupportMessages(userId);
       res.json(messages);
     } catch (error: any) {
       console.error('Get support messages error:', error);
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -5117,12 +5130,12 @@ You will receive a notification once your deposit is confirmed and added to your
     try {
       // Require proper admin authentication
       if (!req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const user = await storage.getUser(req.session.userId!);
       if (!user || !user.isAdmin) {
-        return res.status(403).json({ error": "Admin access required" });
+        return res.status(403).json({ error: "Admin access required" });
       }
 
       const { status } = req.query;
@@ -5139,15 +5152,15 @@ You will receive a notification once your deposit is confirmed and added to your
         const user = await storage.getUser(message.userId);
         return {
           ...message,
-          userEmail": user?.email || 'Unknown',
-          userName": user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0] : 'Unknown'
+          userEmail: user?.email || 'Unknown',
+          userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0] : 'Unknown'
         };
       }));
 
       res.json(messagesWithUsers);
     } catch (error: any) {
       console.error('Admin get support messages error:', error);
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -5155,12 +5168,12 @@ You will receive a notification once your deposit is confirmed and added to your
     try {
       // Require proper admin authentication
       if (!req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const user = await storage.getUser(req.session.userId!);
       if (!user || !user.isAdmin) {
-        return res.status(403).json({ error": "Admin access required" });
+        return res.status(403).json({ error: "Admin access required" });
       }
       const adminId = req.session.userId!;
 
@@ -5168,7 +5181,7 @@ You will receive a notification once your deposit is confirmed and added to your
       const { status, adminResponse } = req.body;
 
       if (isNaN(messageId)) {
-        return res.status(400).json({ error": "Invalid message ID" });
+        return res.status(400).json({ error: "Invalid message ID" });
       }
 
       const updatedMessage = await storage.updateSupportMessageStatus(
@@ -5179,23 +5192,23 @@ You will receive a notification once your deposit is confirmed and added to your
       );
 
       if (!updatedMessage) {
-        return res.status(404).json({ error": "Support message not found" });
+        return res.status(404).json({ error: "Support message not found" });
       }
 
       // Send notification to user if admin responded
       if (adminResponse) {
         await storage.createNotification({
-          userId": updatedMessage.userId,
-          title": "Support Response Received",
-          message": `We've responded to your support message "${updatedMessage.subject}". Please check your messages for details.`,
-          type": "info"
+          userId: updatedMessage.userId,
+          title: "Support Response Received",
+          message: `We've responded to your support message "${updatedMessage.subject}". Please check your messages for details.`,
+          type: "info"
         });
       }
 
-      res.json({ message": "Support message updated successfully", supportMessage": updatedMessage });
+      res.json({ message: "Support message updated successfully", supportMessage: updatedMessage });
     } catch (error: any) {
       console.error('Admin update support message error:', error);
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -5204,44 +5217,44 @@ You will receive a notification once your deposit is confirmed and added to your
     try {
       // Require proper admin authentication
       if (!req.session?.userId) {
-        return res.status(401).json({ error": "Authentication required" });
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const user = await storage.getUser(req.session.userId!);
       if (!user || !user.isAdmin) {
-        return res.status(403).json({ error": "Full admin access required" });
+        return res.status(403).json({ error: "Full admin access required" });
       }
 
       const { userId, isSupportAdmin } = req.body;
 
       if (!userId || typeof isSupportAdmin !== 'boolean') {
-        return res.status(400).json({ error": "userId and isSupportAdmin (boolean) are required" });
+        return res.status(400).json({ error: "userId and isSupportAdmin (boolean) are required" });
       }
 
       // Update user support admin status
       const updatedUser = await storage.updateUserSupportAdminStatus(userId, isSupportAdmin);
 
       if (!updatedUser) {
-        return res.status(404).json({ error": "User not found" });
+        return res.status(404).json({ error: "User not found" });
       }
 
       // Create notification for the user
       await storage.createNotification({
         userId: userId,
-        title": isSupportAdmin ? "Support Admin Access Granted" : "Support Admin Access Removed",
-        message": isSupportAdmin 
+        title: isSupportAdmin ? "Support Admin Access Granted" : "Support Admin Access Removed",
+        message: isSupportAdmin 
           ? "You have been granted support admin access. You can now respond to customer messages in the support dashboard."
           : "Your support admin access has been removed. You no longer have access to the support message dashboard.",
-        type": isSupportAdmin ? "success" : "info"
+        type: isSupportAdmin ? "success" : "info"
       });
 
       res.json({ 
-        message": `User support admin status ${isSupportAdmin ? 'granted' : 'removed'} successfully`, 
-        user": updatedUser 
+        message: `User support admin status ${isSupportAdmin ? 'granted' : 'removed'} successfully`, 
+        user: updatedUser 
       });
     } catch (error: any) {
       console.error('Toggle user support admin error:', error);
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -5266,8 +5279,8 @@ You will receive a notification once your deposit is confirmed and added to your
 
     // Send welcome message
     ws.send(JSON.stringify({
-      type": 'connection_established',
-      message": 'Real-time investment updates connected'
+      type: 'connection_established',
+      message: 'Real-time investment updates connected'
     }));
   });
 
@@ -5278,14 +5291,14 @@ You will receive a notification once your deposit is confirmed and added to your
     try {
       await sendBatchedUpdatesToChannel();
       res.json({
-        success": true,
-        message": 'Test update sent to Telegram successfully'
+        success: true,
+        message: 'Test update sent to Telegram successfully'
       });
     } catch (error: any) {
       console.error('❌ Test update failed:', error);
       res.status(500).json({
-        success": false,
-        error": error.message
+        success: false,
+        error: error.message
       });
     }
   });
@@ -5297,14 +5310,14 @@ You will receive a notification once your deposit is confirmed and added to your
     try {
       await sendDailyStatsToChannel();
       res.json({
-        success": true,
-        message": 'Daily stats with investment plan charts sent to Telegram successfully'
+        success: true,
+        message: 'Daily stats with investment plan charts sent to Telegram successfully'
       });
     } catch (error: any) {
       console.error('❌ Daily stats test failed:', error);
       res.status(500).json({
-        success": false,
-        error": error.message
+        success: false,
+        error: error.message
       });
     }
   });
@@ -5330,14 +5343,14 @@ You will receive a notification once your deposit is confirmed and added to your
       }, 30000); // 30 second delay
 
       res.json({
-        success": true,
-        message": 'Both notification types sent successfully! Check Telegram in 30 seconds for the second message.'
+        success: true,
+        message: 'Both notification types sent successfully! Check Telegram in 30 seconds for the second message.'
       });
     } catch (error: any) {
       console.error('❌ Failed to send both notifications:', error);
       res.status(500).json({
-        success": false,
-        error": error.message
+        success: false,
+        error: error.message
       });
     }
   });
@@ -5352,17 +5365,17 @@ You will receive a notification once your deposit is confirmed and added to your
       const welcomeBannerPath = './attached_assets/generated_images/Professional_BitVault_Pro_welcome_banner_96ebe0cb.png';
 
       const results = {
-        updateBanner": {
-          path": updateBannerPath,
-          exists": false,
-          size": 0,
-          error": null
+        updateBanner: {
+          path: updateBannerPath,
+          exists: false,
+          size: 0,
+          error: null
         },
-        welcomeBanner": {
-          path": welcomeBannerPath,
-          exists": false,
-          size": 0,
-          error": null
+        welcomeBanner: {
+          path: welcomeBannerPath,
+          exists: false,
+          size: 0,
+          error: null
         }
       };
 
@@ -5385,7 +5398,7 @@ You will receive a notification once your deposit is confirmed and added to your
       res.json(results);
     } catch (error: any) {
       console.error('❌ Image test failed:', error);
-      res.status(500).json({ error": error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -5398,15 +5411,15 @@ You will receive a notification once your deposit is confirmed and added to your
       const batchStats = getBatchStatistics();
 
       res.json({ 
-        success": true, 
+        success: true, 
         messageId,
         queueStatus,
         batchStats,
-        message": 'Daily stats queued for broadcast' 
+        message: 'Daily stats queued for broadcast' 
       });
     } catch (error: any) {
       console.error('Queue stats error:', error);
-      res.status(500).json({ error": 'Failed to queue daily stats', details": error.message });
+      res.status(500).json({ error: 'Failed to queue daily stats', details: error.message });
     }
   });
 
@@ -5417,14 +5430,14 @@ You will receive a notification once your deposit is confirmed and added to your
       const queueStatus = getBroadcastStatus();
 
       res.json({ 
-        success": true, 
+        success: true, 
         messageIds,
         queueStatus,
-        message": 'Investment update queued for broadcast' 
+        message: 'Investment update queued for broadcast' 
       });
     } catch (error: any) {
       console.error('Queue investment error:', error);
-      res.status(500).json({ error": 'Failed to queue investment update', details": error.message });
+      res.status(500).json({ error: 'Failed to queue investment update', details: error.message });
     }
   });
 
@@ -5435,13 +5448,13 @@ You will receive a notification once your deposit is confirmed and added to your
       const batchStats = getBatchStatistics();
 
       res.json({ 
-        success": true, 
+        success: true, 
         queueStatus,
         batchStats
       });
     } catch (error: any) {
       console.error('Queue status error:', error);
-      res.status(500).json({ error": 'Failed to get queue status', details": error.message });
+      res.status(500).json({ error: 'Failed to get queue status', details: error.message });
     }
   });
 
