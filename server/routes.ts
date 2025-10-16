@@ -1047,11 +1047,11 @@ Investment #${investment.id} - Active`
     for (const user of allUsers) {
       const currentBalance = parseFloat(user.balance);
 
-      // Only apply general growth if user has no active investments but has a plan
-      const userInvestments = await storage.getUserInvestments(user.id);
-      const hasActiveInvestments = userInvestments.some(inv => inv.isActive);
+      // CRITICAL FIX: Only apply general growth if user has NO active investments at all
+      // Check against the activeInvestments array we already have to avoid duplicate database calls
+      const userHasActiveInvestment = activeInvestments.some(inv => inv.userId === user.id);
 
-      if (user.currentPlanId && !hasActiveInvestments && currentBalance > 0) {
+      if (user.currentPlanId && !userHasActiveInvestment && currentBalance > 0) {
         const plan = await storage.getInvestmentPlan(user.currentPlanId);
         if (!plan || !plan.isActive) continue;
 
