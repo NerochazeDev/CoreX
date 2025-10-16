@@ -681,19 +681,11 @@ async function processAutomaticUpdates(): Promise<void> {
         const totalDurationMs = plan.durationDays * 24 * 60 * 60 * 1000;
         const remainingDurationMs = Math.max(0, totalDurationMs - investmentAgeMs);
         
-        // Calculate exact profit per interval to reach ROI target by end date
-        const intervalsPerDay = 144; // 10-minute intervals
+        // IMPROVED: Calculate exact profit per interval with proper accounting for all variables
+        const intervalsPerDay = 144; // 10-minute intervals (1440 minutes / 10)
         const totalIntervals = plan.durationDays * intervalsPerDay;
         const elapsedIntervals = Math.floor(investmentAgeMs / (10 * 60 * 1000));
         const remainingIntervals = Math.max(0, totalIntervals - elapsedIntervals);
-
-        // CRITICAL FIX: Calculate maximum expected profit based on plan ROI
-        const maxGrossProfit = usdAmount * (plan.roiPercentage / 100);
-        const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
-
-        // CRITICAL FIX: For BTC-only investments, also enforce a maximum profit cap
-        const maxBtcProfit = parseFloat(investment.amount) * (plan.roiPercentage / 100);
-        const currentBtcProfit = parseFloat(investment.currentProfit || '0');
 
         // Check if investment duration has ended
         if (remainingDurationMs <= 0 || remainingIntervals <= 0) {
@@ -704,33 +696,55 @@ async function processAutomaticUpdates(): Promise<void> {
           continue; // Skip to next investment
         }
 
-        // Check if we've already reached the maximum expected profit BEFORE calculating new profit
-        if (isUsdInvestment && currentGrossProfit >= maxGrossProfit) {
-          // Max profit reached - skip this interval
-          if (Math.random() < 0.05) { // Only log occasionally
-            console.log(`Investment #${investment.id} - Max USD profit reached (${currentGrossProfit.toFixed(2)} >= ${maxGrossProfit.toFixed(2)})`);
+        // CRITICAL: Calculate target profits based on plan ROI
+        let targetGrossProfit: number;
+        let currentAccumulatedProfit: number;
+        let remainingProfitNeeded: number;
+
+        if (isUsdInvestment && usdAmount > 0) {
+          // For USD investments: calculate gross profit target
+          targetGrossProfit = usdAmount * (plan.roiPercentage / 100);
+          currentAccumulatedProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
+          
+          // Check if target already reached
+          if (currentAccumulatedProfit >= targetGrossProfit) {
+            if (Math.random() < 0.05) {
+              console.log(`Investment #${investment.id} - Target gross profit reached: ${currentAccumulatedProfit.toFixed(2)} >= ${targetGrossProfit.toFixed(2)}`);
+            }
+            continue;
           }
-          continue; // Skip to next investment without adding profit
+          
+          remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
+        } else {
+          // For BTC investments: calculate BTC profit target
+          const btcInvestment = parseFloat(investment.amount);
+          targetGrossProfit = btcInvestment * (plan.roiPercentage / 100);
+          currentAccumulatedProfit = parseFloat(investment.currentProfit || '0');
+          
+          // Check if target already reached
+          if (currentAccumulatedProfit >= targetGrossProfit) {
+            if (Math.random() < 0.05) {
+              console.log(`Investment #${investment.id} - Target BTC profit reached: ${currentAccumulatedProfit.toFixed(8)} >= ${targetGrossProfit.toFixed(8)}`);
+            }
+            continue;
+          }
+          
+          remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
         }
 
-        // CRITICAL FIX: Also check BTC profit cap for all investments
-        if (currentBtcProfit >= maxBtcProfit) {
-          // Max BTC profit reached - skip this interval
-          if (Math.random() < 0.05) { // Only log occasionally
-            console.log(`Investment #${investment.id} - Max BTC profit reached (${currentBtcProfit.toFixed(8)} >= ${maxBtcProfit.toFixed(8)})`);
-          }
-          continue; // Skip to next investment without adding profit
-        }
-
-        // Calculate profit for this interval - distribute remaining profit evenly over remaining intervals
-        const remainingProfit = isUsdInvestment 
-          ? (maxGrossProfit - currentGrossProfit)
-          : (maxBtcProfit - currentBtcProfit);
-        
-        // Profit per interval = remaining profit / remaining intervals
+        // IMPROVED: Calculate profit per interval with proper distribution
+        // Each interval should add: remaining_profit / remaining_intervals
+        // This ensures we reach exactly the target by the last interval
         const profitThisInterval = remainingIntervals > 0 
-          ? remainingProfit / remainingIntervals 
+          ? remainingProfitNeeded / remainingIntervals 
           : 0;
+
+        if (profitThisInterval <= 0) {
+          if (Math.random() < 0.05) {
+            console.log(`Investment #${investment.id} - No profit to distribute (remaining: ${remainingProfitNeeded.toFixed(8)})`);
+          }
+          continue;
+        }
 
         // Implement 70% success / 30% failure rate for realistic trading simulation
         const tradeSuccessful = Math.random() < 0.7; // 70% success rate
