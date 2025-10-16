@@ -623,8 +623,8 @@ async function getCurrentBitcoinPrice(): Promise<number> {
 // PROFIT CALCULATION EXPLANATION:
 // ================================
 // 1. Each plan has a dailyReturnRate (e.g., 0.0286 = 2.86% per day)
-// 2. This rate is divided by 144 to get the rate per 10-minute interval (144 intervals per day)
-// 3. For each 10-minute interval: profit = investment_amount × interval_rate
+// 2. This rate is divided by 288 to get the rate per 5-minute interval (288 intervals per day)
+// 3. For each 5-minute interval: profit = investment_amount × interval_rate
 // 4. For USD-based plans with performance fees:
 //    - Gross Profit = investment_amount × interval_rate
 //    - Performance Fee = gross_profit × (performanceFeePercentage / 100)
@@ -632,10 +632,10 @@ async function getCurrentBitcoinPrice(): Promise<number> {
 //    - User receives NET PROFIT in their balance
 // 5. Example: $100 plan (20% ROI over 30 days, 10% performance fee)
 //    - Daily rate: 0.67% (20% ÷ 30 days)
-//    - 10-min rate: 0.67% ÷ 144 = 0.00465%
-//    - Gross profit per interval: $100 × 0.00465% = $0.00465
-//    - Performance fee: $0.00465 × 10% = $0.000465
-//    - Net profit to user: $0.00465 - $0.000465 = $0.004185
+//    - 5-min rate: 0.67% ÷ 288 = 0.002326%
+//    - Gross profit per interval: $100 × 0.002326% = $0.002326
+//    - Performance fee: $0.002326 × 10% = $0.0002326
+//    - Net profit to user: $0.002326 - $0.0002326 = $0.0020934
 async function processAutomaticUpdates(): Promise<void> {
   try {
     // Reduced processing logging
@@ -660,91 +660,89 @@ async function processAutomaticUpdates(): Promise<void> {
         continue;
       }
 
-      // Calculate investment growth based on plan's daily return rate
+      // Get plan's daily return rate for display purposes
       const dailyRate = parseFloat(plan.dailyReturnRate);
-      const intervalRate = dailyRate / 144; // 10-minute intervals (144 per day)
-
+      
+      // Calculate investment amounts
       const investmentAmount = parseFloat(investment.amount);
       const currentProfit = parseFloat(investment.currentProfit);
-      const profitIncrease = investmentAmount * intervalRate;
+      
+      // Check if this is a USD-based investment
+      const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
+      const performanceFeePercentage = plan.performanceFeePercentage || 0;
+      const usdAmount = investment.usdAmount ? parseFloat(investment.usdAmount) : 0;
 
-      if (profitIncrease > 0) {
-        // Check if this is a USD-based investment
-        const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
-        const performanceFeePercentage = plan.performanceFeePercentage || 0;
-        const usdAmount = investment.usdAmount ? parseFloat(investment.usdAmount) : 0;
+      // Calculate investment age and remaining duration
+      const investmentStartTime = new Date(investment.startDate).getTime();
+      const currentTime = Date.now();
+      const investmentAgeMs = currentTime - investmentStartTime;
+      const totalDurationMs = plan.durationDays * 24 * 60 * 60 * 1000;
+      const remainingDurationMs = Math.max(0, totalDurationMs - investmentAgeMs);
+      
+      // IMPROVED: Calculate exact profit per interval with proper accounting for all variables
+      const intervalsPerDay = 288; // 5-minute intervals (1440 minutes / 5)
+      const totalIntervals = plan.durationDays * intervalsPerDay;
+      const elapsedIntervals = Math.floor(investmentAgeMs / (5 * 60 * 1000));
+      const remainingIntervals = Math.max(0, totalIntervals - elapsedIntervals);
 
-        // Calculate investment age and remaining duration
-        const investmentStartTime = new Date(investment.startDate).getTime();
-        const currentTime = Date.now();
-        const investmentAgeMs = currentTime - investmentStartTime;
-        const totalDurationMs = plan.durationDays * 24 * 60 * 60 * 1000;
-        const remainingDurationMs = Math.max(0, totalDurationMs - investmentAgeMs);
+      // Check if investment duration has ended
+      if (remainingDurationMs <= 0 || remainingIntervals <= 0) {
+        // Investment has reached its end date
+        if (Math.random() < 0.05) {
+          console.log(`Investment #${investment.id} - Duration completed (${plan.durationDays} days elapsed)`);
+        }
+        continue; // Skip to next investment
+      }
+
+      // CRITICAL: Calculate target profits based on plan ROI
+      let targetGrossProfit: number;
+      let currentAccumulatedProfit: number;
+      let remainingProfitNeeded: number;
+
+      if (isUsdInvestment && usdAmount > 0) {
+        // For USD investments: calculate gross profit target
+        targetGrossProfit = usdAmount * (plan.roiPercentage / 100);
+        currentAccumulatedProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
         
-        // IMPROVED: Calculate exact profit per interval with proper accounting for all variables
-        const intervalsPerDay = 144; // 10-minute intervals (1440 minutes / 10)
-        const totalIntervals = plan.durationDays * intervalsPerDay;
-        const elapsedIntervals = Math.floor(investmentAgeMs / (10 * 60 * 1000));
-        const remainingIntervals = Math.max(0, totalIntervals - elapsedIntervals);
-
-        // Check if investment duration has ended
-        if (remainingDurationMs <= 0 || remainingIntervals <= 0) {
-          // Investment has reached its end date
+        // Check if target already reached
+        if (currentAccumulatedProfit >= targetGrossProfit) {
           if (Math.random() < 0.05) {
-            console.log(`Investment #${investment.id} - Duration completed (${plan.durationDays} days elapsed)`);
-          }
-          continue; // Skip to next investment
-        }
-
-        // CRITICAL: Calculate target profits based on plan ROI
-        let targetGrossProfit: number;
-        let currentAccumulatedProfit: number;
-        let remainingProfitNeeded: number;
-
-        if (isUsdInvestment && usdAmount > 0) {
-          // For USD investments: calculate gross profit target
-          targetGrossProfit = usdAmount * (plan.roiPercentage / 100);
-          currentAccumulatedProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
-          
-          // Check if target already reached
-          if (currentAccumulatedProfit >= targetGrossProfit) {
-            if (Math.random() < 0.05) {
-              console.log(`Investment #${investment.id} - Target gross profit reached: ${currentAccumulatedProfit.toFixed(2)} >= ${targetGrossProfit.toFixed(2)}`);
-            }
-            continue;
-          }
-          
-          remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
-        } else {
-          // For BTC investments: calculate BTC profit target
-          const btcInvestment = parseFloat(investment.amount);
-          targetGrossProfit = btcInvestment * (plan.roiPercentage / 100);
-          currentAccumulatedProfit = parseFloat(investment.currentProfit || '0');
-          
-          // Check if target already reached
-          if (currentAccumulatedProfit >= targetGrossProfit) {
-            if (Math.random() < 0.05) {
-              console.log(`Investment #${investment.id} - Target BTC profit reached: ${currentAccumulatedProfit.toFixed(8)} >= ${targetGrossProfit.toFixed(8)}`);
-            }
-            continue;
-          }
-          
-          remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
-        }
-
-        // IMPROVED: Calculate profit per interval with proper distribution
-        // Each interval should add: remaining_profit / remaining_intervals
-        // This ensures we reach exactly the target by the last interval
-        const profitThisInterval = remainingIntervals > 0 
-          ? remainingProfitNeeded / remainingIntervals 
-          : 0;
-
-        if (profitThisInterval <= 0) {
-          if (Math.random() < 0.05) {
-            console.log(`Investment #${investment.id} - No profit to distribute (remaining: ${remainingProfitNeeded.toFixed(8)})`);
+            console.log(`Investment #${investment.id} - Target gross profit reached: ${currentAccumulatedProfit.toFixed(2)} >= ${targetGrossProfit.toFixed(2)}`);
           }
           continue;
         }
+        
+        remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
+      } else {
+        // For BTC investments: calculate BTC profit target
+        const btcInvestment = parseFloat(investment.amount);
+        targetGrossProfit = btcInvestment * (plan.roiPercentage / 100);
+        currentAccumulatedProfit = parseFloat(investment.currentProfit || '0');
+        
+        // Check if target already reached
+        if (currentAccumulatedProfit >= targetGrossProfit) {
+          if (Math.random() < 0.05) {
+            console.log(`Investment #${investment.id} - Target BTC profit reached: ${currentAccumulatedProfit.toFixed(8)} >= ${targetGrossProfit.toFixed(8)}`);
+          }
+          continue;
+        }
+        
+        remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
+      }
+
+      // IMPROVED: Calculate profit per interval with proper distribution
+      // Each interval should add: remaining_profit / remaining_intervals
+      // This ensures we reach exactly the target by the last interval
+      const profitThisInterval = remainingIntervals > 0 
+        ? remainingProfitNeeded / remainingIntervals 
+        : 0;
+
+      if (profitThisInterval <= 0) {
+        if (Math.random() < 0.05) {
+          console.log(`Investment #${investment.id} - No profit to distribute (remaining: ${remainingProfitNeeded.toFixed(8)})`);
+        }
+        continue;
+      }
 
         // Implement 70% success / 30% failure rate for realistic trading simulation
         const tradeSuccessful = Math.random() < 0.7; // 70% success rate
@@ -858,8 +856,8 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
 
           // IMPORTANT: Cap the profit increase to not exceed targetGrossProfit
           const potentialNewGrossProfit = currentGrossProfit + usdProfitIncrease;
-          if (potentialNewGrossProfit > maxGrossProfit) {
-            usdProfitIncrease = Math.max(0, maxGrossProfit - currentGrossProfit);
+          if (potentialNewGrossProfit > targetGrossProfit) {
+            usdProfitIncrease = Math.max(0, targetGrossProfit - currentGrossProfit);
           }
 
           // If USD profit is 0, skip this investment
@@ -911,7 +909,7 @@ Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
             type: 'investment_update',
             investmentId: investment.id,
             userId: investment.userId,
-            profit: profitIncrease.toFixed(8),
+            profit: profitThisInterval.toFixed(8),
             totalProfit: newProfit.toFixed(8),
             planName: plan.name,
             newBalance: newBalance.toFixed(8),
@@ -992,7 +990,7 @@ Source: ${randomStrategy.source}
 ${randomStrategy.detail}
 
 💵 **PROFIT UPDATE**
-Latest Return: +${profitIncrease.toFixed(8)} BTC
+Latest Return: +${profitThisInterval.toFixed(8)} BTC
 Total Profit: ${newProfit.toFixed(8)} BTC
 Daily Rate: ${(dailyRate * 100).toFixed(3)}%
 APY Target: ${(dailyRate * 365 * 100).toFixed(1)}%
@@ -1013,7 +1011,7 @@ Execution: ${randomStrategy.source}
 
 **TRADE OUTCOME**
 Entry Signal: Confirmed ✓
-Profit Generated: +${profitIncrease.toFixed(8)} BTC
+Profit Generated: +${profitThisInterval.toFixed(8)} BTC
 Cumulative Gains: ${newProfit.toFixed(8)} BTC
 Performance: ${(dailyRate * 100).toFixed(3)}% daily return
 
@@ -1033,7 +1031,7 @@ ${randomStrategy.detail}
 
 Investment #${investment.id} - ${plan.name}
 
-✓ Profit: +${profitIncrease.toFixed(8)} BTC
+✓ Profit: +${profitThisInterval.toFixed(8)} BTC
 ✓ Total: ${newProfit.toFixed(8)} BTC  
 ✓ Balance: ${newBalance.toFixed(8)} BTC
 
@@ -1059,7 +1057,7 @@ Execution: ${randomStrategy.detail}
 PROFIT ALLOCATION
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Latest: +${profitIncrease.toFixed(8)} BTC
+Latest: +${profitThisInterval.toFixed(8)} BTC
 Total: ${newProfit.toFixed(8)} BTC
 Balance: ${newBalance.toFixed(8)} BTC
 
@@ -1102,7 +1100,6 @@ Investment #${investment.id} - Active`
             console.log(`Investment #${investment.id} earned +${actualProfitToCredit.toFixed(8)} BTC for user ${investment.userId} (${remainingIntervals} intervals remaining)`);
           }
         }
-      }
     }
 
     // Note: Automatic investment approval has been removed - admin must manually approve all investments
@@ -1122,7 +1119,7 @@ Investment #${investment.id} - Active`
         if (!plan || !plan.isActive) continue;
 
         const dailyRate = parseFloat(plan.dailyReturnRate);
-        const intervalRate = dailyRate / 144;
+        const intervalRate = dailyRate / 288; // 5-minute intervals (288 per day)
         const increase = currentBalance * intervalRate;
 
         if (increase > 0) {
