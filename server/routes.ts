@@ -836,10 +836,13 @@ async function processAutomaticUpdates(): Promise<void> {
       }
 
       // Trade successful - proceed with profit addition using calculated interval profit
+      // Get current BTC price for USD to BTC conversion
+      const btcPrice = await getCurrentBitcoinPrice();
+      
       // Calculate actual profit to credit (after fees for USD investments)
-      let actualProfitToCredit = profitThisInterval; // This is the profit per interval, potentially in USD or BTC
+      let actualProfitToCreditBTC = profitThisInterval; // This will be the profit in BTC
       let netProfitIncreaseForDisplay = profitThisInterval; // For logging and notifications
-      let newProfit = currentNetProfitBtc; // Default for BTC investments
+      let newProfitUSD = 0; // Track USD profit for USD investments
 
       if (isUsdInvestment && performanceFeePercentage > 0) {
         // USD countdown system with performance fees
@@ -865,31 +868,61 @@ async function processAutomaticUpdates(): Promise<void> {
         const totalPerformanceFee = cappedGrossProfit * (performanceFeePercentage / 100);
         const totalNetProfit = cappedGrossProfit - totalPerformanceFee;
 
-        // Update profit values (NET profit in BTC for user balance)
-        actualProfitToCredit = netProfitIncrease;
-        netProfitIncreaseForDisplay = actualProfitToCredit;
-        newProfit = currentNetProfitBtc + actualProfitToCredit; // Add net profit in BTC
+        // CRITICAL FIX: Convert USD profit to BTC before adding to balance
+        actualProfitToCreditBTC = netProfitIncrease / btcPrice;
+        netProfitIncreaseForDisplay = netProfitIncrease; // Keep USD for display
+        newProfitUSD = totalNetProfit; // Track total USD profit
+        
+        // Calculate cumulative BTC profit (add this interval's BTC profit to existing)
+        const cumulativeBtcProfit = currentNetProfitBtc + actualProfitToCreditBTC;
 
         await storage.updateInvestmentProfitDetails(investment.id, {
-          currentProfit: newProfit.toFixed(8), // NET profit in BTC (after fees)
+          currentProfit: cumulativeBtcProfit.toFixed(8), // Store cumulative BTC profit in currentProfit for balance tracking
           grossProfit: cappedGrossProfit.toFixed(2),
           performanceFee: totalPerformanceFee.toFixed(2),
           netProfit: totalNetProfit.toFixed(2),
         });
+      } else if (isUsdInvestment && !performanceFeePercentage) {
+        // USD investment without fees
+        const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
+        const usdProfitIncrease = profitThisInterval;
+        
+        const newGrossProfit = currentGrossProfit + usdProfitIncrease;
+        const cappedGrossProfit = Math.min(newGrossProfit, targetGrossProfitUsd);
+        const actualIncrease = cappedGrossProfit - currentGrossProfit;
+        
+        if (actualIncrease <= 0) {
+          continue;
+        }
+        
+        // CRITICAL FIX: Convert USD profit to BTC
+        actualProfitToCreditBTC = actualIncrease / btcPrice;
+        netProfitIncreaseForDisplay = actualIncrease;
+        newProfitUSD = cappedGrossProfit;
+        
+        // Calculate cumulative BTC profit
+        const cumulativeBtcProfit = currentNetProfitBtc + actualProfitToCreditBTC;
+        
+        await storage.updateInvestmentProfitDetails(investment.id, {
+          currentProfit: cumulativeBtcProfit.toFixed(8),
+          grossProfit: cappedGrossProfit.toFixed(2),
+          performanceFee: "0",
+          netProfit: cappedGrossProfit.toFixed(2),
+        });
       } else {
-        // BTC investments or USD without fees - use countdown profit
-        actualProfitToCredit = profitThisInterval; // This is the profit per interval, in BTC
+        // BTC investments - use countdown profit
+        actualProfitToCreditBTC = profitThisInterval; // This is already in BTC
         netProfitIncreaseForDisplay = profitThisInterval;
-        newProfit = currentNetProfitBtc + actualProfitToCredit; // Add BTC profit
+        const newProfit = currentNetProfitBtc + actualProfitToCreditBTC;
 
         await storage.updateInvestmentProfit(investment.id, newProfit.toFixed(8));
       }
 
-      // Update user's balance with the ACTUAL profit (after fees for USD investments)
+      // Update user's balance with the ACTUAL profit in BTC (converted from USD if needed)
       const user = await storage.getUser(investment.userId);
       if (user) {
         const currentBalance = parseFloat(user.balance);
-        const newBalance = currentBalance + actualProfitToCredit; // Add credited profit (BTC) to user balance
+        const newBalance = currentBalance + actualProfitToCreditBTC; // Add BTC profit to user balance
         await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
 
         // Create investment growth notifications more frequently and broadcast immediately
