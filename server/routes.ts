@@ -742,9 +742,17 @@ async function processAutomaticUpdates(): Promise<void> {
       // Each interval adds exactly this amount until completion
       const profitThisInterval = profitPer5Min;
 
-      // Log progress every ~20 intervals for monitoring
-      if (Math.random() < 0.05) {
-        console.log(`Investment #${investment.id} - Progress: ${elapsedMinutes}/${totalMinutes} min | Profit: $${currentGrossProfitUsd.toFixed(2)}/$${targetGrossProfitUsd.toFixed(2)} | +$${profitThisInterval.toFixed(4)} this interval`);
+      // DETAILED LOGGING: Show exact profit per 5min calculation
+      if (Math.random() < 0.1) { // 10% chance to log
+        console.log(`💰 Investment #${investment.id} USD Profit Breakdown:`);
+        console.log(`   Plan: ${plan.name}`);
+        console.log(`   USD Amount: $${usdAmount}`);
+        console.log(`   Target Gross Profit: $${targetGrossProfitUsd.toFixed(2)}`);
+        console.log(`   Total Minutes: ${totalMinutes}`);
+        console.log(`   Profit per 5min: $${profitPer5Min.toFixed(6)}`);
+        console.log(`   Performance Fee: ${performanceFeePercentage}%`);
+        console.log(`   Progress: ${elapsedMinutes}/${totalMinutes} min (${(elapsedMinutes/totalMinutes*100).toFixed(1)}%)`);
+        console.log(`   Current Gross: $${currentGrossProfitUsd.toFixed(2)} | Target: $${targetGrossProfitUsd.toFixed(2)}`);
       }
 
       // Simulate trade success/failure
@@ -1465,6 +1473,22 @@ function startAutomaticUpdates(): void {
   console.log('Automatic updates will run every 5 minutes');
   console.log('Telegram updates will be sent daily at 10 AM with detailed charts and banners');
   console.log('Both notification types will be sent together daily at 10 AM');
+  
+  // Display profit generation summary
+  console.log('\n💰 === USD PROFIT GENERATION SUMMARY (Every 5 minutes) ===');
+  console.log('Plan        | Gross/5min | Fee/5min  | Net to User/5min | Daily Net');
+  console.log('------------|------------|-----------|------------------|----------');
+  console.log('$10 Plan    | $0.00049   | $0.000049 | $0.000441        | $0.127');
+  console.log('$20 Plan    | $0.00098   | $0.000098 | $0.000882        | $0.254');
+  console.log('$50 Plan    | $0.000575  | $0.000058 | $0.000518        | $0.149');
+  console.log('$100 Plan   | $0.001167  | $0.000117 | $0.001050        | $0.302');
+  console.log('$300 Plan   | $0.00682   | $0.000682 | $0.006138        | $1.764');
+  console.log('$500 Plan   | $0.00591   | $0.001182 | $0.004728        | $1.361');
+  console.log('$1,000 Plan | $0.01130   | $0.002260 | $0.009040        | $2.60');
+  console.log('$3,000 Plan | $0.03444   | $0.006888 | $0.027552        | $7.93');
+  console.log('$6,000 Plan | $0.06990   | $0.013980 | $0.055920        | $16.10');
+  console.log('$12,000 Plan| $0.13881   | $0.027762 | $0.111048        | $31.98');
+  console.log('============|============|===========|==================|==========\n');
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
