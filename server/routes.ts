@@ -725,7 +725,7 @@ async function processAutomaticUpdates(): Promise<void> {
         }
         continue;
       }
-      
+
       // Calculate remaining profit needed
       let remainingProfitNeeded = 0;
       if (isUsdInvestment) {
@@ -733,7 +733,7 @@ async function processAutomaticUpdates(): Promise<void> {
       } else {
         remainingProfitNeeded = targetGrossProfitUsd - currentNetProfitBtc; // For BTC investments
       }
-      
+
       // Ensure remaining profit is positive
       remainingProfitNeeded = Math.max(0, remainingProfitNeeded);
 
@@ -1005,20 +1005,6 @@ async function processAutomaticUpdates(): Promise<void> {
             message: selectedFormat.message,
             type: 'success',
             isRead: false,
-          });
-
-          // Add to batch for Telegram notifications
-          addInvestmentUpdateToBatch({
-            investmentId: investment.id,
-            userId: investment.userId,
-            userFirstName: user.firstName || undefined,
-            userLastName: user.lastName || undefined,
-            planName: plan.name,
-            profit: actualProfitToCredit.toFixed(8),
-            totalProfit: newProfit.toFixed(8),
-            marketSource: randomStrategy.source,
-            transactionHash: transactionId,
-            timestamp: new Date().toISOString()
           });
         }
 
@@ -1480,7 +1466,7 @@ function startAutomaticUpdates(): void {
   console.log('Automatic updates will run every 5 minutes');
   console.log('Telegram updates will be sent daily at 10 AM with detailed charts and banners');
   console.log('Both notification types will be sent together daily at 10 AM');
-  
+
   // Display profit generation summary
   console.log('\n💰 === USD PROFIT GENERATION SUMMARY (Every 5 minutes) ===');
   console.log('Plan        | Gross/5min | Fee/5min  | Net to User/5min | Daily Net');
@@ -3693,8 +3679,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         notifications: notifications.slice(0, 5) // Last 5 notifications
       });
     } catch (error) {
-      console.error('Admin user details fetch error:', error);
-      res.status(500).json({ error: "Failed to get user details" });
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to get user" });
     }
   });
 
