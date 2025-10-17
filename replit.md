@@ -43,10 +43,13 @@ BitVault Pro is a premium Bitcoin investment platform that provides professional
 - Automatic balance synchronization
 
 ### Investment System
-- Multiple investment plans with varying ROI percentages
-- Automatic profit calculations every 10 minutes
-- Investment progress tracking with real-time updates
-- Transaction-based investment processing
+- **10 USD-based investment plans**: $10, $20, $50, $100, $300, $500, $1,000, $3,000, $6,000, $12,000
+- **Automatic profit distribution**: Every 5 minutes with countdown formula
+- **Performance fees**: 10% for plans under $1,000, 20% for larger plans
+- **Profit calculation**: `profit_per_5min = total_profit_usd / (total_minutes / 5)`
+- **Real-time progress tracking**: Elapsed time, remaining profit, and intervals
+- **Realistic trading simulation**: 70% success rate, 30% unsuccessful intervals
+- **Transaction-based processing**: Admin approval required before activation
 
 ### Backup Database System
 - **Real-time Data Synchronization**: Automatic data replication to backup databases
@@ -106,7 +109,30 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 - `NODE_ENV`: Production environment flag
 - `PORT`: Server port (defaults to 5000)
 
+### Investment Profit Generation (Every 5 Minutes)
+
+| Plan | Gross/5min | Fee/5min | Net to User/5min | Daily Net |
+|------|------------|----------|------------------|-----------|
+| $10 | $0.00049 | $0.000049 | $0.000441 | $0.127 |
+| $20 | $0.00098 | $0.000098 | $0.000882 | $0.254 |
+| $50 | $0.000575 | $0.000058 | $0.000518 | $0.149 |
+| $100 | $0.001167 | $0.000117 | $0.001050 | $0.302 |
+| $300 | $0.00682 | $0.000682 | $0.006138 | $1.764 |
+| $500 | $0.00591 | $0.001182 | $0.004728 | $1.361 |
+| $1,000 | $0.01130 | $0.002260 | $0.009040 | $2.60 |
+| $3,000 | $0.03444 | $0.006888 | $0.027552 | $7.93 |
+| $6,000 | $0.06990 | $0.013980 | $0.055920 | $16.10 |
+| $12,000 | $0.13881 | $0.027762 | $0.111048 | $31.98 |
+
+### Telegram Notifications
+- **Daily broadcasts**: Sent at 10 AM with investment updates
+- **All 10 USD plans displayed**: Complete visibility in every notification format
+- **3 notification formats**: Rotated for variety
+- **Professional banners**: BitVault Pro themed charts and graphics
+- **Real transaction hashes**: Blockchain verification included
+
 ## Changelog
+- January 18, 2025. **Investment Notification System Enhancement** - Fixed Telegram broadcasts to display all 10 USD investment plans instead of only showing top 5-6. Updated all three notification formats to ensure complete plan visibility. Removed markdown formatting artifacts (** symbols) from notifications for cleaner presentation. Verified profit distribution matches USD countdown formula with accurate performance fee deductions.
 - October 16, 2025. **Investment Profit Display Fix & Admin TRC20 Tools** - Fixed critical investment return display bug where UI showed gross profit but users received net profit after performance fees. Backend now correctly stores NET profit in currentProfit field, ensuring UI matches actual user balance. Added admin API endpoint `/api/admin/deposit-sessions` to view all deposit sessions with private keys derived from HD wallet for emergency access. Implemented Telegram notifications for deposit session creation and withdrawal requests, sending detailed alerts to admins via broadcast queue system for real-time monitoring.
 - October 14, 2025. **Enhanced /invest Landing Page with Comprehensive Investment Showcase** - Transformed the landing page into a professional, enterprise-grade investment platform showcase. Added live BTC price ticker, interactive returns calculator with accurate ROI calculations matching backend formulas, comprehensive investment plans display with real backend data integration, risk disclaimer section with proper regulatory compliance statements, security & trust section highlighting bank-level protection, FAQ section with 8 detailed investor questions, and enhanced footer with legal links. All plan amounts correctly use usdMinAmount field when available with fallback to BTC conversion using live prices.
 - October 13, 2025. **Investment Purchase Table Simplified to USD-Only Display** - Updated investment purchase table to show only USD values for easier purchasing decisions. Removed all BTC equivalent displays from plan cards and confirmation dialogs to prevent confusion when Bitcoin price fluctuates. Backend continues to sync USD and BTC amounts automatically. Verified TRC20 deposit and withdrawal flows are fully configured and operational with comprehensive security measures.
