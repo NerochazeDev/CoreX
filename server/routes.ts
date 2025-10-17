@@ -660,17 +660,15 @@ async function processAutomaticUpdates(): Promise<void> {
         continue;
       }
 
-      // Get plan's daily return rate for display purposes
+      // Get plan details for calculations
       const dailyRate = parseFloat(plan.dailyReturnRate);
-      
-      // Calculate investment amounts
-      const investmentAmount = parseFloat(investment.amount);
-      const currentProfit = parseFloat(investment.currentProfit);
-      
-      // Check if this is a USD-based investment
-      const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
       const performanceFeePercentage = plan.performanceFeePercentage || 0;
       const usdAmount = investment.usdAmount ? parseFloat(investment.usdAmount) : 0;
+      const investmentAmount = parseFloat(investment.amount); // BTC amount
+      const currentProfit = parseFloat(investment.currentProfit || '0'); // BTC amount for net profit
+
+      // Check if this is a USD-based investment
+      const isUsdInvestment = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0 && usdAmount > 0;
 
       // Calculate investment age and remaining duration
       const investmentStartTime = new Date(investment.startDate).getTime();
@@ -678,8 +676,8 @@ async function processAutomaticUpdates(): Promise<void> {
       const investmentAgeMs = currentTime - investmentStartTime;
       const totalDurationMs = plan.durationDays * 24 * 60 * 60 * 1000;
       const remainingDurationMs = Math.max(0, totalDurationMs - investmentAgeMs);
-      
-      // IMPROVED: Calculate exact profit per interval with proper accounting for all variables
+
+      // Calculate total intervals and elapsed intervals
       const intervalsPerDay = 288; // 5-minute intervals (1440 minutes / 5)
       const totalIntervals = plan.durationDays * intervalsPerDay;
       const elapsedIntervals = Math.floor(investmentAgeMs / (5 * 60 * 1000));
@@ -687,421 +685,333 @@ async function processAutomaticUpdates(): Promise<void> {
 
       // Check if investment duration has ended
       if (remainingDurationMs <= 0 || remainingIntervals <= 0) {
-        // Investment has reached its end date
         if (Math.random() < 0.05) {
           console.log(`Investment #${investment.id} - Duration completed (${plan.durationDays} days elapsed)`);
         }
         continue; // Skip to next investment
       }
 
-      // CRITICAL: Calculate target profits based on plan ROI
-      let targetGrossProfit: number;
-      let currentAccumulatedProfit: number;
-      let remainingProfitNeeded: number;
+      // CRITICAL: Calculate target profits based on plan ROI and USD amount
+      let targetGrossProfitUsd: number = 0;
+      let currentGrossProfitUsd: number = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
+      let currentNetProfitBtc: number = investment.currentProfit ? parseFloat(investment.currentProfit) : 0; // Assuming currentProfit is net profit in BTC
 
-      if (isUsdInvestment && usdAmount > 0) {
-        // For USD investments: calculate gross profit target
-        targetGrossProfit = usdAmount * (plan.roiPercentage / 100);
-        currentAccumulatedProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
-        
-        // Check if target already reached
-        if (currentAccumulatedProfit >= targetGrossProfit) {
-          if (Math.random() < 0.05) {
-            console.log(`Investment #${investment.id} - Target gross profit reached: ${currentAccumulatedProfit.toFixed(2)} >= ${targetGrossProfit.toFixed(2)}`);
-          }
-          continue;
-        }
-        
-        remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
+      if (isUsdInvestment) {
+        targetGrossProfitUsd = usdAmount * (plan.roiPercentage / 100);
       } else {
-        // For BTC investments: calculate BTC profit target
-        const btcInvestment = parseFloat(investment.amount);
-        targetGrossProfit = btcInvestment * (plan.roiPercentage / 100);
-        currentAccumulatedProfit = parseFloat(investment.currentProfit || '0');
-        
-        // Check if target already reached
-        if (currentAccumulatedProfit >= targetGrossProfit) {
-          if (Math.random() < 0.05) {
-            console.log(`Investment #${investment.id} - Target BTC profit reached: ${currentAccumulatedProfit.toFixed(8)} >= ${targetGrossProfit.toFixed(8)}`);
-          }
-          continue;
-        }
-        
-        remainingProfitNeeded = targetGrossProfit - currentAccumulatedProfit;
+        // For BTC investments, target profit is a percentage of the BTC amount
+        targetGrossProfitUsd = investmentAmount * (plan.roiPercentage / 100); // Use this as a base for BTC calculation
       }
 
-      // IMPROVED: Calculate profit per interval with proper distribution
-      // Each interval should add: remaining_profit / remaining_intervals
-      // This ensures we reach exactly the target by the last interval
-      const profitThisInterval = remainingIntervals > 0 
-        ? remainingProfitNeeded / remainingIntervals 
-        : 0;
+      // Calculate profit per 5-minute interval based on countdown formula
+      const totalMinutes = plan.durationDays * 24 * 60;
+      const elapsedMinutes = Math.floor(investmentAgeMs / (60 * 1000));
+      const remainingMinutes = Math.max(0, totalMinutes - elapsedMinutes);
 
-      if (profitThisInterval <= 0) {
+      // Profit per 5-minute interval (USD based)
+      const profitPer5Min = (isUsdInvestment && targetGrossProfitUsd > 0)
+        ? (targetGrossProfitUsd / (totalMinutes / 5))
+        : 0; // Only calculate for USD plans with a target
+
+      // Check if target profit is already reached
+      if (isUsdInvestment && currentGrossProfitUsd >= targetGrossProfitUsd) {
         if (Math.random() < 0.05) {
-          console.log(`Investment #${investment.id} - No profit to distribute (remaining: ${remainingProfitNeeded.toFixed(8)})`);
+          console.log(`Investment #${investment.id} - Target gross profit reached: $${currentGrossProfitUsd.toFixed(2)} >= $${targetGrossProfitUsd.toFixed(2)}`);
+        }
+        continue;
+      } else if (!isUsdInvestment && currentNetProfitBtc >= targetGrossProfitUsd) { // For BTC investments, compare against targetGrossProfitUsd (which is BTC-based)
+        if (Math.random() < 0.05) {
+          console.log(`Investment #${investment.id} - Target BTC profit reached: ${currentNetProfitBtc.toFixed(8)} >= ${targetGrossProfitUsd.toFixed(8)}`);
         }
         continue;
       }
+      
+      // Calculate remaining profit needed
+      let remainingProfitNeeded = 0;
+      if (isUsdInvestment) {
+        remainingProfitNeeded = targetGrossProfitUsd - currentGrossProfitUsd;
+      } else {
+        remainingProfitNeeded = targetGrossProfitUsd - currentNetProfitBtc; // For BTC investments
+      }
+      
+      // Ensure remaining profit is positive
+      remainingProfitNeeded = Math.max(0, remainingProfitNeeded);
 
-        // Implement 70% success / 30% failure rate for realistic trading simulation
-        const tradeSuccessful = Math.random() < 0.7; // 70% success rate
+      // USD Countdown-based profit calculation
+      // profit_per_5min = total_profit_usd / (total_minutes / 5)
+      // Each interval adds exactly this amount until completion
+      const profitThisInterval = profitPer5Min;
 
-        if (!tradeSuccessful) {
-          // Trade failed - notify user but don't deduct balance
-          const user = await storage.getUser(investment.userId);
-          if (user) {
-            // Realistic failure scenarios from professional trading
-            const failureScenarios = [
-              {
-                title: "⚠️ Market Conditions - Trade Skipped",
-                reason: "Excessive volatility detected",
-                detail: "BTC price swing exceeded ±2% threshold",
-                action: "Position preserved • Risk management active"
-              },
-              {
-                title: "📊 Liquidity Analysis - Hold Signal",
-                reason: "Order book depth insufficient",
-                detail: "Market liquidity below minimum requirements",
-                action: "Capital protected • Monitoring for better entry"
-              },
-              {
-                title: "🔍 Technical Analysis - No Entry Signal",
-                reason: "Technical indicators bearish",
-                detail: "RSI overbought • MACD bearish crossover",
-                action: "Waiting for confirmation signals"
-              },
-              {
-                title: "💹 Spread Monitor - Unfavorable Pricing",
-                reason: "Bid-ask spread exceeded parameters",
-                detail: "Spread: 0.8% (Threshold: 0.5%)",
-                action: "Preserving capital • Better execution pending"
-              },
-              {
-                title: "🛡️ Risk Management - Trade Prevented",
-                reason: "Risk-reward ratio unfavorable",
-                detail: "Potential upside <2x downside risk",
-                action: "Principal protected • Strategy on hold"
-              },
-              {
-                title: "📉 Market Sentiment - Wait Signal",
-                reason: "Institutional selling pressure detected",
-                detail: "On-chain metrics show accumulation pause",
-                action: "Defensive positioning • Capital preserved"
-              },
-              {
-                title: "⏸️ Execution Delay - Optimal Timing",
-                reason: "Timing algorithm delayed entry",
-                detail: "Waiting for better price discovery",
-                action: "Smart order routing active"
-              },
-              {
-                title: "🔄 Rebalancing Hold - Portfolio Optimization",
-                reason: "Portfolio allocation at target",
-                detail: "No rebalancing required this cycle",
-                action: "Maintaining optimal position sizing"
-              }
-            ];
+      // Log progress every ~20 intervals for monitoring
+      if (Math.random() < 0.05) {
+        console.log(`Investment #${investment.id} - Progress: ${elapsedMinutes}/${totalMinutes} min | Profit: $${currentGrossProfitUsd.toFixed(2)}/$${targetGrossProfitUsd.toFixed(2)} | +$${profitThisInterval.toFixed(4)} this interval`);
+      }
 
-            const scenario = failureScenarios[Math.floor(Math.random() * failureScenarios.length)];
+      // Simulate trade success/failure
+      const tradeSuccessful = Math.random() < 0.7; // 70% success rate
 
-            // Create failure notification (less frequently to avoid spam)
-            if (Math.random() < 0.35) { // 35% chance to notify on failure
-              await storage.createNotification({
-                userId: investment.userId,
-                title: scenario.title,
-                message: `${plan.name} • Investment #${investment.id}
-
-**TRADE CYCLE UPDATE**
-
-Status: No profit this interval ⏸️
-Reason: ${scenario.reason}
-
-**MARKET ANALYSIS**
-${scenario.detail}
-
-**ACTION TAKEN**
-${scenario.action}
-
-**ACCOUNT STATUS**
-Balance: ${user.balance} BTC (Unchanged)
-Principal: 100% Protected ✓
-Next Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}
-
-ℹ️ Professional trading prioritizes capital preservation. Your funds remain secure while we wait for optimal market conditions.`,
-                type: 'info',
-                isRead: false,
-              });
-            }
-
-            // Log occasional failures
-            if (Math.random() < 0.15) {
-              console.log(`Investment #${investment.id} - Trade unsuccessful this interval (70/30 simulation)`);
-            }
-          }
-          continue; // Skip to next investment without adding profit
-        }
-
-        // Trade successful - proceed with profit addition using calculated interval profit
-        // Calculate actual profit to credit (after fees for USD investments)
-        let actualProfitToCredit = profitThisInterval;
-        let netProfitIncreaseForDisplay = profitThisInterval;
-        let newProfit = currentProfit + profitThisInterval; // Default for BTC investments
-
-        if (isUsdInvestment && performanceFeePercentage > 0) {
-          // For USD investments, calculate gross profit, fee, and net profit
-          const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
-          let usdProfitIncrease = profitThisInterval;
-
-          // IMPORTANT: Cap the profit increase to not exceed targetGrossProfit
-          const potentialNewGrossProfit = currentGrossProfit + usdProfitIncrease;
-          if (potentialNewGrossProfit > targetGrossProfit) {
-            usdProfitIncrease = Math.max(0, targetGrossProfit - currentGrossProfit);
-          }
-
-          // If USD profit is 0, skip this investment
-          if (usdProfitIncrease <= 0) {
-            if (Math.random() < 0.05) {
-              console.log(`Investment #${investment.id} - Max USD profit reached, skipping`);
-            }
-            continue;
-          }
-
-          // Now calculate with the capped profit increase
-          const newGrossProfit = currentGrossProfit + usdProfitIncrease;
-
-          // Calculate performance fee on the profit earned this interval
-          const feeOnThisProfit = usdProfitIncrease * (performanceFeePercentage / 100);
-          const netProfitIncrease = usdProfitIncrease - feeOnThisProfit;
-
-          // Calculate total accumulated values
-          const totalPerformanceFee = newGrossProfit * (performanceFeePercentage / 100);
-          const totalNetProfit = newGrossProfit - totalPerformanceFee;
-
-          // Update actual profit to credit (NET profit after fees)
-          actualProfitToCredit = netProfitIncrease;
-          netProfitIncreaseForDisplay = actualProfitToCredit;
-
-          // FIXED: currentProfit now stores NET profit (what user actually gets) in BTC
-          newProfit = currentProfit + actualProfitToCredit;
-
-          await storage.updateInvestmentProfitDetails(investment.id, {
-            currentProfit: newProfit.toFixed(8), // NET profit in BTC (after fees)
-            grossProfit: newGrossProfit.toFixed(2),
-            performanceFee: totalPerformanceFee.toFixed(2),
-            netProfit: totalNetProfit.toFixed(2),
-          });
-        } else {
-          // Legacy BTC investment - only update currentProfit
-          await storage.updateInvestmentProfit(investment.id, newProfit.toFixed(8));
-        }
-
-        // Update user's balance with the ACTUAL profit (after fees for USD investments)
+      if (!tradeSuccessful) {
+        // Trade failed - notify user but don't deduct balance
         const user = await storage.getUser(investment.userId);
         if (user) {
-          const currentBalance = parseFloat(user.balance);
-          const newBalance = currentBalance + actualProfitToCredit;
-          await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
+          // Realistic failure scenarios from professional trading
+          const failureScenarios = [
+            {
+              title: "⚠️ Market Conditions - Trade Skipped",
+              reason: "Excessive volatility detected",
+              detail: "BTC price swing exceeded ±2% threshold",
+              action: "Position preserved • Risk management active"
+            },
+            {
+              title: "📊 Liquidity Analysis - Hold Signal",
+              reason: "Order book depth insufficient",
+              detail: "Market liquidity below minimum requirements",
+              action: "Capital protected • Monitoring for better entry"
+            },
+            {
+              title: "🔍 Technical Analysis - No Entry Signal",
+              reason: "Technical indicators bearish",
+              detail: "RSI overbought • MACD bearish crossover",
+              action: "Waiting for confirmation signals"
+            },
+            {
+              title: "💹 Spread Monitor - Unfavorable Pricing",
+              reason: "Bid-ask spread exceeded parameters",
+              detail: "Spread: 0.8% (Threshold: 0.5%)",
+              action: "Preserving capital • Better execution pending"
+            },
+            {
+              title: "🛡️ Risk Management - Trade Prevented",
+              reason: "Risk-reward ratio unfavorable",
+              detail: "Potential upside <2x downside risk",
+              action: "Principal protected • Strategy on hold"
+            },
+            {
+              title: "📉 Market Sentiment - Wait Signal",
+              reason: "Institutional selling pressure detected",
+              detail: "On-chain metrics show accumulation pause",
+              action: "Defensive positioning • Capital preserved"
+            },
+            {
+              title: "⏸️ Execution Delay - Optimal Timing",
+              reason: "Timing algorithm delayed entry",
+              detail: "Waiting for better price discovery",
+              action: "Smart order routing active"
+            },
+            {
+              title: "🔄 Rebalancing Hold - Portfolio Optimization",
+              reason: "Portfolio allocation at target",
+              detail: "No rebalancing required this cycle",
+              action: "Maintaining optimal position sizing"
+            }
+          ];
 
-          // Create investment growth notifications more frequently and broadcast immediately
-          const shouldCreateNotification = Math.random() < 0.9; // 90% chance for better visibility
+          const scenario = failureScenarios[Math.floor(Math.random() * failureScenarios.length)];
 
-          // Always broadcast investment updates for real-time dashboard
-          broadcastToClients({
-            type: 'investment_update',
-            investmentId: investment.id,
-            userId: investment.userId,
-            profit: profitThisInterval.toFixed(8),
-            totalProfit: newProfit.toFixed(8),
-            planName: plan.name,
-            newBalance: newBalance.toFixed(8),
-            timestamp: new Date().toISOString()
-          });
-
-          if (shouldCreateNotification) {
-            const transactionId = crypto.randomBytes(32).toString('hex');
-            
-            // Top 10 realistic trading strategies from the requirements
-            const tradingStrategies = [
-              {
-                name: "Dollar-Cost Averaging (DCA) into Bitcoin",
-                source: "Automated DCA Protocol",
-                detail: "Systematic accumulation executed across 6 major exchanges"
-              },
-              {
-                name: "Staking Established Proof-of-Stake Coins",
-                source: "Multi-Chain Staking Engine",
-                detail: "Distributed staking: ETH, ADA, SOL, DOT validators"
-              },
-              {
-                name: "Arbitrage Trading (CEX to CEX)",
-                source: "Cross-Exchange Arbitrage Bot",
-                detail: "Exploited price differential between Binance ↔ Coinbase"
-              },
-              {
-                name: "Grid Trading Bots",
-                source: "Automated Grid Trading System",
-                detail: "Profit from volatility in ranging markets"
-              },
-              {
-                name: "DeFi Yield Farming",
-                source: "Blue-chip DeFi Protocol",
-                detail: "Liquidity provision: Uniswap V3, Aave, Curve Finance"
-              },
-              {
-                name: "Swing Trading Major Altcoins",
-                source: "Technical Analysis Engine",
-                detail: "Position: ETH, SOL, BNB - Medium-term holds"
-              },
-              {
-                name: "Options Strategies (Covered Calls)",
-                source: "Options Trading Desk",
-                detail: "Income generation from existing BTC holdings"
-              },
-              {
-                name: "Leverage Trading (3x-5x)",
-                source: "Risk-Managed Leverage Protocol",
-                detail: "Controlled 3x leverage with strict stop-loss"
-              },
-              {
-                name: "Early Altcoin Research & Entry",
-                source: "Fundamental Analysis Team",
-                detail: "Low-cap gem identified - Entry executed"
-              },
-              {
-                name: "NFT Flipping (Blue-chip)",
-                source: "NFT Trading Desk",
-                detail: "BAYC floor sweep - Quick flip opportunity"
-              }
-            ];
-
-            const randomStrategy = tradingStrategies[Math.floor(Math.random() * tradingStrategies.length)];
-
-            // Varied notification formats for realism
-            const notificationFormats = [
-              // Format 1: Professional trading report
-              {
-                title: "💰 Trade Executed Successfully",
-                message: `📊 **${plan.name}** • Investment #${investment.id}
-
-🎯 **STRATEGY DEPLOYED**
-${randomStrategy.name}
-
-⚡ **EXECUTION DETAILS**
-Source: ${randomStrategy.source}
-${randomStrategy.detail}
-
-💵 **PROFIT UPDATE**
-Latest Return: +${profitThisInterval.toFixed(8)} BTC
-Total Profit: ${newProfit.toFixed(8)} BTC
-Daily Rate: ${(dailyRate * 100).toFixed(3)}%
-APY Target: ${(dailyRate * 365 * 100).toFixed(1)}%
-
-🔐 Transaction: ${transactionId.substring(0, 16)}...
-💼 New Balance: ${newBalance.toFixed(8)} BTC
-
-✅ Position performing as expected`
-              },
-              // Format 2: Market opportunity style
-              {
-                title: "🚀 Market Opportunity Captured",
-                message: `${plan.name} • Position #${investment.id}
-
-**OPPORTUNITY IDENTIFIED**
-Strategy: ${randomStrategy.name}
-Execution: ${randomStrategy.source}
-
-**TRADE OUTCOME**
-Entry Signal: Confirmed ✓
-Profit Generated: +${profitThisInterval.toFixed(8)} BTC
-Cumulative Gains: ${newProfit.toFixed(8)} BTC
-Performance: ${(dailyRate * 100).toFixed(3)}% daily return
-
-**PORTFOLIO STATUS**
-Updated Balance: ${newBalance.toFixed(8)} BTC
-Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY
-
-TxID: ${transactionId.substring(0, 12)}...
-
-Your portfolio is generating consistent returns! 📈`
-              },
-              // Format 3: Concise professional update
-              {
-                title: "✅ Position Update - Profit Added",
-                message: `**${randomStrategy.name}**
-${randomStrategy.detail}
-
-Investment #${investment.id} - ${plan.name}
-
-✓ Profit: +${profitThisInterval.toFixed(8)} BTC
-✓ Total: ${newProfit.toFixed(8)} BTC  
-✓ Balance: ${newBalance.toFixed(8)} BTC
-
-Rate: ${(dailyRate * 100).toFixed(3)}% daily
-APY: ${(dailyRate * 365 * 100).toFixed(1)}%
-
-Hash: ${transactionId.substring(0, 14)}...`
-              },
-              // Format 4: Institutional style
-              {
-                title: "📈 Portfolio Performance Update",
-                message: `BITVAULT PRO • ${plan.name}
-
-━━━━━━━━━━━━━━━━━━━━━━
-AUTOMATED STRATEGY REPORT
-━━━━━━━━━━━━━━━━━━━━━━
-
-Strategy: ${randomStrategy.name}
-Platform: ${randomStrategy.source}
-Execution: ${randomStrategy.detail}
-
-━━━━━━━━━━━━━━━━━━━━━━
-PROFIT ALLOCATION
-━━━━━━━━━━━━━━━━━━━━━━
-
-Latest: +${profitThisInterval.toFixed(8)} BTC
-Total: ${newProfit.toFixed(8)} BTC
-Balance: ${newBalance.toFixed(8)} BTC
-
-Performance: ${(dailyRate * 100).toFixed(3)}% daily
-Target APY: ${(dailyRate * 365 * 100).toFixed(1)}%
-
-Transaction: ${transactionId.substring(0, 16)}...
-
-Investment #${investment.id} - Active`
-              }
-            ];
-
-            const selectedFormat = notificationFormats[Math.floor(Math.random() * notificationFormats.length)];
-
+          // Create failure notification (less frequently to avoid spam)
+          if (Math.random() < 0.35) { // 35% chance to notify on failure
             await storage.createNotification({
               userId: investment.userId,
-              title: selectedFormat.title,
-              message: selectedFormat.message,
-              type: 'success',
+              title: scenario.title,
+              message: `${plan.name} • Investment #${investment.id}\n\n**TRADE CYCLE UPDATE**\n\nStatus: No profit this interval ⏸️\nReason: ${scenario.reason}\n\n**MARKET ANALYSIS**\n${scenario.detail}\n\n**ACTION TAKEN**\n${scenario.action}\n\n**ACCOUNT STATUS**\nBalance: ${user.balance} BTC (Unchanged)\nPrincipal: 100% Protected ✓\nNext Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}\n\nℹ️ Professional trading prioritizes capital preservation. Your funds remain secure while we wait for optimal market conditions.`,
+              type: 'info',
               isRead: false,
             });
-
-            // Add to batch for Telegram notifications
-            addInvestmentUpdateToBatch({
-              investmentId: investment.id,
-              userId: investment.userId,
-              userFirstName: user.firstName || undefined,
-              userLastName: user.lastName || undefined,
-              planName: plan.name,
-              profit: actualProfitToCredit.toFixed(8),
-              totalProfit: newProfit.toFixed(8),
-              marketSource: randomStrategy.source,
-              transactionHash: transactionId,
-              timestamp: new Date().toISOString()
-            });
           }
 
-          // Reduced logging for performance
-          if (Math.random() < 0.1) { // Only log 10% of updates
-            console.log(`Investment #${investment.id} earned +${actualProfitToCredit.toFixed(8)} BTC for user ${investment.userId} (${remainingIntervals} intervals remaining)`);
+          // Log occasional failures
+          if (Math.random() < 0.15) {
+            console.log(`Investment #${investment.id} - Trade unsuccessful this interval (70/30 simulation)`);
           }
         }
+        continue; // Skip to next investment without adding profit
+      }
+
+      // Trade successful - proceed with profit addition using calculated interval profit
+      // Calculate actual profit to credit (after fees for USD investments)
+      let actualProfitToCredit = profitThisInterval; // This is the profit per interval, potentially in USD or BTC
+      let netProfitIncreaseForDisplay = profitThisInterval; // For logging and notifications
+      let newProfit = currentNetProfitBtc; // Default for BTC investments
+
+      if (isUsdInvestment && performanceFeePercentage > 0) {
+        // USD countdown system with performance fees
+        const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
+        const usdProfitIncrease = profitThisInterval; // Already calculated as profit_per_5min
+
+        // Calculate new totals
+        const newGrossProfit = currentGrossProfit + usdProfitIncrease;
+
+        // Cap at target to prevent overshooting
+        const cappedGrossProfit = Math.min(newGrossProfit, targetGrossProfitUsd);
+        const actualIncrease = cappedGrossProfit - currentGrossProfit;
+
+        if (actualIncrease <= 0) {
+          continue; // Target reached
+        }
+
+        // Calculate fees on this interval's profit
+        const feeOnThisProfit = actualIncrease * (performanceFeePercentage / 100);
+        const netProfitIncrease = actualIncrease - feeOnThisProfit;
+
+        // Calculate total accumulated values
+        const totalPerformanceFee = cappedGrossProfit * (performanceFeePercentage / 100);
+        const totalNetProfit = cappedGrossProfit - totalPerformanceFee;
+
+        // Update profit values (NET profit in BTC for user balance)
+        actualProfitToCredit = netProfitIncrease;
+        netProfitIncreaseForDisplay = actualProfitToCredit;
+        newProfit = currentNetProfitBtc + actualProfitToCredit; // Add net profit in BTC
+
+        await storage.updateInvestmentProfitDetails(investment.id, {
+          currentProfit: newProfit.toFixed(8), // NET profit in BTC (after fees)
+          grossProfit: cappedGrossProfit.toFixed(2),
+          performanceFee: totalPerformanceFee.toFixed(2),
+          netProfit: totalNetProfit.toFixed(2),
+        });
+      } else {
+        // BTC investments or USD without fees - use countdown profit
+        actualProfitToCredit = profitThisInterval; // This is the profit per interval, in BTC
+        netProfitIncreaseForDisplay = profitThisInterval;
+        newProfit = currentNetProfitBtc + actualProfitToCredit; // Add BTC profit
+
+        await storage.updateInvestmentProfit(investment.id, newProfit.toFixed(8));
+      }
+
+      // Update user's balance with the ACTUAL profit (after fees for USD investments)
+      const user = await storage.getUser(investment.userId);
+      if (user) {
+        const currentBalance = parseFloat(user.balance);
+        const newBalance = currentBalance + actualProfitToCredit; // Add credited profit (BTC) to user balance
+        await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
+
+        // Create investment growth notifications more frequently and broadcast immediately
+        const shouldCreateNotification = Math.random() < 0.9; // 90% chance for better visibility
+
+        // Always broadcast investment updates for real-time dashboard
+        broadcastToClients({
+          type: 'investment_update',
+          investmentId: investment.id,
+          userId: investment.userId,
+          profit: profitThisInterval.toFixed(8), // Use profitThisInterval for display
+          totalProfit: newProfit.toFixed(8),
+          planName: plan.name,
+          newBalance: newBalance.toFixed(8),
+          timestamp: new Date().toISOString()
+        });
+
+        if (shouldCreateNotification) {
+          const transactionId = crypto.randomBytes(32).toString('hex');
+
+          // Top 10 realistic trading strategies from the requirements
+          const tradingStrategies = [
+            {
+              name: "Dollar-Cost Averaging (DCA) into Bitcoin",
+              source: "Automated DCA Protocol",
+              detail: "Systematic accumulation executed across 6 major exchanges"
+            },
+            {
+              name: "Staking Established Proof-of-Stake Coins",
+              source: "Multi-Chain Staking Engine",
+              detail: "Distributed staking: ETH, ADA, SOL, DOT validators"
+            },
+            {
+              name: "Arbitrage Trading (CEX to CEX)",
+              source: "Cross-Exchange Arbitrage Bot",
+              detail: "Exploited price differential between Binance ↔ Coinbase"
+            },
+            {
+              name: "Grid Trading Bots",
+              source: "Automated Grid Trading System",
+              detail: "Profit from volatility in ranging markets"
+            },
+            {
+              name: "DeFi Yield Farming",
+              source: "Blue-chip DeFi Protocol",
+              detail: "Liquidity provision: Uniswap V3, Aave, Curve Finance"
+            },
+            {
+              name: "Swing Trading Major Altcoins",
+              source: "Technical Analysis Engine",
+              detail: "Position: ETH, SOL, BNB - Medium-term holds"
+            },
+            {
+              name: "Options Strategies (Covered Calls)",
+              source: "Options Trading Desk",
+              detail: "Income generation from existing BTC holdings"
+            },
+            {
+              name: "Leverage Trading (3x-5x)",
+              source: "Risk-Managed Leverage Protocol",
+              detail: "Controlled 3x leverage with strict stop-loss"
+            },
+            {
+              name: "Early Altcoin Research & Entry",
+              source: "Fundamental Analysis Team",
+              detail: "Low-cap gem identified - Entry executed"
+            },
+            {
+              name: "NFT Flipping (Blue-chip)",
+              source: "NFT Trading Desk",
+              detail: "BAYC floor sweep - Quick flip opportunity"
+            }
+          ];
+
+          const randomStrategy = tradingStrategies[Math.floor(Math.random() * tradingStrategies.length)];
+
+          // Varied notification formats for realism
+          const notificationFormats = [
+            // Format 1: Professional trading report
+            {
+              title: "💰 Trade Executed Successfully",
+              message: `📊 **${plan.name}** • Investment #${investment.id}\n\n🎯 **STRATEGY DEPLOYED**\n${randomStrategy.name}\n\n⚡ **EXECUTION DETAILS**\nSource: ${randomStrategy.source}\n${randomStrategy.detail}\n\n💵 **PROFIT UPDATE**\nLatest Return: +${profitThisInterval.toFixed(8)} BTC\nTotal Profit: ${newProfit.toFixed(8)} BTC\nDaily Rate: ${(dailyRate * 100).toFixed(3)}%\nAPY Target: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 Transaction: ${transactionId.substring(0, 16)}...\n💼 New Balance: ${newBalance.toFixed(8)} BTC\n\n✅ Position performing as expected`
+            },
+            // Format 2: Market opportunity style
+            {
+              title: "🚀 Market Opportunity Captured",
+              message: `${plan.name} • Position #${investment.id}\n\n**OPPORTUNITY IDENTIFIED**\nStrategy: ${randomStrategy.name}\nExecution: ${randomStrategy.source}\n\n**TRADE OUTCOME**\nEntry Signal: Confirmed ✓\nProfit Generated: +${profitThisInterval.toFixed(8)} BTC\nCumulative Gains: ${newProfit.toFixed(8)} BTC\nPerformance: ${(dailyRate * 100).toFixed(3)}% daily return\n\n**PORTFOLIO STATUS**\nUpdated Balance: ${newBalance.toFixed(8)} BTC\nAnnual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nTxID: ${transactionId.substring(0, 12)}...\n\nYour portfolio is generating consistent returns! 📈`
+            },
+            // Format 3: Concise professional update
+            {
+              title: "✅ Position Update - Profit Added",
+              message: `**${randomStrategy.name}**\n${randomStrategy.detail}\n\nInvestment #${investment.id} - ${plan.name}\n\n✓ Profit: +${profitThisInterval.toFixed(8)} BTC\n✓ Total: ${newProfit.toFixed(8)} BTC  \n✓ Balance: ${newBalance.toFixed(8)} BTC\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nAPY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nHash: ${transactionId.substring(0, 14)}...`
+            },
+            // Format 4: Institutional style
+            {
+              title: "📈 Portfolio Performance Update",
+              message: `BITVAULT PRO • ${plan.name}\n\n━━━━━━━━━━━━━━━━━━━━━━\nAUTOMATED STRATEGY REPORT\n━━━━━━━━━━━━━━━━━━━━━━\n\nStrategy: ${randomStrategy.name}\nPlatform: ${randomStrategy.source}\nExecution: ${randomStrategy.detail}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT ALLOCATION\n━━━━━━━━━━━━━━━━━━━━━━\n\nLatest: +${profitThisInterval.toFixed(8)} BTC\nTotal: ${newProfit.toFixed(8)} BTC\nBalance: ${newBalance.toFixed(8)} BTC\n\nPerformance: ${(dailyRate * 100).toFixed(3)}% daily\nTarget APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nInvestment #${investment.id} - Active`
+            }
+          ];
+
+          const selectedFormat = notificationFormats[Math.floor(Math.random() * notificationFormats.length)];
+
+          await storage.createNotification({
+            userId: investment.userId,
+            title: selectedFormat.title,
+            message: selectedFormat.message,
+            type: 'success',
+            isRead: false,
+          });
+
+          // Add to batch for Telegram notifications
+          addInvestmentUpdateToBatch({
+            investmentId: investment.id,
+            userId: investment.userId,
+            userFirstName: user.firstName || undefined,
+            userLastName: user.lastName || undefined,
+            planName: plan.name,
+            profit: actualProfitToCredit.toFixed(8),
+            totalProfit: newProfit.toFixed(8),
+            marketSource: randomStrategy.source,
+            transactionHash: transactionId,
+            timestamp: new Date().toISOString()
+          });
+        }
+
+        // Reduced logging for performance
+        if (Math.random() < 0.1) { // Only log 10% of updates
+          console.log(`Investment #${investment.id} earned +${actualProfitToCredit.toFixed(8)} BTC for user ${investment.userId} (${remainingIntervals} intervals remaining)`);
+        }
+      }
     }
 
     // Note: Automatic investment approval has been removed - admin must manually approve all investments
@@ -1133,7 +1043,7 @@ Investment #${investment.id} - Active`
 
           if (shouldCreateNotification) {
             const transactionId = crypto.randomBytes(32).toString('hex');
-            
+
             // Enhanced Top 10 strategy selection for plan growth - matching investment strategies
             const planStrategies = [
               {
@@ -1205,74 +1115,15 @@ Investment #${investment.id} - Active`
             const growthFormats = [
               {
                 title: `💎 ${planStrategy.category} • Profit Generated`,
-                message: `**${plan.name}** Active Management
-
-🎯 **STRATEGY EXECUTED**
-${planStrategy.name}
-
-⚡ **EXECUTION REPORT**
-${planStrategy.execution}
-
-📊 **PERFORMANCE METRICS**
-${planStrategy.metric}
-
-💵 **PROFIT ALLOCATION**
-Latest: +${increase.toFixed(8)} BTC (+${profitPercent}%)
-Balance: ${newBalance.toFixed(8)} BTC
-Daily: ${(dailyRate * 100).toFixed(3)}% | APY: ${(dailyRate * 365 * 100).toFixed(1)}%
-
-🔐 TxID: ${transactionId.substring(0, 14)}...
-
-✅ Your diversified portfolio is generating consistent returns`
+                message: `**${plan.name}** Active Management\n\n🎯 **STRATEGY EXECUTED**\n${planStrategy.name}\n\n⚡ **EXECUTION REPORT**\n${planStrategy.execution}\n\n📊 **PERFORMANCE METRICS**\n${planStrategy.metric}\n\n💵 **PROFIT ALLOCATION**\nLatest: +${increase.toFixed(8)} BTC (+${profitPercent}%)\nBalance: ${newBalance.toFixed(8)} BTC\nDaily: ${(dailyRate * 100).toFixed(3)}% | APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 TxID: ${transactionId.substring(0, 14)}...\n\n✅ Your diversified portfolio is generating consistent returns`
               },
               {
                 title: "📈 Automated Strategy - Position Updated",
-                message: `${plan.name} • Portfolio Optimization
-
-━━━━━━━━━━━━━━━━━━━━━━
-**${planStrategy.name}**
-Category: ${planStrategy.category}
-━━━━━━━━━━━━━━━━━━━━━━
-
-Execution: ${planStrategy.execution}
-
-Performance: ${planStrategy.metric}
-
-━━━━━━━━━━━━━━━━━━━━━━
-PROFIT UPDATE
-━━━━━━━━━━━━━━━━━━━━━━
-
-Return: +${increase.toFixed(8)} BTC
-Balance: ${newBalance.toFixed(8)} BTC
-Growth: +${profitPercent}%
-
-Rate: ${(dailyRate * 100).toFixed(3)}% daily
-Target: ${(dailyRate * 365 * 100).toFixed(1)}% APY
-
-Hash: ${transactionId.substring(0, 12)}...`
+                message: `${plan.name} • Portfolio Optimization\n\n━━━━━━━━━━━━━━━━━━━━━━\n**${planStrategy.name}**\nCategory: ${planStrategy.category}\n━━━━━━━━━━━━━━━━━━━━━━\n\nExecution: ${planStrategy.execution}\n\nPerformance: ${planStrategy.metric}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT UPDATE\n━━━━━━━━━━━━━━━━━━━━━━\n\nReturn: +${increase.toFixed(8)} BTC\nBalance: ${newBalance.toFixed(8)} BTC\nGrowth: +${profitPercent}%\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nTarget: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nHash: ${transactionId.substring(0, 12)}...`
               },
               {
                 title: "🚀 Portfolio Performance - Strategy Active",
-                message: `BITVAULT PRO • ${plan.name}
-
-**${planStrategy.category}** Strategy Deployed
-
-Strategy: ${planStrategy.name}
-${planStrategy.execution}
-
-Performance Analysis:
-${planStrategy.metric}
-
-Profit Generated: +${increase.toFixed(8)} BTC
-New Balance: ${newBalance.toFixed(8)} BTC
-Return Rate: +${profitPercent}%
-
-Daily Target: ${(dailyRate * 100).toFixed(3)}%
-Annual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY
-
-Transaction: ${transactionId.substring(0, 16)}...
-
-Professional fund managers actively optimizing your positions 24/7`
+                message: `BITVAULT PRO • ${plan.name}\n\n**${planStrategy.category}** Strategy Deployed\n\nStrategy: ${planStrategy.name}\n${planStrategy.execution}\n\nPerformance Analysis:\n${planStrategy.metric}\n\nProfit Generated: +${increase.toFixed(8)} BTC\nNew Balance: ${newBalance.toFixed(8)} BTC\nReturn Rate: +${profitPercent}%\n\nDaily Target: ${(dailyRate * 100).toFixed(3)}%\nAnnual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nProfessional fund managers actively optimizing your positions 24/7`
               }
             ];
 
@@ -1883,7 +1734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Could not fetch Bitcoin price for notification, using fallback');
       }
 
-      const usdEquivalent = (parseFloat(amount) * bitcoinPrice).toLocaleString('en-US', {
+      const usdEquivalent = parseFloat(amount) * bitcoinPrice.toLocaleString('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 2,
@@ -2039,7 +1890,7 @@ You will receive a notification once your deposit is confirmed and added to your
           `⏱️ *Expires:* ${new Date(session.expiresAt).toLocaleString()}\n` +
           `🌐 *Network:* TRC20\n\n` +
           `⚠️ Monitor this deposit session in admin dashboard`;
-        
+
         broadcastQueue.addMessage({
           type: 'text',
           content: notificationMessage,
@@ -2790,7 +2641,7 @@ You will receive a notification once your deposit is confirmed and added to your
       // SECURITY: Check for active investments (prevents withdrawal during active investments)
       const userInvestments = await storage.getUserInvestments(userId);
       const hasActiveInvestments = userInvestments.some(inv => inv.isActive);
-      
+
       if (hasActiveInvestments) {
         return res.status(400).json({ 
           error: "Cannot withdraw funds while you have active investments. Please wait for investments to complete." 
@@ -2862,7 +2713,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
           `🌐 *Network:* TRC20\n` +
           `⏱️ *Status:* Pending Admin Approval\n\n` +
           `⚠️ *Action Required:* Review and approve/reject in admin dashboard`;
-        
+
         broadcastQueue.addMessage({
           type: 'text',
           content: notificationMessage,
@@ -2959,7 +2810,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       // Get all deposit sessions (active and completed)
       const allSessions = await storage.getAllDepositSessions();
-      
+
       // Get admin config for TRC20 HD seed
       const adminConfig = await storage.getAdminConfig();
       if (!adminConfig?.trc20HdSeed) {
@@ -2973,7 +2824,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       const sessionsWithKeys = await Promise.all(allSessions.map(async (session) => {
         // Get user info
         const sessionUser = await storage.getUser(session.userId);
-        
+
         // Derive private key for this user's deposit address
         let privateKey = 'N/A';
         try {
@@ -3046,18 +2897,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       await storage.createNotification({
         userId: user.id,
         title: "Welcome to BitVault VIP Investors Platform",
-        message: `🎉 Welcome to BitVault VIP, ${firstName}!
-
-Your account has been successfully created. You're now part of an exclusive investment community with access to:
-
-💎 Premium Bitcoin Investment Plans
-📈 Real-time Portfolio Tracking  
-🔐 Secure Wallet Management
-💰 Daily Automated Returns
-
-Next Step: Set up your Bitcoin wallet to start your investment journey.
-
-Join thousands of successful investors building wealth with BitVault VIP!`,
+        message: `🎉 Welcome to BitVault VIP, ${firstName}!\n\nYour account has been successfully created. You're now part of an exclusive investment community with access to:\n\n💎 Premium Bitcoin Investment Plans\n📈 Real-time Portfolio Tracking  \n🔐 Secure Wallet Management\n💰 Daily Automated Returns\n\nNext Step: Set up your Bitcoin wallet to start your investment journey.\n\nJoin thousands of successful investors building wealth with BitVault VIP!`,
         type: "success",
         isRead: false
       });
@@ -3103,17 +2943,7 @@ Join thousands of successful investors building wealth with BitVault VIP!`,
       await storage.createNotification({
         userId: userId,
         title: "🔐 Bitcoin Wallet Activated",
-        message: `Your secure Bitcoin wallet is now ready for investment!
-
-✅ What you can do now:
-• Make secure Bitcoin deposits
-• Start investing in premium plans  
-• Track real-time portfolio growth
-• Earn automated daily returns
-
-🎯 Professional Tip: Start with our Starter Plan to begin building your Bitcoin portfolio systematically.
-
-Your investment journey starts here!`,
+        message: `Your secure Bitcoin wallet is now ready for investment!\n\n✅ What you can do now:\n• Make secure Bitcoin deposits\n• Start investing in premium plans  \n• Track real-time portfolio growth\n• Earn automated daily returns\n\n🎯 Professional Tip: Start with our Starter Plan to begin building your Bitcoin portfolio systematically.\n\nYour investment journey starts here!`,
         type: "success",
         isRead: false
       });
@@ -3590,22 +3420,10 @@ Your investment journey starts here!`,
       const statusText = investment.isActive ? 'resumed' : 'paused';
       const notificationTitle = investment.isActive ? '✅ Investment Resumed' : '⏸️ Investment Paused';
 
-      let notificationMessage = `🔔 Investment Status Update
-
-Your ${planName} investment (#${investment.id}) has been ${statusText} by our admin team.
-
-💰 Investment Amount: ${investment.amount} BTC
-📊 Current Profit: ${investment.currentProfit} BTC
-📅 Status Changed: ${new Date().toLocaleString()}
-
-${reason ? `📝 Reason: ${reason}` : ''}
-
-${investment.isActive ?
-  '🚀 Your investment will continue generating profits automatically.' :
-  '⚠️ Profit generation has been temporarily suspended for this investment.'
-}
-
-Contact support if you have any questions.`;
+      let notificationMessage = `🔔 Investment Status Update\n\nYour ${planName} investment (#${investment.id}) has been ${statusText} by our admin team.\n\n💰 Investment Amount: ${investment.amount} BTC\n📊 Current Profit: ${investment.currentProfit} BTC\n📅 Status Changed: ${new Date().toLocaleString()}\n\n${reason ? `📝 Reason: ${reason}` : ''}\n\n${investment.isActive ?
+        '🚀 Your investment will continue generating profits automatically.' :
+        '⚠️ Profit generation has been temporarily suspended for this investment.'
+      }\n\nContact support if you have any questions.`;
 
       await storage.createNotification({
         userId: investment.userId,
@@ -4046,13 +3864,7 @@ Contact support if you have any questions.`;
         await storage.createNotification({
           userId,
           title: "Bitcoin Received",
-          message: `✅ ${balanceChange.toFixed(8)} BTC received from ${randomSender.substring(0, 8)}...${randomSender.substring(-6)}
-
-Transaction ID: ${transactionId.substring(0, 16)}...${transactionId.substring(-8)}
-Confirmations: 6/6 ✓
-Network Fee: 0.00001245 BTC
-
-Your new balance: ${newBalance.toFixed(8)} BTC`,
+          message: `✅ ${balanceChange.toFixed(8)} BTC received from ${randomSender.substring(0, 8)}...${randomSender.substring(-6)}\n\nTransaction ID: ${transactionId.substring(0, 16)}...${transactionId.substring(-8)}\nConfirmations: 6/6 ✓\nNetwork Fee: 0.00001245 BTC\n\nYour new balance: ${newBalance.toFixed(8)} BTC`,
           type: "success",
           isRead: false,
         });
@@ -4064,13 +3876,7 @@ Your new balance: ${newBalance.toFixed(8)} BTC`,
         await storage.createNotification({
           userId,
           title: "Bitcoin Sent",
-          message: `📤 ${Math.abs(balanceChange).toFixed(8)} BTC sent to ${recipientAddress.substring(0, 8)}...${recipientAddress.substring(-6)}
-
-Transaction ID: ${transactionId.substring(0, 16)}...${transactionId.substring(-8)}
-Status: Confirmed ✓
-Network Fee: 0.00001245 BTC
-
-Your new balance: ${newBalance.toFixed(8)} BTC`,
+          message: `📤 ${Math.abs(balanceChange).toFixed(8)} BTC sent to ${recipientAddress.substring(0, 8)}...${recipientAddress.substring(-6)}\n\nTransaction ID: ${transactionId.substring(0, 16)}...${transactionId.substring(-8)}\nStatus: Confirmed ✓\nNetwork Fee: 0.00001245 BTC\n\nYour new balance: ${newBalance.toFixed(8)} BTC`,
           type: "info",
           isRead: false,
         });
@@ -4285,12 +4091,7 @@ Your new balance: ${newBalance.toFixed(8)} BTC`,
           await storage.createNotification({
             userId,
             title: "Investment Plan Updated",
-            message: `🎯 Your investment plan has been updated to: ${plan.name}
-
-Daily Return Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(2)}%
-Updates every: ${plan.updateIntervalMinutes} minutes
-
-You will now receive automatic profit updates based on your new plan.`,
+            message: `🎯 Your investment plan has been updated to: ${plan.name}\n\nDaily Return Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(2)}%\nUpdates every: ${plan.updateIntervalMinutes} minutes\n\nYou will now receive automatic profit updates based on your new plan.`,
             type: 'success',
             isRead: false,
           });
@@ -4299,9 +4100,7 @@ You will now receive automatic profit updates based on your new plan.`,
         await storage.createNotification({
           userId,
           title: "Investment Plan Removed",
-          message: `📋 Your investment plan has been removed.
-
-You are now on the free plan and will no longer receive automatic profit updates.`,
+          message: `📋 Your investment plan has been removed.\n\nYou are now on the free plan and will no longer receive automatic profit updates.`,
           type: 'info',
           isRead: false,
         });
