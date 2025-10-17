@@ -966,27 +966,34 @@ async function processAutomaticUpdates(): Promise<void> {
 
           const randomStrategy = tradingStrategies[Math.floor(Math.random() * tradingStrategies.length)];
 
-          // Varied notification formats for realism
+          // Calculate USD profit values for notifications
+          const grossProfitUsd = isUsdInvestment ? profitPer5Min : 0;
+          const feeUsd = isUsdInvestment && performanceFeePercentage > 0 ? (grossProfitUsd * performanceFeePercentage / 100) : 0;
+          const netProfitUsd = grossProfitUsd - feeUsd;
+          const totalGrossUsd = currentGrossProfitUsd + grossProfitUsd;
+          const totalNetUsd = totalGrossUsd - (totalGrossUsd * performanceFeePercentage / 100);
+
+          // Varied notification formats with accurate USD profit display
           const notificationFormats = [
-            // Format 1: Professional trading report
+            // Format 1: Professional trading report with USD details
             {
               title: "💰 Trade Executed Successfully",
-              message: `📊 **${plan.name}** • Investment #${investment.id}\n\n🎯 **STRATEGY DEPLOYED**\n${randomStrategy.name}\n\n⚡ **EXECUTION DETAILS**\nSource: ${randomStrategy.source}\n${randomStrategy.detail}\n\n💵 **PROFIT UPDATE**\nLatest Return: +${profitThisInterval.toFixed(8)} BTC\nTotal Profit: ${newProfit.toFixed(8)} BTC\nDaily Rate: ${(dailyRate * 100).toFixed(3)}%\nAPY Target: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 Transaction: ${transactionId.substring(0, 16)}...\n💼 New Balance: ${newBalance.toFixed(8)} BTC\n\n✅ Position performing as expected`
+              message: `📊 **${plan.name}** • Investment #${investment.id}\n\n🎯 **STRATEGY DEPLOYED**\n${randomStrategy.name}\n\n⚡ **EXECUTION DETAILS**\nSource: ${randomStrategy.source}\n${randomStrategy.detail}\n\n💵 **PROFIT UPDATE (USD)**\n${isUsdInvestment ? `Gross Profit: +$${grossProfitUsd.toFixed(2)}\nPerformance Fee (${performanceFeePercentage}%): -$${feeUsd.toFixed(2)}\nNet Profit to You: +$${netProfitUsd.toFixed(2)}\n\nCumulative Progress:\nTotal Gross: $${totalGrossUsd.toFixed(2)} / $${targetGrossProfitUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nRemaining: $${(targetGrossProfitUsd - totalGrossUsd).toFixed(2)}` : `Latest Return: +${actualProfitToCredit.toFixed(8)} BTC\nTotal Profit: ${newProfit.toFixed(8)} BTC`}\n\nDaily Rate: ${(dailyRate * 100).toFixed(3)}%\nAPY Target: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 Transaction: ${transactionId.substring(0, 16)}...\n💼 Balance: ${newBalance.toFixed(8)} BTC\n\n✅ Position performing as expected`
             },
-            // Format 2: Market opportunity style
+            // Format 2: Market opportunity style with countdown progress
             {
               title: "🚀 Market Opportunity Captured",
-              message: `${plan.name} • Position #${investment.id}\n\n**OPPORTUNITY IDENTIFIED**\nStrategy: ${randomStrategy.name}\nExecution: ${randomStrategy.source}\n\n**TRADE OUTCOME**\nEntry Signal: Confirmed ✓\nProfit Generated: +${profitThisInterval.toFixed(8)} BTC\nCumulative Gains: ${newProfit.toFixed(8)} BTC\nPerformance: ${(dailyRate * 100).toFixed(3)}% daily return\n\n**PORTFOLIO STATUS**\nUpdated Balance: ${newBalance.toFixed(8)} BTC\nAnnual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nTxID: ${transactionId.substring(0, 12)}...\n\nYour portfolio is generating consistent returns! 📈`
+              message: `${plan.name} • Position #${investment.id}\n\n**OPPORTUNITY IDENTIFIED**\nStrategy: ${randomStrategy.name}\nExecution: ${randomStrategy.source}\n\n**TRADE OUTCOME**\nEntry Signal: Confirmed ✓\n${isUsdInvestment ? `\n💰 **5-MIN PROFIT BREAKDOWN**\nGross: +$${grossProfitUsd.toFixed(2)}\nFee: -$${feeUsd.toFixed(2)} (${performanceFeePercentage}%)\nNet: +$${netProfitUsd.toFixed(2)}\n\n📊 **COUNTDOWN STATUS**\nProgress: ${elapsedMinutes}/${totalMinutes} min (${(elapsedMinutes/totalMinutes*100).toFixed(1)}%)\nRemaining: ${remainingMinutes} minutes` : `Profit: +${actualProfitToCredit.toFixed(8)} BTC\nTotal: ${newProfit.toFixed(8)} BTC`}\n\n**PORTFOLIO STATUS**\nBalance: ${newBalance.toFixed(8)} BTC\nAPY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTxID: ${transactionId.substring(0, 12)}...\n\n📈 Systematic profit distribution active!`
             },
-            // Format 3: Concise professional update
+            // Format 3: Concise professional update with exact calculations
             {
               title: "✅ Position Update - Profit Added",
-              message: `**${randomStrategy.name}**\n${randomStrategy.detail}\n\nInvestment #${investment.id} - ${plan.name}\n\n✓ Profit: +${profitThisInterval.toFixed(8)} BTC\n✓ Total: ${newProfit.toFixed(8)} BTC  \n✓ Balance: ${newBalance.toFixed(8)} BTC\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nAPY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nHash: ${transactionId.substring(0, 14)}...`
+              message: `**${randomStrategy.name}**\n${randomStrategy.detail}\n\nInvestment #${investment.id} - ${plan.name}\n\n${isUsdInvestment ? `💵 **THIS INTERVAL**\nGross: +$${grossProfitUsd.toFixed(6)}\nFee (${performanceFeePercentage}%): -$${feeUsd.toFixed(6)}\nNet: +$${netProfitUsd.toFixed(6)}\n\n📈 **CUMULATIVE**\nTotal Gross: $${totalGrossUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nTarget: $${targetGrossProfitUsd.toFixed(2)}` : `✓ Profit: +${actualProfitToCredit.toFixed(8)} BTC\n✓ Total: ${newProfit.toFixed(8)} BTC`}\n✓ Balance: ${newBalance.toFixed(8)} BTC\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nHash: ${transactionId.substring(0, 14)}...`
             },
-            // Format 4: Institutional style
+            // Format 4: Institutional style with complete breakdown
             {
               title: "📈 Portfolio Performance Update",
-              message: `BITVAULT PRO • ${plan.name}\n\n━━━━━━━━━━━━━━━━━━━━━━\nAUTOMATED STRATEGY REPORT\n━━━━━━━━━━━━━━━━━━━━━━\n\nStrategy: ${randomStrategy.name}\nPlatform: ${randomStrategy.source}\nExecution: ${randomStrategy.detail}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT ALLOCATION\n━━━━━━━━━━━━━━━━━━━━━━\n\nLatest: +${profitThisInterval.toFixed(8)} BTC\nTotal: ${newProfit.toFixed(8)} BTC\nBalance: ${newBalance.toFixed(8)} BTC\n\nPerformance: ${(dailyRate * 100).toFixed(3)}% daily\nTarget APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nInvestment #${investment.id} - Active`
+              message: `BITVAULT PRO • ${plan.name}\n\n━━━━━━━━━━━━━━━━━━━━━━\nAUTOMATED STRATEGY REPORT\n━━━━━━━━━━━━━━━━━━━━━━\n\nStrategy: ${randomStrategy.name}\nPlatform: ${randomStrategy.source}\nExecution: ${randomStrategy.detail}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT ALLOCATION\n━━━━━━━━━━━━━━━━━━━━━━\n\n${isUsdInvestment ? `**USD COUNTDOWN SYSTEM**\nInterval Gross: +$${grossProfitUsd.toFixed(6)}\nPerformance Fee: -$${feeUsd.toFixed(6)}\nNet to Account: +$${netProfitUsd.toFixed(6)}\n\n**PROGRESS TRACKER**\nElapsed: ${elapsedMinutes} min\nRemaining: ${remainingMinutes} min\nCompletion: ${(elapsedMinutes/totalMinutes*100).toFixed(1)}%\n\n**PROFIT STATUS**\nGross Earned: $${totalGrossUsd.toFixed(2)}\nNet Earned: $${totalNetUsd.toFixed(2)}\nTarget Gross: $${targetGrossProfitUsd.toFixed(2)}` : `Latest: +${actualProfitToCredit.toFixed(8)} BTC\nTotal: ${newProfit.toFixed(8)} BTC`}\nBalance: ${newBalance.toFixed(8)} BTC\n\nPerformance: ${(dailyRate * 100).toFixed(3)}% daily\nTarget APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nInvestment #${investment.id} - Active`
             }
           ];
 
