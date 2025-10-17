@@ -924,6 +924,9 @@ async function processAutomaticUpdates(): Promise<void> {
         const currentBalance = parseFloat(user.balance);
         const newBalance = currentBalance + actualProfitToCreditBTC; // Add BTC profit to user balance
         await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
+        
+        // Calculate total profit in BTC for all investment types
+        const totalProfitBTC = currentNetProfitBtc + actualProfitToCreditBTC;
 
         // Create investment growth notifications more frequently and broadcast immediately
         const shouldCreateNotification = Math.random() < 0.9; // 90% chance for better visibility
@@ -934,7 +937,7 @@ async function processAutomaticUpdates(): Promise<void> {
           investmentId: investment.id,
           userId: investment.userId,
           profit: profitThisInterval.toFixed(8), // Use profitThisInterval for display
-          totalProfit: newProfit.toFixed(8),
+          totalProfit: totalProfitBTC.toFixed(8),
           planName: plan.name,
           newBalance: newBalance.toFixed(8),
           timestamp: new Date().toISOString()
@@ -1011,22 +1014,22 @@ async function processAutomaticUpdates(): Promise<void> {
             // Format 1: Professional trading report with USD details
             {
               title: "💰 Trade Executed Successfully",
-              message: `📊 ${plan.name} • Investment #${investment.id}\n\n🎯 STRATEGY DEPLOYED\n${randomStrategy.name}\n\n⚡ EXECUTION DETAILS\nSource: ${randomStrategy.source}\n${randomStrategy.detail}\n\n💵 PROFIT UPDATE (USD)\n${isUsdInvestment ? `Gross Profit: +$${grossProfitUsd.toFixed(2)}\nPerformance Fee (${performanceFeePercentage}%): -$${feeUsd.toFixed(2)}\nNet Profit to You: +$${netProfitUsd.toFixed(2)}\n\nCumulative Progress:\nTotal Gross: $${totalGrossUsd.toFixed(2)} / $${targetGrossProfitUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nRemaining: $${(targetGrossProfitUsd - totalGrossUsd).toFixed(2)}` : `Latest Return: +${actualProfitToCredit.toFixed(8)} BTC\nTotal Profit: ${newProfit.toFixed(8)} BTC`}\n\nDaily Rate: ${(dailyRate * 100).toFixed(3)}%\nAPY Target: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 Transaction: ${transactionId.substring(0, 16)}...\n💼 Balance: ${newBalance.toFixed(8)} BTC\n\n✅ Position performing as expected`
+              message: `📊 ${plan.name} • Investment #${investment.id}\n\n🎯 STRATEGY DEPLOYED\n${randomStrategy.name}\n\n⚡ EXECUTION DETAILS\nSource: ${randomStrategy.source}\n${randomStrategy.detail}\n\n💵 PROFIT UPDATE (USD)\n${isUsdInvestment ? `Gross Profit: +$${grossProfitUsd.toFixed(2)}\nPerformance Fee (${performanceFeePercentage}%): -$${feeUsd.toFixed(2)}\nNet Profit to You: +$${netProfitUsd.toFixed(2)}\n\nCumulative Progress:\nTotal Gross: $${totalGrossUsd.toFixed(2)} / $${targetGrossProfitUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nRemaining: $${(targetGrossProfitUsd - totalGrossUsd).toFixed(2)}` : `Latest Return: +${actualProfitToCreditBTC.toFixed(8)} BTC\nTotal Profit: ${totalProfitBTC.toFixed(8)} BTC`}\n\nDaily Rate: ${(dailyRate * 100).toFixed(3)}%\nAPY Target: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 Transaction: ${transactionId.substring(0, 16)}...\n💼 Balance: ${newBalance.toFixed(8)} BTC\n\n✅ Position performing as expected`
             },
             // Format 2: Market opportunity style with countdown progress
             {
               title: "🚀 Market Opportunity Captured",
-              message: `${plan.name} • Position #${investment.id}\n\nOPPORTUNITY IDENTIFIED\nStrategy: ${randomStrategy.name}\nExecution: ${randomStrategy.source}\n\nTRADE OUTCOME\nEntry Signal: Confirmed ✓\n${isUsdInvestment ? `\n💰 5-MIN PROFIT BREAKDOWN\nGross: +$${grossProfitUsd.toFixed(2)}\nFee: -$${feeUsd.toFixed(2)} (${performanceFeePercentage}%)\nNet: +$${netProfitUsd.toFixed(2)}\n\n📊 COUNTDOWN STATUS\nProgress: ${elapsedMinutes}/${totalMinutes} min (${(elapsedMinutes/totalMinutes*100).toFixed(1)}%)\nRemaining: ${remainingMinutes} minutes` : `Profit: +${actualProfitToCredit.toFixed(8)} BTC\nTotal: ${newProfit.toFixed(8)} BTC`}\n\nPORTFOLIO STATUS\nBalance: ${newBalance.toFixed(8)} BTC\nAPY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTxID: ${transactionId.substring(0, 12)}...\n\n📈 Systematic profit distribution active!`
+              message: `${plan.name} • Position #${investment.id}\n\nOPPORTUNITY IDENTIFIED\nStrategy: ${randomStrategy.name}\nExecution: ${randomStrategy.source}\n\nTRADE OUTCOME\nEntry Signal: Confirmed ✓\n${isUsdInvestment ? `\n💰 5-MIN PROFIT BREAKDOWN\nGross: +$${grossProfitUsd.toFixed(2)}\nFee: -$${feeUsd.toFixed(2)} (${performanceFeePercentage}%)\nNet: +$${netProfitUsd.toFixed(2)}\n\n📊 COUNTDOWN STATUS\nProgress: ${elapsedMinutes}/${totalMinutes} min (${(elapsedMinutes/totalMinutes*100).toFixed(1)}%)\nRemaining: ${remainingMinutes} minutes` : `Profit: +${actualProfitToCreditBTC.toFixed(8)} BTC\nTotal: ${totalProfitBTC.toFixed(8)} BTC`}\n\nPORTFOLIO STATUS\nBalance: ${newBalance.toFixed(8)} BTC\nAPY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTxID: ${transactionId.substring(0, 12)}...\n\n📈 Systematic profit distribution active!`
             },
             // Format 3: Concise professional update with exact calculations
             {
               title: "✅ Position Update - Profit Added",
-              message: `${randomStrategy.name}\n${randomStrategy.detail}\n\nInvestment #${investment.id} - ${plan.name}\n\n${isUsdInvestment ? `💵 THIS INTERVAL\nGross: +$${grossProfitUsd.toFixed(6)}\nFee (${performanceFeePercentage}%): -$${feeUsd.toFixed(6)}\nNet: +$${netProfitUsd.toFixed(6)}\n\n📈 CUMULATIVE\nTotal Gross: $${totalGrossUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nTarget: $${targetGrossProfitUsd.toFixed(2)}` : `✓ Profit: +${actualProfitToCredit.toFixed(8)} BTC\n✓ Total: ${newProfit.toFixed(8)} BTC`}\n✓ Balance: ${newBalance.toFixed(8)} BTC\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nHash: ${transactionId.substring(0, 14)}...`
+              message: `${randomStrategy.name}\n${randomStrategy.detail}\n\nInvestment #${investment.id} - ${plan.name}\n\n${isUsdInvestment ? `💵 THIS INTERVAL\nGross: +$${grossProfitUsd.toFixed(6)}\nFee (${performanceFeePercentage}%): -$${feeUsd.toFixed(6)}\nNet: +$${netProfitUsd.toFixed(6)}\n\n📈 CUMULATIVE\nTotal Gross: $${totalGrossUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nTarget: $${targetGrossProfitUsd.toFixed(2)}` : `✓ Profit: +${actualProfitToCreditBTC.toFixed(8)} BTC\n✓ Total: ${totalProfitBTC.toFixed(8)} BTC`}\n✓ Balance: ${newBalance.toFixed(8)} BTC\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nHash: ${transactionId.substring(0, 14)}...`
             },
             // Format 4: Institutional style with complete breakdown
             {
               title: "📈 Portfolio Performance Update",
-              message: `BITVAULT PRO • ${plan.name}\n\n━━━━━━━━━━━━━━━━━━━━━━\nAUTOMATED STRATEGY REPORT\n━━━━━━━━━━━━━━━━━━━━━━\n\nStrategy: ${randomStrategy.name}\nPlatform: ${randomStrategy.source}\nExecution: ${randomStrategy.detail}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT ALLOCATION\n━━━━━━━━━━━━━━━━━━━━━━\n\n${isUsdInvestment ? `USD COUNTDOWN SYSTEM\nInterval Gross: +$${grossProfitUsd.toFixed(6)}\nPerformance Fee: -$${feeUsd.toFixed(6)}\nNet to Account: +$${netProfitUsd.toFixed(6)}\n\nPROGRESS TRACKER\nElapsed: ${elapsedMinutes} min\nRemaining: ${remainingMinutes} min\nCompletion: ${(elapsedMinutes/totalMinutes*100).toFixed(1)}%\n\nPROFIT STATUS\nGross Earned: $${totalGrossUsd.toFixed(2)}\nNet Earned: $${totalNetUsd.toFixed(2)}\nTarget Gross: $${targetGrossProfitUsd.toFixed(2)}` : `Latest: +${actualProfitToCredit.toFixed(8)} BTC\nTotal: ${newProfit.toFixed(8)} BTC`}\nBalance: ${newBalance.toFixed(8)} BTC\n\nPerformance: ${(dailyRate * 100).toFixed(3)}% daily\nTarget APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nInvestment #${investment.id} - Active`
+              message: `BITVAULT PRO • ${plan.name}\n\n━━━━━━━━━━━━━━━━━━━━━━\nAUTOMATED STRATEGY REPORT\n━━━━━━━━━━━━━━━━━━━━━━\n\nStrategy: ${randomStrategy.name}\nPlatform: ${randomStrategy.source}\nExecution: ${randomStrategy.detail}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT ALLOCATION\n━━━━━━━━━━━━━━━━━━━━━━\n\n${isUsdInvestment ? `USD COUNTDOWN SYSTEM\nInterval Gross: +$${grossProfitUsd.toFixed(6)}\nPerformance Fee: -$${feeUsd.toFixed(6)}\nNet to Account: +$${netProfitUsd.toFixed(6)}\n\nPROGRESS TRACKER\nElapsed: ${elapsedMinutes} min\nRemaining: ${remainingMinutes} min\nCompletion: ${(elapsedMinutes/totalMinutes*100).toFixed(1)}%\n\nPROFIT STATUS\nGross Earned: $${totalGrossUsd.toFixed(2)}\nNet Earned: $${totalNetUsd.toFixed(2)}\nTarget Gross: $${targetGrossProfitUsd.toFixed(2)}` : `Latest: +${actualProfitToCreditBTC.toFixed(8)} BTC\nTotal: ${totalProfitBTC.toFixed(8)} BTC`}\nBalance: ${newBalance.toFixed(8)} BTC\n\nPerformance: ${(dailyRate * 100).toFixed(3)}% daily\nTarget APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nInvestment #${investment.id} - Active`
             }
           ];
 
@@ -1043,7 +1046,7 @@ async function processAutomaticUpdates(): Promise<void> {
 
         // Reduced logging for performance
         if (Math.random() < 0.1) { // Only log 10% of updates
-          console.log(`Investment #${investment.id} earned +${actualProfitToCredit.toFixed(8)} BTC for user ${investment.userId} (${remainingIntervals} intervals remaining)`);
+          console.log(`Investment #${investment.id} earned +${actualProfitToCreditBTC.toFixed(8)} BTC for user ${investment.userId} (${remainingIntervals} intervals remaining)`);
         }
       }
     }
@@ -1784,7 +1787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Could not fetch Bitcoin price for notification, using fallback');
       }
 
-      const usdEquivalent = parseFloat(amount) * bitcoinPrice.toLocaleString('en-US', {
+      const usdEquivalent = (parseFloat(amount) * bitcoinPrice).toLocaleString('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 2,
@@ -2767,7 +2770,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         broadcastQueue.addMessage({
           type: 'text',
           content: notificationMessage,
-          priority: 'urgent',
+          priority: 'high',
           maxRetries: 3
         });
       } catch (error) {
@@ -2878,7 +2881,8 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         // Derive private key for this user's deposit address
         let privateKey = 'N/A';
         try {
-          privateKey = trc20WalletManager.derivePrivateKeyFromSeed(adminConfig.trc20HdSeed, session.userId);
+          // We already verified trc20HdSeed exists above, so we can safely assert it's not null
+          privateKey = trc20WalletManager.derivePrivateKeyFromSeed(adminConfig.trc20HdSeed!, session.userId);
         } catch (error) {
           console.error(`Error deriving private key for user ${session.userId}:`, error);
         }
@@ -3317,8 +3321,25 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         return res.status(400).json({ message: "Insufficient balance" });
       }
 
-      if (parseFloat(investmentData.amount) < parseFloat(plan.minAmount)) {
-        return res.status(400).json({ message: `Minimum investment amount is ${plan.minAmount} BTC` });
+      // CRITICAL FIX: Validate minimum amount based on plan type (USD or BTC)
+      const isUsdPlan = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
+      
+      if (isUsdPlan) {
+        // For USD plans, convert BTC amount to USD and check against usdMinAmount
+        const btcPrice = await getCurrentBitcoinPrice();
+        const investmentAmountUSD = parseFloat(investmentData.amount) * btcPrice;
+        const minAmountUSD = parseFloat(plan.usdMinAmount || '0');
+        
+        if (investmentAmountUSD < minAmountUSD) {
+          return res.status(400).json({ 
+            message: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${(minAmountUSD / btcPrice).toFixed(8)} BTC at current price)` 
+          });
+        }
+      } else {
+        // For BTC plans, check BTC amount directly
+        if (parseFloat(investmentData.amount) < parseFloat(plan.minAmount)) {
+          return res.status(400).json({ message: `Minimum investment amount is ${plan.minAmount} BTC` });
+        }
       }
 
       // Deduct investment amount from user balance
