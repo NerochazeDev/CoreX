@@ -1904,14 +1904,14 @@ You will receive a notification once your deposit is confirmed and added to your
           }
 
           console.log(`✅ Assigned TRC20 address ${trc20Address} to user ${userId}`);
-          
+
           // Reload user from database to verify the update
           const updatedUser = await storage.getUser(userId);
           if (!updatedUser?.trc20DepositAddress) {
             console.error(`❌ TRC20 address not persisted in database for user ${userId}`);
             return res.status(500).json({ error: "Failed to save TRC20 deposit address. Please try again." });
           }
-          
+
           // Update local reference
           user.trc20DepositAddress = updatedUser.trc20DepositAddress;
           console.log(`✅ Verified TRC20 address saved to database: ${updatedUser.trc20DepositAddress}`);
@@ -3052,50 +3052,50 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
     try {
       const { email, password } = loginSchema.parse(req.body);
 
+      // Find user by email
       const user = await storage.getUserByEmail(email);
+
       if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      // Compare the provided password with stored bcrypt hash
+      // Check if user has a password (not Google OAuth only)
       if (!user.password) {
-        return res.status(401).json({ message: "Account uses Google login - please sign in with Google" });
-      }
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Account uses Google Sign-In - please use the Google login button." });
       }
 
-      // Set session userId for authentication
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // CRITICAL FIX: Properly set session and save it
       req.session.userId = user.id;
 
-      // Force session save to ensure it's written to store
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-        } else {
-          console.log(`Session saved for user ${user.id}, Session ID: ${req.sessionID}`);
-        }
+      // Save session and wait for it to complete
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            reject(err);
+          } else {
+            console.log(`Session saved for user ${user.id}, Session ID: ${req.sessionID}`);
+            resolve();
+          }
+        });
       });
 
-      // Generate a simple auth token for cross-origin requests
+      // Generate auth token for API requests
       const authToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
 
-      // Save session explicitly
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ message: "Session save error" });
-        }
-
-
-        // Don't return private key and password in response, include auth token
-        const { privateKey, password: _, ...userResponse } = user;
-        res.json({ ...userResponse, authToken });
-      });
-    } catch (error) {
+      // Don't return private key and password in response, include auth token
+      const { privateKey, password: _, ...userResponse } = user;
+      res.json({ ...userResponse, authToken });
+    } catch (error: any) {
       console.error('Login error:', error);
-      res.status(400).json({ message: error instanceof Error ? error.message : "Login failed" });
+      res.status(400).json({ message: error.message || "Login failed" });
     }
   });
 
