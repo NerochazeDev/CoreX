@@ -33,8 +33,7 @@ export const users = pgTable("users", {
 export const investmentPlans = pgTable("investment_plans", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  minAmount: decimal("min_amount", { precision: 18, scale: 8 }).notNull(),
-  usdMinAmount: decimal("usd_min_amount", { precision: 18, scale: 2 }), // USD amount for new plans
+  usdMinAmount: decimal("usd_min_amount", { precision: 18, scale: 2 }).notNull(), // Primary USD amount - BTC calculated dynamically from real-time prices
   roiPercentage: integer("roi_percentage").notNull(),
   durationDays: integer("duration_days").notNull(),
   color: text("color").notNull(),

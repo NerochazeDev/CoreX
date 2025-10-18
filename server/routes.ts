@@ -1275,13 +1275,11 @@ async function initializeDefaultPlans(): Promise<void> {
       console.log('✅ Baseline statistics initialized successfully');
     }
 
-    const bitcoinPrice = await getCurrentBitcoinPrice();
-    console.log(`Using Bitcoin price $${bitcoinPrice.toFixed(2)} for plan calculations`);
+    console.log('Initializing USD-based investment plans (BTC amounts calculated dynamically)');
 
     const defaultPlans = [
       {
         name: "$10 Plan",
-        minAmount: (10 / bitcoinPrice).toFixed(8),
         usdMinAmount: "10",
         roiPercentage: 9.9, // $0.99 profit before 10% fee = $0.89 net profit
         durationDays: 7,
@@ -1293,7 +1291,6 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$20 Plan",
-        minAmount: (20 / bitcoinPrice).toFixed(8),
         usdMinAmount: "20",
         roiPercentage: 9.85, // $1.97 profit before 10% fee = $1.77 net profit
         durationDays: 7,
@@ -1305,7 +1302,6 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$50 Plan",
-        minAmount: (50 / bitcoinPrice).toFixed(8),
         usdMinAmount: "50",
         roiPercentage: 9.94, // $4.97 profit before 10% fee = $4.47 net profit
         durationDays: 30,
@@ -1317,7 +1313,6 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$100 Plan",
-        minAmount: (100 / bitcoinPrice).toFixed(8),
         usdMinAmount: "100",
         roiPercentage: 10.08, // $10.08 profit before 10% fee = $9.07 net profit
         durationDays: 30,
@@ -1329,7 +1324,6 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$300 Plan",
-        minAmount: (300 / bitcoinPrice).toFixed(8),
         usdMinAmount: "300",
         roiPercentage: 9.82, // $29.46 profit before 10% fee = $26.51 net profit
         durationDays: 15,
@@ -1341,7 +1335,6 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$500 Plan",
-        minAmount: (500 / bitcoinPrice).toFixed(8),
         usdMinAmount: "500",
         roiPercentage: 10.21, // $51.05 profit before 20% fee = $40.84 net profit
         durationDays: 30,
@@ -1353,7 +1346,6 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$1,000 Plan",
-        minAmount: (1000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "1000",
         roiPercentage: 9.76, // $97.60 profit before 20% fee = $78.08 net profit
         durationDays: 30,
@@ -1365,7 +1357,6 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$3,000 Plan",
-        minAmount: (3000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "3000",
         roiPercentage: 19.84, // $595.20 profit before 20% fee = $476.16 net profit
         durationDays: 60,
@@ -1377,7 +1368,6 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$6,000 Plan",
-        minAmount: (6000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "6000",
         roiPercentage: 20.13, // $1,207.80 profit before 20% fee = $966.24 net profit
         durationDays: 60,
@@ -1389,7 +1379,6 @@ async function initializeDefaultPlans(): Promise<void> {
       },
       {
         name: "$12,000 Plan",
-        minAmount: (12000 / bitcoinPrice).toFixed(8),
         usdMinAmount: "12000",
         roiPercentage: 19.9889, // $2,398.67 profit before 20% fee = $1,918.94 net profit (19.9889% for exact $2398.67)
         durationDays: 60,
@@ -1406,15 +1395,8 @@ async function initializeDefaultPlans(): Promise<void> {
 
     for (const plan of defaultPlans) {
       if (!existingPlanNames.includes(plan.name)) {
-        console.log(`Creating USD investment plan: ${plan.name}...`);
+        console.log(`Creating USD investment plan: ${plan.name} ($${plan.usdMinAmount})...`);
         await storage.createInvestmentPlan(plan);
-      } else {
-        // Update existing plan with correct BTC amount if it differs
-        const existingPlan = existingPlans.find(p => p.name === plan.name);
-        if (existingPlan && existingPlan.minAmount !== plan.minAmount) {
-          console.log(`Updating ${plan.name}: $${plan.usdMinAmount} = ${plan.minAmount} BTC (was ${existingPlan.minAmount} BTC)`);
-          await storage.updateInvestmentPlanAmount(existingPlan.id, plan.minAmount, plan.usdMinAmount);
-        }
       }
     }
 
@@ -2215,8 +2197,21 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(400).json({ error: "Investment amount must be greater than 0" });
       }
 
-      if (investmentAmount < parseFloat(plan.minAmount)) {
-        return res.status(400).json({ error: `Minimum investment amount is ${plan.minAmount} BTC` });
+      // Validate against USD minimum amount (primary field)
+      // Get current Bitcoin price for USD conversion
+      let btcPriceForValidation = 121000; // Default fallback
+      try {
+        const priceData = await fetchBitcoinPrice();
+        btcPriceForValidation = priceData.usd.price;
+      } catch (error) {
+        console.log('Could not fetch Bitcoin price for validation, using fallback');
+      }
+
+      const minAmountUSD = parseFloat(plan.usdMinAmount);
+      const minAmountBTC = minAmountUSD / btcPriceForValidation;
+      
+      if (investmentAmount < minAmountBTC) {
+        return res.status(400).json({ error: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${minAmountBTC.toFixed(8)} BTC at current price)` });
       }
 
       if (userBalance < investmentAmount) {
@@ -3355,25 +3350,16 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         return res.status(400).json({ message: "Insufficient balance" });
       }
 
-      // CRITICAL FIX: Validate minimum amount based on plan type (USD or BTC)
-      const isUsdPlan = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
+      // Validate minimum amount using USD as primary field
+      const btcPrice = await getCurrentBitcoinPrice();
+      const investmentAmountUSD = parseFloat(investmentData.amount) * btcPrice;
+      const minAmountUSD = parseFloat(plan.usdMinAmount);
+      const minAmountBTC = minAmountUSD / btcPrice;
 
-      if (isUsdPlan) {
-        // For USD plans, convert BTC amount to USD and check against usdMinAmount
-        const btcPrice = await getCurrentBitcoinPrice();
-        const investmentAmountUSD = parseFloat(investmentData.amount) * btcPrice;
-        const minAmountUSD = parseFloat(plan.usdMinAmount || '0');
-
-        if (investmentAmountUSD < minAmountUSD) {
-          return res.status(400).json({ 
-            message: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${(minAmountUSD / btcPrice).toFixed(8)} BTC at current price)` 
-          });
-        }
-      } else {
-        // For BTC plans, check BTC amount directly
-        if (parseFloat(investmentData.amount) < parseFloat(plan.minAmount)) {
-          return res.status(400).json({ message: `Minimum investment amount is ${plan.minAmount} BTC` });
-        }
+      if (investmentAmountUSD < minAmountUSD) {
+        return res.status(400).json({ 
+          message: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${minAmountBTC.toFixed(8)} BTC at current price)` 
+        });
       }
 
       // Deduct investment amount from user balance

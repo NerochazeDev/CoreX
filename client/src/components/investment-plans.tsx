@@ -59,8 +59,10 @@ export function InvestmentPlans() {
   const handleInvest = (plan: InvestmentPlan) => {
     if (!user) return;
 
-    // Calculate BTC equivalent in real-time
-    const btcAmount = bitcoinPrice ? (parseFloat(plan.usdMinAmount) / bitcoinPrice.usd.price).toFixed(8) : plan.minAmount;
+    // Calculate BTC equivalent in real-time from USD amount
+    const btcAmount = bitcoinPrice 
+      ? (parseFloat(plan.usdMinAmount) / bitcoinPrice.usd.price).toFixed(8)
+      : (parseFloat(plan.usdMinAmount) / 121000).toFixed(8); // Fallback with default BTC price
 
     const confirmed = confirm(
       `Invest in ${plan.name}?\n\n` +
