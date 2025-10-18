@@ -1848,6 +1848,13 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(401).json({ error: "Authentication required. Please log in again." });
       }
 
+      // Verify TRC20 system is initialized
+      const adminConfig = await storage.getAdminConfig();
+      if (!adminConfig?.trc20HdSeed) {
+        console.error('❌ TRC20 system not initialized - missing HD seed in admin config');
+        return res.status(500).json({ error: "TRC20 deposit system not initialized. Please contact support." });
+      }
+
       // SECURITY: Rate limiting - max 3 deposit sessions per hour per user
       const now = Date.now();
       const userRateLimit = depositSessionRateLimits.get(userId);
@@ -1888,21 +1895,32 @@ You will receive a notification once your deposit is confirmed and added to your
 
       if (!user.trc20DepositAddress) {
         try {
+          console.log(`🔐 User ${userId} has no TRC20 address, assigning one now...`);
           const { assignUserTRC20Address } = await import('./trc20-init');
           const trc20Address = await assignUserTRC20Address(userId);
 
           if (!trc20Address) {
-            console.error(`❌ Failed to assign TRC20 address to user ${userId}`);
+            console.error(`❌ Failed to assign TRC20 address to user ${userId} - returned null/undefined`);
             return res.status(500).json({ error: "Failed to create TRC20 deposit address. Please try again." });
           }
 
           // Update the user object with the new address
           user.trc20DepositAddress = trc20Address;
           console.log(`✅ Assigned TRC20 address ${trc20Address} to user ${userId}`);
+          
+          // Reload user from database to verify the update
+          const updatedUser = await storage.getUser(userId);
+          if (!updatedUser?.trc20DepositAddress) {
+            console.error(`❌ TRC20 address not persisted in database for user ${userId}`);
+            return res.status(500).json({ error: "Failed to save TRC20 deposit address. Please try again." });
+          }
+          console.log(`✅ Verified TRC20 address saved to database: ${updatedUser.trc20DepositAddress}`);
         } catch (error) {
-          console.error('Error creating TRC20 address:', error);
+          console.error('❌ Error creating TRC20 address:', error);
           return res.status(500).json({ error: "Failed to create TRC20 deposit address. Please try again." });
         }
+      } else {
+        console.log(`✅ User ${userId} already has TRC20 address: ${user.trc20DepositAddress}`);
       }
 
       // Verify we have a valid TRC20 address before proceeding
