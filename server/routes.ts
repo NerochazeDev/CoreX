@@ -7,7 +7,7 @@ import { createDemoUsers } from "./create-demo-users";
 import { setupAuth } from "./auth";
 // Welcome bot removed - all functionality moved to main bot
 
-// Extend Express Request type to include session
+// Extend Express SessionData type to include userId
 declare module 'express-session' {
   interface SessionData {
     userId: number;
@@ -38,7 +38,7 @@ const bip32 = BIP32Factory(ecc);
 function isValidBitcoinAddress(address: string): boolean {
   // Basic Bitcoin address validation
   const p2pkhRegex = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
-  const bech32Regex = /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,87}$/;
+  const bech32Regex = /^(bc1|[13])[a-zA-hj-np-z0-9]{25,87}$/;
   return p2pkhRegex.test(address) || bech32Regex.test(address);
 }
 
@@ -67,8 +67,8 @@ async function checkSuspiciousWithdrawalActivity(userId: number, amount: number,
 
     // Check for repeated use of same address (potential reused/compromised address)
     // CRITICAL FIX: Check both withdrawalAddress (new) and transactionHash (legacy) fields
-    const sameAddressUsage = userTransactions.filter(t => 
-      t.type === 'withdrawal' && 
+    const sameAddressUsage = userTransactions.filter(t =>
+      t.type === 'withdrawal' &&
       (t.withdrawalAddress === address || t.transactionHash === address) &&
       t.status !== 'cancelled'
     );
@@ -619,7 +619,7 @@ async function getCurrentBitcoinPrice(): Promise<number> {
 }
 
 // Advanced investment growth system
-// 
+//
 // PROFIT CALCULATION EXPLANATION:
 // ================================
 // 1. Each plan has a dailyReturnRate (e.g., 0.0286 = 2.86% per day)
@@ -1043,142 +1043,142 @@ async function processAutomaticUpdates(): Promise<void> {
             isRead: false,
           });
         }
+      }
 
-        // Reduced logging for performance
-        if (Math.random() < 0.1) { // Only log 10% of updates
-          console.log(`Investment #${investment.id} earned +${actualProfitToCreditBTC.toFixed(8)} BTC for user ${investment.userId} (${remainingIntervals} intervals remaining)`);
-        }
+      // Reduced logging for performance
+      if (Math.random() < 0.1) { // Only log 10% of updates
+        console.log(`Investment #${investment.id} earned +${actualProfitToCreditBTC.toFixed(8)} BTC for user ${investment.userId} (${remainingIntervals} intervals remaining)`);
       }
     }
+  }
 
-    // Note: Automatic investment approval has been removed - admin must manually approve all investments
+  // Note: Automatic investment approval has been removed - admin must manually approve all investments
 
-    // Process general user plan growth (for non-investment based growth)
-    const allUsers = await storage.getAllUsers();
+  // Process general user plan growth (for non-investment based growth)
+  const allUsers = await storage.getAllUsers();
 
-    for (const user of allUsers) {
-      const currentBalance = parseFloat(user.balance);
+  for (const user of allUsers) {
+    const currentBalance = parseFloat(user.balance);
 
-      // CRITICAL FIX: Only apply general growth if user has NO active investments at all
-      // Check against the activeInvestments array we already have to avoid duplicate database calls
-      const userHasActiveInvestment = activeInvestments.some(inv => inv.userId === user.id);
+    // CRITICAL FIX: Only apply general growth if user has NO active investments at all
+    // Check against the activeInvestments array we already have to avoid duplicate database calls
+    const userHasActiveInvestment = activeInvestments.some(inv => inv.userId === user.id);
 
-      if (user.currentPlanId && !userHasActiveInvestment && currentBalance > 0) {
-        const plan = await storage.getInvestmentPlan(user.currentPlanId);
-        if (!plan || !plan.isActive) continue;
+    if (user.currentPlanId && !userHasActiveInvestment && currentBalance > 0) {
+      const plan = await storage.getInvestmentPlan(user.currentPlanId);
+      if (!plan || !plan.isActive) continue;
 
-        const dailyRate = parseFloat(plan.dailyReturnRate);
-        const intervalRate = dailyRate / 288; // 5-minute intervals (288 per day)
-        const increase = currentBalance * intervalRate;
+      const dailyRate = parseFloat(plan.dailyReturnRate);
+      const intervalRate = dailyRate / 288; // 5-minute intervals (288 per day)
+      const increase = currentBalance * intervalRate;
 
-        if (increase > 0) {
-          const newBalance = currentBalance + increase;
-          await storage.updateUserBalance(user.id, newBalance.toFixed(8));
+      if (increase > 0) {
+        const newBalance = currentBalance + increase;
+        await storage.updateUserBalance(user.id, newBalance.toFixed(8));
 
-          // Create notifications more frequently for plan growth
-          const shouldCreateNotification = Math.random() < 0.6; // 60% chance for better visibility
+        // Create notifications more frequently for plan growth
+        const shouldCreateNotification = Math.random() < 0.6; // 60% chance for better visibility
 
-          if (shouldCreateNotification) {
-            const transactionId = crypto.randomBytes(32).toString('hex');
+        if (shouldCreateNotification) {
+          const transactionId = crypto.randomBytes(32).toString('hex');
 
-            // Enhanced Top 10 strategy selection for plan growth - matching investment strategies
-            const planStrategies = [
-              {
-                name: "Bitcoin DCA Strategy",
-                execution: "Systematic accumulation across Binance, Coinbase, Kraken",
-                metric: "Entry timing optimized • 0.3% slippage reduction",
-                category: "Conservative Growth"
-              },
-              {
-                name: "ETH Staking Protocol",
-                execution: "Distributed across 15 validators • Auto-compound enabled",
-                metric: "99.9% uptime • 5.2% APY realized",
-                category: "Passive Income"
-              },
-              {
-                name: "CEX Arbitrage Bot",
-                execution: "Price differential exploited: Binance ↔ FTX ↔ Coinbase",
-                metric: "Avg spread: 0.6% • 18 trades executed",
-                category: "Market Neutral"
-              },
-              {
-                name: "Grid Trading Algorithm",
-                execution: "BTC range: $112K-$118K • 25 grid levels active",
-                metric: "Volatility capture: 87% efficiency",
-                category: "Automated Trading"
-              },
-              {
-                name: "DeFi Yield Optimization",
-                execution: "Liquidity deployed: Uniswap V3, Aave, Curve Finance",
-                metric: "Impermanent loss hedged • 12.3% APY",
-                category: "DeFi Protocol"
-              },
-              {
-                name: "Swing Trading Engine",
-                execution: "Position entries: ETH (+3.2%), SOL (+5.1%), AVAX (+2.8%)",
-                metric: "Technical analysis: 4/5 signals bullish",
-                category: "Active Trading"
-              },
-              {
-                name: "Covered Call Strategy",
-                execution: "Income from BTC holdings • Weekly options sold",
-                metric: "Premium collected: 0.8% on principal",
-                category: "Options Trading"
-              },
-              {
-                name: "3x Leverage Protocol",
-                execution: "Risk-managed position • Stop-loss: -2% | Take-profit: +8%",
-                metric: "Win rate this cycle: 72%",
-                category: "Leverage Trading"
-              },
-              {
-                name: "Altcoin Research Fund",
-                execution: "Low-cap gem identified: Layer-2 scaling solution",
-                metric: "Early entry secured • Risk: 5% of portfolio",
-                category: "Growth Investing"
-              },
-              {
-                name: "NFT Trading Desk",
-                execution: "Blue-chip floor sweep: BAYC derivatives",
-                metric: "Quick flip executed • 15% gain realized",
-                category: "Alternative Assets"
-              }
-            ];
+          // Enhanced Top 10 strategy selection for plan growth - matching investment strategies
+          const planStrategies = [
+            {
+              name: "Bitcoin DCA Strategy",
+              execution: "Systematic accumulation across Binance, Coinbase, Kraken",
+              metric: "Entry timing optimized • 0.3% slippage reduction",
+              category: "Conservative Growth"
+            },
+            {
+              name: "ETH Staking Protocol",
+              execution: "Distributed across 15 validators • Auto-compound enabled",
+              metric: "99.9% uptime • 5.2% APY realized",
+              category: "Passive Income"
+            },
+            {
+              name: "CEX Arbitrage Bot",
+              execution: "Price differential exploited: Binance ↔ FTX ↔ Coinbase",
+              metric: "Avg spread: 0.6% • 18 trades executed",
+              category: "Market Neutral"
+            },
+            {
+              name: "Grid Trading Algorithm",
+              execution: "BTC range: $112K-$118K • 25 grid levels active",
+              metric: "Volatility capture: 87% efficiency",
+              category: "Automated Trading"
+            },
+            {
+              name: "DeFi Yield Optimization",
+              execution: "Liquidity deployed: Uniswap V3, Aave, Curve Finance",
+              metric: "Impermanent loss hedged • 12.3% APY",
+              category: "DeFi Protocol"
+            },
+            {
+              name: "Swing Trading Engine",
+              execution: "Position entries: ETH (+3.2%), SOL (+5.1%), AVAX (+2.8%)",
+              metric: "Technical analysis: 4/5 signals bullish",
+              category: "Active Trading"
+            },
+            {
+              name: "Covered Call Strategy",
+              execution: "Income from BTC holdings • Weekly options sold",
+              metric: "Premium collected: 0.8% on principal",
+              category: "Options Trading"
+            },
+            {
+              name: "3x Leverage Protocol",
+              execution: "Risk-managed position • Stop-loss: -2% | Take-profit: +8%",
+              metric: "Win rate this cycle: 72%",
+              category: "Leverage Trading"
+            },
+            {
+              name: "Altcoin Research Fund",
+              execution: "Low-cap gem identified: Layer-2 scaling solution",
+              metric: "Early entry secured • Risk: 5% of portfolio",
+              category: "Growth Investing"
+            },
+            {
+              name: "NFT Trading Desk",
+              execution: "Blue-chip floor sweep: BAYC derivatives",
+              metric: "Quick flip executed • 15% gain realized",
+              category: "Alternative Assets"
+            }
+          ];
 
-            const planStrategy = planStrategies[Math.floor(Math.random() * planStrategies.length)];
-            const profitPercent = ((increase / currentBalance) * 100).toFixed(3);
+          const planStrategy = planStrategies[Math.floor(Math.random() * planStrategies.length)];
+          const profitPercent = ((increase / currentBalance) * 100).toFixed(3);
 
-            // Varied notification formats for plan growth
-            const growthFormats = [
-              {
-                title: `💎 ${planStrategy.category} • Profit Generated`,
-                message: `${plan.name} Active Management\n\n🎯 STRATEGY EXECUTED\n${planStrategy.name}\n\n⚡ EXECUTION REPORT\n${planStrategy.execution}\n\n📊 PERFORMANCE METRICS\n${planStrategy.metric}\n\n💵 PROFIT ALLOCATION\nLatest: +${increase.toFixed(8)} BTC (+${profitPercent}%)\nBalance: ${newBalance.toFixed(8)} BTC\nDaily: ${(dailyRate * 100).toFixed(3)}% | APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 TxID: ${transactionId.substring(0, 14)}...\n\n✅ Your diversified portfolio is generating consistent returns`
-              },
-              {
-                title: "📈 Automated Strategy - Position Updated",
-                message: `${plan.name} • Portfolio Optimization\n\n━━━━━━━━━━━━━━━━━━━━━━\n${planStrategy.name}\nCategory: ${planStrategy.category}\n━━━━━━━━━━━━━━━━━━━━━━\n\nExecution: ${planStrategy.execution}\n\nPerformance: ${planStrategy.metric}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT UPDATE\n━━━━━━━━━━━━━━━━━━━━━━\n\nReturn: +${increase.toFixed(8)} BTC\nBalance: ${newBalance.toFixed(8)} BTC\nGrowth: +${profitPercent}%\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nTarget: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nHash: ${transactionId.substring(0, 12)}...`
-              },
-              {
-                title: "🚀 Portfolio Performance - Strategy Active",
-                message: `BITVAULT PRO • ${plan.name}\n\n${planStrategy.category} Strategy Deployed\n\nStrategy: ${planStrategy.name}\n${planStrategy.execution}\n\nPerformance Analysis:\n${planStrategy.metric}\n\nProfit Generated: +${increase.toFixed(8)} BTC\nNew Balance: ${newBalance.toFixed(8)} BTC\nReturn Rate: +${profitPercent}%\n\nDaily Target: ${(dailyRate * 100).toFixed(3)}%\nAnnual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nProfessional fund managers actively optimizing your positions 24/7`
-              }
-            ];
+          // Varied notification formats for plan growth
+          const growthFormats = [
+            {
+              title: `💎 ${planStrategy.category} • Profit Generated`,
+              message: `${plan.name} Active Management\n\n🎯 STRATEGY EXECUTED\n${planStrategy.name}\n\n⚡ EXECUTION REPORT\n${planStrategy.execution}\n\n📊 PERFORMANCE METRICS\n${planStrategy.metric}\n\n💵 PROFIT ALLOCATION\nLatest: +${increase.toFixed(8)} BTC (+${profitPercent}%)\nBalance: ${newBalance.toFixed(8)} BTC\nDaily: ${(dailyRate * 100).toFixed(3)}% | APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 TxID: ${transactionId.substring(0, 14)}...\n\n✅ Your diversified portfolio is generating consistent returns`
+            },
+            {
+              title: "📈 Automated Strategy - Position Updated",
+              message: `${plan.name} • Portfolio Optimization\n\n━━━━━━━━━━━━━━━━━━━━━━\n${planStrategy.name}\nCategory: ${planStrategy.category}\n━━━━━━━━━━━━━━━━━━━━━━\n\nExecution: ${planStrategy.execution}\n\nPerformance: ${planStrategy.metric}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT UPDATE\n━━━━━━━━━━━━━━━━━━━━━━\n\nReturn: +${increase.toFixed(8)} BTC\nBalance: ${newBalance.toFixed(8)} BTC\nGrowth: +${profitPercent}%\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nTarget: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nHash: ${transactionId.substring(0, 12)}...`
+            },
+            {
+              title: "🚀 Portfolio Performance - Strategy Active",
+              message: `BITVAULT PRO • ${plan.name}\n\n${planStrategy.category} Strategy Deployed\n\nStrategy: ${planStrategy.name}\n${planStrategy.execution}\n\nPerformance Analysis:\n${planStrategy.metric}\n\nProfit Generated: +${increase.toFixed(8)} BTC\nNew Balance: ${newBalance.toFixed(8)} BTC\nReturn Rate: +${profitPercent}%\n\nDaily Target: ${(dailyRate * 100).toFixed(3)}%\nAnnual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nProfessional fund managers actively optimizing your positions 24/7`
+            }
+          ];
 
-            const selectedGrowthFormat = growthFormats[Math.floor(Math.random() * growthFormats.length)];
+          const selectedGrowthFormat = growthFormats[Math.floor(Math.random() * growthFormats.length)];
 
-            await storage.createNotification({
-              userId: user.id,
-              title: selectedGrowthFormat.title,
-              message: selectedGrowthFormat.message,
-              type: 'success',
-              isRead: false,
-            });
-          }
+          await storage.createNotification({
+            userId: user.id,
+            title: selectedGrowthFormat.title,
+            message: selectedGrowthFormat.message,
+            type: 'success',
+            isRead: false,
+          });
+        }
 
-          // Reduced logging for performance
-          if (Math.random() < 0.05) { // Only log 5% of plan updates
-            console.log(`User ${user.id} earned +${increase.toFixed(8)} BTC from plan ${plan.name}`);
-          }
+        // Reduced logging for performance
+        if (Math.random() < 0.05) { // Only log 5% of plan updates
+          console.log(`User ${user.id} earned +${increase.toFixed(8)} BTC from plan ${plan.name}`);
         }
       }
     }
@@ -1643,11 +1643,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Ensure baseline columns exist (fallback creation)
       try {
         await db.execute(sql`
-          DO $$ 
-          BEGIN 
+          DO $$
+          BEGIN
             -- Add baseline columns if they don't exist
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'admin_config' AND column_name = 'baseline_users') THEN
-              ALTER TABLE admin_config 
+              ALTER TABLE admin_config
               ADD COLUMN baseline_users INTEGER DEFAULT 420,
               ADD COLUMN baseline_active_investments INTEGER DEFAULT 804,
               ADD COLUMN baseline_total_balance VARCHAR(50) DEFAULT '70275.171605',
@@ -1665,7 +1665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ADD COLUMN foundation_plan_amount VARCHAR(50) DEFAULT '7436.5081',
               ADD COLUMN foundation_plan_profit VARCHAR(50) DEFAULT '39.029047';
             END IF;
-          END 
+          END
           $$;
         `);
       } catch (error) {
@@ -1837,7 +1837,7 @@ You will receive a notification once your deposit is confirmed and added to your
       if (userRateLimit) {
         if (now < userRateLimit.resetTime) {
           if (userRateLimit.count >= 3) {
-            return res.status(429).json({ 
+            return res.status(429).json({
               error: "Too many deposit attempts. Please wait before creating another session.",
               retryAfter: Math.ceil((userRateLimit.resetTime - now) / 1000 / 60) + " minutes"
             });
@@ -1857,12 +1857,12 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // SECURITY: Check for active pending sessions (prevent duplicate sessions)
       const existingActiveSessions = await storage.getUserDepositSessions(userId);
-      const activePending = existingActiveSessions.filter(s => 
+      const activePending = existingActiveSessions.filter(s =>
         s.status === 'pending' && new Date(s.expiresAt) > new Date()
       );
 
       if (activePending.length > 0) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "You already have an active deposit session. Please complete or wait for it to expire.",
           activeSession: activePending[0].sessionToken
         });
@@ -2066,7 +2066,7 @@ You will receive a notification once your deposit is confirmed and added to your
         if (now < confirmLimit.resetTime) {
           if (confirmLimit.count >= 5) {
             console.warn(`⚠️ Rate limit exceeded for confirmation - IP: ${clientIp}, User: ${userId}`);
-            return res.status(429).json({ 
+            return res.status(429).json({
               error: "Too many confirmation attempts. Please wait before trying again."
             });
           }
@@ -2098,8 +2098,8 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // SECURITY: Check if user already confirmed (prevent duplicate confirmations)
       if (session.userConfirmedSent) {
-        return res.status(400).json({ 
-          error: "You have already confirmed this deposit. Please wait for blockchain verification." 
+        return res.status(400).json({
+          error: "You have already confirmed this deposit. Please wait for blockchain verification."
         });
       }
 
@@ -2209,7 +2209,7 @@ You will receive a notification once your deposit is confirmed and added to your
 
       const minAmountUSD = parseFloat(plan.usdMinAmount);
       const minAmountBTC = minAmountUSD / btcPriceForValidation;
-      
+
       if (investmentAmount < minAmountBTC) {
         return res.status(400).json({ error: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${minAmountBTC.toFixed(8)} BTC at current price)` });
       }
@@ -2412,7 +2412,7 @@ You will receive a notification once your deposit is confirmed and added to your
             type: "error"
           });
 
-          return res.status(500).json({ 
+          return res.status(500).json({
             error: "Failed to send withdrawal on blockchain: " + sendResult.error,
             refunded: true
           });
@@ -2725,8 +2725,8 @@ You will receive a notification once your deposit is confirmed and added to your
       const hasActiveInvestments = userInvestments.some(inv => inv.isActive);
 
       if (hasActiveInvestments) {
-        return res.status(400).json({ 
-          error: "Cannot withdraw funds while you have active investments. Please wait for investments to complete." 
+        return res.status(400).json({
+          error: "Cannot withdraw funds while you have active investments. Please wait for investments to complete."
         });
       }
 
@@ -2737,8 +2737,8 @@ You will receive a notification once your deposit is confirmed and added to your
       );
 
       if (pendingOrConfirmedWithdrawals.length >= 3) {
-        return res.status(429).json({ 
-          error: "Too many withdrawal requests. Maximum 3 withdrawals per 24 hours for security." 
+        return res.status(429).json({
+          error: "Too many withdrawal requests. Maximum 3 withdrawals per 24 hours for security."
         });
       }
 
@@ -2785,16 +2785,15 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         const { broadcastQueue } = await import('./broadcast-queue');
         const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
         const notificationMessage = `🚨 *WITHDRAWAL REQUEST*\n\n` +
-          `👤 *User:* ${userName} (ID: ${userId})\n` +
+          `👤 *User:* ${userName}\n` +
           `📧 *Email:* ${user.email}\n` +
+          `🆔 *User ID:* ${user.id}\n` +
           `💸 *Amount:* $${amount} USDT\n` +
-          `🏦 *To Address:* \`${address}\`\n` +
-          `💰 *BTC Deducted:* ${btcToDeduct.toFixed(8)} BTC\n` +
-          `📊 *New Balance:* ${newBalance} BTC\n` +
-          `🆔 *Transaction ID:* ${transaction.id}\n` +
-          `🌐 *Network:* TRC20\n` +
-          `⏱️ *Status:* Pending Admin Approval\n\n` +
-          `⚠️ *Action Required:* Review and approve/reject in admin dashboard`;
+          `₿ *BTC Deducted:* ${btcToDeduct.toFixed(8)} BTC\n` +
+          `💰 *New Balance:* ${newBalance} BTC\n` +
+          `📍 *Destination:* \`${address}\`\n` +
+          `⏰ *Time:* ${new Date().toLocaleString()}\n\n` +
+          `⚠️ *ACTION REQUIRED:* Process withdrawal in admin panel`;
 
         broadcastQueue.addMessage({
           type: 'text',
@@ -2802,21 +2801,22 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
           priority: 'high',
           maxRetries: 3
         });
-      } catch (error) {
-        console.error('Failed to send Telegram notification for withdrawal:', error);
+
+        console.log(`✅ Withdrawal request notification queued for admin`);
+      } catch (telegramError) {
+        console.error('❌ Failed to send withdrawal notification:', telegramError);
       }
 
       res.json({
-        message: "Withdrawal submitted successfully. Awaiting admin approval.",
+        success: true,
         transaction,
-        estimatedProcessingTime: "1-24 hours",
-        newBalance,
-        deductedBTC: btcToDeduct.toFixed(8),
-        network: "TRC20 (TRON)"
+        message: `Withdrawal request submitted. Your balance has been reserved and will be sent to ${address} after admin approval.`
       });
     } catch (error: any) {
-      console.error('Withdrawal error:', error);
-      res.status(500).json({ error: "Withdrawal request failed. Please try again later." });
+      console.error('❌ Withdrawal error:', error);
+      res.status(500).json({
+        error: error.message || 'Failed to process withdrawal'
+      });
     }
   });
 
@@ -2845,7 +2845,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         depositAddress: vaultAddress // Use same address for both
       });
 
-      res.json({ 
+      res.json({
         message: "Vault address updated successfully",
         vaultAddress: vaultAddress
       });
@@ -2869,7 +2869,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       }
 
       const adminConfig = await storage.getAdminConfig();
-      res.json({ 
+      res.json({
         vaultAddress: adminConfig?.vaultAddress || "Not configured"
       });
     } catch (error: any) {
@@ -3120,13 +3120,13 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
     scope: ['profile', 'email']
   }));
 
-  app.get('/api/auth/google/callback', 
+  app.get('/api/auth/google/callback',
     (req, res, next) => {
       const failureRedirect = `/login?error=google_auth_failed`;
 
-      passport.authenticate('google', { 
+      passport.authenticate('google', {
         failureRedirect,
-        failureFlash: true 
+        failureFlash: true
       })(req, res, next);
     },
     async (req, res) => {
@@ -3357,8 +3357,8 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       const minAmountBTC = minAmountUSD / btcPrice;
 
       if (investmentAmountUSD < minAmountUSD) {
-        return res.status(400).json({ 
-          message: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${minAmountBTC.toFixed(8)} BTC at current price)` 
+        return res.status(400).json({
+          message: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${minAmountBTC.toFixed(8)} BTC at current price)`
         });
       }
 
@@ -3417,7 +3417,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       }
 
       const investments = await storage.getUserInvestments(requestedUserId);
-      console.log(`📊 Returning ${investments.length} investments for user ${requestedUserId}:`, 
+      console.log(`📊 Returning ${investments.length} investments for user ${requestedUserId}:`,
         investments.map(inv => ({
           id: inv.id,
           amount: inv.amount,
@@ -3635,7 +3635,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       // Filter users based on criteria
       let filteredUsers = allUsers.filter(user => {
-        const matchesSearch = search === '' || 
+        const matchesSearch = search === '' ||
           user.email.toLowerCase().includes(search.toLowerCase()) ||
           `${user.firstName} ${user.lastName}`.toLowerCase().includes(search.toLowerCase());
 
@@ -3818,15 +3818,15 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       await storage.createNotification({
         userId,
         title: isAdmin ? "Admin Access Granted" : "Admin Access Removed",
-        message: isAdmin 
+        message: isAdmin
           ? "You have been granted full administrator access to the platform."
           : "Your administrator access has been removed.",
         type: isAdmin ? 'success' : 'warning'
       });
 
-      res.json({ 
-        message: `User ${isAdmin ? 'granted' : 'removed'} admin access successfully`, 
-        user: updatedUser 
+      res.json({
+        message: `User ${isAdmin ? 'granted' : 'removed'} admin access successfully`,
+        user: updatedUser
       });
     } catch (error) {
       console.error('Admin status update error:', error);
@@ -3866,7 +3866,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
                 await storage.createNotification({
                   userId,
                   title: value ? "Support Access Granted" : "Support Access Removed",
-                  message: value 
+                  message: value
                     ? "You have been granted support admin access. You can now respond to customer messages in the support dashboard."
                     : "Your support admin access has been removed. You no longer have access to the support message dashboard.",
                   type: value ? 'success' : 'info'
@@ -4157,7 +4157,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       const { trc20WalletManager } = await import('./trc20-wallet');
       const privateKey = trc20WalletManager.derivePrivateKeyFromSeed(config.trc20HdSeed, userId);
 
-      res.json({ 
+      res.json({
         privateKey,
         depositAddress: user.trc20DepositAddress || 'Not assigned'
       });
@@ -4873,6 +4873,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       // Send the professional investment update
       await sendBatchedUpdatesToChannel();
       res.json({
+        success: true,
         message: "Telegram test completed successfully!",
         channelId: channelId.replace(/\d/g, '*') // Mask the channel ID for security
       });
@@ -4961,11 +4962,11 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
           const user = await storage.getUser(message.userId);
           return {
             ...message,
-            user: user ? { 
-              id: user.id, 
-              email: user.email, 
-              firstName: user.firstName, 
-              lastName: user.lastName 
+            user: user ? {
+              id: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName
             } : null
           };
         })
@@ -5006,9 +5007,9 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       // Update support message with admin response
       const updatedMessage = await storage.updateSupportMessageStatus(
-        messageId, 
-        status, 
-        response, 
+        messageId,
+        status,
+        response,
         authenticatedUserId || 1 // Use authenticated admin or fallback
       );
 
@@ -5074,7 +5075,8 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         return {
           ...message,
           userEmail: user?.email || 'Unknown',
-          userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0] : 'Unknown'        };
+          userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0] : 'Unknown'
+        };
       }));
 
       res.json(messagesWithUsers);
@@ -5105,9 +5107,9 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       }
 
       const updatedMessage = await storage.updateSupportMessageStatus(
-        messageId, 
-        status, 
-        adminResponse, 
+        messageId,
+        status,
+        adminResponse,
         adminId
       );
 
@@ -5162,15 +5164,15 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       await storage.createNotification({
         userId: userId,
         title: isSupportAdmin ? "Support Admin Access Granted" : "Support Admin Access Removed",
-        message: isSupportAdmin 
+        message: isSupportAdmin
           ? "You have been granted support admin access. You can now respond to customer messages in the support dashboard."
           : "Your support admin access has been removed. You no longer have access to the support message dashboard.",
         type: isSupportAdmin ? "success" : "info"
       });
 
-      res.json({ 
-        message: `User support admin status ${isSupportAdmin ? 'granted' : 'removed'} successfully`, 
-        user: updatedUser 
+      res.json({
+        message: `User support admin status ${isSupportAdmin ? 'granted' : 'removed'} successfully`,
+        user: updatedUser
       });
     } catch (error: any) {
       console.error('Toggle user support admin error:', error);
@@ -5391,12 +5393,12 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       const queueStatus = getBroadcastStatus();
       const batchStats = getBatchStatistics();
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         messageId,
         queueStatus,
         batchStats,
-        message: 'Daily stats queued for broadcast' 
+        message: 'Daily stats queued for broadcast'
       });
     } catch (error: any) {
       console.error('Queue stats error:', error);
@@ -5410,11 +5412,11 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       const messageIds = await queueInvestmentUpdate();
       const queueStatus = getBroadcastStatus();
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         messageIds,
         queueStatus,
-        message: 'Investment update queued for broadcast' 
+        message: 'Investment update queued for broadcast'
       });
     } catch (error: any) {
       console.error('Queue investment error:', error);
@@ -5428,8 +5430,8 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
       const queueStatus = getBroadcastStatus();
       const batchStats = getBatchStatistics();
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         queueStatus,
         batchStats
       });
