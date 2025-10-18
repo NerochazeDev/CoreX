@@ -1892,20 +1892,30 @@ You will receive a notification once your deposit is confirmed and added to your
           const trc20Address = await assignUserTRC20Address(userId);
 
           if (!trc20Address) {
+            console.error(`❌ Failed to assign TRC20 address to user ${userId}`);
             return res.status(500).json({ error: "Failed to create TRC20 deposit address. Please try again." });
           }
 
+          // Update the user object with the new address
           user.trc20DepositAddress = trc20Address;
+          console.log(`✅ Assigned TRC20 address ${trc20Address} to user ${userId}`);
         } catch (error) {
           console.error('Error creating TRC20 address:', error);
           return res.status(500).json({ error: "Failed to create TRC20 deposit address. Please try again." });
         }
       }
 
+      // Verify we have a valid TRC20 address before proceeding
+      if (!user.trc20DepositAddress) {
+        console.error(`❌ User ${userId} still has no TRC20 address after assignment attempt`);
+        return res.status(500).json({ error: "Failed to initialize TRC20 deposit address. Please contact support." });
+      }
+
       const { amount } = createDepositSessionSchema.parse(req.body);
 
       const amountNum = parseFloat(amount);
       if (isNaN(amountNum) || amountNum <= 0) {
+        console.error(`❌ Invalid deposit amount: ${amount}`);
         return res.status(400).json({ error: "Invalid amount. Amount must be greater than 0." });
       }
 
@@ -1918,8 +1928,11 @@ You will receive a notification once your deposit is confirmed and added to your
       const minDepositUsd = parseFloat(adminConfig?.minDepositUsd || '10');
 
       if (amountNum < minDepositUsd) {
+        console.error(`❌ Amount ${amountNum} below minimum ${minDepositUsd}`);
         return res.status(400).json({ error: `Minimum deposit amount is $${minDepositUsd} USDT.` });
       }
+
+      console.log(`💰 Creating deposit session for user ${userId}: $${amount} USDT to address ${user.trc20DepositAddress}`);
 
       const session = await storage.createDepositSession({
         userId,
