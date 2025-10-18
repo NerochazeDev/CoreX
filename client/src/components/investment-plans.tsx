@@ -60,9 +60,8 @@ export function InvestmentPlans() {
     if (!user) return;
 
     // Calculate BTC equivalent in real-time from USD amount
-    const btcAmount = bitcoinPrice 
-      ? (parseFloat(plan.usdMinAmount) / bitcoinPrice.usd.price).toFixed(8)
-      : (parseFloat(plan.usdMinAmount) / 121000).toFixed(8); // Fallback with default BTC price
+    const currentPrice = bitcoinPrice?.usd.price || 121000;
+    const btcAmount = (parseFloat(plan.usdMinAmount) / currentPrice).toFixed(8);
 
     const confirmed = confirm(
       `Invest in ${plan.name}?\n\n` +
@@ -75,6 +74,7 @@ export function InvestmentPlans() {
     );
 
     if (confirmed) {
+      console.log('Creating investment with amount:', btcAmount);
       createInvestmentMutation.mutate({
         planId: plan.id,
         amount: btcAmount,

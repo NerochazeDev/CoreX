@@ -159,8 +159,13 @@ export default function Investment() {
     const netProfit = grossProfit - performanceFee;
     const totalReturn = usdAmount + netProfit;
     
+    // Calculate BTC amount from USD
+    const currentPrice = bitcoinPrice?.usd.price || 121000;
+    const btcAmount = (usdAmount / currentPrice).toFixed(8);
+    
     let confirmMessage = `Invest in ${plan.name}?\n\n` +
       `Investment: $${usdAmount.toFixed(2)}\n` +
+      `BTC Amount: ${btcAmount} BTC\n` +
       `Gross Profit: +$${grossProfit.toFixed(2)}\n`;
     
     if (plan.performanceFeePercentage && plan.performanceFeePercentage > 0) {
@@ -176,9 +181,10 @@ export default function Investment() {
     const confirmed = confirm(confirmMessage);
     
     if (confirmed) {
+      console.log('Creating investment with BTC amount:', btcAmount);
       createInvestmentMutation.mutate({
         planId: plan.id,
-        amount: plan.minAmount,
+        amount: btcAmount,
       });
     }
   };
