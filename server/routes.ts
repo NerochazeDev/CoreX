@@ -5218,6 +5218,67 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
     }));
   });
 
+  // Test admin alert endpoint
+  app.get("/api/test-admin-alert", async (req, res) => {
+    console.log('🔔 Testing admin Telegram alert...');
+
+    try {
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+
+      if (!botToken || !adminChatId) {
+        return res.status(500).json({
+          success: false,
+          error: 'Telegram credentials not configured',
+          details: {
+            hasBotToken: !!botToken,
+            hasAdminChatId: !!adminChatId
+          }
+        });
+      }
+
+      const testMessage = `🔔 *TEST ADMIN ALERT*\n\n` +
+        `✅ Telegram bot is working correctly!\n\n` +
+        `📅 Time: ${new Date().toLocaleString()}\n` +
+        `🤖 Bot Token: Configured\n` +
+        `💬 Admin Chat ID: ${adminChatId}\n\n` +
+        `This is a test notification to verify your admin alerts are functioning properly.`;
+
+      const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: adminChatId,
+          text: testMessage,
+          parse_mode: 'Markdown'
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ Test admin alert sent successfully');
+        res.json({
+          success: true,
+          message: 'Test alert sent to your Telegram chat!',
+          chatId: adminChatId
+        });
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Telegram API error:', errorText);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to send Telegram message',
+          details: errorText
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Test admin alert failed:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   // Test update bot endpoint
   app.post("/api/test-update-bot", async (req, res) => {
     console.log('🧪 Testing update bot message...');
