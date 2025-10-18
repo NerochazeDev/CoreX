@@ -333,16 +333,19 @@ export class TRC20Monitor {
       const emoji = type === 'deposit' ? '💰' : '💸';
       const title = type === 'deposit' ? 'New Deposit Received' : 'Withdrawal Request';
       
+      const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+      const statusMessage = type === 'deposit' ? '✅ Deposit confirmed and credited to user account' : '⏳ Awaiting admin approval';
+      
       const message = `${emoji} *${title}*
 
-👤 *User:* ${user.firstName || ''} ${user.lastName || ''}
-📧 *Email:* ${user.email}
-🆔 *User ID:* ${user.id}
-💵 *Amount:* $${amount} USDT
-🔗 *TX Hash:* \`${txHash}\`
-📅 *Time:* ${new Date().toLocaleString()}
+👤 User: ${userName}
+📧 Email: ${user.email}
+🆔 User ID: ${user.id}
+💵 Amount: $${amount} USDT
+🔗 TX Hash: ${txHash}
+📅 Time: ${new Date().toLocaleString()}
 
-${type === 'deposit' ? '✅ Deposit confirmed and credited to user account' : '⏳ Awaiting admin approval'}`;
+${statusMessage}`;
 
       const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: 'POST',
