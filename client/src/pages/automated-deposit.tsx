@@ -47,7 +47,7 @@ export default function AutomatedDeposit() {
       setStep("session");
       toast({
         title: "✅ Deposit Session Created",
-        description: `Your deposit session for $${session.amount} USDT (TRC20) has been created.`,
+        description: `Your deposit session for $${amount} USDT (TRC20) has been created.`,
       });
     },
     onError: (error: any) => {
