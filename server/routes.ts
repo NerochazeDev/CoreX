@@ -1886,7 +1886,13 @@ You will receive a notification once your deposit is confirmed and added to your
         });
       }
 
-      if (!user.trc20DepositAddress) {
+      // Get fresh user data to ensure we have latest TRC20 address
+      const freshUser = await storage.getUser(userId);
+      if (!freshUser) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      if (!freshUser.trc20DepositAddress) {
         try {
           console.log(`🔐 User ${userId} has no TRC20 address, assigning one now...`);
           const { assignUserTRC20Address } = await import('./trc20-init');
@@ -1897,8 +1903,6 @@ You will receive a notification once your deposit is confirmed and added to your
             return res.status(500).json({ error: "Failed to create TRC20 deposit address. Please try again." });
           }
 
-          // Update the user object with the new address
-          user.trc20DepositAddress = trc20Address;
           console.log(`✅ Assigned TRC20 address ${trc20Address} to user ${userId}`);
           
           // Reload user from database to verify the update
@@ -1907,12 +1911,17 @@ You will receive a notification once your deposit is confirmed and added to your
             console.error(`❌ TRC20 address not persisted in database for user ${userId}`);
             return res.status(500).json({ error: "Failed to save TRC20 deposit address. Please try again." });
           }
+          
+          // Update local reference
+          user.trc20DepositAddress = updatedUser.trc20DepositAddress;
           console.log(`✅ Verified TRC20 address saved to database: ${updatedUser.trc20DepositAddress}`);
         } catch (error) {
           console.error('❌ Error creating TRC20 address:', error);
           return res.status(500).json({ error: "Failed to create TRC20 deposit address. Please try again." });
         }
       } else {
+        // Update local reference with fresh data
+        user.trc20DepositAddress = freshUser.trc20DepositAddress;
         console.log(`✅ User ${userId} already has TRC20 address: ${user.trc20DepositAddress}`);
       }
 

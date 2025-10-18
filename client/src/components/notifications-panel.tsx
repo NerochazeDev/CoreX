@@ -21,9 +21,9 @@ export function NotificationsPanel() {
       return res.json();
     }),
     enabled: !!user?.id,
-    refetchInterval: 30000, // Optimized: Refresh every 30 seconds (was 5s)
-    staleTime: 20000, // Cache data for 20 seconds to reduce unnecessary fetches
-    refetchOnWindowFocus: false, // Don't refetch on every tab switch
+    refetchInterval: 10000, // Check every 10 seconds for new notifications
+    staleTime: 5000, // Cache data for 5 seconds
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
     refetchOnMount: true,
   });
 
@@ -34,9 +34,9 @@ export function NotificationsPanel() {
       return res.json();
     }),
     enabled: !!user?.id,
-    refetchInterval: 30000, // Optimized: Refresh every 30 seconds (was 3s)
-    staleTime: 20000, // Cache data for 20 seconds to reduce unnecessary fetches
-    refetchOnWindowFocus: false, // Don't refetch on every tab switch
+    refetchInterval: 10000, // Check every 10 seconds for unread count
+    staleTime: 5000, // Cache data for 5 seconds
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
     refetchOnMount: true,
   });
 

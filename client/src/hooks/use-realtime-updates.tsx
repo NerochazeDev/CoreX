@@ -74,18 +74,23 @@ export function useRealtimeUpdates() {
           // Handle notification updates
           if (data.type === 'notification_update' && user) {
             // Immediately refresh notification data
-            queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id] });
             queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id, 'unread-count'] });
             
-            // Force refetch with no cache
+            // Force immediate refetch
+            queryClient.refetchQueries({ 
+              queryKey: ['/api/notifications', user.id],
+              type: 'active'
+            });
             queryClient.refetchQueries({ 
               queryKey: ['/api/notifications', user.id, 'unread-count'],
-              type: 'all'
+              type: 'active'
             });
           }
 
           // Handle any general updates
           if (data.type === 'general_update' && user) {
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id] });
             queryClient.invalidateQueries({ queryKey: ['/api/notifications', user.id, 'unread-count'] });
           }
         } catch (error) {

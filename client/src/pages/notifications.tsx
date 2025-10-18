@@ -40,9 +40,9 @@ export default function Notifications() {
     queryKey: ['/api/notifications', user?.id],
     queryFn: () => fetch(`/api/notifications/${user?.id}`).then(res => res.json()),
     enabled: !!user?.id,
-    refetchInterval: 30000, // Optimized: Refresh every 30 seconds (was 10s)
-    staleTime: 20000, // Cache for 20 seconds
-    refetchOnWindowFocus: false, // Don't refetch on every tab switch
+    refetchInterval: 10000, // Check every 10 seconds for new notifications
+    staleTime: 5000, // Cache for 5 seconds
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
   });
 
   const { data: transactions } = useQuery<Transaction[]>({
@@ -55,9 +55,9 @@ export default function Notifications() {
     queryKey: ['/api/notifications', user?.id, 'unread-count'],
     queryFn: () => fetch(`/api/notifications/${user?.id}/unread-count`).then(res => res.json()),
     enabled: !!user?.id,
-    refetchInterval: 30000, // Optimized: Refresh every 30 seconds (was 5s)
-    staleTime: 20000, // Cache for 20 seconds
-    refetchOnWindowFocus: false, // Don't refetch on every tab switch
+    refetchInterval: 10000, // Check every 10 seconds for unread count
+    staleTime: 5000, // Cache for 5 seconds
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
   });
 
 
