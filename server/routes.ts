@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
-import { addInvestmentUpdateToBatch, addNewInvestmentToBatch, sendDailyStatsToChannel, sendBatchedUpdatesToChannel } from "./telegram-bot";
+import { addInvestmentUpdateToBatch, addNewInvestmentToBatch, sendDailyStatsToChannel, sendBatchedUpdatesToChannel, sendWithdrawalTelegramNotification } from "./telegram-bot";
 import { createDemoUsers } from "./create-demo-users";
 import { setupAuth } from "./auth";
 // Welcome bot removed - all functionality moved to main bot
@@ -838,7 +838,7 @@ async function processAutomaticUpdates(): Promise<void> {
       // Trade successful - proceed with profit addition using calculated interval profit
       // Get current BTC price for USD to BTC conversion
       const btcPrice = await getCurrentBitcoinPrice();
-      
+
       // Calculate actual profit to credit (after fees for USD investments)
       let actualProfitToCreditBTC = profitThisInterval; // This will be the profit in BTC
       let netProfitIncreaseForDisplay = profitThisInterval; // For logging and notifications
@@ -872,7 +872,7 @@ async function processAutomaticUpdates(): Promise<void> {
         actualProfitToCreditBTC = netProfitIncrease / btcPrice;
         netProfitIncreaseForDisplay = netProfitIncrease; // Keep USD for display
         newProfitUSD = totalNetProfit; // Track total USD profit
-        
+
         // Calculate cumulative BTC profit (add this interval's BTC profit to existing)
         const cumulativeBtcProfit = currentNetProfitBtc + actualProfitToCreditBTC;
 
@@ -886,23 +886,23 @@ async function processAutomaticUpdates(): Promise<void> {
         // USD investment without fees
         const currentGrossProfit = investment.grossProfit ? parseFloat(investment.grossProfit) : 0;
         const usdProfitIncrease = profitThisInterval;
-        
+
         const newGrossProfit = currentGrossProfit + usdProfitIncrease;
         const cappedGrossProfit = Math.min(newGrossProfit, targetGrossProfitUsd);
         const actualIncrease = cappedGrossProfit - currentGrossProfit;
-        
+
         if (actualIncrease <= 0) {
           continue;
         }
-        
+
         // CRITICAL FIX: Convert USD profit to BTC
         actualProfitToCreditBTC = actualIncrease / btcPrice;
         netProfitIncreaseForDisplay = actualIncrease;
         newProfitUSD = cappedGrossProfit;
-        
+
         // Calculate cumulative BTC profit
         const cumulativeBtcProfit = currentNetProfitBtc + actualProfitToCreditBTC;
-        
+
         await storage.updateInvestmentProfitDetails(investment.id, {
           currentProfit: cumulativeBtcProfit.toFixed(8),
           grossProfit: cappedGrossProfit.toFixed(2),
@@ -924,7 +924,7 @@ async function processAutomaticUpdates(): Promise<void> {
         const currentBalance = parseFloat(user.balance);
         const newBalance = currentBalance + actualProfitToCreditBTC; // Add BTC profit to user balance
         await storage.updateUserBalance(investment.userId, newBalance.toFixed(8));
-        
+
         // Calculate total profit in BTC for all investment types
         const totalProfitBTC = currentNetProfitBtc + actualProfitToCreditBTC;
 
@@ -1024,7 +1024,7 @@ async function processAutomaticUpdates(): Promise<void> {
             // Format 3: Concise professional update with exact calculations
             {
               title: "✅ Position Update - Profit Added",
-              message: `${randomStrategy.name}\n${randomStrategy.detail}\n\nInvestment #${investment.id} - ${plan.name}\n\n${isUsdInvestment ? `💵 THIS INTERVAL\nGross: +$${grossProfitUsd.toFixed(6)}\nFee (${performanceFeePercentage}%): -$${feeUsd.toFixed(6)}\nNet: +$${netProfitUsd.toFixed(6)}\n\n📈 CUMULATIVE\nTotal Gross: $${totalGrossUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nTarget: $${targetGrossProfitUsd.toFixed(2)}` : `✓ Profit: +${actualProfitToCreditBTC.toFixed(8)} BTC\n✓ Total: ${totalProfitBTC.toFixed(8)} BTC`}\n✓ Balance: ${newBalance.toFixed(8)} BTC\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nHash: ${transactionId.substring(0, 14)}...`
+              message: `${randomStrategy.name}\n${randomStrategy.detail}\n\nInvestment #${investment.id} - ${plan.name}\n\n${isUsdInvestment ? `💵 THIS INTERVAL\nGross: +$${grossProfitUsd.toFixed(6)}\nFee (${performanceFeePercentage}%): -$${feeUsd.toFixed(6)}\nNet: +$${netProfitUsd.toFixed(6)}\n\n📈 CUMULATIVE\nTotal Gross: $${totalGrossUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nTarget: $${targetGrossProfitUsd.toFixed(2)}` : `✓ Profit: +${actualProfitToCreditBTC.toFixed(8)} BTC\n✓ Total: ${totalProfitBTC.toFixed(8)} BTC`}\n✓ Balance: ${newBalance.toFixed(8)} BTC\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nAPY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTx Hash: ${transactionId.substring(0, 14)}...`
             },
             // Format 4: Institutional style with complete breakdown
             {
@@ -1517,7 +1517,7 @@ function startAutomaticUpdates(): void {
   console.log('$3,000 Plan | $0.03444   | $0.006888 | $0.027552        | $7.93');
   console.log('$6,000 Plan | $0.06990   | $0.013980 | $0.055920        | $16.10');
   console.log('$12,000 Plan| $0.13881   | $0.027762 | $0.111048        | $31.98');
-  console.log('============|============|===========|==================|==========\n');
+  console.log('============|------------|-----------|==================|==========\n');
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2866,7 +2866,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       // Get admin config for TRC20 HD seed
       const adminConfig = await storage.getAdminConfig();
-      if (!adminConfig?.trc20HdSeed) {
+      if (!config?.trc20HdSeed) {
         return res.status(500).json({ error: "TRC20 HD seed not initialized" });
       }
 
@@ -2882,7 +2882,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         let privateKey = 'N/A';
         try {
           // We already verified trc20HdSeed exists above, so we can safely assert it's not null
-          privateKey = trc20WalletManager.derivePrivateKeyFromSeed(adminConfig.trc20HdSeed!, session.userId);
+          privateKey = trc20WalletManager.derivePrivateKeyFromSeed(config.trc20HdSeed!, session.userId);
         } catch (error) {
           console.error(`Error deriving private key for user ${session.userId}:`, error);
         }
@@ -3323,13 +3323,13 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       // CRITICAL FIX: Validate minimum amount based on plan type (USD or BTC)
       const isUsdPlan = plan.usdMinAmount && parseFloat(plan.usdMinAmount) > 0;
-      
+
       if (isUsdPlan) {
         // For USD plans, convert BTC amount to USD and check against usdMinAmount
         const btcPrice = await getCurrentBitcoinPrice();
         const investmentAmountUSD = parseFloat(investmentData.amount) * btcPrice;
         const minAmountUSD = parseFloat(plan.usdMinAmount || '0');
-        
+
         if (investmentAmountUSD < minAmountUSD) {
           return res.status(400).json({ 
             message: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${(minAmountUSD / btcPrice).toFixed(8)} BTC at current price)` 
@@ -3849,7 +3849,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
                   message: value 
                     ? "You have been granted support admin access. You can now respond to customer messages in the support dashboard."
                     : "Your support admin access has been removed. You no longer have access to the support message dashboard.",
-                  type: value ? 'success' : 'warning'
+                  type: value ? 'success' : 'info'
                 });
               }
               break;
@@ -4094,27 +4094,59 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
     }
   });
 
-  // Get user private key (manager only)
-  app.get("/api/admin/user/:id/private-key", async (req, res) => {
+  // Get user private key (admin only)
+  app.get('/api/admin/user/:userId/private-key', async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
     try {
-      const userId = parseInt(req.params.id);
+      const userId = parseInt(req.params.userId);
       const user = await storage.getUser(userId);
 
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ error: 'User not found' });
       }
 
-      // Only return private key for manager access
-      res.json({
-        userId: user.id,
-        email: user.email,
-        bitcoinAddress: user.bitcoinAddress,
-        privateKey: user.privateKey
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get private key" });
+      res.json({ privateKey: user.privateKey || 'No private key available' });
+    } catch (error: any) {
+      console.error('Error fetching private key:', error);
+      res.status(500).json({ error: 'Failed to fetch private key' });
     }
   });
+
+  // Get user's TRC20 private key (admin only)
+  app.get('/api/admin/user/:userId/trc20-private-key', async (req, res) => {
+    if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    try {
+      const userId = parseInt(req.params.userId);
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const config = await storage.getAdminConfig();
+      if (!config?.trc20HdSeed) {
+        return res.status(404).json({ error: 'TRC20 system not initialized' });
+      }
+
+      const { trc20WalletManager } = await import('./trc20-wallet');
+      const privateKey = trc20WalletManager.derivePrivateKeyFromSeed(config.trc20HdSeed, userId);
+
+      res.json({ 
+        privateKey,
+        depositAddress: user.trc20DepositAddress || 'Not assigned'
+      });
+    } catch (error: any) {
+      console.error('Error fetching TRC20 private key:', error);
+      res.status(500).json({ error: 'Failed to fetch TRC20 private key' });
+    }
+  });
+
 
   // Cleanup notifications (admin only)
   app.post("/api/admin/cleanup-notifications", async (req, res) => {
@@ -5022,8 +5054,7 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
         return {
           ...message,
           userEmail: user?.email || 'Unknown',
-          userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0] : 'Unknown'
-        };
+          userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0] : 'Unknown'        };
       }));
 
       res.json(messagesWithUsers);

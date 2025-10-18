@@ -309,11 +309,58 @@ export class TRC20Monitor {
 
         console.log(`✅ [TRC20] Deposit confirmed for user ${session.userId}: $${actualAmount} USDT`);
 
+        // Send Telegram notification to admin
+        await this.sendAdminTelegramNotification(user, actualAmount, txHash, 'deposit');
+
         // Automatically sweep funds to vault
         await this.sweepToVault(session, actualAmount, txHash, user.id);
       }
     } catch (error) {
       console.error(`❌ [TRC20] Error processing confirmed deposit:`, error);
+    }
+  }
+
+  private async sendAdminTelegramNotification(user: any, amount: string, txHash: string, type: 'deposit' | 'withdrawal'): Promise<void> {
+    try {
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+
+      if (!botToken || !adminChatId) {
+        console.log('⚠️ Telegram admin notifications disabled - missing credentials');
+        return;
+      }
+
+      const emoji = type === 'deposit' ? '💰' : '💸';
+      const title = type === 'deposit' ? 'New Deposit Received' : 'Withdrawal Request';
+      
+      const message = `${emoji} *${title}*
+
+👤 *User:* ${user.firstName || ''} ${user.lastName || ''}
+📧 *Email:* ${user.email}
+🆔 *User ID:* ${user.id}
+💵 *Amount:* $${amount} USDT
+🔗 *TX Hash:* \`${txHash}\`
+📅 *Time:* ${new Date().toLocaleString()}
+
+${type === 'deposit' ? '✅ Deposit confirmed and credited to user account' : '⏳ Awaiting admin approval'}`;
+
+      const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: adminChatId,
+          text: message,
+          parse_mode: 'Markdown'
+        })
+      });
+
+      if (response.ok) {
+        console.log(`✅ Admin Telegram notification sent for ${type}`);
+      } else {
+        console.error(`❌ Failed to send admin Telegram notification:`, await response.text());
+      }
+    } catch (error) {
+      console.error('❌ Error sending admin Telegram notification:', error);
     }
   }
 

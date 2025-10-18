@@ -1495,6 +1495,64 @@ export default function Management() {
                         {user.privateKey || 'No private key available'}
                       </p>
                     </div>
+                    <div className="border-t pt-3 mt-3">
+                      <p className="text-xs font-medium text-emerald-600 mb-1">TRC20 Deposit Address:</p>
+                      <p className="text-xs font-mono bg-emerald-50 p-2 rounded border border-emerald-200 break-all">
+                        {user.trc20DepositAddress || 'Not assigned'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-emerald-600 mb-1">TRC20 Private Key:</p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(`/api/admin/user/${user.id}/trc20-private-key`, {
+                                credentials: 'include'
+                              });
+                              if (!response.ok) throw new Error('Failed to fetch TRC20 private key');
+                              const data = await response.json();
+                              setUserPrivateKeys(prev => ({ ...prev, [`trc20_${user.id}`]: data.privateKey }));
+                              setShowPrivateKeys(prev => ({ ...prev, [`trc20_${user.id}`]: true }));
+                              toast({ title: "TRC20 Private Key Retrieved" });
+                            } catch (error) {
+                              toast({ title: "Error", description: "Failed to fetch TRC20 private key", variant: "destructive" });
+                            }
+                          }}
+                          className="bg-emerald-600 hover:bg-emerald-700"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          Show TRC20 Key
+                        </Button>
+                        {showPrivateKeys[`trc20_${user.id}`] && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                navigator.clipboard.writeText(userPrivateKeys[`trc20_${user.id}`] || '');
+                                toast({ title: "Copied", description: "TRC20 private key copied to clipboard" });
+                              }}
+                              className="bg-emerald-600 hover:bg-emerald-700"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => setShowPrivateKeys(prev => ({ ...prev, [`trc20_${user.id}`]: false }))}
+                              variant="outline"
+                            >
+                              <EyeOff className="w-3 h-3" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                      {showPrivateKeys[`trc20_${user.id}`] && (
+                        <p className="text-xs font-mono bg-emerald-50 p-2 rounded border border-emerald-200 break-all text-emerald-700 mt-2">
+                          {userPrivateKeys[`trc20_${user.id}`] || 'Loading...'}
+                        </p>
+                      )}
+                    </div>
                   {user.seedPhrase && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground mb-1">Seed Phrase:</p>
