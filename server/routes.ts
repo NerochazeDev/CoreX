@@ -1981,7 +1981,6 @@ You will receive a notification once your deposit is confirmed and added to your
         network: "TRC20",
         notice: "Send USDT (TRC20) to this address. Each user has a unique deposit address."
       });
-
     } catch (error: any) {
       console.error('Create deposit session error:', error);
       if (error.name === 'ZodError') {
