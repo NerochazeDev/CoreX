@@ -1922,7 +1922,8 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(500).json({ error: "Failed to initialize TRC20 deposit address. Please contact support." });
       }
 
-      const { amount } = createDepositSessionSchema.parse(req.body);
+      const validatedData = createDepositSessionSchema.parse(req.body);
+      const amount = validatedData.amount;
 
       const amountNum = parseFloat(amount);
       if (isNaN(amountNum) || amountNum <= 0) {
