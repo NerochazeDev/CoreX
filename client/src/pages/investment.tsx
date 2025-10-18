@@ -152,38 +152,38 @@ export default function Investment() {
 
   const handleInvest = (plan: InvestmentPlan) => {
     if (!user) return;
-    
+
     const usdAmount = parseFloat(plan.usdMinAmount || '0');
     const currentPrice = bitcoinPrice?.usd.price || 121000;
     const btcAmount = (usdAmount / currentPrice).toFixed(8);
-    
+
     // Calculate profit breakdown matching backend logic exactly
     const grossProfit = usdAmount * (plan.roiPercentage / 100);
     const performanceFee = plan.performanceFeePercentage ? (grossProfit * (plan.performanceFeePercentage / 100)) : 0;
     const netProfit = grossProfit - performanceFee;
     const totalReturn = usdAmount + netProfit;
-    
+
     let confirmMessage = `Invest in ${plan.name}?\n\n` +
       `💰 Investment Amount:\n` +
       `   USD: $${usdAmount.toFixed(2)}\n` +
       `   BTC: ${btcAmount} BTC\n\n` +
       `📊 Return Breakdown (${plan.durationDays} days):\n` +
       `   Gross Profit: +$${grossProfit.toFixed(2)} (${plan.roiPercentage}% ROI)\n`;
-    
+
     if (plan.performanceFeePercentage && plan.performanceFeePercentage > 0) {
       confirmMessage += `   Performance Fee: -$${performanceFee.toFixed(2)} (${plan.performanceFeePercentage}% on profit)\n` +
         `   Net Profit: +$${netProfit.toFixed(2)}\n`;
     } else {
       confirmMessage += `   Net Profit: +$${netProfit.toFixed(2)}\n`;
     }
-    
+
     confirmMessage += `\n💵 Total Return: $${totalReturn.toFixed(2)}\n\n` +
       `⏱️ Duration: ${plan.durationDays} days\n` +
       `📈 Daily Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(4)}%\n\n` +
       `Proceed with investment?`;
-    
+
     const confirmed = confirm(confirmMessage);
-    
+
     if (confirmed) {
       console.log('Creating investment with BTC amount:', btcAmount);
       console.log('Expected profit breakdown:', {
@@ -417,7 +417,7 @@ export default function Investment() {
                 </Badge>
               </div>
             </CardHeader>
-            
+
             {/* Professional Financial Disclaimer */}
             <div className="mx-6 mt-6 mb-4 p-4 bg-orange-50/50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/30 rounded-lg" data-testid="disclaimer-performance">
               <div className="flex items-start gap-3">
@@ -459,8 +459,8 @@ export default function Investment() {
                               </p>
                             </div>
                           </div>
-                          
-                          {/* Expected Returns Section - Matches Backend Logic */}
+
+                          {/* Expected Returns Section - Exact Backend Calculation Match */}
                           <div className={`bg-white/15 dark:bg-white/10 rounded-lg p-4 mb-4 ${getTextColorClass(plan.color)}`}>
                             <div className="flex justify-between items-center mb-3">
                               <span className="text-sm opacity-80">Expected Returns:</span>
@@ -478,7 +478,7 @@ export default function Investment() {
                                 <div className="text-right font-medium">{plan.durationDays} days</div>
                               </div>
                               <div className="flex justify-between text-sm border-t border-white/20 pt-2">
-                                <span>Gross Profit:</span>
+                                <span>Target Gross Profit:</span>
                                 <div className="text-right text-green-300">
                                   <div className="font-medium">+${(parseFloat(plan.usdMinAmount || '0') * (plan.roiPercentage / 100)).toFixed(2)}</div>
                                   <div className="text-xs opacity-75">{plan.roiPercentage}% ROI</div>
@@ -494,10 +494,24 @@ export default function Investment() {
                                     </div>
                                   </div>
                                   <div className="flex justify-between text-sm text-green-400 border-t border-white/20 pt-2">
-                                    <span className="font-semibold">Net Profit:</span>
+                                    <span className="font-semibold">Net Profit (You Get):</span>
                                     <div className="text-right">
                                       <div className="font-bold">+${(parseFloat(plan.usdMinAmount || '0') * (plan.roiPercentage / 100) * (1 - (plan.performanceFeePercentage / 100))).toFixed(2)}</div>
-                                      <div className="text-xs opacity-75">After Fee Deduction</div>
+                                      <div className="text-xs opacity-75">After {plan.performanceFeePercentage}% Fee</div>
+                                    </div>
+                                  </div>
+                                  <div className="bg-white/10 rounded p-2 mt-2 text-xs">
+                                    <div className="flex justify-between mb-1">
+                                      <span>Profit per 5min:</span>
+                                      <span>+${((parseFloat(plan.usdMinAmount || '0') * (plan.roiPercentage / 100)) / (plan.durationDays * 24 * 60 / 5)).toFixed(6)}</span>
+                                    </div>
+                                    <div className="flex justify-between mb-1">
+                                      <span>Fee per 5min:</span>
+                                      <span className="text-yellow-300">-${((parseFloat(plan.usdMinAmount || '0') * (plan.roiPercentage / 100) * (plan.performanceFeePercentage / 100)) / (plan.durationDays * 24 * 60 / 5)).toFixed(6)}</span>
+                                    </div>
+                                    <div className="flex justify-between border-t border-white/20 pt-1">
+                                      <span className="font-semibold">Net per 5min:</span>
+                                      <span className="text-green-400 font-semibold">+${((parseFloat(plan.usdMinAmount || '0') * (plan.roiPercentage / 100) * (1 - (plan.performanceFeePercentage / 100))) / (plan.durationDays * 24 * 60 / 5)).toFixed(6)}</span>
                                     </div>
                                   </div>
                                 </>
@@ -522,8 +536,10 @@ export default function Investment() {
                                 </div>
                               </div>
                               <div className="text-xs opacity-75 mt-2 text-center">
-                                Daily Rate: {(parseFloat(plan.dailyReturnRate) * 100).toFixed(4)}%
-                                {plan.performanceFeePercentage && plan.performanceFeePercentage > 0 && ` | ${plan.performanceFeePercentage}% fee on profits`}
+                                {plan.performanceFeePercentage && plan.performanceFeePercentage > 0 
+                                  ? `Daily Net: ~$${((parseFloat(plan.usdMinAmount || '0') * (plan.roiPercentage / 100) * (1 - (plan.performanceFeePercentage / 100))) / plan.durationDays).toFixed(2)} | Updates every 5min`
+                                  : `Daily Profit: ~$${((parseFloat(plan.usdMinAmount || '0') * (plan.roiPercentage / 100)) / plan.durationDays).toFixed(2)} | Updates every 5min`
+                                }
                               </div>
                             </div>
                           </div>
