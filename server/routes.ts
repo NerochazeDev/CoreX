@@ -1848,13 +1848,6 @@ You will receive a notification once your deposit is confirmed and added to your
         return res.status(401).json({ error: "Authentication required. Please log in again." });
       }
 
-      // Verify TRC20 system is initialized
-      const adminConfig = await storage.getAdminConfig();
-      if (!adminConfig?.trc20HdSeed) {
-        console.error('❌ TRC20 system not initialized - missing HD seed in admin config');
-        return res.status(500).json({ error: "TRC20 deposit system not initialized. Please contact support." });
-      }
-
       // SECURITY: Rate limiting - max 3 deposit sessions per hour per user
       const now = Date.now();
       const userRateLimit = depositSessionRateLimits.get(userId);
