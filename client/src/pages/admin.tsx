@@ -2403,12 +2403,6 @@ export default function Management() {
     return matchesSearch && matchesStatus;
   });
 
-  const navigationItems = [
-    { id: "overview", label: "Overview", icon: BarChart3 },
-    { id: "users", label: "User Management", icon: Users },
-    { id: "support", label: "Support Messages", icon: MessageSquare },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50/30">
       {/* Sidebar */}
