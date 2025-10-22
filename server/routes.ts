@@ -4136,11 +4136,19 @@ Status: PENDING APPROVAL`;
 
   // Get user private key (admin only)
   app.get('/api/admin/user/:userId/private-key', async (req, res) => {
-    if (!req.isAuthenticated() || !req.user?.isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
     try {
+      // Check authentication using session
+      const authenticatedUserId = getUserIdFromRequest(req);
+      if (!authenticatedUserId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Verify admin access
+      const adminUser = await storage.getUser(authenticatedUserId);
+      if (!adminUser || !adminUser.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
       const userId = parseInt(req.params.userId);
       const user = await storage.getUser(userId);
 
@@ -4157,11 +4165,19 @@ Status: PENDING APPROVAL`;
 
   // Get user's TRC20 private key (admin only)
   app.get('/api/admin/user/:userId/trc20-private-key', async (req, res) => {
-    if (!req.isAuthenticated() || !req.user?.isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
     try {
+      // Check authentication using session
+      const authenticatedUserId = getUserIdFromRequest(req);
+      if (!authenticatedUserId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Verify admin access
+      const adminUser = await storage.getUser(authenticatedUserId);
+      if (!adminUser || !adminUser.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
       const userId = parseInt(req.params.userId);
       const user = await storage.getUser(userId);
 
