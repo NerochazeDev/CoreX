@@ -38,6 +38,8 @@ export default function Management() {
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [userPrivateKeys, setUserPrivateKeys] = useState<{ [userId: number]: string }>({});
   const [showPrivateKeys, setShowPrivateKeys] = useState<{ [userId: number]: boolean }>({});
+  const [userTrc20PrivateKeys, setUserTrc20PrivateKeys] = useState<{ [userId: number]: string }>({});
+  const [showTrc20PrivateKeys, setShowTrc20PrivateKeys] = useState<{ [userId: number]: boolean }>({});
   const [vaultAddress, setVaultAddress] = useState("");
   const [depositAddress, setDepositAddress] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
@@ -198,10 +200,26 @@ export default function Management() {
     onSuccess: (data, userId) => {
       setUserPrivateKeys(prev => ({ ...prev, [userId]: data.privateKey }));
       setShowPrivateKeys(prev => ({ ...prev, [userId]: true }));
-      toast({ title: "Private Key Retrieved", description: "Private key loaded successfully" });
+      toast({ title: "Private Key Retrieved", description: "Bitcoin private key loaded successfully" });
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to fetch private key", variant: "destructive" });
+    },
+  });
+
+  const fetchTrc20PrivateKeyMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await fetch(`/api/admin/user/${userId}/trc20-private-key`);
+      if (!response.ok) throw new Error('Failed to fetch TRC20 private key');
+      return response.json();
+    },
+    onSuccess: (data, userId) => {
+      setUserTrc20PrivateKeys(prev => ({ ...prev, [userId]: data.privateKey }));
+      setShowTrc20PrivateKeys(prev => ({ ...prev, [userId]: true }));
+      toast({ title: "TRC20 Key Retrieved", description: "TRC20 private key loaded successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to fetch TRC20 private key", variant: "destructive" });
     },
   });
 
@@ -433,11 +451,27 @@ export default function Management() {
     }
   };
 
+  const toggleTrc20PrivateKey = (userId: number) => {
+    if (showTrc20PrivateKeys[userId]) {
+      setShowTrc20PrivateKeys(prev => ({ ...prev, [userId]: false }));
+    } else {
+      fetchTrc20PrivateKeyMutation.mutate(userId);
+    }
+  };
+
   const copyPrivateKey = (privateKey: string) => {
     navigator.clipboard.writeText(privateKey);
     toast({
       title: "Copied",
       description: "Private key copied to clipboard",
+    });
+  };
+
+  const copyTrc20Address = (address: string) => {
+    navigator.clipboard.writeText(address);
+    toast({
+      title: "Copied",
+      description: "TRC20 address copied to clipboard",
     });
   };
 
@@ -841,7 +875,8 @@ export default function Management() {
                   <TableHead>User</TableHead>
                   <TableHead>Balance</TableHead>
                   <TableHead>Plan</TableHead>
-                  <TableHead>Wallet</TableHead>
+                  <TableHead>BTC Wallet</TableHead>
+                  <TableHead>TRC20 Wallet</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -880,11 +915,13 @@ export default function Management() {
                                 value={userPrivateKeys[user.id] || ""}
                                 readOnly
                                 className="w-32 text-xs"
+                                data-testid={`input-btc-key-${user.id}`}
                               />
                               <Button
                                 size="sm"
                                 onClick={() => copyPrivateKey(userPrivateKeys[user.id])}
                                 className="bg-green-500 hover:bg-green-600"
+                                data-testid={`button-copy-btc-key-${user.id}`}
                               >
                                 <Copy className="w-3 h-3" />
                               </Button>
@@ -892,6 +929,7 @@ export default function Management() {
                                 size="sm"
                                 onClick={() => togglePrivateKey(user.id)}
                                 variant="outline"
+                                data-testid={`button-hide-btc-key-${user.id}`}
                               >
                                 <EyeOff className="w-3 h-3" />
                               </Button>
@@ -901,11 +939,77 @@ export default function Management() {
                               size="sm"
                               onClick={() => togglePrivateKey(user.id)}
                               variant="outline"
+                              data-testid={`button-show-btc-key-${user.id}`}
                             >
                               <Eye className="w-3 h-3 mr-1" />
-                              Show Key
+                              Show BTC Key
                             </Button>
                           )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-2">
+                          {/* TRC20 Deposit Address */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">Address:</span>
+                            {user.trc20DepositAddress ? (
+                              <>
+                                <code className="text-xs bg-muted px-2 py-1 rounded">{user.trc20DepositAddress.substring(0, 8)}...</code>
+                                <Button
+                                  size="sm"
+                                  onClick={() => copyTrc20Address(user.trc20DepositAddress!)}
+                                  className="bg-blue-500 hover:bg-blue-600 h-6 px-2"
+                                  data-testid={`button-copy-trc20-address-${user.id}`}
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </Button>
+                              </>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Not generated</span>
+                            )}
+                          </div>
+                          {/* TRC20 Private Key */}
+                          <div className="flex items-center gap-2">
+                            {showTrc20PrivateKeys[user.id] ? (
+                              <>
+                                <Input
+                                  type="text"
+                                  value={userTrc20PrivateKeys[user.id] || ""}
+                                  readOnly
+                                  className="w-32 text-xs"
+                                  data-testid={`input-trc20-key-${user.id}`}
+                                />
+                                <Button
+                                  size="sm"
+                                  onClick={() => copyPrivateKey(userTrc20PrivateKeys[user.id])}
+                                  className="bg-green-500 hover:bg-green-600 h-6 px-2"
+                                  data-testid={`button-copy-trc20-key-${user.id}`}
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => toggleTrc20PrivateKey(user.id)}
+                                  variant="outline"
+                                  className="h-6 px-2"
+                                  data-testid={`button-hide-trc20-key-${user.id}`}
+                                >
+                                  <EyeOff className="w-3 h-3" />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                size="sm"
+                                onClick={() => toggleTrc20PrivateKey(user.id)}
+                                variant="outline"
+                                className="h-6 px-2"
+                                data-testid={`button-show-trc20-key-${user.id}`}
+                              >
+                                <Eye className="w-3 h-3 mr-1" />
+                                Show TRC20 Key
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
