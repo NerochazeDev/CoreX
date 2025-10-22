@@ -1948,24 +1948,34 @@ You will receive a notification once your deposit is confirmed and added to your
 
       // Send Telegram notification to admin about new deposit session
       try {
-        const { broadcastQueue } = await import('./broadcast-queue');
-        const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
-        const notificationMessage = `🔔 *NEW DEPOSIT SESSION*\n\n` +
-          `👤 *User:* ${userName} (ID: ${userId})\n` +
-          `📧 *Email:* ${user.email}\n` +
-          `💰 *Amount:* $${amount} USDT\n` +
-          `🔑 *Deposit Address:* \`${user.trc20DepositAddress}\`\n` +
-          `🆔 *Session Token:* ${session.sessionToken.substring(0, 15)}...\n` +
-          `⏱️ *Expires:* ${new Date(session.expiresAt).toLocaleString()}\n` +
-          `🌐 *Network:* TRC20\n\n` +
-          `⚠️ Monitor this deposit session in admin dashboard`;
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
 
-        broadcastQueue.addMessage({
-          type: 'text',
-          content: notificationMessage,
-          priority: 'high',
-          maxRetries: 2
-        });
+        if (botToken && adminChatId) {
+          const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+          
+          const message = `🔔 NEW DEPOSIT SESSION
+      
+User: ${userName}
+Email: ${user.email}
+ID: ${userId}
+Amount: $${amount} USDT
+Address: ${user.trc20DepositAddress}
+Session: ${session.sessionToken.substring(0, 15)}...
+Expires: ${new Date(session.expiresAt).toLocaleTimeString()}
+Network: TRC20`;
+
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: adminChatId,
+              text: message
+            })
+          });
+
+          console.log('✅ Deposit session notification sent to admin');
+        }
       } catch (error) {
         console.error('Failed to send Telegram notification for deposit session:', error);
       }
@@ -2782,26 +2792,36 @@ Admin will review and process your withdrawal shortly. You'll receive a confirma
 
       // Send Telegram notification to admin about withdrawal request
       try {
-        const { broadcastQueue } = await import('./broadcast-queue');
-        const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
-        const notificationMessage = `🚨 *WITHDRAWAL REQUEST*\n\n` +
-          `👤 *User:* ${userName} (ID: ${userId})\n` +
-          `📧 *Email:* ${user.email}\n` +
-          `💸 *Amount:* $${amount} USDT\n` +
-          `🏦 *To Address:* \`${address}\`\n` +
-          `💰 *BTC Deducted:* ${btcToDeduct.toFixed(8)} BTC\n` +
-          `📊 *New Balance:* ${newBalance} BTC\n` +
-          `🆔 *Transaction ID:* ${transaction.id}\n` +
-          `🌐 *Network:* TRC20\n` +
-          `⏱️ *Status:* Pending Admin Approval\n\n` +
-          `⚠️ *Action Required:* Review and approve/reject in admin dashboard`;
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
 
-        broadcastQueue.addMessage({
-          type: 'text',
-          content: notificationMessage,
-          priority: 'high',
-          maxRetries: 3
-        });
+        if (botToken && adminChatId) {
+          const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+          
+          const message = `🚨 WITHDRAWAL REQUEST
+      
+User: ${userName}
+Email: ${user.email}
+ID: ${userId}
+Amount: $${amount} USDT
+To Address: ${address}
+BTC Deducted: ${btcToDeduct.toFixed(8)} BTC
+New Balance: ${newBalance} BTC
+Transaction ID: ${transaction.id}
+Network: TRC20
+Status: PENDING APPROVAL`;
+
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: adminChatId,
+              text: message
+            })
+          });
+
+          console.log('✅ Withdrawal request notification sent to admin');
+        }
       } catch (error) {
         console.error('Failed to send Telegram notification for withdrawal:', error);
       }
