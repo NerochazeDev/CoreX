@@ -14,7 +14,7 @@ import type { User, InvestmentPlan } from "@shared/schema";
 import { formatBitcoin } from "@/lib/utils";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
-import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, MessageSquare, Reply } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, MessageSquare, Reply, Search, Filter, UserCircle, Mail, Phone, MapPin, Calendar, CreditCard } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,6 +45,9 @@ export default function Management() {
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [userDetailOpen, setUserDetailOpen] = useState(false);
 
   // Define access permissions first before using them
   const isFullAdmin = user?.isAdmin;
@@ -861,256 +864,368 @@ export default function Management() {
     </div>
   );
 
+  const renderUserDetailDialog = () => {
+    if (!selectedUser) return null;
+    const userPlan = investmentPlans?.find(plan => plan.id === selectedUser.currentPlanId);
+
+    return (
+      <Dialog open={userDetailOpen} onOpenChange={setUserDetailOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                {selectedUser.firstName?.[0] || selectedUser.email[0].toUpperCase()}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">User Profile Management</h3>
+                <p className="text-sm text-muted-foreground">ID: {selectedUser.id}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Personal Information */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <UserCircle className="w-5 h-5 text-orange-500" />
+                  Personal Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Full Name</Label>
+                  <p className="font-medium">{selectedUser.firstName} {selectedUser.lastName}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Email</Label>
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    <p className="font-medium text-sm">{selectedUser.email}</p>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Phone</Label>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    <p className="font-medium">{selectedUser.phone || 'Not provided'}</p>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Country</Label>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                    <p className="font-medium">{selectedUser.country || 'Not specified'}</p>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Registration Date</Label>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <p className="font-medium text-sm">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Account Status</Label>
+                  <div className="flex gap-1">
+                    {selectedUser.isAdmin && <Badge className="bg-yellow-100 text-yellow-800">Admin</Badge>}
+                    {selectedUser.isSupportAdmin && <Badge className="bg-blue-100 text-blue-800">Support</Badge>}
+                    {!selectedUser.isAdmin && !selectedUser.isSupportAdmin && <Badge variant="secondary">Regular User</Badge>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Financial Information */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Wallet className="w-5 h-5 text-green-500" />
+                  Financial Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
+                    <Label className="text-xs text-green-700 font-semibold">Current Balance</Label>
+                    <p className="text-2xl font-bold text-green-700 font-mono">{formatBitcoin(selectedUser.balance)} BTC</p>
+                    <Button
+                      size="sm"
+                      onClick={() => handleUpdateBalance(selectedUser)}
+                      className="mt-2 w-full bg-green-600 hover:bg-green-700"
+                    >
+                      <Edit className="w-3 h-3 mr-1" />
+                      Update Balance
+                    </Button>
+                  </div>
+                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg border border-orange-200">
+                    <Label className="text-xs text-orange-700 font-semibold">Investment Plan</Label>
+                    <p className="text-lg font-bold text-orange-700">
+                      {userPlan ? userPlan.name : 'Free Plan'}
+                    </p>
+                    {userPlan && (
+                      <p className="text-sm text-orange-600">{(parseFloat(userPlan.dailyReturnRate) * 100).toFixed(2)}% daily</p>
+                    )}
+                    <Button
+                      size="sm"
+                      onClick={() => handleUpdatePlan(selectedUser)}
+                      className="mt-2 w-full bg-orange-600 hover:bg-orange-700"
+                    >
+                      <Settings className="w-3 h-3 mr-1" />
+                      Change Plan
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Wallet Information */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Bitcoin className="w-5 h-5 text-orange-500" />
+                  Wallet & Security
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-2 block">Bitcoin Address</Label>
+                  <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border">
+                    <code className="text-xs flex-1 break-all">{selectedUser.bitcoinAddress || 'Not generated'}</code>
+                    {selectedUser.bitcoinAddress && (
+                      <Button size="sm" variant="outline" onClick={() => copyToClipboard(selectedUser.bitcoinAddress!, 'Bitcoin address')}>
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-2 block">Bitcoin Private Key</Label>
+                  <div className="flex items-center gap-2">
+                    {showPrivateKeys[selectedUser.id] ? (
+                      <>
+                        <Input
+                          type="text"
+                          value={userPrivateKeys[selectedUser.id] || ""}
+                          readOnly
+                          className="flex-1 text-xs font-mono bg-red-50 border-red-200"
+                        />
+                        <Button size="sm" onClick={() => copyToClipboard(userPrivateKeys[selectedUser.id], 'Private key')}>
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setShowPrivateKeys(prev => ({ ...prev, [selectedUser.id]: false }))}>
+                          <EyeOff className="w-3 h-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button size="sm" onClick={() => fetchPrivateKeyMutation.mutate(selectedUser.id)} className="w-full">
+                        <Eye className="w-3 h-3 mr-1" />
+                        Show Private Key
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <Label className="text-xs text-emerald-700 font-semibold mb-2 block">TRC20 Deposit Address</Label>
+                  <div className="flex items-center gap-2 bg-emerald-50 p-3 rounded-lg border border-emerald-200 mb-3">
+                    <code className="text-xs flex-1 break-all text-emerald-700">{selectedUser.trc20DepositAddress || 'Not assigned'}</code>
+                    {selectedUser.trc20DepositAddress && (
+                      <Button size="sm" variant="outline" onClick={() => copyToClipboard(selectedUser.trc20DepositAddress!, 'TRC20 address')}>
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <Label className="text-xs text-emerald-700 font-semibold mb-2 block">TRC20 Private Key</Label>
+                  <div className="flex items-center gap-2">
+                    {showTrc20PrivateKeys[selectedUser.id] ? (
+                      <>
+                        <Input
+                          type="text"
+                          value={userTrc20PrivateKeys[selectedUser.id] || ""}
+                          readOnly
+                          className="flex-1 text-xs font-mono bg-red-50 border-red-200"
+                        />
+                        <Button size="sm" onClick={() => copyToClipboard(userTrc20PrivateKeys[selectedUser.id], 'TRC20 key')}>
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setShowTrc20PrivateKeys(prev => ({ ...prev, [selectedUser.id]: false }))}>
+                          <EyeOff className="w-3 h-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button size="sm" onClick={() => fetchTrc20PrivateKeyMutation.mutate(selectedUser.id)} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                        <Eye className="w-3 h-3 mr-1" />
+                        Show TRC20 Key
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Danger Zone */}
+            {!selectedUser.isAdmin && (
+              <Card className="border-red-200 bg-red-50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-red-700">
+                    <AlertTriangle className="w-5 h-5" />
+                    Danger Zone
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-red-600 mb-3">
+                    Permanently delete this user account and all associated data. This action cannot be undone.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      if (confirm(`Are you sure you want to delete ${selectedUser.email}? This action is irreversible.`)) {
+                        deleteUserMutation.mutate(selectedUser.id);
+                      }
+                    }}
+                    disabled={deleteUserMutation.isPending}
+                    className="w-full"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {deleteUserMutation.isPending ? 'Deleting...' : 'Delete User Account'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   const renderUsersTab = () => (
     <div className="space-y-6">
-      {/* User Management Table */}
+      {/* Search and Filter Bar */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            User Management
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Balance</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>BTC Wallet</TableHead>
-                  <TableHead>TRC20 Wallet</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users?.map((user) => {
-                  const userPlan = investmentPlans?.find(plan => plan.id === user.currentPlanId);
-                  return (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{user.email}</p>
-                          <p className="text-sm text-muted-foreground">ID: {user.id}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Bitcoin className="w-4 h-4 text-bitcoin" />
-                          <span className="font-mono">{formatBitcoin(user.balance)}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {userPlan ? (
-                          <Badge style={{ backgroundColor: userPlan.color + '20', color: userPlan.color }}>
-                            {userPlan.name}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">Free Plan</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {showPrivateKeys[user.id] ? (
-                            <div className="flex items-center gap-2">
-                              <Input
-                                type="text"
-                                value={userPrivateKeys[user.id] || ""}
-                                readOnly
-                                className="w-32 text-xs"
-                                data-testid={`input-btc-key-${user.id}`}
-                              />
-                              <Button
-                                size="sm"
-                                onClick={() => copyPrivateKey(userPrivateKeys[user.id])}
-                                className="bg-green-500 hover:bg-green-600"
-                                data-testid={`button-copy-btc-key-${user.id}`}
-                              >
-                                <Copy className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => togglePrivateKey(user.id)}
-                                variant="outline"
-                                data-testid={`button-hide-btc-key-${user.id}`}
-                              >
-                                <EyeOff className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => togglePrivateKey(user.id)}
-                              variant="outline"
-                              data-testid={`button-show-btc-key-${user.id}`}
-                            >
-                              <Eye className="w-3 h-3 mr-1" />
-                              Show BTC Key
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-2">
-                          {/* TRC20 Deposit Address */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">Address:</span>
-                            {user.trc20DepositAddress ? (
-                              <>
-                                <code className="text-xs bg-muted px-2 py-1 rounded">{user.trc20DepositAddress.substring(0, 8)}...</code>
-                                <Button
-                                  size="sm"
-                                  onClick={() => copyTrc20Address(user.trc20DepositAddress!)}
-                                  className="bg-blue-500 hover:bg-blue-600 h-6 px-2"
-                                  data-testid={`button-copy-trc20-address-${user.id}`}
-                                >
-                                  <Copy className="w-3 h-3" />
-                                </Button>
-                              </>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">Not generated</span>
-                            )}
-                          </div>
-                          {/* TRC20 Private Key */}
-                          <div className="flex items-center gap-2">
-                            {showTrc20PrivateKeys[user.id] ? (
-                              <>
-                                <Input
-                                  type="text"
-                                  value={userTrc20PrivateKeys[user.id] || ""}
-                                  readOnly
-                                  className="w-32 text-xs"
-                                  data-testid={`input-trc20-key-${user.id}`}
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={() => copyPrivateKey(userTrc20PrivateKeys[user.id])}
-                                  className="bg-green-500 hover:bg-green-600 h-6 px-2"
-                                  data-testid={`button-copy-trc20-key-${user.id}`}
-                                >
-                                  <Copy className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => toggleTrc20PrivateKey(user.id)}
-                                  variant="outline"
-                                  className="h-6 px-2"
-                                  data-testid={`button-hide-trc20-key-${user.id}`}
-                                >
-                                  <EyeOff className="w-3 h-3" />
-                                </Button>
-                              </>
-                            ) : (
-                              <Button
-                                size="sm"
-                                onClick={() => toggleTrc20PrivateKey(user.id)}
-                                variant="outline"
-                                className="h-6 px-2"
-                                data-testid={`button-show-trc20-key-${user.id}`}
-                              >
-                                <Eye className="w-3 h-3 mr-1" />
-                                Show TRC20 Key
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            onClick={() => handleUpdateBalance(user)}
-                            className="bg-bitcoin hover:bg-bitcoin/90 text-black"
-                            title="Update Balance"
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleUpdatePlan(user)}
-                            variant="outline"
-                            title="Update Plan"
-                          >
-                            <Settings className="w-3 h-3" />
-                          </Button>
-                          {!user.isAdmin && (
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                if (confirm(`Are you sure you want to delete user ${user.email}? This action cannot be undone.`)) {
-                                  deleteUserMutation.mutate(user.id);
-                                }
-                              }}
-                              variant="destructive"
-                              title="Delete User"
-                              disabled={deleteUserMutation.isPending}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                placeholder="Search by name, email, or user ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-full md:w-48">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                <SelectItem value="admin">Admins Only</SelectItem>
+                <SelectItem value="support">Support Staff</SelectItem>
+                <SelectItem value="regular">Regular Users</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="mt-4 flex gap-4 text-sm text-muted-foreground">
+            <span>Total: {filteredUsers?.length || 0}</span>
+            <span>•</span>
+            <span>Admins: {filteredUsers?.filter(u => u.isAdmin).length || 0}</span>
+            <span>•</span>
+            <span>Support: {filteredUsers?.filter(u => u.isSupportAdmin).length || 0}</span>
           </div>
         </CardContent>
       </Card>
 
-      {/* Quick Balance Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5" />
-            Quick Balance Management
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="quickUserId">User ID</Label>
-              <Input
-                id="quickUserId"
-                type="number"
-                placeholder="Enter User ID"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="quickBalance">New Balance (BTC)</Label>
-              <Input
-                id="quickBalance"
-                type="number"
-                step="0.00000001"
-                placeholder="0.00000000"
-                className="mt-1"
-              />
-            </div>
-            <div className="flex items-end">
-              <Button
-                onClick={() => {
-                  const userIdInput = document.getElementById('quickUserId') as HTMLInputElement;
-                  const balanceInput = document.getElementById('quickBalance') as HTMLInputElement;
-                  if (userIdInput.value && balanceInput.value) {
-                    const user = users?.find(u => u.id === parseInt(userIdInput.value));
-                    if (user) {
-                      setSelectedUser(user);
-                      setNewBalance(balanceInput.value);
-                      setDialogOpen(true);
-                    }
-                  }
-                }}
-                className="w-full bg-bitcoin hover:bg-bitcoin/90 text-black"
-              >
-                Update Balance
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Users Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredUsers?.map((user) => {
+          const userPlan = investmentPlans?.find(plan => plan.id === user.currentPlanId);
+          return (
+            <Card key={user.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
+              setSelectedUser(user);
+              setUserDetailOpen(true);
+            }}>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      {user.firstName?.[0] || user.email[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-base">
+                        {user.firstName} {user.lastName}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">ID: {user.id}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    {user.isAdmin && <Badge className="bg-yellow-100 text-yellow-800 text-xs">Admin</Badge>}
+                    {user.isSupportAdmin && <Badge className="bg-blue-100 text-blue-800 text-xs">Support</Badge>}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs truncate">{user.email}</span>
+                  </div>
+
+                  <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                    <Label className="text-xs text-green-700">Balance</Label>
+                    <p className="font-mono font-bold text-green-700">{formatBitcoin(user.balance)} BTC</p>
+                  </div>
+
+                  <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                    <Label className="text-xs text-orange-700">Plan</Label>
+                    <p className="font-semibold text-orange-700">{userPlan ? userPlan.name : 'Free Plan'}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUpdateBalance(user);
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-xs"
+                    >
+                      <Edit className="w-3 h-3 mr-1" />
+                      Balance
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUpdatePlan(user);
+                      }}
+                      className="text-xs"
+                    >
+                      <Settings className="w-3 h-3 mr-1" />
+                      Plan
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {filteredUsers?.length === 0 && (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Users Found</h3>
+            <p className="text-gray-500">Try adjusting your search or filter criteria.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {renderUserDetailDialog()}
     </div>
   );
 
@@ -2060,7 +2175,7 @@ export default function Management() {
                       <div className="bg-white rounded-2xl rounded-tl-md p-4 shadow-sm border">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="font-semibold text-sm text-gray-900">
-                            {message.user ? 
+                            {message.user ?
                               `${message.user.firstName || ''} ${message.user.lastName || ''}`.trim() || message.user.email :
                               'Unknown User'
                             }
@@ -2073,9 +2188,9 @@ export default function Management() {
                         <p className="text-gray-700 leading-relaxed">{message.message}</p>
                         {message.imageUrl && (
                           <div className="mt-3">
-                            <img 
-                              src={message.imageUrl} 
-                              alt="Support attachment" 
+                            <img
+                              src={message.imageUrl}
+                              alt="Support attachment"
                               className="max-w-full h-48 object-cover rounded-lg border"
                             />
                           </div>
@@ -2143,7 +2258,7 @@ export default function Management() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold">
-                    {selectedMessage?.user ? 
+                    {selectedMessage?.user ?
                       `${selectedMessage.user.firstName || ''} ${selectedMessage.user.lastName || ''}`.trim() || selectedMessage.user.email :
                       'Unknown User'
                     }
@@ -2173,7 +2288,7 @@ export default function Management() {
                       <div className="bg-white rounded-2xl rounded-tl-md p-4 shadow-sm border">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="font-semibold text-sm text-gray-900">
-                            {selectedMessage.user ? 
+                            {selectedMessage.user ?
                               `${selectedMessage.user.firstName || ''} ${selectedMessage.user.lastName || ''}`.trim() || selectedMessage.user.email :
                               'Unknown User'
                             }
@@ -2264,8 +2379,38 @@ export default function Management() {
     }
   };
 
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied",
+      description: `${label} copied to clipboard`,
+    });
+  };
+
+  // Filter users based on search and status
+  const filteredUsers = users?.filter(u => {
+    const matchesSearch = !searchQuery ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.firstName && u.firstName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (u.lastName && u.lastName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      u.id.toString().includes(searchQuery);
+
+    const matchesStatus = filterStatus === 'all' ||
+      (filterStatus === 'admin' && u.isAdmin) ||
+      (filterStatus === 'support' && u.isSupportAdmin) ||
+      (filterStatus === 'regular' && !u.isAdmin && !u.isSupportAdmin);
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const navigationItems = [
+    { id: "overview", label: "Overview", icon: BarChart3 },
+    { id: "users", label: "User Management", icon: Users },
+    { id: "support", label: "Support Messages", icon: MessageSquare },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-orange-900/10">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50/30">
       {/* Sidebar */}
       {renderSidebar()}
 
@@ -2280,7 +2425,7 @@ export default function Management() {
       {/* Main Content */}
       <div className="lg:ml-64">
         {/* Top Header */}
-        <header className="bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-600 dark:to-amber-600 shadow-lg px-6 py-4">
+        <header className="bg-gradient-to-r from-orange-500 to-amber-500 shadow-lg px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
