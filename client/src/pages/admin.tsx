@@ -506,16 +506,16 @@ export default function Management() {
   const navigationItems = getNavigationItems();
 
   const renderSidebar = () => (
-    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-      <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
+    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-orange-600 via-orange-700 to-orange-800 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shadow-2xl`}>
+      <div className="flex items-center justify-between h-16 px-6 border-b border-orange-500/30 bg-white/5">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bitcoin to-yellow-600 flex items-center justify-center">
-            <span className="text-black text-sm font-bold">₿</span>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
+            <span className="text-white text-xl font-bold">₿</span>
           </div>
           <div>
-            <h1 className="text-white font-bold text-lg">BitVault Pro Admin</h1>
-            <p className="text-slate-400 text-xs">
-              {!isFullAdmin && isSupportAdmin ? "Support Portal" : "Management Portal"}
+            <h1 className="text-white font-bold text-lg">BitVault Pro</h1>
+            <p className="text-orange-200 text-xs font-medium">
+              {!isFullAdmin && isSupportAdmin ? "Support Portal" : "Admin Dashboard"}
             </p>
           </div>
         </div>
@@ -523,7 +523,7 @@ export default function Management() {
           variant="ghost"
           size="icon"
           onClick={() => setSidebarOpen(false)}
-          className="lg:hidden text-white hover:bg-slate-800"
+          className="lg:hidden text-white hover:bg-white/10 rounded-lg"
         >
           <X className="w-5 h-5" />
         </Button>
@@ -541,10 +541,10 @@ export default function Management() {
                 setSidebarOpen(false);
               }
             }}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-colors ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all duration-200 ${
               activeTab === item.id
-                ? 'bg-bitcoin text-black font-medium'
-                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? 'bg-white text-orange-600 font-semibold shadow-lg transform scale-105'
+                : 'text-orange-100 hover:bg-white/10 hover:text-white'
             }`}
           >
             <item.icon className="w-5 h-5" />
@@ -554,12 +554,12 @@ export default function Management() {
       </nav>
 
       <div className="absolute bottom-6 left-3 right-3">
-        <div className="bg-slate-800 rounded-lg p-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
           <div className="flex items-center gap-2 mb-2">
-            <Activity className="w-4 h-4 text-green-400" />
-            <span className="text-green-400 text-sm font-medium">System Online</span>
+            <Activity className="w-4 h-4 text-green-300" />
+            <span className="text-green-300 text-sm font-semibold">System Online</span>
           </div>
-          <p className="text-slate-400 text-xs">
+          <p className="text-orange-200 text-xs">
             {currentTime.toLocaleTimeString()}
           </p>
         </div>
@@ -571,61 +571,65 @@ export default function Management() {
     <div className="space-y-6">
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-6">
+        <Card className="relative overflow-hidden border-0 shadow-xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-orange-600/20 rounded-full blur-2xl"></div>
+          <CardContent className="p-6 relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-600 text-sm font-medium">Total Users</p>
-                <p className="text-3xl font-bold text-blue-900">{stats?.totalUsers || 0}</p>
-                <p className="text-blue-600 text-xs mt-1">+2.5% from last month</p>
+                <p className="text-orange-600 dark:text-orange-400 text-sm font-semibold">Total Users</p>
+                <p className="text-4xl font-bold text-orange-900 dark:text-orange-100 mt-2">{stats?.totalUsers || 0}</p>
+                <p className="text-orange-500 text-xs mt-2 font-medium">+2.5% from last month</p>
               </div>
-              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-white" />
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Users className="w-7 h-7 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-6">
+        <Card className="relative overflow-hidden border-0 shadow-xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-amber-600/20 rounded-full blur-2xl"></div>
+          <CardContent className="p-6 relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-600 text-sm font-medium">Total Balance</p>
-                <p className="text-3xl font-bold text-green-900">{formatBitcoin(stats?.totalBalance || "0")}</p>
-                <p className="text-green-600 text-xs mt-1">BTC in system</p>
+                <p className="text-amber-600 dark:text-amber-400 text-sm font-semibold">Total Balance</p>
+                <p className="text-4xl font-bold text-amber-900 dark:text-amber-100 mt-2">{formatBitcoin(stats?.totalBalance || "0")}</p>
+                <p className="text-amber-500 text-xs mt-2 font-medium">BTC in system</p>
               </div>
-              <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                <Wallet className="w-6 h-6 text-white" />
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Wallet className="w-7 h-7 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-          <CardContent className="p-6">
+        <Card className="relative overflow-hidden border-0 shadow-xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-red-500/20 rounded-full blur-2xl"></div>
+          <CardContent className="p-6 relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-600 text-sm font-medium">Active Investments</p>
-                <p className="text-3xl font-bold text-orange-900">{stats?.activeInvestments || 0}</p>
-                <p className="text-orange-600 text-xs mt-1">Currently running</p>
+                <p className="text-orange-600 dark:text-orange-400 text-sm font-semibold">Active Investments</p>
+                <p className="text-4xl font-bold text-orange-900 dark:text-orange-100 mt-2">{stats?.activeInvestments || 0}</p>
+                <p className="text-orange-500 text-xs mt-2 font-medium">Currently running</p>
               </div>
-              <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-600 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-7 h-7 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-6">
+        <Card className="relative overflow-hidden border-0 shadow-xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-emerald-600/20 rounded-full blur-2xl"></div>
+          <CardContent className="p-6 relative">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-600 text-sm font-medium">System Health</p>
-                <p className="text-3xl font-bold text-purple-900">98.5%</p>
-                <p className="text-purple-600 text-xs mt-1">Uptime this month</p>
+                <p className="text-green-600 dark:text-green-400 text-sm font-semibold">System Health</p>
+                <p className="text-4xl font-bold text-green-900 dark:text-green-100 mt-2">98.5%</p>
+                <p className="text-green-500 text-xs mt-2 font-medium">Uptime this month</p>
               </div>
-              <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                <Activity className="w-6 h-6 text-white" />
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Activity className="w-7 h-7 text-white" />
               </div>
             </div>
           </CardContent>
@@ -2261,7 +2265,7 @@ export default function Management() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-orange-900/10">
       {/* Sidebar */}
       {renderSidebar()}
 
@@ -2276,34 +2280,34 @@ export default function Management() {
       {/* Main Content */}
       <div className="lg:ml-64">
         {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-600 dark:to-amber-600 shadow-lg px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden"
+                className="lg:hidden text-white hover:bg-white/20 rounded-xl"
               >
                 <Menu className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-white">
                   {navigationItems.find(item => item.id === activeTab)?.label || "Overview"}
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-orange-100 font-medium">
                   {currentTime.toLocaleDateString()} • {currentTime.toLocaleTimeString()}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                <Activity className="w-3 h-3 mr-1" />
+              <Badge className="bg-green-500/20 text-green-100 border-green-400/30 backdrop-blur-sm px-3 py-1.5">
+                <Activity className="w-3 h-3 mr-1.5" />
                 Online
               </Badge>
               <div className="text-right">
-                <p className="text-sm font-medium">{user?.email}</p>
-                <p className="text-xs text-gray-500">Administrator</p>
+                <p className="text-sm font-semibold text-white">{user?.email}</p>
+                <p className="text-xs text-orange-100">Administrator</p>
               </div>
             </div>
           </div>
@@ -2313,8 +2317,8 @@ export default function Management() {
         <main className="p-6">
           {/* Tab Navigation */}
           <div className="mb-6">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8 overflow-x-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-2 border border-orange-100 dark:border-orange-900/30">
+              <nav className="flex space-x-2 overflow-x-auto">
                 {navigationItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -2322,10 +2326,10 @@ export default function Management() {
                     <button
                       key={item.id}
                       onClick={() => setActiveTab(item.id)}
-                      className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                      className={`flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm whitespace-nowrap transition-all duration-200 ${
                         isActive
-                          ? 'border-bitcoin text-bitcoin'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg transform scale-105'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
