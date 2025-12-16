@@ -229,7 +229,7 @@ export default function Notifications() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => setLocation('/')}
+                onClick={() => setLocation('/home')}
                 className="h-10 w-10 p-0 rounded-xl bg-white/20 hover:bg-white/30 text-white border border-white/30 shadow-md transition-all duration-200"
                 data-testid="button-back"
               >

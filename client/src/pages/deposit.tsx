@@ -21,7 +21,7 @@ export default function Deposit() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => setLocation('/')}
+                onClick={() => setLocation('/home')}
                 className="h-10 w-10 p-0 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 dark:hover:from-orange-800/40 dark:hover:to-orange-700/40 text-orange-700 hover:text-orange-800 dark:text-orange-300 dark:hover:text-orange-200 border border-orange-200/50 dark:border-orange-700/50 shadow-md transition-all duration-200"
                 data-testid="button-back"
               >

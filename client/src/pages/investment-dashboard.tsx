@@ -1265,7 +1265,7 @@ export default function InvestmentDashboard() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setLocation('/')}
+                  onClick={() => setLocation('/home')}
                   className="text-gray-300 hover:text-white hover:bg-orange-500/20 lg:mr-2"
                 >
                   <ArrowLeft className="w-4 h-4 lg:mr-2" />

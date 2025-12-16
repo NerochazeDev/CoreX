@@ -72,7 +72,7 @@ export default function Management() {
   // Removed backdoor access flag - using proper authentication only
 
   if (!hasAnyAdminAccess) {
-    setLocation('/');
+    setLocation('/home');
     return null;
   }
 

@@ -229,7 +229,7 @@ export default function AdminUserManagement() {
 
             <div className="flex gap-3 pt-4">
               <Button
-                onClick={() => setLocation('/')}
+                onClick={() => setLocation('/home')}
                 variant="outline"
                 className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-800"
               >

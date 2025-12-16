@@ -186,7 +186,7 @@ export default function Withdraw() {
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={() => setLocation('/')}
+              onClick={() => setLocation('/home')}
               className="rounded-full hover:bg-primary/10"
             >
               <ArrowLeft className="w-5 h-5" />

