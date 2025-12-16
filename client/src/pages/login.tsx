@@ -34,7 +34,7 @@ export default function Login() {
       });
       console.log('Redirecting to home page...');
       setTimeout(() => {
-        setLocation('/');
+        setLocation('/home');
       }, 100);
     } catch (error) {
       console.error('Login error in component:', error);

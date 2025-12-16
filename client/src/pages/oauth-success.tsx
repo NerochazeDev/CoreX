@@ -38,7 +38,7 @@ export default function OAuthSuccess() {
           
           // Navigate to homepage (same as regular login)
           setTimeout(() => {
-            setLocation('/');
+            setLocation('/home');
           }, 100);
           
         } catch (error) {

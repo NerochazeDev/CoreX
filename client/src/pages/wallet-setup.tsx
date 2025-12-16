@@ -46,7 +46,7 @@ export default function WalletSetup() {
 
   // If user already has a wallet, redirect to home
   if (user.hasWallet) {
-    setLocation('/');
+    setLocation('/home');
   }
 
   const createWalletMutation = useMutation({
@@ -60,7 +60,7 @@ export default function WalletSetup() {
         description: "Your new Bitcoin wallet has been created and secured.",
       });
       await refreshUser();
-      setLocation('/');
+      setLocation('/home');
     },
     onError: (error: any) => {
       toast({
