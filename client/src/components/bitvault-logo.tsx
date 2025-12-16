@@ -1,17 +1,20 @@
 import { cn } from "@/lib/utils";
+import { VaultIcon } from "./vault-icon";
 
 interface BitVaultLogoProps {
   className?: string;
   showPro?: boolean;
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "light" | "dark" | "white";
+  useVaultIcon?: boolean;
 }
 
 export function BitVaultLogo({ 
   className, 
   showPro = true, 
   size = "md", 
-  variant = "light" 
+  variant = "light",
+  useVaultIcon = false
 }: BitVaultLogoProps) {
   const sizeClasses = {
     sm: "text-lg",
@@ -30,6 +33,17 @@ export function BitVaultLogo({
   const textColor = variant === 'white' ? 'text-white' : variant === 'dark' ? 'text-orange-500' : 'text-primary';
   const bgColor = variant === 'white' ? 'bg-white' : 'bg-gradient-to-r from-orange-500 to-amber-500';
   const iconTextColor = variant === 'white' ? 'text-orange-500' : 'text-white';
+
+  if (useVaultIcon) {
+    return (
+      <div className={cn("flex items-center gap-3", className)}>
+        <VaultIcon size={size} variant={variant} />
+        <span className={cn("font-bold tracking-tight", sizeClasses[size], textColor)}>
+          BitVault
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
