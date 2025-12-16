@@ -1428,6 +1428,25 @@ export default function InvestmentDashboard() {
           </Card>
         </div>
 
+        {/* User Balance Display */}
+        <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/30 p-4 backdrop-blur-lg mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Wallet className="w-5 h-5 text-blue-400" />
+              <div>
+                <p className="text-sm text-gray-400">Available Balance</p>
+                <p className="text-2xl font-bold text-blue-400">{showValues ? formatBitcoin(user?.balance || '0') : '••••'} BTC</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">USD Value</p>
+              <p className="text-lg font-semibold text-blue-300">
+                {showValues && bitcoinPrice ? `$${(parseFloat(user?.balance || '0') * bitcoinPrice.usd.price).toFixed(2)}` : '••••'}
+              </p>
+            </div>
+          </div>
+        </Card>
+
         {/* Enhanced Key Metrics Row */}
         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4 ${isFullscreen ? 'mb-3' : 'mb-4 md:mb-6'}`}>
           <Card className="bg-black/40 border-green-500/30 p-3 md:p-4 backdrop-blur-lg hover:bg-black/50 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/20">
