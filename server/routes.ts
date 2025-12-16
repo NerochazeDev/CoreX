@@ -688,6 +688,8 @@ async function processAutomaticUpdates(): Promise<void> {
         if (Math.random() < 0.05) {
           console.log(`Investment #${investment.id} - Duration completed (${plan.durationDays} days elapsed)`);
         }
+        // Mark investment as inactive/completed
+        await storage.toggleInvestmentStatus(investment.id);
         continue; // Skip to next investment
       }
 
