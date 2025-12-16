@@ -2005,10 +2005,8 @@ export default function Management() {
                     </linearGradient>
                   </defs>
                   <path d="M 32 4 L 52 16 L 52 35 C 52 55 32 74 32 74 C 32 74 12 55 12 35 L 12 16 Z" fill="url(#brandGradient)" stroke="#fb923c" strokeWidth="2" />
-                  <path d="M 32 12 L 48 22 L 48 42 C 48 58 32 66 32 66 C 32 66 16 58 16 42 L 16 22 Z" fill="#fed7aa" stroke="#ea580c" strokeWidth="2" />
-                  <circle cx="32" cy="36" r="9" fill="#fef3c7" stroke="#f97316" strokeWidth="2" />
-                  <circle cx="32" cy="36" r="6.5" fill="none" stroke="#f97316" strokeWidth="1" />
-                  <text x="32" y="40" textAnchor="middle" fontSize="16" fontWeight="bold" fill="#f97316" fontFamily="Arial, sans-serif">₿</text>
+                  <path d="M 32 6 L 50 16 L 50 35 C 50 53 32 70 32 70 C 32 70 14 53 14 35 L 14 16 Z" fill="none" stroke="white" strokeWidth="1" opacity="0.25" />
+                  <text x="32" y="45" textAnchor="middle" fontSize="36" fontWeight="900" fill="white" fontFamily="Arial, sans-serif">₿</text>
                 </svg>
               </div>
             </div>
