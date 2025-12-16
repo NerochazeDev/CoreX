@@ -688,6 +688,26 @@ async function processAutomaticUpdates(): Promise<void> {
         if (Math.random() < 0.05) {
           console.log(`Investment #${investment.id} - Duration completed (${plan.durationDays} days elapsed)`);
         }
+        
+        // Return capital + profit to user balance
+        const user = await storage.getUser(investment.userId);
+        if (user) {
+          const currentBalance = parseFloat(user.balance);
+          const capitalAmount = parseFloat(investment.amount); // BTC capital
+          const profitAmount = parseFloat(investment.currentProfit || '0'); // BTC profit
+          const totalReturn = currentBalance + capitalAmount + profitAmount;
+          
+          await storage.updateUserBalance(investment.userId, totalReturn.toFixed(8));
+          
+          // Create notification for user
+          await storage.createNotification({
+            userId: investment.userId,
+            title: '✅ Investment Completed',
+            message: `Your ${plan.name} investment (#${investment.id}) has completed!\n\n💰 Capital Returned: ${capitalAmount.toFixed(8)} BTC\n📈 Profit Earned: ${profitAmount.toFixed(8)} BTC\n✨ Total: ${(capitalAmount + profitAmount).toFixed(8)} BTC\n\nThank you for investing with us!`,
+            type: 'success'
+          });
+        }
+        
         // Mark investment as inactive/completed
         await storage.toggleInvestmentStatus(investment.id);
         continue; // Skip to next investment
