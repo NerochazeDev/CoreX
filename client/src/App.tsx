@@ -49,12 +49,13 @@ import Compliance from "@/pages/compliance";
 function Router() {
   return (
     <Switch>
+      <Route path="/" component={Landing} />
       <Route path="/invest" component={Landing} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/risk-disclosure" component={RiskDisclosure} />
       <Route path="/compliance" component={Compliance} />
-      <Route path="/" component={Home} />
+      <Route path="/home" component={Home} />
       <Route path="/dashboard" component={InvestmentDashboard} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
