@@ -341,6 +341,28 @@ export default function Home() {
 
         
 
+        {/* Available Balance Card */}
+        <Card className="mb-8 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/30">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Wallet Balance</p>
+                <div>
+                  <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                    {showBalances ? formatBitcoin(user?.balance || '0') : '••••••'} BTC
+                  </p>
+                  {bitcoinPrice && showBalances && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      ≈ ${(parseFloat(user?.balance || '0') * bitcoinPrice.usd.price).toFixed(2)} USD
+                    </p>
+                  )}
+                </div>
+              </div>
+              <Wallet className="w-12 h-12 text-blue-500/40" />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Advanced Stats Grid - 6 Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mt-8">
           <div className="relative">

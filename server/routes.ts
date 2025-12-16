@@ -2203,22 +2203,36 @@ Network: TRC20`;
 
   app.post("/api/invest", async (req, res) => {
     try {
+      console.log('🔍 Investment endpoint called with body:', JSON.stringify(req.body));
+      
       const userId = getUserIdFromRequest(req);
       if (!userId) {
+        console.log('❌ Investment failed: No authentication');
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const { planId, amount, transactionHash } = investmentTransactionSchema.parse(req.body);
+      // Validate request body with detailed error handling
+      let parsedData;
+      try {
+        parsedData = investmentTransactionSchema.parse(req.body);
+      } catch (parseError: any) {
+        console.error('❌ Investment validation error:', parseError.errors);
+        return res.status(400).json({ error: "Invalid request: " + parseError.errors.map((e: any) => e.message).join(", ") });
+      }
+      
+      const { planId, amount, transactionHash } = parsedData;
 
       // Verify plan exists
       const plan = await storage.getInvestmentPlan(planId);
       if (!plan) {
+        console.log(`❌ Investment failed: Plan ${planId} not found`);
         return res.status(404).json({ error: "Investment plan not found" });
       }
 
       // Get user and check balance
       const user = await storage.getUser(userId);
       if (!user) {
+        console.log(`❌ Investment failed: User ${userId} not found`);
         return res.status(404).json({ error: "User not found" });
       }
 
@@ -2226,55 +2240,60 @@ Network: TRC20`;
       const investmentAmount = parseFloat(amount);
 
       if (investmentAmount <= 0) {
+        console.log(`❌ Investment failed: Invalid amount ${amount}`);
         return res.status(400).json({ error: "Investment amount must be greater than 0" });
       }
 
       // Validate against USD minimum amount (primary field)
-      // Get current Bitcoin price for USD conversion
-      let btcPriceForValidation = 121000; // Default fallback
+      let btcPriceForValidation = 121000;
       try {
         const priceData = await fetchBitcoinPrice();
         btcPriceForValidation = priceData.usd.price;
+        console.log(`📊 Bitcoin price for validation: $${btcPriceForValidation}`);
       } catch (error) {
-        console.log('Could not fetch Bitcoin price for validation, using fallback');
+        console.log('⚠️ Could not fetch Bitcoin price for validation, using fallback');
       }
 
       const minAmountUSD = parseFloat(plan.usdMinAmount);
       const minAmountBTC = minAmountUSD / btcPriceForValidation;
       
       if (investmentAmount < minAmountBTC) {
+        console.log(`❌ Investment failed: Amount ${investmentAmount} BTC < minimum ${minAmountBTC} BTC`);
         return res.status(400).json({ error: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${minAmountBTC.toFixed(8)} BTC at current price)` });
       }
 
       if (userBalance < investmentAmount) {
+        console.log(`❌ Investment failed: Balance ${userBalance} BTC < amount ${investmentAmount} BTC`);
         return res.status(400).json({ error: "Insufficient balance for this investment" });
       }
 
       // Deduct amount from user balance immediately
       const newBalance = userBalance - investmentAmount;
       await storage.updateUserBalance(userId, newBalance.toFixed(8));
+      console.log(`✅ User balance updated: ${userBalance} → ${newBalance.toFixed(8)} BTC`);
 
       // Get current Bitcoin price for USD calculation
-      let bitcoinPrice = 121000; // Default fallback
+      let bitcoinPrice = 121000;
       try {
         const priceData = await fetchBitcoinPrice();
         bitcoinPrice = priceData.usd.price;
       } catch (error) {
-        console.log('Could not fetch Bitcoin price, using fallback');
+        console.log('⚠️ Could not fetch Bitcoin price, using fallback');
       }
 
-      // Calculate USD amount
-      const usdAmount = parseFloat(plan.usdMinAmount || "0");
-
+      // Calculate USD amount from investment amount
+      const investmentUSD = investmentAmount * bitcoinPrice;
+      
       // Create the investment with USD tracking
       const investment = await storage.createInvestment({
         userId: userId,
         planId: planId,
         amount: amount,
-        usdAmount: usdAmount.toFixed(2)
+        usdAmount: investmentUSD.toFixed(2)
       });
+      console.log(`✅ Investment #${investment.id} created: ${amount} BTC ($${investmentUSD.toFixed(2)} USD) in plan ${planId}`);
 
-      const usdEquivalent = usdAmount.toLocaleString('en-US', {
+      const usdEquivalent = investmentUSD.toLocaleString('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 2,
@@ -2309,8 +2328,8 @@ Network: TRC20`;
         newBalance: newBalance.toFixed(8)
       });
     } catch (error: any) {
-      console.error('Investment creation error:', error);
-      res.status(500).json({ error: error.message });
+      console.error('❌ Investment creation error:', error);
+      res.status(500).json({ error: "Investment failed: " + (error.message || "Unknown error") });
     }
   });
 
