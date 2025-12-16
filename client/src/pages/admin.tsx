@@ -14,7 +14,8 @@ import type { User, InvestmentPlan } from "@shared/schema";
 import { formatBitcoin } from "@/lib/utils";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
-import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, MessageSquare, Reply, Search, Filter, UserCircle, Mail, Phone, MapPin, Calendar, CreditCard } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, MessageSquare, Reply, Search, Filter, UserCircle, Mail, Phone, MapPin, Calendar, CreditCard, Download } from "lucide-react";
+import { downloadShieldVaultIconPNG } from "@/components/shield-vault-icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -1982,6 +1983,72 @@ export default function Management() {
           </div>
         </Card>
       </div>
+
+      {/* Logo Download Section */}
+      <Card className="border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-amber-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Download className="w-5 h-5 text-orange-600" />
+            Download Shield Vault Logo
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Logo Preview */}
+            <div className="flex items-center justify-center p-8 bg-white rounded-lg border-2 border-dashed border-orange-300">
+              <div className="w-32 h-40">
+                <svg viewBox="0 0 64 80" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#f97316" />
+                      <stop offset="100%" stopColor="#fb923c" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M 32 4 L 52 16 L 52 35 C 52 55 32 74 32 74 C 32 74 12 55 12 35 L 12 16 Z" fill="url(#brandGradient)" stroke="#fb923c" strokeWidth="2" />
+                  <path d="M 32 12 L 48 22 L 48 42 C 48 58 32 66 32 66 C 32 66 16 58 16 42 L 16 22 Z" fill="#fed7aa" stroke="#ea580c" strokeWidth="2" />
+                  <circle cx="32" cy="36" r="9" fill="#fef3c7" stroke="#f97316" strokeWidth="2" />
+                  <circle cx="32" cy="36" r="6.5" fill="none" stroke="#f97316" strokeWidth="1" />
+                  <text x="32" y="40" textAnchor="middle" fontSize="16" fontWeight="bold" fill="#f97316" fontFamily="Arial, sans-serif">₿</text>
+                </svg>
+              </div>
+            </div>
+
+            {/* Download Options */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button 
+                onClick={() => downloadShieldVaultIconPNG(256)}
+                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold"
+                data-testid="button-download-logo-256"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download 256x320
+              </Button>
+              <Button 
+                onClick={() => downloadShieldVaultIconPNG(512)}
+                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold"
+                data-testid="button-download-logo-512"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download 512x640
+              </Button>
+              <Button 
+                onClick={() => downloadShieldVaultIconPNG(1024)}
+                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold"
+                data-testid="button-download-logo-1024"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download 1024x1280
+              </Button>
+            </div>
+
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                The shield-shaped vault logo is designed with security symbolism and your brand's orange gradient colors. Download in PNG format at your preferred resolution.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Brand Guidelines */}
       <Card>
