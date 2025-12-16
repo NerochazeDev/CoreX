@@ -14,7 +14,7 @@ export function BitVaultLogo({
   showPro = true, 
   size = "md", 
   variant = "light",
-  useVaultIcon = false
+  useVaultIcon = true
 }: BitVaultLogoProps) {
   const sizeClasses = {
     sm: "text-lg",
