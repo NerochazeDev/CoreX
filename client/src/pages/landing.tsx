@@ -207,9 +207,9 @@ export default function Landing() {
             initial="hidden"
             animate="visible"
           >
-            {/* Animated Badge */}
+            {/* Animated Badge with Neon Glow */}
             <motion.div 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 border border-orange-200 dark:border-orange-800 mb-8"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 border border-orange-200 dark:border-orange-800 mb-8 neon-border"
               variants={badgeVariants}
             >
               <motion.div
@@ -223,20 +223,22 @@ export default function Landing() {
               </span>
             </motion.div>
 
-            {/* Animated Title */}
+            {/* Animated Title with Neon Effect */}
             <motion.h1 
               className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
               variants={titleVariants}
             >
               <motion.span 
-                className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 bg-clip-text text-transparent animate-gradient"
+                className="neon-text-flicker block"
                 animate={{ backgroundPosition: ["0%", "100%", "0%"] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                Professional Bitcoin
+                <span className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 bg-clip-text text-transparent inline-block">
+                  Professional Bitcoin
+                </span>
               </motion.span>
               <br />
-              <motion.span className="text-slate-900 dark:text-white block">
+              <motion.span className="text-slate-900 dark:text-white block neon-text">
                 Investment Solutions
               </motion.span>
             </motion.h1>
@@ -261,7 +263,7 @@ export default function Landing() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Link href="/login">
-                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white h-16 px-10 text-lg shadow-2xl shadow-orange-500/30 group" data-testid="button-get-started-hero">
+                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white h-16 px-10 text-lg shadow-2xl shadow-orange-500/30 group neon-pulse" data-testid="button-get-started-hero">
                     <span>Start Investing Now</span>
                     <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
                   </Button>
@@ -272,7 +274,7 @@ export default function Landing() {
                 whileTap={{ scale: 0.95 }}
               >
                 <a href="#calculator">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto h-16 px-10 text-lg border-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid="button-calculate-returns">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto h-16 px-10 text-lg border-2 border-orange-400 dark:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950/30 neon-border" data-testid="button-calculate-returns">
                     <Calculator className="mr-2 w-6 h-6" />
                     <span>Calculate Returns</span>
                   </Button>
@@ -297,7 +299,7 @@ export default function Landing() {
                   whileHover={{ y: -8, boxShadow: "0 20px 25px -5rgba(0,0,0,0.1)" }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Card className="border-2 border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur h-full">
+                  <Card className="border-2 border-orange-300 dark:border-orange-600 bg-white/50 dark:bg-slate-900/50 backdrop-blur h-full neon-border">
                     <CardContent className="pt-6 text-center">
                       <motion.div 
                         className="flex justify-center mb-2 text-orange-600 dark:text-orange-400"
