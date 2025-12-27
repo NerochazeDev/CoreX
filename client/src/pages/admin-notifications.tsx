@@ -25,15 +25,19 @@ export default function ManagementNotifications() {
 
   // Require proper admin authentication
 
-  const { data: users, isLoading: loadingUsers } = useQuery<UserType[]>({
+  const { data: users = [], isLoading: loadingUsers } = useQuery<UserType[]>({
     queryKey: ['/api/admin/users'],
     enabled: !!user?.isAdmin,
     queryFn: async () => {
       const response = await fetch('/api/admin/users', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('bitvault_auth_token') || ''}`,
+        }
       });
       if (!response.ok) throw new Error('Failed to fetch users');
-      return response.json();
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
     },
   });
 
