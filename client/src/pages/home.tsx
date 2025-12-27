@@ -69,7 +69,7 @@ export default function Home() {
           description: "You've successfully signed in.",
           variant: "default",
         });
-        window.history.replaceState({}, '', '/');
+        window.history.replaceState({}, '', '/home');
       }, 100);
     }
   }, [user, toast]);

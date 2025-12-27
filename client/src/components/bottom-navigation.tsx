@@ -11,7 +11,7 @@ export function BottomNavigation() {
   const { isCollapsed, toggleSidebar } = useSidebar();
 
   const navItems = [
-    { path: "/", icon: Home, label: "Wallet" },
+    { path: "/home", icon: Home, label: "Wallet" },
     { path: "/dashboard", icon: BarChart3, label: "Dashboard" },
     { path: "/investment", icon: TrendingUp, label: "Invest" },
     { path: "/history", icon: History, label: "History" },
