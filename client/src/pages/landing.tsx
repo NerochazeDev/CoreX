@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,68 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
+// Animation variants for hero section
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.1,
+      duration: 0.8,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: "easeOut",
+    },
+  },
+};
+
+const badgeVariants = {
+  hidden: { opacity: 0, scale: 0.8, y: -20 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
+};
+
+const titleVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.9,
+      ease: "easeOut",
+    },
+  },
+};
+
+const statsVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.7,
+      ease: "easeOut",
+    },
+  },
+};
 
 export default function Landing() {
   const [selectedPlan, setSelectedPlan] = useState<InvestmentPlan | null>(null);
@@ -132,69 +195,125 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Hero Section - Enhanced */}
+      {/* Hero Section - Enhanced with Animations */}
       <section className="relative py-20 sm:py-28 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-amber-500/10"></div>
         <div className="absolute inset-0 bg-grid-slate-200/50 dark:bg-grid-slate-800/50 [mask-image:linear-gradient(0deg,transparent,black)]"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 border border-orange-200 dark:border-orange-800 mb-8">
-              <Star className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+          <motion.div 
+            className="text-center max-w-5xl mx-auto"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {/* Animated Badge */}
+            <motion.div 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 border border-orange-200 dark:border-orange-800 mb-8"
+              variants={badgeVariants}
+            >
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              >
+                <Star className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              </motion.div>
               <span className="text-sm font-semibold bg-gradient-to-r from-orange-700 to-amber-700 dark:from-orange-300 dark:to-amber-300 bg-clip-text text-transparent">
                 Licensed & Regulated Investment Platform
               </span>
-            </div>
+            </motion.div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 bg-clip-text text-transparent animate-gradient">
+            {/* Animated Title */}
+            <motion.h1 
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
+              variants={titleVariants}
+            >
+              <motion.span 
+                className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 bg-clip-text text-transparent animate-gradient"
+                animate={{ backgroundPosition: ["0%", "100%", "0%"] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
                 Professional Bitcoin
-              </span>
+              </motion.span>
               <br />
-              <span className="text-slate-900 dark:text-white">Investment Solutions</span>
-            </h1>
+              <motion.span className="text-slate-900 dark:text-white block">
+                Investment Solutions
+              </motion.span>
+            </motion.h1>
 
-            <p className="text-xl sm:text-2xl text-slate-600 dark:text-slate-300 mb-10 leading-relaxed max-w-4xl mx-auto">
+            {/* Animated Description */}
+            <motion.p 
+              className="text-xl sm:text-2xl text-slate-600 dark:text-slate-300 mb-10 leading-relaxed max-w-4xl mx-auto"
+              variants={itemVariants}
+            >
               Institutional-grade cryptocurrency investment platform with <span className="font-semibold text-orange-600">automated trading algorithms</span>, 
               <span className="font-semibold text-orange-600"> bank-level security</span>, and <span className="font-semibold text-orange-600">daily profit distribution</span>. 
               Start with as low as $10.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Link href="/login">
-                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white h-16 px-10 text-lg shadow-2xl shadow-orange-500/30 group" data-testid="button-get-started-hero">
-                  <span>Start Investing Now</span>
-                  <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <a href="#calculator">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto h-16 px-10 text-lg border-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid="button-calculate-returns">
-                  <Calculator className="mr-2 w-6 h-6" />
-                  <span>Calculate Returns</span>
-                </Button>
-              </a>
-            </div>
+            {/* Animated Buttons */}
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+              variants={itemVariants}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link href="/login">
+                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white h-16 px-10 text-lg shadow-2xl shadow-orange-500/30 group" data-testid="button-get-started-hero">
+                    <span>Start Investing Now</span>
+                    <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <a href="#calculator">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto h-16 px-10 text-lg border-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid="button-calculate-returns">
+                    <Calculator className="mr-2 w-6 h-6" />
+                    <span>Calculate Returns</span>
+                  </Button>
+                </a>
+              </motion.div>
+            </motion.div>
 
-            {/* Live Statistics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {/* Animated Live Statistics */}
+            <motion.div 
+              className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto"
+              variants={containerVariants}
+            >
               {[
                 { value: "12,847+", label: "Active Investors", icon: <Users className="w-5 h-5" /> },
                 { value: "847+ BTC", label: "Total Volume", icon: <BarChart3 className="w-5 h-5" /> },
                 { value: "94.7%", label: "Avg. Returns", icon: <TrendingUp className="w-5 h-5" /> },
                 { value: "24/7", label: "Support", icon: <Clock className="w-5 h-5" /> }
               ].map((stat, idx) => (
-                <Card key={idx} className="border-2 border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur">
-                  <CardContent className="pt-6 text-center">
-                    <div className="flex justify-center mb-2 text-orange-600 dark:text-orange-400">
-                      {stat.icon}
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stat.value}</div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">{stat.label}</div>
-                  </CardContent>
-                </Card>
+                <motion.div 
+                  key={idx}
+                  variants={statsVariants}
+                  whileHover={{ y: -8, boxShadow: "0 20px 25px -5rgba(0,0,0,0.1)" }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="border-2 border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur h-full">
+                    <CardContent className="pt-6 text-center">
+                      <motion.div 
+                        className="flex justify-center mb-2 text-orange-600 dark:text-orange-400"
+                        animate={{ y: [0, -5, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {stat.icon}
+                      </motion.div>
+                      <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stat.value}</div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">{stat.label}</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
