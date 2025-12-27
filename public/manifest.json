@@ -1,0 +1,33 @@
+{
+  "name": "BitVault Pro - Bitcoin Investment Platform",
+  "short_name": "BitVault Pro",
+  "description": "Professional Bitcoin investment platform with automated trading and daily profits",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#f97316",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/bitvault-pro-favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/bitvault-pro-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/bitvault-pro-logo.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}
