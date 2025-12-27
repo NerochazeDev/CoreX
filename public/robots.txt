@@ -1,0 +1,27 @@
+# BitVault Pro - Search Engine Crawling Policy
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /Hello10122
+Disallow: /*.json$
+Disallow: /*.png$
+Disallow: /*.jpg$
+
+# Specify sitemap location
+Sitemap: https://bitvault-pro.com/sitemap.xml
+
+# Crawl-delay and request-rate
+Crawl-delay: 1
+Request-rate: 1/2s
+
+# Google Bot specific
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Crawl-delay: 0
+
+# Bing Bot
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
