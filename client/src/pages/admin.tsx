@@ -1902,9 +1902,9 @@ export default function Management() {
                   <span className="text-4xl font-bold text-black">₿</span>
                 </div>
                 <div className="text-left">
-                  <h1 className="text-5xl font-bold tracking-tight mb-2">BitVault</h1>
+                  <h1 className="text-5xl font-black tracking-tighter mb-2">BITVAULT <span className="font-light tracking-widest text-orange-400">PRO</span></h1>
                   <div className="bg-gradient-to-r from-orange-400 to-amber-400 text-black px-4 py-1 rounded-full text-lg font-bold">
-                    PRO EDITION
+                    PREMIUM EDITION
                   </div>
                 </div>
               </div>
@@ -2004,9 +2004,8 @@ export default function Management() {
                       <stop offset="100%" stopColor="#fb923c" />
                     </linearGradient>
                   </defs>
-                  <path d="M 32 4 L 52 16 L 52 35 C 52 55 32 74 32 74 C 32 74 12 55 12 35 L 12 16 Z" fill="url(#brandGradient)" stroke="#fb923c" strokeWidth="2" />
-                  <path d="M 32 6 L 50 16 L 50 35 C 50 53 32 70 32 70 C 32 70 14 53 14 35 L 14 16 Z" fill="none" stroke="white" strokeWidth="1" opacity="0.25" />
-                  <text x="32" y="45" textAnchor="middle" fontSize="36" fontWeight="900" fill="white" fontFamily="Arial, sans-serif">₿</text>
+                  <path d="M 32 4 L 54 16 L 54 35 C 54 55 32 74 32 74 C 32 74 10 55 10 35 L 10 16 Z" fill="url(#brandGradient)" stroke="#fb923c" strokeWidth="2" />
+                  <text x="32" y="48" textAnchor="middle" fontSize="40" fontWeight="bold" fill="white" fontFamily="Arial">₿</text>
                 </svg>
               </div>
             </div>

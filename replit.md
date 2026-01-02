@@ -1,8 +1,8 @@
-# BitVault Pro - Bitcoin Investment Platform
+# BitVault PRO - Bitcoin Investment Platform
 
 ## Overview
 
-BitVault Pro is a premium Bitcoin investment platform that provides professional clients with cryptocurrency wallet management, exclusive investment opportunities, and real-time Bitcoin price tracking. The platform features a complete investment ecosystem with different investment plans, transaction management, and administrative controls, all designed with a modern Bitcoin-focused professional interface using orange and gold branding with gradient backgrounds and professional styling optimized for Bitcoin trading.
+BitVault PRO is a premium Bitcoin investment platform that provides professional clients with cryptocurrency wallet management, exclusive investment opportunities, and real-time Bitcoin price tracking. The platform features a complete investment ecosystem with different investment plans, transaction management, and administrative controls, all designed with a modern Bitcoin-focused professional interface using orange and gold branding with gradient backgrounds and professional styling optimized for Bitcoin trading.
 
 ## System Architecture
 
