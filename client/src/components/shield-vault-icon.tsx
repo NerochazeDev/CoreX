@@ -158,6 +158,91 @@ export function TelegramProfileB({ className }: { className?: string }) {
   );
 }
 
+export function BroadcastUpdateBanner() {
+  return (
+    <div className="w-full max-w-4xl aspect-[21/9] rounded-2xl bg-slate-900 border border-orange-500/20 shadow-2xl overflow-hidden relative group">
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 via-transparent to-transparent opacity-50" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,_rgba(249,115,22,0.1)_0%,_transparent_50%)]" />
+      
+      <div className="relative h-full flex items-center p-8 lg:p-12 gap-12">
+        <div className="flex-1 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="px-3 py-1 rounded-full bg-orange-500 text-black text-[10px] font-black tracking-widest">
+              SYSTEM BROADCAST
+            </div>
+            <div className="h-px flex-1 bg-gradient-to-r from-orange-500/50 to-transparent" />
+          </div>
+          <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tighter leading-none">
+            REAL-TIME <span className="text-orange-500 underline decoration-orange-500/30 decoration-4 underline-offset-8">UPDATES</span>
+          </h2>
+          <p className="text-slate-400 text-lg lg:text-xl font-light tracking-wide max-w-md">
+            Your automated investment tracking system is live. Stay informed with every move.
+          </p>
+          <div className="flex items-center gap-6 pt-4">
+            <div className="flex flex-col">
+              <span className="text-orange-500 font-black text-2xl tracking-tighter">BITVAULT</span>
+              <span className="text-white/40 text-[10px] tracking-[0.4em] font-light">PRO EDITION</span>
+            </div>
+            <div className="h-10 w-px bg-slate-800" />
+            <div className="flex items-center gap-2 text-white/60">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-medium tracking-widest">NETWORK ACTIVE</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="hidden lg:flex flex-shrink-0 items-center justify-center p-4 bg-orange-500/5 rounded-3xl border border-orange-500/10 rotate-3 transition-transform group-hover:rotate-0 duration-700">
+          <ShieldVaultIcon size="xl" className="drop-shadow-[0_0_30px_rgba(249,115,22,0.3)]" />
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-transparent" />
+    </div>
+  );
+}
+
+export function BrandPoster() {
+  return (
+    <div className="w-full max-w-2xl aspect-[3/4] rounded-[2.5rem] bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden relative p-12 flex flex-col items-center justify-center text-center">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.15)_0%,_transparent_70%)]" />
+      <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px]" />
+      
+      <ShieldVaultIcon size="xl" className="mb-12 scale-150 drop-shadow-[0_0_40px_rgba(249,115,22,0.4)]" />
+      
+      <div className="space-y-6 relative z-10">
+        <div className="space-y-2">
+          <h1 className="text-6xl font-black text-white tracking-tighter leading-none">
+            BITVAULT <span className="text-orange-500">PRO</span>
+          </h1>
+          <p className="text-orange-500 font-light tracking-[0.5em] text-sm">SECURE INVESTMENT</p>
+        </div>
+        
+        <div className="h-px w-32 bg-gradient-to-r from-transparent via-orange-500/50 to-transparent mx-auto" />
+        
+        <p className="text-slate-400 text-xl font-light leading-relaxed max-w-sm mx-auto">
+          The future of professional Bitcoin management. Security redefined.
+        </p>
+        
+        <div className="pt-12 grid grid-cols-2 gap-8 text-left">
+          <div className="space-y-1">
+            <p className="text-[10px] text-orange-500 font-bold tracking-widest uppercase">Encryption</p>
+            <p className="text-white font-medium">Military Grade</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] text-orange-500 font-bold tracking-widest uppercase">Network</p>
+            <p className="text-white font-medium">Blockchain v2</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-30">
+        <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-transparent mb-4" />
+        <span className="text-[8px] text-white tracking-[0.8em] font-black uppercase">Established 2026</span>
+      </div>
+    </div>
+  );
+}
+
 export async function downloadShieldVaultIconPNG(size: number = 256) {
   const canvas = document.createElement('canvas');
   canvas.width = size;

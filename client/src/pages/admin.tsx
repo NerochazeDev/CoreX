@@ -15,7 +15,7 @@ import { formatBitcoin } from "@/lib/utils";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
 import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, MessageSquare, Reply, Search, Filter, UserCircle, Mail, Phone, MapPin, Calendar, CreditCard, Download } from "lucide-react";
-import { downloadShieldVaultIconPNG, ShieldVaultIcon, TelegramProfileA, TelegramProfileB } from "@/components/shield-vault-icon";
+import { downloadShieldVaultIconPNG, ShieldVaultIcon, TelegramProfileA, TelegramProfileB, BroadcastUpdateBanner, BrandPoster } from "@/components/shield-vault-icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -1873,226 +1873,66 @@ export default function Management() {
   );
 
   const renderBrandTab = () => (
-    <div className="space-y-6">
-      {/* Main Brand Showcase Card - Advertisement Style */}
-      <Card className="overflow-hidden border-0 shadow-2xl">
-        <div className="relative h-96 bg-gradient-to-br from-slate-900 via-orange-900 to-black">
-          {/* Animated Background Elements */}
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-amber-400/20"></div>
-          <div className="absolute top-0 left-0 w-full h-full opacity-10">
-            <div className="absolute top-10 left-10 w-32 h-32 bg-orange-400 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-10 right-10 w-40 h-40 bg-amber-400 rounded-full blur-3xl animate-pulse delay-1000"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-orange-500/30 rounded-full blur-3xl animate-pulse delay-500"></div>
-          </div>
-
-          {/* Grid Pattern Overlay */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="w-full h-full" style={{
-              backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-              backgroundSize: '50px 50px'
-            }}></div>
-          </div>
-
-          {/* Main Content */}
-          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white p-8">
-            {/* Logo */}
-            <div className="mb-8 transform hover:scale-105 transition-transform duration-300">
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-2xl">
-                  <span className="text-4xl font-bold text-black">₿</span>
-                </div>
-                <div className="text-left">
-                  <h1 className="text-5xl font-black tracking-tighter mb-2">BITVAULT <span className="font-light tracking-widest text-orange-400">PRO</span></h1>
-                  <div className="bg-gradient-to-r from-orange-400 to-amber-400 text-black px-4 py-1 rounded-full text-lg font-bold">
-                    PREMIUM EDITION
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Taglines */}
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold text-orange-400">
-                Professional Bitcoin Investment Platform
-              </h2>
-              <div className="flex items-center justify-center gap-8 text-lg">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-6 h-6 text-green-400" />
-                  <span>Bank-Level Security</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-6 h-6 text-blue-400" />
-                  <span>Advanced Analytics</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Bitcoin className="w-6 h-6 text-orange-400" />
-                  <span>Real-Time Trading</span>
-                </div>
-              </div>
-              <p className="text-xl text-orange-200 font-medium mt-6">
-                Secure • Professional • Exclusive
-              </p>
-            </div>
-
-            {/* Call to Action */}
-            <div className="mt-8">
-              <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-black px-8 py-3 rounded-full text-xl font-bold shadow-2xl">
-                Join the Elite Bitcoin Investors
-              </div>
-            </div>
-          </div>
-
-          {/* Corner Decorations */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-400/20 to-transparent rounded-bl-full"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-amber-400/20 to-transparent rounded-tr-full"></div>
+    <div className="space-y-12">
+      {/* Premium Brand Banner */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-black tracking-tight text-white uppercase opacity-40">System Banner</h3>
+          <Badge variant="outline" className="border-orange-500/20 text-orange-500">21:9 Aspect</Badge>
         </div>
-      </Card>
+        <BroadcastUpdateBanner />
+      </section>
 
-      {/* Alternative Brand Variations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Brand Poster & Telegram Profiles */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-black tracking-tight text-white uppercase opacity-40">Official Poster</h3>
+            <Badge variant="outline" className="border-orange-500/20 text-orange-500">3:4 Aspect</Badge>
+          </div>
+          <BrandPoster />
+        </section>
 
-        {/* Minimal Dark Version */}
-        <Card className="overflow-hidden border border-gray-800">
-          <div className="bg-slate-900 p-8 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-xl bg-orange-500 flex items-center justify-center">
-                <span className="text-2xl font-bold text-black">₿</span>
+        <section className="space-y-8">
+          <div className="space-y-4">
+            <h3 className="text-xl font-black tracking-tight text-white uppercase opacity-40">Telegram Profiles</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="flex flex-col items-center gap-4">
+                <TelegramProfileA />
+                <span className="text-xs font-bold text-slate-500 tracking-widest uppercase">Style A</span>
+              </div>
+              <div className="flex flex-col items-center gap-4">
+                <TelegramProfileB />
+                <span className="text-xs font-bold text-slate-500 tracking-widest uppercase">Style B</span>
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-white mb-2">BitVault</h3>
-            <div className="bg-orange-500 text-black px-3 py-1 rounded-full text-sm font-bold inline-block mb-4">
-              PRO
-            </div>
-            <p className="text-gray-400">Professional Bitcoin Platform</p>
           </div>
-        </Card>
 
-        {/* Light Corporate Version */}
-        <Card className="overflow-hidden">
-          <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-8 text-center border">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
-                <span className="text-2xl font-bold text-white">₿</span>
+          <Card className="border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-amber-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Download className="w-5 h-5 text-orange-600" />
+                Asset Downloads
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4">
+                <Button 
+                  onClick={() => downloadShieldVaultIconPNG(512)}
+                  className="bg-orange-500 hover:bg-orange-600 text-black font-black"
+                >
+                  DOWNLOAD LOGO (PNG)
+                </Button>
+                <p className="text-[10px] text-slate-500 text-center uppercase tracking-widest">
+                  Vector-scale PNG at 512px
+                </p>
               </div>
-            </div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-2">BitVault</h3>
-            <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 py-1 rounded-full text-sm font-bold inline-block mb-4">
-              PRO EDITION
-            </div>
-            <p className="text-gray-600">Trusted Bitcoin Investment Solution</p>
-          </div>
-        </Card>
+            </CardContent>
+          </Card>
+        </section>
       </div>
-
-      {/* Telegram Channel Profiles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <Card className="overflow-hidden border-2 border-slate-800 bg-slate-900 shadow-2xl">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-blue-400" />
-              Telegram Profile Style A
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
-            <TelegramProfileA />
-            <p className="mt-6 text-slate-400 text-center text-sm max-w-xs">
-              Dark Mode - Professional: Features the BITVAULT PRO shield on a sleek dark gradient. Perfect for official updates.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden border-2 border-orange-500/20 bg-slate-900 shadow-2xl">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-orange-400" />
-              Telegram Profile Style B
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
-            <TelegramProfileB />
-            <p className="mt-6 text-slate-400 text-center text-sm max-w-xs">
-              High Contrast - Icon Focused: A bold Bitcoin symbol on a deep slate background with a golden border.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Logo Download Section */}
-      <Card className="border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-amber-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Download className="w-5 h-5 text-orange-600" />
-            Download Shield Vault Logo
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {/* Logo Preview */}
-            <div className="flex items-center justify-center p-8 bg-white rounded-lg border-2 border-dashed border-orange-300">
-              <div className="w-32 h-40">
-                <svg viewBox="0 0 64 80" className="w-full h-full">
-                  <defs>
-                    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#f97316" />
-                      <stop offset="100%" stopColor="#fb923c" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M 32 4 L 54 16 L 54 35 C 54 55 32 74 32 74 C 32 74 10 55 10 35 L 10 16 Z" fill="url(#brandGradient)" stroke="#fb923c" strokeWidth="2" />
-                  <text x="32" y="48" textAnchor="middle" fontSize="40" fontWeight="bold" fill="white" fontFamily="Arial">₿</text>
-                </svg>
-              </div>
-            </div>
-
-            {/* Download Options */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button 
-                onClick={() => downloadShieldVaultIconPNG(256)}
-                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold"
-                data-testid="button-download-logo-256"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download 256x320
-              </Button>
-              <Button 
-                onClick={() => downloadShieldVaultIconPNG(512)}
-                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold"
-                data-testid="button-download-logo-512"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download 512x640
-              </Button>
-              <Button 
-                onClick={() => downloadShieldVaultIconPNG(1024)}
-                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold"
-                data-testid="button-download-logo-1024"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download 1024x1280
-              </Button>
-            </div>
-
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
-                The shield-shaped vault logo is designed with security symbolism and your brand's orange gradient colors. Download in PNG format at your preferred resolution.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Brand Guidelines */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Brand Guidelines & Assets
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            {/* Color Palette */}
-            <div>
+    </div>
+  );
               <h4 className="font-semibold mb-4">Brand Colors</h4>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
