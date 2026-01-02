@@ -129,6 +129,35 @@ export function ShieldVaultLogo({
   );
 }
 
+export function TelegramProfileA({ className }: { className?: string }) {
+  return (
+    <div className={cn("w-64 h-64 rounded-full bg-gradient-to-br from-slate-900 via-orange-950 to-black p-1 flex items-center justify-center shadow-2xl overflow-hidden border-4 border-orange-500/30", className)}>
+      <div className="relative w-full h-full flex flex-col items-center justify-center">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-orange-500/20 via-transparent to-transparent opacity-50" />
+        <ShieldVaultIcon size="xl" className="mb-2 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
+        <div className="flex flex-col items-center leading-none">
+          <span className="text-white font-black text-xl tracking-tighter">BITVAULT</span>
+          <span className="text-orange-500 font-light text-sm tracking-[0.3em] mt-1">PRO</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function TelegramProfileB({ className }: { className?: string }) {
+  return (
+    <div className={cn("w-64 h-64 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 p-8 flex items-center justify-center shadow-2xl overflow-hidden", className)}>
+      <div className="relative w-full h-full bg-slate-900 rounded-full flex flex-col items-center justify-center border-4 border-white/10">
+        <div className="absolute inset-0 bg-orange-500/5" />
+        <span className="text-6xl font-black text-white drop-shadow-lg">₿</span>
+        <div className="bg-orange-500 text-black px-3 py-0.5 rounded-full text-[10px] font-black tracking-widest mt-2">
+          PRO
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export async function downloadShieldVaultIconPNG(size: number = 256) {
   const canvas = document.createElement('canvas');
   canvas.width = size;
