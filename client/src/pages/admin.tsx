@@ -15,7 +15,7 @@ import { formatBitcoin } from "@/lib/utils";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
 import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, MessageSquare, Reply, Search, Filter, UserCircle, Mail, Phone, MapPin, Calendar, CreditCard, Download } from "lucide-react";
-import { downloadShieldVaultIconPNG } from "@/components/shield-vault-icon";
+import { downloadShieldVaultIconPNG, ShieldVaultIcon, TelegramProfileA, TelegramProfileB } from "@/components/shield-vault-icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -1981,6 +1981,39 @@ export default function Management() {
             </div>
             <p className="text-gray-600">Trusted Bitcoin Investment Solution</p>
           </div>
+        </Card>
+      </div>
+
+      {/* Telegram Channel Profiles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <Card className="overflow-hidden border-2 border-slate-800 bg-slate-900 shadow-2xl">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-blue-400" />
+              Telegram Profile Style A
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
+            <TelegramProfileA />
+            <p className="mt-6 text-slate-400 text-center text-sm max-w-xs">
+              Dark Mode - Professional: Features the BITVAULT PRO shield on a sleek dark gradient. Perfect for official updates.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden border-2 border-orange-500/20 bg-slate-900 shadow-2xl">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-orange-400" />
+              Telegram Profile Style B
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+            <TelegramProfileB />
+            <p className="mt-6 text-slate-400 text-center text-sm max-w-xs">
+              High Contrast - Icon Focused: A bold Bitcoin symbol on a deep slate background with a golden border.
+            </p>
+          </CardContent>
         </Card>
       </div>
 
