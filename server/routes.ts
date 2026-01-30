@@ -660,8 +660,9 @@ async function processAutomaticUpdates(): Promise<void> {
         continue;
       }
 
-      // Get plan details for calculations
-      const dailyRate = parseFloat(plan.dailyReturnRate);
+    const config = await storage.getAdminConfig();
+    const dailyGrowthRate = config?.dailyGrowthRate ? parseFloat(config.dailyGrowthRate) : 0.0257;
+    const dailyRate = dailyGrowthRate;
       const performanceFeePercentage = plan.performanceFeePercentage || 0;
       const usdAmount = investment.usdAmount ? parseFloat(investment.usdAmount) : 0;
       const investmentAmount = parseFloat(investment.amount); // BTC amount
@@ -1660,6 +1661,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin configuration routes
+  app.post("/api/admin/update-daily-growth", async (req, res) => {
+    try {
+      if (!req.session?.userId) return res.status(401).json({ error: "Authentication required" });
+      const user = await storage.getUser(req.session.userId);
+      if (!user || !user.isAdmin) return res.status(403).json({ error: "Admin access required" });
+
+      const { rate } = z.object({ rate: z.string() }).parse(req.body);
+      const updatedConfig = await storage.updateDailyGrowthRate(rate);
+      res.json(updatedConfig);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.get("/api/admin/config", async (req, res) => {
     try {
       // Ensure baseline columns exist (fallback creation)
@@ -2220,13 +2235,10 @@ Network: TRC20`;
         return res.status(400).json({ error: "Invalid request: " + parseError.errors.map((e: any) => e.message).join(", ") });
       }
       
-      const { planId, amount, transactionHash } = parsedData;
+      const investmentAmount = parseFloat(amount);
 
-      // Verify plan exists
-      const plan = await storage.getInvestmentPlan(planId);
-      if (!plan) {
-        console.log(`❌ Investment failed: Plan ${planId} not found`);
-        return res.status(404).json({ error: "Investment plan not found" });
+      if (investmentAmount < 10 || investmentAmount > 12000) {
+        return res.status(400).json({ error: "Investment amount must be between $10 and $12,000 USD" });
       }
 
       // Get user and check balance
@@ -2236,60 +2248,32 @@ Network: TRC20`;
         return res.status(404).json({ error: "User not found" });
       }
 
-      const userBalance = parseFloat(user.balance);
-      const investmentAmount = parseFloat(amount);
-
-      if (investmentAmount <= 0) {
-        console.log(`❌ Investment failed: Invalid amount ${amount}`);
-        return res.status(400).json({ error: "Investment amount must be greater than 0" });
-      }
-
-      // Validate against USD minimum amount (primary field)
-      let btcPriceForValidation = 121000;
+      // Calculate BTC amount needed based on USD amount
+      let btcPrice = 121000;
       try {
         const priceData = await fetchBitcoinPrice();
-        btcPriceForValidation = priceData.usd.price;
-        console.log(`📊 Bitcoin price for validation: $${btcPriceForValidation}`);
-      } catch (error) {
-        console.log('⚠️ Could not fetch Bitcoin price for validation, using fallback');
-      }
-
-      const minAmountUSD = parseFloat(plan.usdMinAmount);
-      const minAmountBTC = minAmountUSD / btcPriceForValidation;
-      
-      if (investmentAmount < minAmountBTC) {
-        console.log(`❌ Investment failed: Amount ${investmentAmount} BTC < minimum ${minAmountBTC} BTC`);
-        return res.status(400).json({ error: `Minimum investment amount is $${minAmountUSD.toFixed(2)} USD (${minAmountBTC.toFixed(8)} BTC at current price)` });
-      }
-
-      if (userBalance < investmentAmount) {
-        console.log(`❌ Investment failed: Balance ${userBalance} BTC < amount ${investmentAmount} BTC`);
-        return res.status(400).json({ error: "Insufficient balance for this investment" });
-      }
-
-      // Deduct amount from user balance immediately
-      const newBalance = userBalance - investmentAmount;
-      await storage.updateUserBalance(userId, newBalance.toFixed(8));
-      console.log(`✅ User balance updated: ${userBalance} → ${newBalance.toFixed(8)} BTC`);
-
-      // Get current Bitcoin price for USD calculation
-      let bitcoinPrice = 121000;
-      try {
-        const priceData = await fetchBitcoinPrice();
-        bitcoinPrice = priceData.usd.price;
+        btcPrice = priceData.usd.price;
       } catch (error) {
         console.log('⚠️ Could not fetch Bitcoin price, using fallback');
       }
 
-      // Calculate USD amount from investment amount
-      const investmentUSD = investmentAmount * bitcoinPrice;
-      
-      // Create the investment with USD tracking
+      const btcAmountNeeded = investmentAmount / btcPrice;
+      const userBalance = parseFloat(user.balance);
+
+      if (userBalance < btcAmountNeeded) {
+        return res.status(400).json({ error: `Insufficient balance. You need ${btcAmountNeeded.toFixed(8)} BTC for this $${investmentAmount} investment.` });
+      }
+
+      // Deduct amount from user balance immediately
+      const newBalance = userBalance - btcAmountNeeded;
+      await storage.updateUserBalance(userId, newBalance.toFixed(8));
+
+      // Create the investment
       const investment = await storage.createInvestment({
         userId: userId,
         planId: planId,
-        amount: amount,
-        usdAmount: investmentUSD.toFixed(2)
+        amount: btcAmountNeeded.toFixed(8),
+        usdAmount: investmentAmount.toFixed(2)
       });
       console.log(`✅ Investment #${investment.id} created: ${amount} BTC ($${investmentUSD.toFixed(2)} USD) in plan ${planId}`);
 

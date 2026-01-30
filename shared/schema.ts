@@ -122,6 +122,7 @@ export const adminConfig = pgTable("admin_config", {
   plan12000Active: integer("plan12000_active").default(75),
   plan12000Amount: text("plan12000_amount").default("738.62850000"),
   plan12000Profit: text("plan12000_profit").default("147.72570000"),
+  dailyGrowthRate: decimal("daily_growth_rate", { precision: 5, scale: 4 }).notNull().default("0.0257"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

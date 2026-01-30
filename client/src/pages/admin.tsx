@@ -102,13 +102,32 @@ export default function Management() {
     queryKey: ['/api/admin/config'],
   });
 
+  const [dailyGrowth, setDailyGrowth] = useState("0.0257");
+
   // Update state when config data changes
   useEffect(() => {
     if (adminConfig && typeof adminConfig === 'object') {
       setVaultAddress((adminConfig as any).vaultAddress || "");
       setDepositAddress((adminConfig as any).depositAddress || "");
+      setDailyGrowth((adminConfig as any).dailyGrowthRate || "0.0257");
     }
   }, [adminConfig]);
+
+  const updateDailyGrowthMutation = useMutation({
+    mutationFn: async (rate: string) => {
+      const response = await fetch('/api/admin/update-daily-growth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rate }),
+      });
+      if (!response.ok) throw new Error('Failed to update growth rate');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/config'] });
+      toast({ title: "Growth Rate Updated", description: "Daily growth percentage has been updated." });
+    },
+  });
 
   const updateConfigMutation = useMutation({
     mutationFn: async ({ vaultAddress, depositAddress }: { vaultAddress: string; depositAddress: string }) => {

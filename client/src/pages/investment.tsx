@@ -150,41 +150,30 @@ export default function Investment() {
 
   const currencyPrice = currency === 'USD' ? bitcoinPrice?.usd.price : bitcoinPrice?.gbp.price;
 
-  const handleInvest = (plan: InvestmentPlan) => {
+  const [investmentAmount, setInvestmentAmount] = useState<string>("10");
+
+  const handleInvest = () => {
     if (!user) return;
     
-    const usdAmount = parseFloat(plan.usdMinAmount || '0');
-    const grossProfit = usdAmount * plan.roiPercentage / 100;
-    const performanceFee = plan.performanceFeePercentage ? grossProfit * plan.performanceFeePercentage / 100 : 0;
-    const netProfit = grossProfit - performanceFee;
-    const totalReturn = usdAmount + netProfit;
-    
-    // Calculate BTC amount from USD
-    const currentPrice = bitcoinPrice?.usd.price || 121000;
-    const btcAmount = (usdAmount / currentPrice).toFixed(8);
-    
-    let confirmMessage = `Invest in ${plan.name}?\n\n` +
-      `Investment: $${usdAmount.toFixed(2)}\n` +
-      `BTC Amount: ${btcAmount} BTC\n` +
-      `Gross Profit: +$${grossProfit.toFixed(2)}\n`;
-    
-    if (plan.performanceFeePercentage && plan.performanceFeePercentage > 0) {
-      confirmMessage += `Performance Fee (${plan.performanceFeePercentage}%): -$${performanceFee.toFixed(2)}\n` +
-        `Net Profit: +$${netProfit.toFixed(2)}\n`;
+    const amount = parseFloat(investmentAmount);
+    if (isNaN(amount) || amount < 10 || amount > 12000) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter an amount between $10 and $12,000",
+        variant: "destructive",
+      });
+      return;
     }
+
+    const currentPrice = bitcoinPrice?.usd.price || 121000;
+    const btcAmount = (amount / currentPrice).toFixed(8);
     
-    confirmMessage += `Total Return: $${totalReturn.toFixed(2)}\n\n` +
-      `Duration: ${plan.durationDays} days\n` +
-      `Daily Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}% per day\n\n` +
-      `Proceed with investment?`;
-    
-    const confirmed = confirm(confirmMessage);
+    const confirmed = confirm(`Invest $${amount.toFixed(2)} (${btcAmount} BTC)?\n\nDaily Growth: 2.57% (Adjustable by Admin)\nMin: $10 | Max: $12,000\n\nProceed?`);
     
     if (confirmed) {
-      console.log('Creating investment with BTC amount:', btcAmount);
       createInvestmentMutation.mutate({
-        planId: plan.id,
-        amount: btcAmount,
+        planId: 1, // Using a default plan ID since it's now amount-based
+        amount: investmentAmount,
       });
     }
   };

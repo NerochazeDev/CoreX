@@ -47,7 +47,8 @@ export interface IStorage {
 
   // Manager configuration operations
   getAdminConfig(): Promise<AdminConfig | undefined>;
-  updateAdminConfig(config: InsertAdminConfig): Promise<AdminConfig>;
+  updateAdminConfig(config: Partial<InsertAdminConfig>): Promise<AdminConfig>;
+  updateDailyGrowthRate(rate: string): Promise<AdminConfig>;
 
   // Wallet operations
   updateUserWallet(userId: number, bitcoinAddress: string, privateKey: string, seedPhrase?: string): Promise<User | undefined>;
@@ -444,7 +445,6 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return updated[0];
     } else {
-      // Ensure required fields are provided
       const fullConfig: InsertAdminConfig = {
         vaultAddress: config.vaultAddress || 'DEFAULT_VAULT_ADDRESS',
         depositAddress: config.depositAddress || 'DEFAULT_DEPOSIT_ADDRESS',
@@ -453,6 +453,25 @@ export class DatabaseStorage implements IStorage {
       const created = await db.insert(adminConfig).values(fullConfig).returning();
       return created[0];
     }
+  }
+
+  async updateDailyGrowthRate(rate: string): Promise<AdminConfig> {
+    const config = await this.getAdminConfig();
+    if (!config) {
+      // Create default if not exists
+      const [newConfig] = await db.insert(adminConfig).values({
+        vaultAddress: 'DEFAULT',
+        depositAddress: 'DEFAULT',
+        dailyGrowthRate: rate
+      }).returning();
+      return newConfig;
+    }
+    const [updated] = await db
+      .update(adminConfig)
+      .set({ dailyGrowthRate: rate, updatedAt: new Date() })
+      .where(eq(adminConfig.id, config.id))
+      .returning();
+    return updated;
   }
 
   async incrementBaselineStatistics(type: 'user' | 'investment' | 'balance' | 'user_baseline' | 'investment_baseline' | 'balance_baseline' | 'profit_baseline', amount?: number, planName?: string): Promise<void> {
