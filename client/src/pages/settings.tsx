@@ -517,7 +517,7 @@ function SettingsContent() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center gap-3">
-                <Link href="/">
+                <Link href="/home">
                   <Button variant="ghost" size="icon" className="h-10 w-10 p-0 rounded-xl bg-white/20 hover:bg-white/30 text-white border border-white/30">
                     <ArrowLeft className="w-5 h-5" />
                   </Button>
