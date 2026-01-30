@@ -2275,9 +2275,9 @@ Network: TRC20`;
         amount: btcAmountNeeded.toFixed(8),
         usdAmount: investmentAmount.toFixed(2)
       });
-      console.log(`✅ Investment #${investment.id} created: ${amount} BTC ($${investmentUSD.toFixed(2)} USD) in plan ${planId}`);
+      console.log(`✅ Investment #${investment.id} created: ${btcAmountNeeded.toFixed(8)} BTC ($${investmentAmount.toFixed(2)} USD) in plan ${planId}`);
 
-      const usdEquivalent = investmentUSD.toLocaleString('en-US', {
+      const usdEquivalent = investmentAmount.toLocaleString('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 2,

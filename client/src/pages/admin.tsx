@@ -98,7 +98,7 @@ export default function Management() {
     queryKey: ['/api/investment-plans'],
   });
 
-  const { data: adminConfig } = useQuery<{vaultAddress: string; depositAddress: string; freePlanRate: string}>({
+  const { data: adminConfig } = useQuery<{vaultAddress: string; depositAddress: string; freePlanRate: string; dailyGrowthRate: string}>({
     queryKey: ['/api/admin/config'],
   });
 

@@ -102,6 +102,7 @@ async function addMissingColumns(): Promise<void> {
     await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan12000_active INTEGER DEFAULT 75`);
     await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan12000_amount TEXT DEFAULT '738.62850000'`);
     await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS plan12000_profit TEXT DEFAULT '147.72570000'`);
+    await db.execute(sql`ALTER TABLE admin_config ADD COLUMN IF NOT EXISTS daily_growth_rate decimal(5,4) DEFAULT 0.0257`);
     
     console.log('✅ Missing columns added successfully');
   } catch (error) {
