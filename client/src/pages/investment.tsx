@@ -350,98 +350,66 @@ export default function Investment() {
           </div>
         </div>
 
-        {/* Modern Performance Insights */}
-        {activeInvestments.length > 0 && (
-          <Card className="bg-card/50 backdrop-blur-lg border border-border shadow-lg rounded-2xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-foreground">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-primary" />
-                </div>
-                Performance Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="text-center p-4 sm:p-6 bg-green-500/10 rounded-xl border border-green-500/20">
-                  <div className="text-2xl sm:text-3xl font-bold text-green-500">{activeInvestments.length}</div>
-                  <div className="text-sm text-muted-foreground mt-1">Active Investments</div>
-                </div>
-                <div className="text-center p-4 sm:p-6 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                  <div className="text-2xl sm:text-3xl font-bold text-blue-500">{completedInvestments.length}</div>
-                  <div className="text-sm text-muted-foreground mt-1">Completed</div>
-                </div>
-                <div className="text-center p-4 sm:p-6 bg-orange-500/10 rounded-xl border border-orange-500/20">
-                  <div className="text-2xl sm:text-3xl font-bold text-orange-500">{pendingInvestments.length}</div>
-                  <div className="text-sm text-muted-foreground mt-1">Pending Review</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Investment Plans */}
+        {/* Investment Input Section */}
         <div className="relative">
           <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
           <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
             <CardHeader className="border-b border-orange-400/20 dark:border-orange-500/30">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                    <Zap className="w-5 h-5 text-orange-700 dark:text-orange-300" />
-                  </div>
-                  Investment Plans
-                </CardTitle>
-                <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-700/50">
-                  Choose Your Plan
-                </Badge>
-              </div>
+              <CardTitle className="text-xl font-bold text-orange-800 dark:text-orange-100 flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                  <DollarSign className="w-5 h-5 text-orange-700 dark:text-orange-300" />
+                </div>
+                Start Investing
+              </CardTitle>
             </CardHeader>
-            
-            {/* Professional Financial Disclaimer */}
-            <div className="mx-6 mt-6 mb-4 p-4 bg-orange-50/50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/30 rounded-lg" data-testid="disclaimer-performance">
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-orange-900 dark:text-orange-200">
-                    Performance Disclosure
-                  </p>
-                  <p className="text-xs text-orange-800/80 dark:text-orange-300/70 leading-relaxed">
-                    The projected returns displayed are derived from the platform's historical trading performance and are provided for informational purposes only. Past performance is not indicative of future results. Actual returns may vary based on prevailing market conditions, volatility, and other macroeconomic factors. Cryptocurrency investments carry inherent risks, and investors should carefully assess their risk tolerance before participating.
-                  </p>
+            <CardContent className="p-6 space-y-4">
+              <div className="space-y-2">
+                <Label className="text-orange-900/70 dark:text-orange-100/70 font-medium">Investment Amount (USD)</Label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-orange-600 font-bold">$</span>
+                  </div>
+                  <Input 
+                    type="number"
+                    value={investmentAmount} 
+                    onChange={(e) => setInvestmentAmount(e.target.value)} 
+                    placeholder="Enter amount (10 - 12,000)"
+                    min="10"
+                    max="12000"
+                    className="pl-8 bg-white/50 dark:bg-gray-900/50 border-orange-100 dark:border-orange-900/30 focus:ring-orange-500 rounded-xl h-12 text-lg font-medium"
+                  />
+                </div>
+                <div className="flex justify-between text-xs font-medium italic">
+                  <span className="text-orange-600/70">Min: $10</span>
+                  <span className="text-orange-600/70">Max: $12,000</span>
                 </div>
               </div>
-            </div>
 
-            <CardContent className="p-6">
-              {plans?.length ? (
-                <div className="grid gap-4 sm:gap-6">
-                  {plans.map((plan) => (
-                    <div key={plan.id} className="relative group">
-                      <div className="absolute top-1 left-1 w-full h-full bg-gradient-to-br from-orange-500/10 to-orange-600/15 rounded-xl blur-sm group-hover:blur-md transition-all duration-200"></div>
-                      <Card className={`relative ${getGradientClass(plan.color)} backdrop-blur-xl rounded-2xl shadow-xl shadow-orange-600/20 border`}>
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h4 className={`text-xl font-bold ${getTextColorClass(plan.color)}`}>
-                                {plan.name}
-                              </h4>
-                              <div className={`text-sm ${getTextColorClass(plan.color)} opacity-80`}>
-                                <p>Min: ${plan.usdMinAmount || '0'}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className={`text-3xl font-bold ${getTextColorClass(plan.color)}`}>
-                                {plan.roiPercentage}%
-                              </p>
-                              <p className={`text-sm ${getTextColorClass(plan.color)} opacity-80`}>
-                                {plan.durationDays} days
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Expected Returns Section */}
-                          <div className={`bg-white/15 dark:bg-white/10 rounded-lg p-4 mb-4 ${getTextColorClass(plan.color)}`}>
+              <div className="p-4 bg-orange-50/50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/30 rounded-xl space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-orange-900/60 dark:text-orange-100/60">Estimated Daily Growth</span>
+                  <span className="text-orange-900 dark:text-orange-100 font-bold">2.57%</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-orange-900/60 dark:text-orange-100/60">Daily Return (Est.)</span>
+                  <span className="text-green-600 dark:text-green-400 font-bold">
+                    ${((parseFloat(investmentAmount) || 0) * 0.0257).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleInvest}
+                disabled={createInvestmentMutation.isPending}
+                className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg shadow-orange-600/20 rounded-xl h-14 text-lg font-bold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {createInvestmentMutation.isPending ? "Processing..." : "Secure Investment Now"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Performance Insights Section Removed if no investments */}
                             <div className="flex justify-between items-center mb-3">
                               <span className="text-sm opacity-80">Expected Returns:</span>
                               <Target className="w-4 h-4 opacity-80" />
