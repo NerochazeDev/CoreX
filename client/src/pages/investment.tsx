@@ -409,45 +409,28 @@ export default function Investment() {
           </Card>
         </div>
 
-        {/* Performance Insights Section Removed if no investments */}
-                            <div className="flex justify-between items-center mb-3">
-                              <span className="text-sm opacity-80">Expected Returns:</span>
-                              <Target className="w-4 h-4 opacity-80" />
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span>Plan Capital:</span>
-                                <div className="text-right">
-                                  <div className="font-medium">${plan.usdMinAmount || '0'}</div>
-                                </div>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <span>Hold Days:</span>
-                                <div className="text-right font-medium">{plan.durationDays} days</div>
-                              </div>
-                              <div className="flex justify-between text-sm border-t border-white/20 pt-2">
-                                <span>Profit (Before Fee):</span>
-                                <div className="text-right text-green-300">
-                                  <div className="font-medium">+${(parseFloat(plan.usdMinAmount || '0') * plan.roiPercentage / 100).toFixed(2)}</div>
-                                  <div className="text-xs opacity-75">{plan.roiPercentage}% ROI</div>
-                                </div>
-                              </div>
-                              {plan.performanceFeePercentage && plan.performanceFeePercentage > 0 && (
-                                <>
-                                  <div className="flex justify-between text-sm text-yellow-300">
-                                    <span>Fee %:</span>
-                                    <div className="text-right font-medium">{plan.performanceFeePercentage}%</div>
-                                  </div>
-                                  <div className="flex justify-between text-sm text-yellow-300">
-                                    <span>Fee (on Profit):</span>
-                                    <div className="text-right">
-                                      <div className="font-medium">-${(parseFloat(plan.usdMinAmount || '0') * plan.roiPercentage / 100 * plan.performanceFeePercentage / 100).toFixed(2)}</div>
-                                      <div className="text-xs opacity-75">On Profit Only</div>
-                                    </div>
-                                  </div>
-                                  <div className="flex justify-between text-sm text-green-400 border-t border-white/20 pt-2">
-                                    <span className="font-semibold">Net Profit:</span>
-                                    <div className="text-right">
+        <div className="p-4 bg-orange-50/50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/30 rounded-lg" data-testid="disclaimer-performance">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-orange-900 dark:text-orange-200">
+                Performance Disclosure
+              </p>
+              <p className="text-xs text-orange-800/80 dark:text-orange-300/70 leading-relaxed">
+                The projected returns displayed are derived from the platform's historical trading performance and are provided for informational purposes only. Past performance is not indicative of future results. Actual returns may vary based on prevailing market conditions, volatility, and other macroeconomic factors. Cryptocurrency investments carry inherent risks, and investors should carefully assess their risk tolerance before participating.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}
+                The projected returns displayed are derived from the platform's historical trading performance and are provided for informational purposes only. Past performance is not indicative of future results. Actual returns may vary based on prevailing market conditions, volatility, and other macroeconomic factors. Cryptocurrency investments carry inherent risks, and investors should carefully assess their risk tolerance before participating.
+              </p>
+            </div>
+          </div>
+        </div>
                                       <div className="font-bold">+${(parseFloat(plan.usdMinAmount || '0') * plan.roiPercentage / 100 * (1 - plan.performanceFeePercentage / 100)).toFixed(2)}</div>
                                       <div className="text-xs opacity-75">After {plan.performanceFeePercentage}% Fee</div>
                                     </div>
