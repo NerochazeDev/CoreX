@@ -1952,6 +1952,19 @@ export default function Management() {
       </div>
     </div>
   );
+
+  const renderDesignTab = () => (
+    <TabsContent value="design" className="space-y-6">
+      <Card className="border-0 shadow-xl overflow-hidden">
+        <CardHeader className="relative border-b border-orange-100 dark:border-orange-800/50 bg-orange-50/30 dark:bg-orange-950/20">
+          <CardTitle className="text-orange-900 dark:text-orange-100 flex items-center gap-2">
+            <Palette className="w-5 h-5 text-orange-600" />
+            Platform Design & Branding
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-6">
               <h4 className="font-semibold mb-4">Brand Colors</h4>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -2012,7 +2025,7 @@ export default function Management() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </TabsContent>
   );
 
   // Move hooks to top level to fix React hooks rule violation
@@ -2534,9 +2547,4 @@ export default function Management() {
       <div className="h-20 lg:hidden"></div>
 
       {/* Bottom Navigation for mobile */}
-      <div className="lg:hidden">
-        <BottomNavigation />
-      </div>
-    </div>
-  );
 }
