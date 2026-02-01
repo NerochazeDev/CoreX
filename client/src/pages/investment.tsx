@@ -425,8 +425,5 @@ export default function Investment() {
       </div>
     </SidebarProvider>
   );
-}
-                        </CardContent>
-                      </Card>
-                    </div>
+  );
 }

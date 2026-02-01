@@ -2546,5 +2546,9 @@ export default function Management() {
       {/* Bottom spacing for mobile navigation */}
       <div className="h-20 lg:hidden"></div>
 
-      {/* Bottom Navigation for mobile */}
+      <div className="lg:hidden">
+        <BottomNavigation />
+      </div>
+    </div>
+  );
 }
