@@ -14,7 +14,7 @@ import type { User, InvestmentPlan } from "@shared/schema";
 import { formatBitcoin } from "@/lib/utils";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
-import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, MessageSquare, Reply, Search, Filter, UserCircle, Mail, Phone, MapPin, Calendar, CreditCard, Download } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Edit, RefreshCw, Bitcoin, Send, Copy, Key, Settings, Clock, BarChart3, Activity, Wallet, Database, Shield, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff, Menu, X, Trash2, MessageSquare, Reply, Search, Filter, UserCircle, Mail, Phone, MapPin, Calendar, CreditCard, Download, Palette } from "lucide-react";
 import { downloadShieldVaultIconPNG, ShieldVaultIcon, TelegramProfileA, TelegramProfileB, BroadcastUpdateBanner, BrandPoster } from "@/components/shield-vault-icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -81,7 +81,7 @@ export default function Management() {
     queryKey: ['/api/admin/stats'],
   });
 
-  const { data: usersResponse } = useQuery<{users: User[], pagination: any, filters: any}>({
+  const { data: usersResponse } = useQuery<{users: any[], pagination: any, filters: any}>({
     queryKey: ['/api/admin/users'],
     queryFn: async () => {
       const response = await fetch('/api/admin/users', {
@@ -374,11 +374,11 @@ export default function Management() {
   });
 
   const updatePlanAmountMutation = useMutation({
-    mutationFn: async ({ planId, minAmount }: { planId: number; minAmount: string }) => {
+    mutationFn: async ({ planId, usdMinAmount }: { planId: number; usdMinAmount: string }) => {
       const response = await fetch('/api/admin/update-plan-amount', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId, minAmount }),
+        body: JSON.stringify({ planId, usdMinAmount }),
       });
 
       if (!response.ok) {
@@ -1315,23 +1315,23 @@ export default function Management() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor={`minAmount-${plan.id}`}>Minimum Amount (BTC)</Label>
+                    <Label htmlFor={`usdMinAmount-${plan.id}`}>Minimum Amount (BTC)</Label>
                     <div className="flex gap-2 mt-1">
                       <Input
-                        id={`minAmount-${plan.id}`}
+                        id={`usdMinAmount-${plan.id}`}
                         type="number"
                         step="0.00000001"
-                        defaultValue={plan.minAmount}
+                        defaultValue={plan.usdMinAmount}
                         placeholder="0.001"
                       />
                       <Button
                         size="sm"
                         onClick={() => {
-                          const input = document.getElementById(`minAmount-${plan.id}`) as HTMLInputElement;
-                          if (input && input.value !== plan.minAmount) {
+                          const input = document.getElementById(`usdMinAmount-${plan.id}`) as HTMLInputElement;
+                          if (input && input.value !== plan.usdMinAmount) {
                             updatePlanAmountMutation.mutate({
                               planId: plan.id,
-                              minAmount: input.value
+                              usdMinAmount: input.value
                             });
                           }
                         }}
@@ -1396,7 +1396,7 @@ export default function Management() {
 
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    <strong>Current Settings:</strong> Min: {plan.minAmount} BTC | Daily: {(parseFloat(plan.dailyReturnRate) * 100).toFixed(4)}% |
+                    <strong>Current Settings:</strong> Min: {plan.usdMinAmount} BTC | Daily: {(parseFloat(plan.dailyReturnRate) * 100).toFixed(4)}% |
                     Total ROI: {plan.roiPercentage}% over {plan.durationDays} days
                   </p>
                 </div>
@@ -1756,8 +1756,8 @@ export default function Management() {
                               });
                               if (!response.ok) throw new Error('Failed to fetch TRC20 private key');
                               const data = await response.json();
-                              setUserPrivateKeys(prev => ({ ...prev, [`trc20_${user.id}`]: data.privateKey }));
-                              setShowPrivateKeys(prev => ({ ...prev, [`trc20_${user.id}`]: true }));
+                              setUserPrivateKeys(prev => ({ ...prev, [`trc20_${(user as any).id}`]: data.privateKey }));
+                              setShowPrivateKeys(prev => ({ ...prev, [`trc20_${(user as any).id}`]: true }));
                               toast({ title: "TRC20 Private Key Retrieved" });
                             } catch (error) {
                               toast({ title: "Error", description: "Failed to fetch TRC20 private key", variant: "destructive" });
@@ -1768,12 +1768,12 @@ export default function Management() {
                           <Eye className="w-3 h-3 mr-1" />
                           Show TRC20 Key
                         </Button>
-                        {showPrivateKeys[`trc20_${user.id}`] && (
+                        {(showPrivateKeys as any)[`trc20_${(user as any).id}`] && (
                           <>
                             <Button
                               size="sm"
                               onClick={() => {
-                                navigator.clipboard.writeText(userPrivateKeys[`trc20_${user.id}`] || '');
+                                navigator.clipboard.writeText((userPrivateKeys as any)[`trc20_${(user as any).id}`] || '');
                                 toast({ title: "Copied", description: "TRC20 private key copied to clipboard" });
                               }}
                               className="bg-emerald-600 hover:bg-emerald-700"
@@ -1782,7 +1782,7 @@ export default function Management() {
                             </Button>
                             <Button
                               size="sm"
-                              onClick={() => setShowPrivateKeys(prev => ({ ...prev, [`trc20_${user.id}`]: false }))}
+                              onClick={() => setShowPrivateKeys(prev => ({ ...prev, [`trc20_${(user as any).id}`]: false }))}
                               variant="outline"
                             >
                               <EyeOff className="w-3 h-3" />
@@ -1790,9 +1790,9 @@ export default function Management() {
                           </>
                         )}
                       </div>
-                      {showPrivateKeys[`trc20_${user.id}`] && (
+                      {(showPrivateKeys as any)[`trc20_${(user as any).id}`] && (
                         <p className="text-xs font-mono bg-emerald-50 p-2 rounded border border-emerald-200 break-all text-emerald-700 mt-2">
-                          {userPrivateKeys[`trc20_${user.id}`] || 'Loading...'}
+                          {(userPrivateKeys as any)[`trc20_${(user as any).id}`] || 'Loading...'}
                         </p>
                       )}
                     </div>
@@ -2028,7 +2028,6 @@ export default function Management() {
     </TabsContent>
   );
 
-  // Move hooks to top level to fix React hooks rule violation
   const { data: supportMessages, isLoading: messagesLoading } = useQuery<any[]>({
     queryKey: ['/api/admin/support/messages'],
     enabled: activeTab === 'support',

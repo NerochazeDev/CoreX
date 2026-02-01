@@ -17,6 +17,9 @@ import { Link } from "wouter";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 import { BitVaultLogo } from "@/components/bitvault-logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export default function Investment() {
   const { user } = useAuth();
@@ -416,14 +419,10 @@ export default function Investment() {
               <p className="text-sm font-medium text-orange-900 dark:text-orange-200">
                 Performance Disclosure
               </p>
-              <p className="text-xs text-orange-800/80 dark:text-orange-300/70 leading-relaxed">
-                The projected returns displayed are derived from the platform's historical trading performance and are provided for informational purposes only. Past performance is not indicative of future results. Actual returns may vary based on prevailing market conditions, volatility, and other macroeconomic factors. Cryptocurrency investments carry inherent risks, and investors should carefully assess their risk tolerance before participating.
-              </p>
             </div>
           </div>
         </div>
-      </div>
-    </SidebarProvider>
-  );
+      </main>
+    </div>
   );
 }
