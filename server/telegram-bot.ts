@@ -91,7 +91,9 @@ async function fetchBtcPrice(): Promise<number> {
 
 // ─── Fake Activity Generators ─────────────────────────────────────────────────
 
-const FIRST_NAMES = ['James', 'Liam', 'Noah', 'Oliver', 'Elijah', 'William', 'Benjamin', 'Lucas', 'Henry', 'Alexander', 'Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn', 'Mohamed', 'Yusuf', 'Kwame', 'Fatima', 'Aisha', 'Tariq', 'Chidi', 'Adaeze', 'Kemi', 'Emeka', 'Wei', 'Jing', 'Min', 'Priya', 'Arjun', 'Rohan', 'Ananya', 'Dmitri', 'Sergei', 'Natasha', 'Carlos', 'Maria', 'Diego', 'Valentina', 'Andres'];
+function randomUserId(): string {
+  return `User #${randomInt(1000, 99999)}`;
+}
 
 const COUNTRIES = ['🇺🇸 USA', '🇬🇧 UK', '🇨🇦 Canada', '🇦🇺 Australia', '🇩🇪 Germany', '🇫🇷 France', '🇳🇬 Nigeria', '🇿🇦 South Africa', '🇬🇭 Ghana', '🇮🇳 India', '🇧🇷 Brazil', '🇯🇵 Japan', '🇳🇱 Netherlands', '🇦🇪 UAE', '🇸🇬 Singapore', '🇰🇪 Kenya', '🇨🇦 Canada', '🇲🇽 Mexico', '🇮🇹 Italy', '🇷🇺 Russia'];
 
@@ -107,24 +109,23 @@ function randomInt(min: number, max: number): number {
 
 function generateActivityFeed(count: number): string[] {
   const actions = [
-    () => `💰 *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} just invested *${randomItem(PLAN_AMOUNTS)}*`,
-    () => `✅ *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} received profit payout`,
-    () => `🔄 *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} reinvested returns into *${randomItem(PLAN_AMOUNTS)} Plan*`,
-    () => `🆕 *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} joined BitVault Pro`,
-    () => `🏆 *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} upgraded to *${randomItem(['$500', '$1,000', '$3,000', '$6,000', '$12,000'])} Plan*`,
+    () => `💰 *${randomUserId()}* from ${randomItem(COUNTRIES)} just invested *${randomItem(PLAN_AMOUNTS)}*`,
+    () => `✅ *${randomUserId()}* from ${randomItem(COUNTRIES)} received profit payout`,
+    () => `🔄 *${randomUserId()}* from ${randomItem(COUNTRIES)} reinvested returns into *${randomItem(PLAN_AMOUNTS)} Plan*`,
+    () => `🆕 *${randomUserId()}* from ${randomItem(COUNTRIES)} joined BitVault Pro`,
+    () => `🏆 *${randomUserId()}* from ${randomItem(COUNTRIES)} upgraded to *${randomItem(['$500', '$1,000', '$3,000', '$6,000', '$12,000'])} Plan*`,
   ];
 
   return Array.from({ length: count }, () => randomItem(actions)());
 }
 
-function generateRecentPayouts(btcPrice: number, count: number): string[] {
+function generateRecentPayouts(_btcPrice: number, count: number): string[] {
   return Array.from({ length: count }, () => {
     const usdAmount = randomItem([10, 20, 50, 100, 300, 500, 1000, 3000, 6000, 12000]);
     const roiPct = randomItem([5, 8, 3.5, 10, 15, 20, 25, 30, 40, 50]) / 100;
     const profit = (usdAmount * roiPct * randomInt(1, 5) / 30).toFixed(2);
-    const name = randomItem(FIRST_NAMES);
     const country = randomItem(COUNTRIES);
-    return `💸 *${name}* (${country}) — +*$${profit}* profit from *$${usdAmount} Plan*`;
+    return `💸 *${randomUserId()}* (${country}) — +*$${profit}* profit from *$${usdAmount} Plan*`;
   });
 }
 
