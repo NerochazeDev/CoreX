@@ -108,3 +108,4 @@ args = "npm run dev"
 
 [agent]
 expertMode = true
+stack = "FULLSTACK_JS"
