@@ -89,6 +89,57 @@ async function fetchBtcPrice(): Promise<number> {
   return 77000;
 }
 
+// ─── Fake Activity Generators ─────────────────────────────────────────────────
+
+const FIRST_NAMES = ['James', 'Liam', 'Noah', 'Oliver', 'Elijah', 'William', 'Benjamin', 'Lucas', 'Henry', 'Alexander', 'Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn', 'Mohamed', 'Yusuf', 'Kwame', 'Fatima', 'Aisha', 'Tariq', 'Chidi', 'Adaeze', 'Kemi', 'Emeka', 'Wei', 'Jing', 'Min', 'Priya', 'Arjun', 'Rohan', 'Ananya', 'Dmitri', 'Sergei', 'Natasha', 'Carlos', 'Maria', 'Diego', 'Valentina', 'Andres'];
+
+const COUNTRIES = ['🇺🇸 USA', '🇬🇧 UK', '🇨🇦 Canada', '🇦🇺 Australia', '🇩🇪 Germany', '🇫🇷 France', '🇳🇬 Nigeria', '🇿🇦 South Africa', '🇬🇭 Ghana', '🇮🇳 India', '🇧🇷 Brazil', '🇯🇵 Japan', '🇳🇱 Netherlands', '🇦🇪 UAE', '🇸🇬 Singapore', '🇰🇪 Kenya', '🇨🇦 Canada', '🇲🇽 Mexico', '🇮🇹 Italy', '🇷🇺 Russia'];
+
+const PLAN_AMOUNTS = ['$10', '$20', '$50', '$100', '$300', '$500', '$1,000', '$3,000', '$6,000', '$12,000'];
+
+function randomItem<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateActivityFeed(count: number): string[] {
+  const actions = [
+    () => `💰 *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} just invested *${randomItem(PLAN_AMOUNTS)}*`,
+    () => `✅ *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} received profit payout`,
+    () => `🔄 *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} reinvested returns into *${randomItem(PLAN_AMOUNTS)} Plan*`,
+    () => `🆕 *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} joined BitVault Pro`,
+    () => `🏆 *${randomItem(FIRST_NAMES)}* from ${randomItem(COUNTRIES)} upgraded to *${randomItem(['$500', '$1,000', '$3,000', '$6,000', '$12,000'])} Plan*`,
+  ];
+
+  return Array.from({ length: count }, () => randomItem(actions)());
+}
+
+function generateRecentPayouts(btcPrice: number, count: number): string[] {
+  return Array.from({ length: count }, () => {
+    const usdAmount = randomItem([10, 20, 50, 100, 300, 500, 1000, 3000, 6000, 12000]);
+    const roiPct = randomItem([5, 8, 3.5, 10, 15, 20, 25, 30, 40, 50]) / 100;
+    const profit = (usdAmount * roiPct * randomInt(1, 5) / 30).toFixed(2);
+    const name = randomItem(FIRST_NAMES);
+    const country = randomItem(COUNTRIES);
+    return `💸 *${name}* (${country}) — +*$${profit}* profit from *$${usdAmount} Plan*`;
+  });
+}
+
+const SENTIMENTS = ['📈 Bullish', '🚀 Strong Bullish', '📊 Accumulation', '💹 Breakout Watch', '🟢 Positive'];
+const MARKET_NOTES = [
+  'Institutional inflows increasing — whale wallets accumulating.',
+  'On-chain data shows long-term holder strength rising.',
+  'Exchange outflows signal reduced sell pressure.',
+  'Derivatives funding rate neutral — healthy momentum.',
+  'ETF net inflows positive for 7th consecutive session.',
+  'Hash rate at all-time high — network security at peak.',
+  'Retail interest rising — Google Trends BTC searches up 23%.',
+  'Spot market volume up — organic demand confirmed.',
+];
+
 // ─── Platform Stats ───────────────────────────────────────────────────────────
 
 const PLAN_BASELINES: Record<string, { active: number; amountBtc: number; profitBtc: number }> = {
@@ -104,6 +155,14 @@ const PLAN_BASELINES: Record<string, { active: number; amountBtc: number; profit
   '$12,000 Plan': { active: 75,   amountBtc: 738.629,  profitBtc: 147.726 },
 };
 
+interface PlanStat {
+  name: string;
+  investors: number;
+  aumUsd: number;
+  profitUsd: number;
+  apyPct: number;
+}
+
 interface PlatformStats {
   btcPrice: number;
   totalUsers: number;
@@ -112,14 +171,7 @@ interface PlatformStats {
   totalAumUsd: number;
   totalProfitBtc: number;
   totalProfitUsd: number;
-  planBreakdown: Array<{
-    name: string;
-    investors: number;
-    aumUsd: number;
-    profitUsd: number;
-    apyPct: number;
-    minInvestment: string;
-  }>;
+  planBreakdown: PlanStat[];
 }
 
 async function buildPlatformStats(): Promise<PlatformStats> {
@@ -133,52 +185,42 @@ async function buildPlatformStats(): Promise<PlatformStats> {
     fetchBtcPrice(),
   ]);
 
-  const baselineUsers = adminConfig?.baselineUsers || 9850;
+  const baselineUsers             = adminConfig?.baselineUsers || 9850;
   const baselineActiveInvestments = adminConfig?.baselineActiveInvestments || 15420;
-  const baselineTotalBalance = parseFloat(adminConfig?.baselineTotalBalance || '845.67342158');
-  const baselineTotalProfit = parseFloat(adminConfig?.baselineTotalProfit || '127.84501632');
+  const baselineTotalBalance      = parseFloat(adminConfig?.baselineTotalBalance || '845.67342158');
+  const baselineTotalProfit       = parseFloat(adminConfig?.baselineTotalProfit  || '127.84501632');
 
-  const dbBalance = allUsers.reduce((s, u) => s + parseFloat(u.balance), 0);
-  const dbProfit = allInvestments.reduce((s, i) => s + parseFloat(i.currentProfit || '0'), 0);
+  const dbBalance   = allUsers.reduce((s, u) => s + parseFloat(u.balance), 0);
+  const dbProfit    = allInvestments.reduce((s, i) => s + parseFloat(i.currentProfit || '0'), 0);
   const activeInvDb = allInvestments.filter(i => i.isActive);
 
-  const totalAumBtc = baselineTotalBalance + dbBalance;
-  const totalProfitBtc = baselineTotalProfit + dbProfit;
-  const totalUsers = baselineUsers + allUsers.length;
+  const totalAumBtc    = baselineTotalBalance + dbBalance;
+  const totalProfitBtc = baselineTotalProfit  + dbProfit;
+  const totalUsers     = baselineUsers + allUsers.length;
   const activePositions = baselineActiveInvestments + activeInvDb.length;
 
-  const planBreakdown = investmentPlans.map(plan => {
+  const planBreakdown: PlanStat[] = investmentPlans.map(plan => {
     const planInvs = activeInvDb.filter(i => i.planId === plan.id);
-    const dbAmt = planInvs.reduce((s, i) => s + parseFloat(i.amount), 0);
-    const dbProfit = planInvs.reduce((s, i) => s + parseFloat(i.currentProfit || '0'), 0);
-    const base = PLAN_BASELINES[plan.name] ?? { active: 0, amountBtc: 0, profitBtc: 0 };
-
-    const totalInvestors = base.active + planInvs.length;
-    const totalAmtBtc = base.amountBtc + dbAmt;
-    const totalProfitForPlan = base.profitBtc + dbProfit;
+    const dbAmt    = planInvs.reduce((s, i) => s + parseFloat(i.amount), 0);
+    const dbPft    = planInvs.reduce((s, i) => s + parseFloat(i.currentProfit || '0'), 0);
+    const base     = PLAN_BASELINES[plan.name] ?? { active: 0, amountBtc: 0, profitBtc: 0 };
 
     return {
-      name: plan.name,
-      investors: totalInvestors,
-      aumUsd: totalAmtBtc * btcPrice,
-      profitUsd: totalProfitForPlan * btcPrice,
-      apyPct: plan.roiPercentage,
-      minInvestment: plan.usdMinAmount,
+      name:       plan.name,
+      investors:  base.active + planInvs.length,
+      aumUsd:     (base.amountBtc + dbAmt) * btcPrice,
+      profitUsd:  (base.profitBtc + dbPft) * btcPrice,
+      apyPct:     plan.roiPercentage,
     };
   });
 
   planBreakdown.sort((a, b) => b.investors - a.investors);
 
-  return {
-    btcPrice,
-    totalUsers,
-    activePositions,
-    totalAumBtc,
-    totalAumUsd: totalAumBtc * btcPrice,
-    totalProfitBtc,
-    totalProfitUsd: totalProfitBtc * btcPrice,
-    planBreakdown,
-  };
+  return { btcPrice, totalUsers, activePositions, totalAumBtc, totalAumUsd: totalAumBtc * btcPrice, totalProfitBtc, totalProfitUsd: totalProfitBtc * btcPrice, planBreakdown };
+}
+
+function fmt(n: number, decimals = 0): string {
+  return n.toLocaleString('en-US', { maximumFractionDigits: decimals });
 }
 
 // ─── Batch counter (kept for compatibility) ───────────────────────────────────
@@ -186,69 +228,46 @@ async function buildPlatformStats(): Promise<PlatformStats> {
 let updateBatchCount = 0;
 let newInvestmentBatchCount = 0;
 
-export function addInvestmentUpdateToBatch(update: any): void {
-  updateBatchCount++;
-}
-
-export function addNewInvestmentToBatch(investment: any): void {
-  newInvestmentBatchCount++;
-}
-
-export function getBatchStatistics() {
-  return { updates: updateBatchCount, newInvestments: newInvestmentBatchCount };
-}
+export function addInvestmentUpdateToBatch(_update: any): void { updateBatchCount++; }
+export function addNewInvestmentToBatch(_inv: any): void { newInvestmentBatchCount++; }
+export function getBatchStatistics() { return { updates: updateBatchCount, newInvestments: newInvestmentBatchCount }; }
 
 export async function queueDailyStats(): Promise<string> {
-  return broadcastQueue.addMessage({
-    type: 'text',
-    content: 'DAILY_STATS_PLACEHOLDER',
-    priority: 'high',
-    maxRetries: 3,
-  });
+  return broadcastQueue.addMessage({ type: 'text', content: 'DAILY_STATS_PLACEHOLDER', priority: 'high', maxRetries: 3 });
 }
 
 export async function queueInvestmentUpdate(): Promise<string> {
   const bannerPath = './attached_assets/IMG_6814_1756042561574.jpeg';
-  const bannerId = broadcastQueue.addMessage({
-    type: 'photo',
-    content: '📊 *BITVAULT PRO* — Market Update',
-    photoPath: bannerPath,
-    priority: 'normal',
-    maxRetries: 3,
-  });
-  const messageId = broadcastQueue.addMessage({
-    type: 'text',
-    content: 'INVESTMENT_UPDATE_PLACEHOLDER',
-    priority: 'normal',
-    maxRetries: 3,
-    scheduledAt: new Date(Date.now() + 5000),
-  });
+  const bannerId = broadcastQueue.addMessage({ type: 'photo', content: '📊 *BITVAULT PRO* — Market Update', photoPath: bannerPath, priority: 'normal', maxRetries: 3 });
+  const messageId = broadcastQueue.addMessage({ type: 'text', content: 'INVESTMENT_UPDATE_PLACEHOLDER', priority: 'normal', maxRetries: 3, scheduledAt: new Date(Date.now() + 5000) });
   return `${bannerId},${messageId}`;
 }
 
-export function getBroadcastStatus() {
-  return broadcastQueue.getStatus();
-}
+export function getBroadcastStatus() { return broadcastQueue.getStatus(); }
 
 // ─── Daily Stats Broadcast ────────────────────────────────────────────────────
 
 export async function sendDailyStatsToChannel(): Promise<void> {
   console.log('📊 Sending daily stats to Telegram...');
-
   try {
     const stats = await buildPlatformStats();
-
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
     const timeStr = now.toUTCString().slice(17, 22) + ' UTC';
 
-    const planLines = stats.planBreakdown.map(p =>
-      `• *${p.name}* — ${p.investors.toLocaleString()} investors — $${p.aumUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })} AUM — ${p.apyPct}% APY`
-    ).join('\n');
+    const newJoined   = randomInt(38, 127);
+    const newInvested = randomInt(12, 54);
+    const hourlyPayout = (stats.totalAumUsd * 0.0004 * (0.9 + Math.random() * 0.2));
+    const sentiment   = randomItem(SENTIMENTS);
+    const marketNote  = randomItem(MARKET_NOTES);
+    const trendingPlan = stats.planBreakdown[randomInt(0, 2)];
+    const activity    = generateActivityFeed(5);
+    const payouts     = generateRecentPayouts(stats.btcPrice, 4);
 
-    const yieldPct = stats.totalAumBtc > 0
-      ? ((stats.totalProfitBtc / stats.totalAumBtc) * 100).toFixed(2)
-      : '0.00';
+    const planLines = stats.planBreakdown.map((p, i) => {
+      const bar = i === 0 ? '🔥' : i < 3 ? '⭐' : '▪️';
+      return `${bar} *${p.name}* — ${fmt(p.investors)} investors — $${fmt(p.aumUsd)} AUM — ${p.apyPct}% APY`;
+    }).join('\n');
 
     const message =
 `🏦 *BITVAULT PRO — DAILY REPORT*
@@ -256,25 +275,49 @@ ${dateStr}  •  ${timeStr}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*₿ Bitcoin Price*
-$${stats.btcPrice.toLocaleString('en-US')} USD
-
-*📊 Platform Overview*
-👥 Active Investors: *${stats.totalUsers.toLocaleString()}*
-📂 Open Positions:  *${stats.activePositions.toLocaleString()}*
-💼 Total AUM:       *${stats.totalAumBtc.toFixed(4)} BTC  ($${stats.totalAumUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })})*
-💰 Total Returns:   *${stats.totalProfitBtc.toFixed(4)} BTC  ($${stats.totalProfitUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })})*
-📈 Platform Yield:  *${yieldPct}%*
+₿ *Bitcoin Price:* $${fmt(stats.btcPrice)}
+📊 *Sentiment:* ${sentiment}
+📌 ${marketNote}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*💹 Investment Plans*
+*📈 Platform Overview*
+👥 Active Investors:  *${fmt(stats.totalUsers)}*
+📂 Open Positions:    *${fmt(stats.activePositions)}*
+💼 Total AUM:         *${stats.totalAumBtc.toFixed(4)} BTC  ($${fmt(stats.totalAumUsd)})*
+💰 Total Returns:     *$${fmt(stats.totalProfitUsd)}*
+⚡ Profits/Hour:      *$${fmt(hourlyPayout, 2)}* paid out now
+🕐 New Investors (24h): *+${newJoined}* joined
+📥 New Investments (24h): *${newInvested}* opened
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*🔥 Trending Plan Today*
+*${trendingPlan.name}* • ${fmt(trendingPlan.investors)} active investors
+AUM: $${fmt(trendingPlan.aumUsd)} • APY: ${trendingPlan.apyPct}%
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*💹 All Investment Plans*
 
 ${planLines}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*bitvault.pro*  •  Automated Bitcoin Investment`;
+*⚡ Live Activity Feed*
+
+${activity.join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*💸 Recent Payouts*
+
+${payouts.join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏦 *bitvault.pro*  •  Automated Bitcoin Investment
+🔒 Secured • 24/7 Active • Profits Paid Every 5 Min`;
 
     const sent = await sendToChannel(message);
     if (sent) console.log('✅ Daily stats sent to Telegram');
@@ -283,41 +326,81 @@ ${planLines}
   }
 }
 
-// ─── Batched Update Broadcast ─────────────────────────────────────────────────
+// ─── Batched (Live) Update Broadcast ─────────────────────────────────────────
 
 export async function sendBatchedUpdatesToChannel(): Promise<void> {
-  console.log('📱 Sending update to Telegram...');
-
+  console.log('📱 Sending live update to Telegram...');
   try {
     const bannerPath = './attached_assets/IMG_6814_1756042561574.jpeg';
-    const bannerSent = await sendPhotoToChannel(bannerPath, '📊 *BITVAULT PRO* — Market Update');
+    const bannerSent = await sendPhotoToChannel(bannerPath, '📊 *BITVAULT PRO* — Live Market Update');
 
     const stats = await buildPlatformStats();
-
-    const now = new Date();
+    const now   = new Date();
     const timeStr = now.toUTCString().slice(17, 22) + ' UTC';
 
-    const top5 = stats.planBreakdown.slice(0, 5).map((p, i) =>
-      `${i + 1}. *${p.name}*  —  ${p.investors.toLocaleString()} investors  •  ${p.apyPct}% APY`
-    ).join('\n');
+    const newJoined   = randomInt(2, 14);
+    const openedLast  = randomInt(1, 8);
+    const sentiment   = randomItem(SENTIMENTS);
+    const marketNote  = randomItem(MARKET_NOTES);
+    const activity    = generateActivityFeed(6);
+    const payouts     = generateRecentPayouts(stats.btcPrice, 3);
+    const trendingPlan = stats.planBreakdown[randomInt(0, 2)];
+    const hourlyPayout = (stats.totalAumUsd * 0.0004 * (0.9 + Math.random() * 0.2));
+
+    // Price movement flavour
+    const change  = (Math.random() * 1.8 - 0.5).toFixed(2);
+    const arrow   = parseFloat(change) >= 0 ? '▲' : '▼';
+    const changeAbs = Math.abs(parseFloat(change)).toFixed(2);
+
+    const top5 = stats.planBreakdown.slice(0, 5).map((p, i) => {
+      const stars = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '▪️';
+      return `${stars} *${p.name}*  —  ${fmt(p.investors)} investors  •  ${p.apyPct}% APY`;
+    }).join('\n');
 
     const message =
 `📊 *BITVAULT PRO — LIVE UPDATE*
 ${timeStr}
 
-*₿ BTC/USD:* $${stats.btcPrice.toLocaleString('en-US')}
+₿ *BTC/USD:* $${fmt(stats.btcPrice)}  ${arrow} ${changeAbs}%
+📊 *Market:* ${sentiment}
+📌 ${marketNote}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 *Platform Snapshot*
-• Investors:      ${stats.totalUsers.toLocaleString()}
-• Open Positions: ${stats.activePositions.toLocaleString()}
-• AUM:            ${stats.totalAumBtc.toFixed(4)} BTC  ($${stats.totalAumUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })})
-• Returns Paid:   $${stats.totalProfitUsd.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+• Investors:       ${fmt(stats.totalUsers)}
+• Open Positions:  ${fmt(stats.activePositions)}
+• AUM:             ${stats.totalAumBtc.toFixed(4)} BTC  ($${fmt(stats.totalAumUsd)})
+• Total Returns:   $${fmt(stats.totalProfitUsd)}
+• Profits/Hour:    *$${fmt(hourlyPayout, 2)}*
+• Joined (1hr):    *+${newJoined}* new investors
+• New Positions:   *${openedLast}* opened this hour
 
-*Top Investment Plans*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*🔥 Most Active Plan*
+${trendingPlan.name} • ${fmt(trendingPlan.investors)} investors • $${fmt(trendingPlan.aumUsd)} AUM
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*🏆 Top Investment Plans*
 ${top5}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-*bitvault.pro*`;
+
+*⚡ Just Happened*
+
+${activity.join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*💸 Recent Payouts*
+
+${payouts.join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏦 *bitvault.pro*  •  Profits every 5 minutes 🚀`;
 
     const delay = bannerSent ? 5000 : 0;
     setTimeout(async () => {
@@ -326,12 +409,14 @@ ${top5}
     }, delay);
 
   } catch (err: any) {
-    console.error('❌ Batch update failed:', err.message);
+    console.error('❌ Live update failed:', err.message);
     await sendToChannel(
-`📊 *BITVAULT PRO — Update*
+`📊 *BITVAULT PRO — Market Update*
 
-Investment plans active and generating returns.
-Visit *bitvault.pro* to view your account.`
+₿ Bitcoin investment platform — profits distributed every 5 minutes.
+Thousands of investors earning daily returns right now.
+
+*bitvault.pro*`
     );
   }
 }
