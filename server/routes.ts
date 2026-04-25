@@ -269,78 +269,28 @@ async function sendDailyMotivationalNotifications(): Promise<void> {
 
     const motivationalMessages = [
       {
-        title: "💰 Daily Investment Insight",
-        message: `Bitcoin continues to lead institutional adoption with major corporations adding BTC to their balance sheets.
-
-📊 Market Update:
-• Institutional demand remains strong
-• Long-term holders continue accumulating
-• Network fundamentals show healthy growth
-
-💡 Investment Strategy: Dollar-cost averaging through BitVault VIP investment plans reduces volatility risk while maximizing long-term returns.
-
-Your consistent approach is building real wealth!`
+        title: "Daily Market Update",
+        message: "Bitcoin institutional adoption continues to grow. Your investment is actively managed and generating returns as scheduled."
       },
       {
-        title: "🎯 Portfolio Growth Milestone",
-        message: `Bitcoin has delivered exceptional returns to patient investors over the past decade.
-
-📈 Success Metrics:
-• 10-year CAGR exceeds traditional assets
-• Adoption growing across all demographics  
-• Supply remains mathematically scarce
-
-🏆 BitVault VIP Advantage: Our automated systems work 24/7 to optimize your investment timing and maximize compound growth.
-
-Stay committed to your financial goals!`
+        title: "Portfolio Active",
+        message: "Your BitVault investment plan is running. Profits are distributed automatically every 5 minutes to your account balance."
       },
       {
-        title: "🚀 Market Opportunity Alert",
-        message: `The best investment opportunities come to those who prepare and act consistently.
-
-💎 Investment Wisdom:
-• Time in market beats timing the market
-• Consistent accumulation builds lasting wealth
-• Professional management reduces emotional decisions
-
-🌟 BitVault VIP delivers institutional-grade investment strategies directly to your portfolio. Your systematic approach is paying dividends!`
+        title: "Investment Reminder",
+        message: "Consistent investing builds long-term wealth. Your current plan is on track — check your dashboard for the latest profit figures."
       },
       {
-        title: "📊 Financial Freedom Progress",
-        message: `Building wealth requires patience, strategy, and the right investment platform.
-
-🎯 Your Progress:
-• Consistent investment approach ✓
-• Professional management active ✓
-• Long-term strategy in place ✓
-
-💪 Keep Growing: Every successful investor started with a single decision to begin. Your commitment to BitVault VIP investment plans positions you for long-term financial success.`
+        title: "Market Update",
+        message: "Bitcoin markets remain active. Your automated investment strategy continues to generate daily returns according to your plan schedule."
       },
       {
-        title: "⭐ Investment Community Update",
-        message: `You're part of an exclusive community of forward-thinking Bitcoin investors.
-
-🏆 Community Achievements:
-• Thousands of successful investment outcomes
-• Consistent daily returns being generated
-• Professional portfolio management active
-
-🎯 Pro Insight: The cryptocurrency market rewards disciplined, long-term investors. Your BitVault VIP investment strategy is designed for sustainable wealth building.
-
-Excellence in investment requires patience and professional guidance!`
+        title: "Account Activity",
+        message: "Your investment plan is progressing normally. Log in to view your current profit balance and estimated completion date."
       },
       {
-        title: "💎 Weekly Portfolio Performance",
-        message: `Professional investment management delivers consistent results through market cycles.
-
-📈 Performance Highlights:
-• Automated trading systems active
-• Risk management protocols engaged
-• Portfolio optimization ongoing
-
-🔥 Investment Fact: Systematic investment approaches historically outperform emotional trading by significant margins.
-
-Your BitVault VIP investment plans are working professionally while you focus on your life!`
+        title: "Weekly Summary",
+        message: "Your BitVault investment plan is active and performing as expected. Profits are credited automatically — no action required from you."
       }
     ];
 
@@ -843,8 +793,8 @@ async function processAutomaticUpdates(): Promise<void> {
           if (Math.random() < 0.35) { // 35% chance to notify on failure
             await storage.createNotification({
               userId: investment.userId,
-              title: scenario.title,
-              message: `${plan.name} • Investment #${investment.id}\n\n**TRADE CYCLE UPDATE**\n\nStatus: No profit this interval ⏸️\nReason: ${scenario.reason}\n\n**MARKET ANALYSIS**\n${scenario.detail}\n\n**ACTION TAKEN**\n${scenario.action}\n\n**ACCOUNT STATUS**\nBalance: ${user.balance} BTC (Unchanged)\nPrincipal: 100% Protected ✓\nNext Review: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}\n\nℹ️ Professional trading prioritizes capital preservation. Your funds remain secure while we wait for optimal market conditions.`,
+              title: "No Profit This Interval",
+              message: `${plan.name}: No return was generated this interval. ${scenario.reason}. Your principal remains protected and the investment continues as normal.`,
               type: 'info',
               isRead: false,
             });
@@ -967,64 +917,6 @@ async function processAutomaticUpdates(): Promise<void> {
         });
 
         if (shouldCreateNotification) {
-          const transactionId = crypto.randomBytes(32).toString('hex');
-
-          // Top 10 realistic trading strategies from the requirements
-          const tradingStrategies = [
-            {
-              name: "Dollar-Cost Averaging (DCA) into Bitcoin",
-              source: "Automated DCA Protocol",
-              detail: "Systematic accumulation executed across 6 major exchanges"
-            },
-            {
-              name: "Staking Established Proof-of-Stake Coins",
-              source: "Multi-Chain Staking Engine",
-              detail: "Distributed staking: ETH, ADA, SOL, DOT validators"
-            },
-            {
-              name: "Arbitrage Trading (CEX to CEX)",
-              source: "Cross-Exchange Arbitrage Bot",
-              detail: "Exploited price differential between Binance ↔ Coinbase"
-            },
-            {
-              name: "Grid Trading Bots",
-              source: "Automated Grid Trading System",
-              detail: "Profit from volatility in ranging markets"
-            },
-            {
-              name: "DeFi Yield Farming",
-              source: "Blue-chip DeFi Protocol",
-              detail: "Liquidity provision: Uniswap V3, Aave, Curve Finance"
-            },
-            {
-              name: "Swing Trading Major Altcoins",
-              source: "Technical Analysis Engine",
-              detail: "Position: ETH, SOL, BNB - Medium-term holds"
-            },
-            {
-              name: "Options Strategies (Covered Calls)",
-              source: "Options Trading Desk",
-              detail: "Income generation from existing BTC holdings"
-            },
-            {
-              name: "Leverage Trading (3x-5x)",
-              source: "Risk-Managed Leverage Protocol",
-              detail: "Controlled 3x leverage with strict stop-loss"
-            },
-            {
-              name: "Early Altcoin Research & Entry",
-              source: "Fundamental Analysis Team",
-              detail: "Low-cap gem identified - Entry executed"
-            },
-            {
-              name: "NFT Flipping (Blue-chip)",
-              source: "NFT Trading Desk",
-              detail: "BAYC floor sweep - Quick flip opportunity"
-            }
-          ];
-
-          const randomStrategy = tradingStrategies[Math.floor(Math.random() * tradingStrategies.length)];
-
           // Calculate USD profit values for notifications
           const grossProfitUsd = isUsdInvestment ? profitPer5Min : 0;
           const feeUsd = isUsdInvestment && performanceFeePercentage > 0 ? (grossProfitUsd * performanceFeePercentage / 100) : 0;
@@ -1032,27 +924,25 @@ async function processAutomaticUpdates(): Promise<void> {
           const totalGrossUsd = currentGrossProfitUsd + grossProfitUsd;
           const totalNetUsd = totalGrossUsd - (totalGrossUsd * performanceFeePercentage / 100);
 
-          // Varied notification formats with accurate USD profit display
+          // Standard concise notification formats
           const notificationFormats = [
-            // Format 1: Professional trading report with USD details
             {
-              title: "💰 Trade Executed Successfully",
-              message: `📊 ${plan.name} • Investment #${investment.id}\n\n🎯 STRATEGY DEPLOYED\n${randomStrategy.name}\n\n⚡ EXECUTION DETAILS\nSource: ${randomStrategy.source}\n${randomStrategy.detail}\n\n💵 PROFIT UPDATE (USD)\n${isUsdInvestment ? `Gross Profit: +$${grossProfitUsd.toFixed(2)}\nPerformance Fee (${performanceFeePercentage}%): -$${feeUsd.toFixed(2)}\nNet Profit to You: +$${netProfitUsd.toFixed(2)}\n\nCumulative Progress:\nTotal Gross: $${totalGrossUsd.toFixed(2)} / $${targetGrossProfitUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nRemaining: $${(targetGrossProfitUsd - totalGrossUsd).toFixed(2)}` : `Latest Return: +${actualProfitToCreditBTC.toFixed(8)} BTC\nTotal Profit: ${totalProfitBTC.toFixed(8)} BTC`}\n\nDaily Rate: ${(dailyRate * 100).toFixed(3)}%\nAPY Target: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 Transaction: ${transactionId.substring(0, 16)}...\n💼 Balance: ${newBalance.toFixed(8)} BTC\n\n✅ Position performing as expected`
+              title: "Profit Credited",
+              message: isUsdInvestment
+                ? `${plan.name}: +$${netProfitUsd.toFixed(2)} net profit added. Total earned: $${totalNetUsd.toFixed(2)} of $${targetGrossProfitUsd.toFixed(2)} target. Progress: ${(elapsedMinutes / totalMinutes * 100).toFixed(1)}% complete.`
+                : `${plan.name}: +${actualProfitToCreditBTC.toFixed(8)} BTC profit added. Total: ${totalProfitBTC.toFixed(8)} BTC.`
             },
-            // Format 2: Market opportunity style with countdown progress
             {
-              title: "🚀 Market Opportunity Captured",
-              message: `${plan.name} • Position #${investment.id}\n\nOPPORTUNITY IDENTIFIED\nStrategy: ${randomStrategy.name}\nExecution: ${randomStrategy.source}\n\nTRADE OUTCOME\nEntry Signal: Confirmed ✓\n${isUsdInvestment ? `\n💰 5-MIN PROFIT BREAKDOWN\nGross: +$${grossProfitUsd.toFixed(2)}\nFee: -$${feeUsd.toFixed(2)} (${performanceFeePercentage}%)\nNet: +$${netProfitUsd.toFixed(2)}\n\n📊 COUNTDOWN STATUS\nProgress: ${elapsedMinutes}/${totalMinutes} min (${(elapsedMinutes/totalMinutes*100).toFixed(1)}%)\nRemaining: ${remainingMinutes} minutes` : `Profit: +${actualProfitToCreditBTC.toFixed(8)} BTC\nTotal: ${totalProfitBTC.toFixed(8)} BTC`}\n\nPORTFOLIO STATUS\nBalance: ${newBalance.toFixed(8)} BTC\nAPY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTxID: ${transactionId.substring(0, 12)}...\n\n📈 Systematic profit distribution active!`
+              title: "Investment Return Added",
+              message: isUsdInvestment
+                ? `${plan.name} generated $${grossProfitUsd.toFixed(2)} gross profit this interval. After ${performanceFeePercentage}% performance fee, $${netProfitUsd.toFixed(2)} was credited to your account.`
+                : `${plan.name}: ${actualProfitToCreditBTC.toFixed(8)} BTC added to your balance. Total profit to date: ${totalProfitBTC.toFixed(8)} BTC.`
             },
-            // Format 3: Concise professional update with exact calculations
             {
-              title: "✅ Position Update - Profit Added",
-              message: `${randomStrategy.name}\n${randomStrategy.detail}\n\nInvestment #${investment.id} - ${plan.name}\n\n${isUsdInvestment ? `💵 THIS INTERVAL\nGross: +$${grossProfitUsd.toFixed(6)}\nFee (${performanceFeePercentage}%): -$${feeUsd.toFixed(6)}\nNet: +$${netProfitUsd.toFixed(6)}\n\n📈 CUMULATIVE\nTotal Gross: $${totalGrossUsd.toFixed(2)}\nTotal Net: $${totalNetUsd.toFixed(2)}\nTarget: $${targetGrossProfitUsd.toFixed(2)}` : `✓ Profit: +${actualProfitToCreditBTC.toFixed(8)} BTC\n✓ Total: ${totalProfitBTC.toFixed(8)} BTC`}\n✓ Balance: ${newBalance.toFixed(8)} BTC\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nAPY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTx Hash: ${transactionId.substring(0, 14)}...`
-            },
-            // Format 4: Institutional style with complete breakdown
-            {
-              title: "📈 Portfolio Performance Update",
-              message: `BITVAULT PRO • ${plan.name}\n\n━━━━━━━━━━━━━━━━━━━━━━\nAUTOMATED STRATEGY REPORT\n━━━━━━━━━━━━━━━━━━━━━━\n\nStrategy: ${randomStrategy.name}\nPlatform: ${randomStrategy.source}\nExecution: ${randomStrategy.detail}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT ALLOCATION\n━━━━━━━━━━━━━━━━━━━━━━\n\n${isUsdInvestment ? `USD COUNTDOWN SYSTEM\nInterval Gross: +$${grossProfitUsd.toFixed(6)}\nPerformance Fee: -$${feeUsd.toFixed(6)}\nNet to Account: +$${netProfitUsd.toFixed(6)}\n\nPROGRESS TRACKER\nElapsed: ${elapsedMinutes} min\nRemaining: ${remainingMinutes} min\nCompletion: ${(elapsedMinutes/totalMinutes*100).toFixed(1)}%\n\nPROFIT STATUS\nGross Earned: $${totalGrossUsd.toFixed(2)}\nNet Earned: $${totalNetUsd.toFixed(2)}\nTarget Gross: $${targetGrossProfitUsd.toFixed(2)}` : `Latest: +${actualProfitToCreditBTC.toFixed(8)} BTC\nTotal: ${totalProfitBTC.toFixed(8)} BTC`}\nBalance: ${newBalance.toFixed(8)} BTC\n\nPerformance: ${(dailyRate * 100).toFixed(3)}% daily\nTarget APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nInvestment #${investment.id} - Active`
+              title: "Earnings Update",
+              message: isUsdInvestment
+                ? `${plan.name} is ${(elapsedMinutes / totalMinutes * 100).toFixed(1)}% complete. $${totalNetUsd.toFixed(2)} earned so far, ${remainingMinutes} minutes remaining.`
+                : `${plan.name}: latest return of ${actualProfitToCreditBTC.toFixed(8)} BTC credited. Running total: ${totalProfitBTC.toFixed(8)} BTC.`
             }
           ];
 
@@ -1102,88 +992,20 @@ async function processAutomaticUpdates(): Promise<void> {
           const shouldCreateNotification = Math.random() < 0.6; // 60% chance for better visibility
 
           if (shouldCreateNotification) {
-            const transactionId = crypto.randomBytes(32).toString('hex');
+            const profitPercent = ((increase / currentBalance) * 100).toFixed(4);
 
-            // Enhanced Top 10 strategy selection for plan growth - matching investment strategies
-            const planStrategies = [
-              {
-                name: "Bitcoin DCA Strategy",
-                execution: "Systematic accumulation across Binance, Coinbase, Kraken",
-                metric: "Entry timing optimized • 0.3% slippage reduction",
-                category: "Conservative Growth"
-              },
-              {
-                name: "ETH Staking Protocol",
-                execution: "Distributed across 15 validators • Auto-compound enabled",
-                metric: "99.9% uptime • 5.2% APY realized",
-                category: "Passive Income"
-              },
-              {
-                name: "CEX Arbitrage Bot",
-                execution: "Price differential exploited: Binance ↔ FTX ↔ Coinbase",
-                metric: "Avg spread: 0.6% • 18 trades executed",
-                category: "Market Neutral"
-              },
-              {
-                name: "Grid Trading Algorithm",
-                execution: "BTC range: $112K-$118K • 25 grid levels active",
-                metric: "Volatility capture: 87% efficiency",
-                category: "Automated Trading"
-              },
-              {
-                name: "DeFi Yield Optimization",
-                execution: "Liquidity deployed: Uniswap V3, Aave, Curve Finance",
-                metric: "Impermanent loss hedged • 12.3% APY",
-                category: "DeFi Protocol"
-              },
-              {
-                name: "Swing Trading Engine",
-                execution: "Position entries: ETH (+3.2%), SOL (+5.1%), AVAX (+2.8%)",
-                metric: "Technical analysis: 4/5 signals bullish",
-                category: "Active Trading"
-              },
-              {
-                name: "Covered Call Strategy",
-                execution: "Income from BTC holdings • Weekly options sold",
-                metric: "Premium collected: 0.8% on principal",
-                category: "Options Trading"
-              },
-              {
-                name: "3x Leverage Protocol",
-                execution: "Risk-managed position • Stop-loss: -2% | Take-profit: +8%",
-                metric: "Win rate this cycle: 72%",
-                category: "Leverage Trading"
-              },
-              {
-                name: "Altcoin Research Fund",
-                execution: "Low-cap gem identified: Layer-2 scaling solution",
-                metric: "Early entry secured • Risk: 5% of portfolio",
-                category: "Growth Investing"
-              },
-              {
-                name: "NFT Trading Desk",
-                execution: "Blue-chip floor sweep: BAYC derivatives",
-                metric: "Quick flip executed • 15% gain realized",
-                category: "Alternative Assets"
-              }
-            ];
-
-            const planStrategy = planStrategies[Math.floor(Math.random() * planStrategies.length)];
-            const profitPercent = ((increase / currentBalance) * 100).toFixed(3);
-
-            // Varied notification formats for plan growth
             const growthFormats = [
               {
-                title: `💎 ${planStrategy.category} • Profit Generated`,
-                message: `${plan.name} Active Management\n\n🎯 STRATEGY EXECUTED\n${planStrategy.name}\n\n⚡ EXECUTION REPORT\n${planStrategy.execution}\n\n📊 PERFORMANCE METRICS\n${planStrategy.metric}\n\n💵 PROFIT ALLOCATION\nLatest: +${increase.toFixed(8)} BTC (+${profitPercent}%)\nBalance: ${newBalance.toFixed(8)} BTC\nDaily: ${(dailyRate * 100).toFixed(3)}% | APY: ${(dailyRate * 365 * 100).toFixed(1)}%\n\n🔐 TxID: ${transactionId.substring(0, 14)}...\n\n✅ Your diversified portfolio is generating consistent returns`
+                title: "Profit Credited",
+                message: `${plan.name}: +${increase.toFixed(8)} BTC added to your balance (${profitPercent}% return this interval). New balance: ${newBalance.toFixed(8)} BTC.`
               },
               {
-                title: "📈 Automated Strategy - Position Updated",
-                message: `${plan.name} • Portfolio Optimization\n\n━━━━━━━━━━━━━━━━━━━━━━\n${planStrategy.name}\nCategory: ${planStrategy.category}\n━━━━━━━━━━━━━━━━━━━━━━\n\nExecution: ${planStrategy.execution}\n\nPerformance: ${planStrategy.metric}\n\n━━━━━━━━━━━━━━━━━━━━━━\nPROFIT UPDATE\n━━━━━━━━━━━━━━━━━━━━━━\n\nReturn: +${increase.toFixed(8)} BTC\nBalance: ${newBalance.toFixed(8)} BTC\nGrowth: +${profitPercent}%\n\nRate: ${(dailyRate * 100).toFixed(3)}% daily\nTarget: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nHash: ${transactionId.substring(0, 12)}...`
+                title: "Earnings Update",
+                message: `Your ${plan.name} generated ${increase.toFixed(8)} BTC this interval. Daily rate: ${(dailyRate * 100).toFixed(3)}%. Balance: ${newBalance.toFixed(8)} BTC.`
               },
               {
-                title: "🚀 Portfolio Performance - Strategy Active",
-                message: `BITVAULT PRO • ${plan.name}\n\n${planStrategy.category} Strategy Deployed\n\nStrategy: ${planStrategy.name}\n${planStrategy.execution}\n\nPerformance Analysis:\n${planStrategy.metric}\n\nProfit Generated: +${increase.toFixed(8)} BTC\nNew Balance: ${newBalance.toFixed(8)} BTC\nReturn Rate: +${profitPercent}%\n\nDaily Target: ${(dailyRate * 100).toFixed(3)}%\nAnnual Projection: ${(dailyRate * 365 * 100).toFixed(1)}% APY\n\nTransaction: ${transactionId.substring(0, 16)}...\n\nProfessional fund managers actively optimizing your positions 24/7`
+                title: "Investment Return",
+                message: `${plan.name} credited ${increase.toFixed(8)} BTC to your account. Your investment is performing at ${(dailyRate * 100).toFixed(3)}% per day.`
               }
             ];
 

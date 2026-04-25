@@ -59,25 +59,25 @@ export function InvestmentPlans() {
   const handleInvest = (plan: InvestmentPlan) => {
     if (!user) return;
 
-    // Calculate BTC equivalent in real-time from USD amount
-    const currentPrice = bitcoinPrice?.usd.price || 121000;
-    const btcAmount = (parseFloat(plan.usdMinAmount) / currentPrice).toFixed(8);
+    const usdAmount = parseFloat(plan.usdMinAmount);
+    const currentPrice = bitcoinPrice?.usd.price || 77000;
+    const btcEquivalent = (usdAmount / currentPrice).toFixed(8);
+    const expectedProfit = (usdAmount * plan.roiPercentage / 100).toFixed(2);
 
     const confirmed = confirm(
       `Invest in ${plan.name}?\n\n` +
-      `Investment: $${plan.usdMinAmount}\n` +
-      `BTC Equivalent: ${btcAmount} BTC (at current price)\n` +
-      `Expected Profit: +$${(parseFloat(plan.usdMinAmount) * plan.roiPercentage / 100).toFixed(2)}\n` +
+      `Investment: $${usdAmount.toFixed(2)} USD\n` +
+      `BTC Equivalent: ${btcEquivalent} BTC (at current price)\n` +
+      `Expected Profit: +$${expectedProfit} USD\n` +
       `Duration: ${plan.durationDays} days\n` +
-      `Daily Rate: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(3)}% per day\n\n` +
+      `Daily Rate: ${parseFloat(plan.dailyReturnRate).toFixed(4)}%\n\n` +
       `Proceed with investment?`
     );
 
     if (confirmed) {
-      console.log('Creating investment with amount:', btcAmount);
       createInvestmentMutation.mutate({
         planId: plan.id,
-        amount: btcAmount,
+        amount: usdAmount.toFixed(2),
       });
     }
   };
