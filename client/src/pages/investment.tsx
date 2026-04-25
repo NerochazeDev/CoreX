@@ -17,9 +17,6 @@ import { Link } from "wouter";
 import { useBitcoinPrice } from "@/hooks/use-bitcoin-price";
 import { BitVaultLogo } from "@/components/bitvault-logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 
 export default function Investment() {
   const { user } = useAuth();
@@ -113,6 +110,8 @@ export default function Investment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/investments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/investments/user', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       toast({
         title: "Investment Submitted",
         description: "Your investment has been submitted and is pending confirmation.",
@@ -126,6 +125,30 @@ export default function Investment() {
       });
     },
   });
+
+  const handleInvestPlan = (plan: InvestmentPlan) => {
+    if (!user) return;
+    const planUsdAmount = parseFloat(plan.usdMinAmount);
+    const currentPrice = bitcoinPrice?.usd.price || 121000;
+    const btcAmount = (planUsdAmount / currentPrice).toFixed(8);
+
+    const confirmed = confirm(
+      `Invest in ${plan.name}?\n\n` +
+      `Amount: $${planUsdAmount.toFixed(2)} (${btcAmount} BTC)\n` +
+      `Duration: ${plan.durationDays} days\n` +
+      `Total ROI: ${plan.roiPercentage}%\n` +
+      `Daily Return: ${(parseFloat(plan.dailyReturnRate) * 100).toFixed(4)}%\n` +
+      `Performance Fee: ${plan.performanceFeePercentage || 0}%\n\n` +
+      `Proceed?`
+    );
+
+    if (confirmed) {
+      createInvestmentMutation.mutate({
+        planId: plan.id,
+        amount: planUsdAmount.toFixed(2),
+      });
+    }
+  };
 
   const getPlanName = (planId: number) => {
     return plans?.find(plan => plan.id === planId)?.name || `Plan ${planId}`;
@@ -153,33 +176,9 @@ export default function Investment() {
 
   const currencyPrice = currency === 'USD' ? bitcoinPrice?.usd.price : bitcoinPrice?.gbp.price;
 
-  const [investmentAmount, setInvestmentAmount] = useState<string>("10");
-
-  const handleInvest = () => {
-    if (!user) return;
-    
-    const amount = parseFloat(investmentAmount);
-    if (isNaN(amount) || amount < 10 || amount > 12000) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter an amount between $10 and $12,000",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const currentPrice = bitcoinPrice?.usd.price || 121000;
-    const btcAmount = (amount / currentPrice).toFixed(8);
-    
-    const confirmed = confirm(`Invest $${amount.toFixed(2)} (${btcAmount} BTC)?\n\nDaily Growth: 2.57% (Adjustable by Admin)\nMin: $10 | Max: $12,000\n\nProceed?`);
-    
-    if (confirmed) {
-      createInvestmentMutation.mutate({
-        planId: 1, // Using a default plan ID since it's now amount-based
-        amount: investmentAmount,
-      });
-    }
-  };
+  const sortedPlans = [...(plans || [])].sort(
+    (a, b) => parseFloat(a.usdMinAmount) - parseFloat(b.usdMinAmount)
+  );
 
   const getGradientClass = (color: string) => {
     switch (color) {
@@ -353,7 +352,7 @@ export default function Investment() {
           </div>
         </div>
 
-        {/* Investment Input Section */}
+        {/* Investment Plans Section */}
         <div className="relative">
           <div className="absolute top-2 left-2 w-full h-full bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-2xl blur-sm"></div>
           <Card className="relative bg-gradient-to-br from-orange-500/10 via-orange-600/5 to-orange-700/10 dark:from-orange-600/20 dark:via-orange-700/15 dark:to-orange-800/20 backdrop-blur-xl border border-orange-400/30 dark:border-orange-500/30 rounded-2xl shadow-xl shadow-orange-600/20">
@@ -362,52 +361,124 @@ export default function Investment() {
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-400/30 to-orange-500/40 dark:from-orange-500/30 dark:to-orange-600/40 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
                   <DollarSign className="w-5 h-5 text-orange-700 dark:text-orange-300" />
                 </div>
-                Start Investing
+                Choose an Investment Plan
               </CardTitle>
+              <p className="text-sm text-orange-700/70 dark:text-orange-200/70 mt-2">
+                Select one of our USD-based plans below. Returns are paid into your balance automatically every 5 minutes.
+              </p>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="space-y-2">
-                <Label className="text-orange-900/70 dark:text-orange-100/70 font-medium">Investment Amount (USD)</Label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-orange-600 font-bold">$</span>
-                  </div>
-                  <Input 
-                    type="number"
-                    value={investmentAmount} 
-                    onChange={(e) => setInvestmentAmount(e.target.value)} 
-                    placeholder="Enter amount (10 - 12,000)"
-                    min="10"
-                    max="12000"
-                    className="pl-8 bg-white/50 dark:bg-gray-900/50 border-orange-100 dark:border-orange-900/30 focus:ring-orange-500 rounded-xl h-12 text-lg font-medium"
-                  />
+            <CardContent className="p-4 sm:p-6">
+              {sortedPlans.length === 0 ? (
+                <div className="text-center py-12 text-orange-700/70 dark:text-orange-200/70" data-testid="text-no-plans">
+                  Loading investment plans…
                 </div>
-                <div className="flex justify-between text-xs font-medium italic">
-                  <span className="text-orange-600/70">Min: $10</span>
-                  <span className="text-orange-600/70">Max: $12,000</span>
-                </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {sortedPlans.map((plan) => {
+                    const planUsd = parseFloat(plan.usdMinAmount);
+                    const dailyRatePct = parseFloat(plan.dailyReturnRate) * 100;
+                    const grossDailyUsd = planUsd * (dailyRatePct / 100);
+                    const feePct = plan.performanceFeePercentage || 0;
+                    const netDailyUsd = grossDailyUsd * (1 - feePct / 100);
+                    const totalNetUsd = netDailyUsd * plan.durationDays;
+                    const isSubmittingThis =
+                      createInvestmentMutation.isPending &&
+                      createInvestmentMutation.variables?.planId === plan.id;
 
-              <div className="p-4 bg-orange-50/50 dark:bg-orange-950/30 border border-orange-200/50 dark:border-orange-800/30 rounded-xl space-y-2">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-orange-900/60 dark:text-orange-100/60">Estimated Daily Growth</span>
-                  <span className="text-orange-900 dark:text-orange-100 font-bold">2.57%</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-orange-900/60 dark:text-orange-100/60">Daily Return (Est.)</span>
-                  <span className="text-green-600 dark:text-green-400 font-bold">
-                    ${((parseFloat(investmentAmount) || 0) * 0.0257).toFixed(2)}
-                  </span>
-                </div>
-              </div>
+                    return (
+                      <div
+                        key={plan.id}
+                        className="relative group"
+                        data-testid={`card-plan-${plan.id}`}
+                      >
+                        <div className="absolute top-1.5 left-1.5 w-full h-full bg-gradient-to-br from-orange-500/15 to-orange-600/20 rounded-2xl blur-sm group-hover:opacity-80 opacity-60 transition-opacity"></div>
+                        <Card className="relative h-full flex flex-col bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border border-orange-300/40 dark:border-orange-500/30 rounded-2xl shadow-lg shadow-orange-600/10 transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-orange-600/20">
+                          <CardContent className="p-5 flex flex-col flex-1 gap-4">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="text-xs uppercase tracking-wider font-semibold text-orange-600/80 dark:text-orange-300/70">
+                                  {plan.name}
+                                </p>
+                                <p
+                                  className="text-2xl font-extrabold text-orange-800 dark:text-orange-100 mt-1"
+                                  data-testid={`text-plan-amount-${plan.id}`}
+                                >
+                                  ${planUsd.toLocaleString()}
+                                </p>
+                              </div>
+                              <Badge
+                                variant="secondary"
+                                className="bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-200 border border-orange-200/60 dark:border-orange-700/40 font-semibold"
+                                data-testid={`badge-plan-roi-${plan.id}`}
+                              >
+                                {plan.roiPercentage}% ROI
+                              </Badge>
+                            </div>
 
-              <Button 
-                onClick={handleInvest}
-                disabled={createInvestmentMutation.isPending}
-                className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg shadow-orange-600/20 rounded-xl h-14 text-lg font-bold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                {createInvestmentMutation.isPending ? "Processing..." : "Secure Investment Now"}
-              </Button>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                                  <Calendar className="w-3.5 h-3.5" />
+                                  Duration
+                                </span>
+                                <span className="font-semibold text-gray-800 dark:text-gray-100" data-testid={`text-plan-duration-${plan.id}`}>
+                                  {plan.durationDays} days
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                                  <Activity className="w-3.5 h-3.5" />
+                                  Daily Rate
+                                </span>
+                                <span className="font-semibold text-gray-800 dark:text-gray-100">
+                                  {dailyRatePct.toFixed(4)}%
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                                  <TrendingUp className="w-3.5 h-3.5" />
+                                  Daily Net
+                                </span>
+                                <span className="font-bold text-green-600 dark:text-green-400" data-testid={`text-plan-daily-net-${plan.id}`}>
+                                  ${netDailyUsd.toFixed(netDailyUsd < 1 ? 3 : 2)}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                                  <Award className="w-3.5 h-3.5" />
+                                  Total Net
+                                </span>
+                                <span className="font-bold text-green-700 dark:text-green-300" data-testid={`text-plan-total-net-${plan.id}`}>
+                                  ${totalNetUsd.toFixed(2)}
+                                </span>
+                              </div>
+                              {feePct > 0 && (
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-500 dark:text-gray-500 text-xs">
+                                    Performance fee
+                                  </span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {feePct}%
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            <Button
+                              onClick={() => handleInvestPlan(plan)}
+                              disabled={createInvestmentMutation.isPending}
+                              className="mt-auto w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-md shadow-orange-600/20 rounded-xl h-11 font-bold transition-all duration-200"
+                              data-testid={`button-invest-plan-${plan.id}`}
+                            >
+                              {isSubmittingThis ? "Processing…" : `Invest $${planUsd.toLocaleString()}`}
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

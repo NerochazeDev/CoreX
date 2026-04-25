@@ -2234,11 +2234,25 @@ Network: TRC20`;
         console.error('❌ Investment validation error:', parseError.errors);
         return res.status(400).json({ error: "Invalid request: " + parseError.errors.map((e: any) => e.message).join(", ") });
       }
-      
+
+      const { planId, amount } = parsedData;
       const investmentAmount = parseFloat(amount);
 
-      if (investmentAmount < 10 || investmentAmount > 12000) {
+      if (isNaN(investmentAmount) || investmentAmount < 10 || investmentAmount > 12000) {
         return res.status(400).json({ error: "Investment amount must be between $10 and $12,000 USD" });
+      }
+
+      // Look up the selected plan
+      const plan = await storage.getInvestmentPlan(planId);
+      if (!plan) {
+        return res.status(404).json({ error: "Investment plan not found" });
+      }
+
+      const planMinUsd = parseFloat(plan.usdMinAmount);
+      if (investmentAmount < planMinUsd) {
+        return res.status(400).json({
+          error: `Minimum investment for ${plan.name} is $${planMinUsd.toFixed(2)} USD`,
+        });
       }
 
       // Get user and check balance
@@ -2275,7 +2289,7 @@ Network: TRC20`;
         amount: btcAmountNeeded.toFixed(8),
         usdAmount: investmentAmount.toFixed(2)
       });
-      console.log(`✅ Investment #${investment.id} created: ${btcAmountNeeded.toFixed(8)} BTC ($${investmentAmount.toFixed(2)} USD) in plan ${planId}`);
+      console.log(`✅ Investment #${investment.id} created: ${btcAmountNeeded.toFixed(8)} BTC ($${investmentAmount.toFixed(2)} USD) in plan ${planId} (${plan.name})`);
 
       const usdEquivalent = investmentAmount.toLocaleString('en-US', {
         style: 'currency',
@@ -2288,7 +2302,7 @@ Network: TRC20`;
       await storage.createNotification({
         userId: userId,
         title: 'Investment Submitted',
-        message: `Your investment of ${amount} BTC (${usdEquivalent}) in ${plan.name} has been submitted.`,
+        message: `Your investment of ${usdEquivalent} (${btcAmountNeeded.toFixed(8)} BTC) in ${plan.name} has been submitted.`,
         type: 'info',
         isRead: false,
       });
@@ -2300,7 +2314,7 @@ Network: TRC20`;
         userFirstName: user.firstName || undefined,
         userLastName: user.lastName || undefined,
         planName: plan.name,
-        amount: amount,
+        amount: btcAmountNeeded.toFixed(8),
         duration: plan.durationDays,
         expectedROI: plan.roiPercentage,
         timestamp: new Date().toISOString()
